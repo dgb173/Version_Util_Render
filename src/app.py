@@ -1,0 +1,1500 @@
+# app.py - Servidor web principal (Flask)
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from flask import Flask, render_template, abort, request, redirect, url_for
+import asyncio
+try:
+    from playwright.async_api import async_playwright
+except ImportError:
+    async_playwright = None
+from bs4 import BeautifulSoup
+import datetime
+import re
+import math
+import threading
+import json
+import time
+import logging
+from pathlib import Path
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+import csv
+import os
+
+# ¡Importante! Importa tu nuevo módulo de scraping
+from modules.estudio_scraper import (
+    analizar_partido_completo, 
+    format_ah_as_decimal_string_of,
+    parse_ah_to_number_of,
+    check_handicap_cover,
+    generar_analisis_completo_mercado
+)
+
+from modules.pattern_search import find_similar_patterns, explore_matches
+from flask import jsonify # Asegúrate de que jsonify está importado
+
+app = Flask(__name__)
+
+# --- CONFIGURACIÓN CSV ---
+STUDIED_MATCHES_DIR = Path(__file__).resolve().parent.parent / 'studied_matches'
+STUDIED_MATCHES_CSV = STUDIED_MATCHES_DIR / 'history.csv'
+STUDIED_MATCHES_JSON = STUDIED_MATCHES_DIR / 'history.json'
+
+def save_match_to_csv(match_data):
+    """Guarda los datos básicos del partido en un CSV."""
+    try:
+        STUDIED_MATCHES_DIR.mkdir(parents=True, exist_ok=True)
+        
+        file_exists = STUDIED_MATCHES_CSV.exists()
+        
+        # Definir columnas
+        fieldnames = [
+            'timestamp', 'match_id', 'home_team', 'away_team', 
+            'score', 'time', 'competition', 'ah_line', 'ou_line',
+            'last_home_score', 'last_home_ah',
+            'last_away_score', 'last_away_ah',
+            'comp_home_rival', 'comp_home_score', 'comp_home_ah', 'comp_home_localia',
+            'comp_away_rival', 'comp_away_score', 'comp_away_ah', 'comp_away_localia'
+        ]
+        
+        # Helper to safely get nested dict values
+        def get_nested(d, *keys):
+            for k in keys:
+                if not isinstance(d, dict): return ''
+                d = d.get(k, {})
+            return d if isinstance(d, str) or isinstance(d, (int, float)) else ''
+
+        row = {
+            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'match_id': match_data.get('match_id', ''),
+            'home_team': match_data.get('home_name', ''),
+            'away_team': match_data.get('away_name', ''),
+            'score': match_data.get('final_score', ''),
+            'time': match_data.get('time', ''),
+            'competition': match_data.get('league_name', ''),
+            'ah_line': get_nested(match_data, 'main_match_odds', 'ah_linea'),
+            'ou_line': get_nested(match_data, 'main_match_odds', 'goals_linea'),
+            
+            # Historial Inmediato
+            'last_home_score': get_nested(match_data, 'last_home_match', 'score'),
+            'last_home_ah': get_nested(match_data, 'last_home_match', 'handicap_line_raw'),
+            'last_away_score': get_nested(match_data, 'last_away_match', 'score'),
+            'last_away_ah': get_nested(match_data, 'last_away_match', 'handicap_line_raw'),
+            
+            # Comparativas Indirectas (H2H Rivales Col3)
+            # Nota: Ahora están dentro de 'comparativas_indirectas' -> 'left' / 'right'
+            'comp_home_rival': get_nested(match_data, 'comparativas_indirectas', 'left', 'rival_name'),
+            'comp_home_score': get_nested(match_data, 'comparativas_indirectas', 'left', 'score'),
+            'comp_home_ah': get_nested(match_data, 'comparativas_indirectas', 'left', 'ah_line'),
+            'comp_home_localia': get_nested(match_data, 'comparativas_indirectas', 'left', 'localia'),
+            
+            'comp_away_rival': get_nested(match_data, 'comparativas_indirectas', 'right', 'rival_name'),
+            'comp_away_score': get_nested(match_data, 'comparativas_indirectas', 'right', 'score'),
+            'comp_away_ah': get_nested(match_data, 'comparativas_indirectas', 'right', 'ah_line'),
+            'comp_away_localia': get_nested(match_data, 'comparativas_indirectas', 'right', 'localia'),
+        }
+
+        # Verificar duplicados
+        if file_exists:
+            try:
+                with open(STUDIED_MATCHES_CSV, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for r in reader:
+                        if r.get('match_id') == str(row['match_id']):
+                            # Ya existe, no guardar
+                            return
+            except Exception:
+                pass
+
+        with open(STUDIED_MATCHES_CSV, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
+            
+        print(f"Partido {match_data.get('match_id')} guardado en CSV.")
+    except Exception as e:
+        print(f"Error guardando en CSV: {e}")
+
+def save_match_to_json(match_data):
+    """Guarda los datos del partido en un archivo JSON, evitando duplicados."""
+    try:
+        STUDIED_MATCHES_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Cargar datos existentes
+        existing_data = []
+        if STUDIED_MATCHES_JSON.exists():
+            try:
+                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+            except json.JSONDecodeError:
+                print("Error al leer JSON existente, se creará uno nuevo.")
+                existing_data = []
+
+        # Verificar si ya existe el partido
+        match_id = str(match_data.get('match_id', ''))
+        if not match_id:
+            return # No guardar si no hay ID
+
+        # Buscar si ya existe
+        for match in existing_data:
+            if str(match.get('match_id')) == match_id:
+                # Ya existe, actualizamos o ignoramos? 
+                # El usuario pidió "evite los duplicados", asumiremos que si existe no se añade de nuevo
+                # O podríamos actualizarlo. Para "cachear", mejor actualizar si ya existe, o simplemente retornar si ya está.
+                # El usuario dijo "evite los duplicados", así que si ya está, no hacemos nada.
+                print(f"Partido {match_id} ya existe en JSON. Saltando.")
+                return
+
+        # Preparar datos para guardar (limpiar un poco si es necesario, o guardar todo el objeto)
+        # El usuario dijo "guarde en formato json para trabajar mejor con los datos".
+        # Guardaremos el objeto match_data completo, que tiene toda la info del análisis.
+        
+        # Añadir timestamp de cacheo
+        match_data['cached_at'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        existing_data.append(match_data)
+        
+        # Guardar archivo actualizado
+        with open(STUDIED_MATCHES_JSON, 'w', encoding='utf-8') as f:
+            json.dump(existing_data, f, ensure_ascii=False, indent=2)
+        print(f"Partido {match_id} guardado en JSON.")
+            
+    except Exception as e:
+        print(f"Error guardando en JSON: {e}")
+
+
+# --- Mantén tu lógica para la página principal ---
+URL_NOWGOAL = "https://live20.nowgoal25.com/"
+
+REQUEST_TIMEOUT_SECONDS = 12
+_REQUEST_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+    "Connection": "keep-alive",
+    "Referer": URL_NOWGOAL,
+}
+
+_requests_session = None
+_requests_session_lock = threading.Lock()
+_requests_fetch_lock = threading.Lock()
+
+_EMPTY_DATA_TEMPLATE = {"upcoming_matches": [], "finished_matches": []}
+_DATA_FILE_CANDIDATES = [
+    Path(__file__).resolve().parent / 'data.json',
+    Path(__file__).resolve().parent.parent / 'data.json',
+]
+for _candidate in _DATA_FILE_CANDIDATES:
+    if _candidate.exists():
+        DATA_FILE = _candidate
+        break
+else:
+    DATA_FILE = _DATA_FILE_CANDIDATES[0]
+
+_data_file_lock = threading.Lock()
+
+
+def load_data_from_file():
+    """Carga los datos desde el archivo JSON, similar a la app ligera."""
+    with _data_file_lock:
+        if not DATA_FILE.exists():
+            return {key: [] for key in _EMPTY_DATA_TEMPLATE}
+        try:
+            with DATA_FILE.open('r', encoding='utf-8') as fh:
+                data = json.load(fh)
+        except (json.JSONDecodeError, OSError) as exc:
+            print(f"Error al leer {DATA_FILE}: {exc}")
+            return {key: [] for key in _EMPTY_DATA_TEMPLATE}
+        if not isinstance(data, dict):
+            return {key: [] for key in _EMPTY_DATA_TEMPLATE}
+
+        normalized = {}
+        for key in _EMPTY_DATA_TEMPLATE:
+            value = data.get(key, [])
+            if isinstance(value, list):
+                normalized[key] = [item for item in value if isinstance(item, dict)]
+            else:
+                normalized[key] = []
+        return normalized
+
+
+def _parse_time_obj(value):
+    if isinstance(value, datetime.datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.datetime.fromisoformat(value)
+        except ValueError:
+            try:
+                return datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                return None
+    return None
+
+
+def _ensure_time_string(entry, parsed_time):
+    if entry.get('time') or not parsed_time:
+        return
+    entry['time'] = parsed_time.strftime('%d/%m %H:%M')
+
+
+def _build_handicap_filter_predicate(handicap_filter):
+    if not handicap_filter:
+        return None
+    try:
+        target_bucket = normalize_handicap_to_half_bucket_str(handicap_filter)
+        if target_bucket is None:
+            return None
+        target_float = float(target_bucket)
+    except Exception:
+        return None
+
+    use_range = abs(target_float) >= 2.0 and target_float != 0.0
+
+    def predicate(raw_value):
+        hv = normalize_handicap_to_half_bucket_str(raw_value or '')
+        if hv is None:
+            return False
+        if not use_range:
+            return hv == target_bucket
+        hv_float = float(hv)
+        if target_float > 0:
+            return hv_float > 0 and hv_float >= target_float
+        return hv_float < 0 and hv_float <= target_float
+
+    return predicate
+
+
+def _normalize_goal_line_option_str(value):
+    try:
+        parsed = _parse_handicap_to_float(value)
+    except Exception:
+        parsed = None
+    if parsed is None:
+        return None
+    text = f"{parsed:.2f}"
+    if '.' in text:
+        text = text.rstrip('0').rstrip('.')
+    return text
+
+
+def _build_goal_line_filter_predicate(goal_line_filter):
+    if not goal_line_filter:
+        return None
+    try:
+        target_value = _parse_handicap_to_float(goal_line_filter)
+    except Exception:
+        target_value = None
+    if target_value is None:
+        return None
+    use_range = target_value >= 4.0
+
+    def predicate(raw_value):
+        try:
+            current_value = _parse_handicap_to_float(raw_value or '')
+        except Exception:
+            current_value = None
+        if current_value is None:
+            return False
+        if not use_range:
+            return abs(current_value - target_value) < 1e-6
+        return current_value >= target_value
+
+    return predicate
+
+
+def _build_handicap_options_from_lists(match_lists):
+    values = set()
+    for dataset in match_lists:
+        for entry in dataset or []:
+            if not isinstance(entry, dict):
+                continue
+            normalized = normalize_handicap_to_half_bucket_str(entry.get('handicap'))
+            if normalized is not None:
+                values.add(normalized)
+    try:
+        return sorted(values, key=lambda x: float(x))
+    except ValueError:
+        return sorted(values)
+
+
+def _build_goal_line_options_from_lists(match_lists):
+    values = set()
+    for dataset in match_lists:
+        for entry in dataset or []:
+            if not isinstance(entry, dict):
+                continue
+            raw_value = entry.get('goal_line') or entry.get('goal_line_alt') or entry.get('goal_line_decimal')
+            normalized = _normalize_goal_line_option_str(raw_value)
+            if normalized is not None:
+                values.add(normalized)
+    try:
+        return sorted(values, key=lambda x: float(x))
+    except ValueError:
+        return sorted(values)
+
+
+def _filter_and_slice_matches(section, limit=None, offset=0, handicap_filter=None, goal_line_filter=None, sort_desc=False, min_time=None):
+    data = load_data_from_file()
+    matches = data.get(section, [])
+    prepared = []
+    for original in matches:
+        entry = dict(original)
+        parsed_time = _parse_time_obj(entry.get('time_obj'))
+        entry['_sort_time'] = parsed_time or datetime.datetime.min
+        _ensure_time_string(entry, parsed_time)
+        
+        if min_time and parsed_time and parsed_time < min_time:
+            continue
+            
+        prepared.append(entry)
+
+    handicap_predicate = _build_handicap_filter_predicate(handicap_filter)
+    if handicap_predicate:
+        filtered = []
+        for entry in prepared:
+            if handicap_predicate(entry.get('handicap', '')):
+                filtered.append(entry)
+        prepared = filtered
+
+    goal_predicate = _build_goal_line_filter_predicate(goal_line_filter)
+    if goal_predicate:
+        filtered = []
+        for entry in prepared:
+            if goal_predicate(entry.get('goal_line', '')):
+                filtered.append(entry)
+        prepared = filtered
+
+    prepared.sort(key=lambda item: (item['_sort_time'], item.get('id', '')), reverse=sort_desc)
+
+    offset = max(int(offset or 0), 0)
+    if offset:
+        if offset >= len(prepared):
+            prepared = []
+        else:
+            prepared = prepared[offset:]
+
+    if limit is not None:
+        try:
+            limit_val = int(limit)
+        except (TypeError, ValueError):
+            limit_val = None
+        if limit_val is not None and limit_val >= 0:
+            prepared = prepared[:limit_val]
+
+    for entry in prepared:
+        entry.pop('_sort_time', None)
+    return prepared
+
+
+def _find_match_basic_data(match_id: str):
+    if not match_id:
+        return None, None
+    data = load_data_from_file()
+    for section in ('upcoming_matches', 'finished_matches'):
+        for entry in data.get(section, []):
+            if str(entry.get('id')) == str(match_id):
+                return entry, section
+    return None, None
+
+
+def _get_preview_cache_dir():
+    static_root_value = app.static_folder
+    if not static_root_value:
+        static_root_value = Path(__file__).resolve().parent / 'static'
+    static_root = Path(static_root_value).resolve()
+    return static_root / 'cached_previews'
+
+
+def load_preview_from_cache(match_id: str):
+    cache_dir = _get_preview_cache_dir()
+    cache_path = cache_dir / f'{match_id}.json'
+    if cache_path.exists():
+        try:
+            with cache_path.open('r', encoding='utf-8') as fh:
+                cached_data = json.load(fh)
+                if isinstance(cached_data, dict):
+                    return cached_data
+        except (json.JSONDecodeError, OSError) as exc:
+            print(f"Error al leer cache de analisis {cache_path}: {exc}")
+    return None
+
+
+def save_preview_to_cache(match_id: str, payload: dict):
+    cache_dir = _get_preview_cache_dir()
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_path = cache_dir / f'{match_id}.json'
+        with cache_path.open('w', encoding='utf-8') as fh:
+            json.dump(payload, fh, ensure_ascii=False)
+    except OSError as exc:
+        print(f"Error al escribir cache de analisis para {match_id}: {exc}")
+
+
+def _build_nowgoal_url(path: str | None = None) -> str:
+    if not path:
+        return URL_NOWGOAL
+    base = URL_NOWGOAL.rstrip('/')
+    suffix = path.lstrip('/')
+    return f"{base}/{suffix}"
+
+
+def _get_shared_requests_session():
+    global _requests_session
+    with _requests_session_lock:
+        if _requests_session is None:
+            session = requests.Session()
+            retries = Retry(total=3, backoff_factor=0.4, status_forcelist=[500, 502, 503, 504])
+            adapter = HTTPAdapter(max_retries=retries)
+            session.mount("https://", adapter)
+            session.mount("http://", adapter)
+            session.headers.update(_REQUEST_HEADERS)
+            _requests_session = session
+        return _requests_session
+
+
+def _fetch_nowgoal_html_sync(url: str) -> str | None:
+    session = _get_shared_requests_session()
+    try:
+        with _requests_fetch_lock:
+            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response.raise_for_status()
+        return response.text
+    except Exception as exc:
+        print(f"Error al obtener {url} con requests: {exc}")
+        return None
+
+
+async def _fetch_nowgoal_html(path: str | None = None, filter_state: int | None = None, requests_first: bool = True) -> str | None:
+    target_url = _build_nowgoal_url(path)
+    html_content = None
+
+    if requests_first:
+        try:
+            html = _fetch_nowgoal_html_sync(target_url)
+            if html:
+                return html
+        except Exception as e:
+            print(f"Error en fetch sync: {e}")
+    
+    return None
+
+def _parse_number_clean(s):
+    if s is None:
+        return None
+    txt = str(s).strip()
+    txt = txt.replace('−', '-')  # unicode minus
+    txt = txt.replace(',', '.')
+    txt = txt.replace('+', '')
+    txt = txt.replace(' ', '')
+    m = re.search(r"^[+-]?\d+(?:\.\d+)?$", txt)
+    if m:
+        try:
+            return float(m.group(0))
+        except ValueError:
+            return None
+    return None
+
+def _parse_number(s: str):
+    if s is None:
+        return None
+    # Normaliza separadores y signos
+    txt = str(s).strip()
+    txt = txt.replace('−', '-')  # minus unicode
+    txt = txt.replace(',', '.')
+    txt = txt.replace(' ', '')
+    # Coincide con un número decimal con signo
+    m = re.search(r"^[+-]?\d+(?:\.\d+)?$", txt)
+    if m:
+        try:
+            return float(m.group(0))
+        except ValueError:
+            return None
+    return None
+
+def _parse_handicap_to_float(text: str):
+    if text is None:
+        return None
+    t = str(text).strip()
+    if '/' in t:
+        parts = [p for p in re.split(r"/", t) if p]
+        nums = []
+        for p in parts:
+            v = _parse_number_clean(p)
+            if v is None:
+                return None
+            nums.append(v)
+        if not nums:
+            return None
+        return sum(nums) / len(nums)
+    # Si viene como cadena normal (ej. "+0.25" o "-0,75")
+    return _parse_number_clean(t.replace('+', ''))
+
+def _bucket_to_half(value: float) -> float:
+    if value is None:
+        return None
+    if value == 0:
+        return 0.0
+    sign = -1.0 if value < 0 else 1.0
+    av = abs(value)
+    base = math.floor(av + 1e-9)
+    frac = av - base
+    # Mapea 0.25/0.75/0.5 a .5, 0.0 queda .0
+    def close(a, b):
+        return abs(a - b) < 1e-6
+    if close(frac, 0.0):
+        bucket = float(base)
+    elif close(frac, 0.5) or close(frac, 0.25) or close(frac, 0.75):
+        bucket = base + 0.5
+    else:
+        # fallback: redondeo al múltiplo de 0.5 más cercano
+        bucket = round(av * 2) / 2.0
+        # si cae justo en entero, desplazar a .5 para respetar la preferencia de .25/.75 → .5
+        f = bucket - math.floor(bucket)
+        if close(f, 0.0) and (abs(av - (math.floor(bucket) + 0.25)) < 0.26 or abs(av - (math.floor(bucket) + 0.75)) < 0.26):
+            bucket = math.floor(bucket) + 0.5
+    return sign * bucket
+
+def normalize_handicap_to_half_bucket_str(text: str):
+    v = _parse_handicap_to_float(text)
+    if v is None:
+        return None
+    b = _bucket_to_half(v)
+    if b is None:
+        return None
+    # Formato con un decimal
+    return f"{b:.1f}"
+
+def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=None, goal_line_filter=None):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    match_rows = soup.find_all('tr', id=lambda x: x and x.startswith('tr1_'))
+    upcoming_matches = []
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+    for row in match_rows:
+        match_id = row.get('id', '').replace('tr1_', '')
+        if not match_id: continue
+
+        time_cell = row.find('td', {'name': 'timeData'})
+        if not time_cell or not time_cell.has_attr('data-t'): continue
+        
+        try:
+            match_time = datetime.datetime.strptime(time_cell['data-t'], '%Y-%m-%d %H:%M:%S')
+        except (ValueError, IndexError):
+            continue
+
+        if match_time < now_utc: continue
+
+        home_team_tag = row.find('a', {'id': f'team1_{match_id}'})
+        away_team_tag = row.find('a', {'id': f'team2_{match_id}'})
+        odds_data = row.get('odds', '').split(',')
+        handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
+        goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
+
+        if handicap == "N/A":
+            continue
+
+
+        upcoming_matches.append({
+            "id": match_id,
+            "time_obj": match_time,
+            "home_team": home_team_tag.text.strip() if home_team_tag else "N/A",
+            "away_team": away_team_tag.text.strip() if away_team_tag else "N/A",
+            "handicap": handicap,
+            "goal_line": goal_line
+        })
+
+    handicap_predicate = _build_handicap_filter_predicate(handicap_filter)
+    if handicap_predicate:
+        filtered = []
+        for m in upcoming_matches:
+            if handicap_predicate(m.get('handicap', '')):
+                filtered.append(m)
+        upcoming_matches = filtered
+
+    goal_predicate = _build_goal_line_filter_predicate(goal_line_filter)
+    if goal_predicate:
+        filtered = []
+        for m in upcoming_matches:
+            if goal_predicate(m.get('goal_line', '')):
+                filtered.append(m)
+        upcoming_matches = filtered
+
+    upcoming_matches.sort(key=lambda x: x['time_obj'])
+    
+    paginated_matches = upcoming_matches[offset:offset+limit]
+
+    for match in paginated_matches:
+        match['time'] = (match['time_obj'] + datetime.timedelta(hours=2)).strftime('%H:%M')
+        del match['time_obj']
+
+    return paginated_matches
+
+def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_filter=None, goal_line_filter=None):
+    soup = BeautifulSoup(html_content, 'html.parser')
+    match_rows = soup.find_all('tr', id=lambda x: x and x.startswith('tr1_'))
+    finished_matches = []
+    for row in match_rows:
+        match_id = row.get('id', '').replace('tr1_', '')
+        if not match_id: continue
+
+        state = row.get('state')
+        if state is not None and state != "-1":
+            continue
+
+        cells = row.find_all('td')
+        if len(cells) < 8: continue
+
+        home_team_tag = row.find('a', {'id': f'team1_{match_id}'})
+        away_team_tag = row.find('a', {'id': f'team2_{match_id}'})
+        
+        score_cell = cells[6]
+        score_text = "N/A"
+        if score_cell:
+            b_tag = score_cell.find('b')
+            if b_tag:
+                score_text = b_tag.text.strip()
+            else:
+                score_text = score_cell.get_text(strip=True)
+
+        if not re.match(r'^\d+\s*-\s*\d+$', score_text):
+            continue
+
+        odds_data = row.get('odds', '').split(',')
+        handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
+        goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
+
+        if handicap == "N/A":
+            continue
+
+        time_cell = row.find('td', {'name': 'timeData'})
+        match_time = datetime.datetime.now()
+        if time_cell and time_cell.has_attr('data-t'):
+            try:
+                match_time = datetime.datetime.strptime(time_cell['data-t'], '%Y-%m-%d %H:%M:%S')
+            except (ValueError, IndexError):
+                continue
+        
+        finished_matches.append({
+            "id": match_id,
+            "time_obj": match_time,
+            "home_team": home_team_tag.text.strip() if home_team_tag else "N/A",
+            "away_team": away_team_tag.text.strip() if away_team_tag else "N/A",
+            "score": score_text,
+            "handicap": handicap,
+            "goal_line": goal_line
+        })
+
+    handicap_predicate = _build_handicap_filter_predicate(handicap_filter)
+    if handicap_predicate:
+        filtered = []
+        for m in finished_matches:
+            if handicap_predicate(m.get('handicap', '')):
+                filtered.append(m)
+        finished_matches = filtered
+
+    goal_predicate = _build_goal_line_filter_predicate(goal_line_filter)
+    if goal_predicate:
+        filtered = []
+        for m in finished_matches:
+            if goal_predicate(m.get('goal_line', '')):
+                filtered.append(m)
+        finished_matches = filtered
+
+    finished_matches.sort(key=lambda x: x['time_obj'], reverse=True)
+    
+    paginated_matches = finished_matches[offset:offset+limit]
+
+    for match in paginated_matches:
+        match['time'] = (match['time_obj'] + datetime.timedelta(hours=2)).strftime('%d/%m %H:%M')
+        del match['time_obj']
+
+    return paginated_matches
+
+async def get_main_page_matches_async(limit=None, offset=0, handicap_filter=None, goal_line_filter=None):
+    return _filter_and_slice_matches(
+        'upcoming_matches',
+        limit=limit,
+        offset=offset,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter,
+        sort_desc=False,
+    )
+
+
+async def get_main_page_finished_matches_async(limit=None, offset=0, handicap_filter=None, goal_line_filter=None):
+    return _filter_and_slice_matches(
+        'finished_matches',
+        limit=limit,
+        offset=offset,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter,
+        sort_desc=True,
+    )
+
+
+async def _fetch_sidebar_lists(handicap_filter=None, goal_line_filter=None):
+    return await asyncio.gather(
+        get_main_page_matches_async(handicap_filter=handicap_filter, goal_line_filter=goal_line_filter),
+        get_main_page_finished_matches_async(handicap_filter=handicap_filter, goal_line_filter=goal_line_filter),
+    )
+
+
+def _render_matches_dashboard(page_mode='upcoming', page_title='Partidos'):
+    handicap_filter = request.args.get('handicap')
+    goal_line_filter = request.args.get('ou')
+    error_msg = None
+    try:
+        upcoming_matches, finished_matches = asyncio.run(
+            _fetch_sidebar_lists(handicap_filter, goal_line_filter)
+        )
+    except Exception as exc:
+        print(f"ERROR al cargar datos para el dashboard: {exc}")
+        upcoming_matches, finished_matches = [], []
+        error_msg = f"No se pudieron cargar los partidos: {exc}"
+
+    handicap_options = _build_handicap_options_from_lists([upcoming_matches, finished_matches])
+    goal_line_options = _build_goal_line_options_from_lists([upcoming_matches, finished_matches])
+    active_matches = finished_matches if page_mode == 'finished' else upcoming_matches
+
+    return render_template(
+        'index.html',
+        matches=active_matches,
+        upcoming_matches=upcoming_matches,
+        finished_matches=finished_matches,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter,
+        handicap_options=handicap_options,
+        goal_line_options=goal_line_options,
+        page_mode=page_mode,
+        page_title=page_title,
+        error=error_msg,
+    )
+
+@app.route('/')
+def index():
+    return redirect(url_for('mostrar_estudio'))
+
+
+@app.route('/resultados')
+def resultados():
+    print("Recibida petición para Partidos Finalizados...")
+    return _render_matches_dashboard('finished', 'Resultados Finalizados')
+
+
+@app.route('/proximos')
+def proximos():
+    print("Recibida petición para /proximos")
+    return _render_matches_dashboard('upcoming', 'Próximos Partidos')
+
+@app.route('/todos_resultados')
+def todos_resultados():
+    """Muestra una vista dedicada con todos los partidos finalizados."""
+    return render_template('finished_matches.html')
+
+
+@app.route('/api/matches')
+def api_matches():
+    try:
+        offset = int(request.args.get('offset', 0))
+        limit = int(request.args.get('limit', 5))
+        limit = min(limit, 50)
+        matches = asyncio.run(get_main_page_matches_async(limit, offset, request.args.get('handicap'), request.args.get('ou')))
+        return jsonify({'matches': matches})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/finished_matches')
+def api_finished_matches():
+    try:
+        offset = int(request.args.get('offset', 0))
+        limit = int(request.args.get('limit', 5))
+        limit = min(limit, 50)
+        matches = asyncio.run(get_main_page_finished_matches_async(limit, offset, request.args.get('handicap'), request.args.get('ou')))
+        return jsonify({'matches': matches})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/all_finished_matches')
+def api_all_finished_matches():
+    """Devuelve todos los partidos finalizados disponibles (o un límite alto)."""
+    try:
+        # Reutilizamos la lógica existente pero con un límite alto
+        matches = asyncio.run(get_main_page_finished_matches_async(limit=1000, offset=0))
+        return jsonify({'matches': matches})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def process_all_finished_matches_background():
+    """Procesa todos los partidos finalizados en segundo plano."""
+    print("Iniciando proceso de cacheo en segundo plano...")
+    try:
+        # 1. Obtener todos los partidos finalizados
+        # Usamos un límite alto para traer todos
+        matches = asyncio.run(get_main_page_finished_matches_async(limit=2000, offset=0))
+        print(f"Se encontraron {len(matches)} partidos finalizados para procesar.")
+        
+        count = 0
+        for match in matches:
+            match_id = match.get('id')
+            if not match_id: continue
+            
+            print(f"Procesando partido {match_id} ({count + 1}/{len(matches)})...")
+            try:
+                # 2. Analizar partido (esto ya extrae datos y hace backtesting)
+                # Nota: analizar_partido_completo es síncrono, así que está bien aquí.
+                match_data = analizar_partido_completo(match_id)
+                
+                # 3. Guardar en JSON (antes CSV)
+                save_match_to_json(match_data)
+                
+                # Pequeña pausa para no saturar
+                time.sleep(1) 
+                count += 1
+            except Exception as e:
+                print(f"Error procesando partido {match_id}: {e}")
+                
+        print(f"Proceso de cacheo finalizado. {count} partidos procesados.")
+        
+    except Exception as e:
+        print(f"Error fatal en proceso de background: {e}")
+
+@app.route('/api/cache_all_finished_background', methods=['POST'])
+def api_cache_all_finished_background():
+    """Endpoint para iniciar el cacheo de todos los partidos finalizados."""
+    try:
+        # Iniciar hilo en segundo plano
+        thread = threading.Thread(target=process_all_finished_matches_background)
+        thread.daemon = True # Para que no bloquee el cierre del server
+        thread.start()
+        
+        return jsonify({'status': 'success', 'message': 'Proceso de cacheo iniciado en segundo plano.'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
+    matches = search_history_by_handicap(handicap)
+    return jsonify({'matches': matches})
+
+def process_id_ranges_background(ranges_str):
+    """Procesa rangos de IDs en segundo plano."""
+    print(f"Iniciando cacheo por rangos: {ranges_str}")
+    try:
+        # Parsear rangos
+        ids_to_process = []
+        parts = [p.strip() for p in ranges_str.split(',') if p.strip()]
+        for part in parts:
+            if '-' in part:
+                try:
+                    start, end = part.split('-')
+                    start, end = int(start), int(end)
+                    if start > end: start, end = end, start
+                    # Limitar rango para evitar locuras
+                    if (end - start) > 1000:
+                        print(f"Rango demasiado grande ignorado: {part}")
+                        continue
+                    ids_to_process.extend(range(start, end + 1))
+                except ValueError:
+                    print(f"Rango invalido ignorado: {part}")
+            else:
+                try:
+                    ids_to_process.append(int(part))
+                except ValueError:
+                    print(f"ID invalido ignorado: {part}")
+        
+        # Eliminar duplicados y ordenar
+        ids_to_process = sorted(list(set(ids_to_process)))
+        print(f"Total IDs a procesar: {len(ids_to_process)}")
+        
+        count = 0
+        for match_id in ids_to_process:
+            print(f"Procesando ID {match_id} ({count + 1}/{len(ids_to_process)})...")
+            try:
+                # Verificar si ya existe en CSV para no repetir (opcional, pero recomendado)
+                # Por ahora lo sobrescribimos/añadimos
+                
+                match_data = analizar_partido_completo(str(match_id))
+                if match_data:
+                    save_match_to_json(match_data)
+                    count += 1
+                else:
+                    print(f"No se obtuvieron datos para {match_id}")
+                
+                time.sleep(1) # Pausa respetuosa
+            except Exception as e:
+                print(f"Error procesando {match_id}: {e}")
+        
+        print(f"Proceso de rangos finalizado. {count} partidos guardados.")
+
+    except Exception as e:
+        print(f"Error fatal en proceso de rangos: {e}")
+
+@app.route('/api/cache_ranges_background', methods=['POST'])
+def api_cache_ranges_background():
+    """Endpoint para iniciar cacheo por rangos."""
+    data = request.json
+    ranges = data.get('ranges')
+    if not ranges:
+        return jsonify({'error': 'Falta el parametro ranges'}), 400
+        
+    thread = threading.Thread(target=process_id_ranges_background, args=(ranges,))
+    thread.daemon = True
+    thread.start()
+    
+    return jsonify({'status': 'success', 'message': 'Proceso de rangos iniciado en segundo plano.'})
+
+
+@app.route('/api/preview_basico/<string:match_id>')
+def api_preview_basico(match_id):
+    try:
+        entry, section = _find_match_basic_data(match_id)
+        if not entry:
+            return jsonify({'error': 'Partido no encontrado'}), 404
+        payload = {
+            'id': entry.get('id'),
+            'section': section,
+            'home_team': entry.get('home_team'),
+            'away_team': entry.get('away_team'),
+            'time': entry.get('time'),
+            'time_obj': entry.get('time_obj'),
+            'score': entry.get('score'),
+            'handicap': entry.get('handicap'),
+            'goal_line': entry.get('goal_line'),
+            'goal_line_alt': entry.get('goalLine'),
+            'goal_line_decimal': entry.get('goal_line_decimal'),
+            'competition': entry.get('competition'),
+        }
+        return jsonify(payload)
+    except Exception as exc:
+        return jsonify({'error': f'No se pudo cargar la vista previa: {exc}'}), 500
+
+
+def _select_default_match_id(preloaded_upcoming, preloaded_finished):
+    if preloaded_upcoming:
+        return preloaded_upcoming[0].get('id')
+    if preloaded_finished:
+        return preloaded_finished[0].get('id')
+    return None
+
+
+# --- NUEVA RUTA PARA MOSTRAR EL ESTUDIO DETALLADO ---
+@app.route('/estudio', defaults={'match_id': None})
+@app.route('/estudio/<string:match_id>')
+def mostrar_estudio(match_id):
+    """
+    Vista principal del estudio con barra lateral integrada.
+    """
+    print(f"Recibida petición para el estudio del partido ID: {match_id}")
+
+    handicap_filter = request.args.get('handicap')
+    goal_line_filter = request.args.get('ou')
+
+    # Filter upcoming matches: apply filters and ensure they are in the future
+    upcoming_matches = _filter_and_slice_matches(
+        'upcoming_matches',
+        limit=1000,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter,
+        min_time=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    )
+
+    # Filter finished matches: apply filters
+    finished_matches = _filter_and_slice_matches(
+        'finished_matches',
+        limit=1000,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter,
+        sort_desc=True
+    )
+
+    requested_match_id = match_id or request.args.get('match_id')
+    target_match_id = requested_match_id or _select_default_match_id(upcoming_matches, finished_matches)
+
+    if not target_match_id:
+        abort(404, description='No hay partidos disponibles para analizar.')
+
+    datos_partido = analizar_partido_completo(target_match_id)
+
+    if not datos_partido or "error" in datos_partido:
+        error_message = (datos_partido or {}).get('error', 'Error desconocido')
+        print(f"Error al obtener datos para {target_match_id}: {error_message}")
+        abort(500, description=error_message)
+
+    datos_partido['match_id'] = target_match_id
+    print(f"Datos obtenidos para {datos_partido['home_name']} vs {datos_partido['away_name']}. Renderizando plantilla...")
+    return render_template(
+        'estudio.html',
+        data=datos_partido,
+        format_ah=format_ah_as_decimal_string_of,
+        upcoming_matches=upcoming_matches,
+        finished_matches=finished_matches,
+        selected_match_id=target_match_id,
+        current_handicap=handicap_filter,
+        current_ou=goal_line_filter
+    )
+
+
+@app.route('/api/estudio_panel/<string:match_id>')
+def api_estudio_panel(match_id):
+    """
+    Devuelve el panel de análisis renderizado para actualizar la vista sin recargar la página.
+    """
+    start_time = time.time()
+    force_refresh = request.args.get('refresh', 'false').lower() == 'true'
+    try:
+        datos_partido = analizar_partido_completo(match_id, force_refresh=force_refresh)
+        if not datos_partido or "error" in datos_partido:
+            error_message = (datos_partido or {}).get('error', 'No se pudo analizar el partido.')
+            return jsonify({'error': error_message}), 500
+
+        datos_partido['match_id'] = match_id
+        
+        # --- GUARDAR EN JSON ---
+        # Guardamos en JSON cada vez que se analiza exitosamente
+        save_match_to_json(datos_partido)
+        # ----------------------
+
+        html = render_template(
+            'partials/analysis_panel.html',
+            data=datos_partido,
+            format_ah=format_ah_as_decimal_string_of
+        )
+        elapsed = round(time.time() - start_time, 2)
+        payload = {
+            'html': html,
+            'match': {
+                'id': match_id,
+                'home': datos_partido.get('home_name'),
+                'away': datos_partido.get('away_name'),
+                'score': datos_partido.get('score'),
+                'time': datos_partido.get('time')
+            },
+            'meta': {'elapsed': elapsed}
+        }
+        return jsonify(payload)
+    except Exception as exc:
+        logging.exception("Error generando el panel dinámico para %s", match_id)
+        return jsonify({'error': f'No se pudo renderizar el análisis: {exc}'}), 500
+
+# --- NUEVA RUTA PARA ANALIZAR PARTIDOS FINALIZADOS ---
+@app.route('/analizar_partido', methods=['GET', 'POST'])
+def analizar_partido():
+    """
+    Ruta para analizar partidos finalizados por ID.
+    """
+    if request.method == 'POST':
+        match_id = request.form.get('match_id')
+        if match_id:
+            print(f"Recibida petición para analizar partido finalizado ID: {match_id}")
+            cleaned_match_id = "".join(filter(str.isdigit, match_id))
+            if not cleaned_match_id:
+                return render_template('analizar_partido.html', error="Por favor, introduce un ID de partido válido.")
+
+            return redirect(url_for('mostrar_estudio', match_id=cleaned_match_id))
+        else:
+            return render_template('analizar_partido.html', error="Por favor, introduce un ID de partido válido.")
+    
+    # Si es GET, mostrar el formulario
+    return render_template('analizar_partido.html')
+
+# --- NUEVA RUTA API PARA LA VISTA PREVIA RÁPIDA ---
+@app.route('/api/preview/<string:match_id>')
+def api_preview(match_id):
+    """
+    Endpoint para la vista previa ("el ojito"). Llama al scraper COMPLETO.
+    Devuelve los datos en formato JSON.
+    """
+    try:
+        preview_data = analizar_partido_completo(match_id)
+        if "error" in preview_data:
+            return jsonify(preview_data), 500
+        return jsonify(preview_data)
+    except Exception as e:
+        print(f"Error en la ruta /api/preview/{match_id}: {e}")
+        return jsonify({'error': 'Ocurrió un error interno en el servidor.'}), 500
+
+
+@app.route('/api/analisis/<string:match_id>')
+def api_analisis(match_id):
+    """
+    Servicio de analisis profundo bajo demanda.
+    Devuelve tanto el payload complejo como el HTML simplificado.
+    """
+    try:
+        cached_payload = load_preview_from_cache(match_id)
+        if isinstance(cached_payload, dict) and cached_payload.get('home_team'):
+            print(f"Devolviendo analisis cacheado para {match_id}")
+            return jsonify(cached_payload)
+
+        start_time = time.time()
+        logging.warning(f"CACHE MISS para {match_id}. Iniciando análisis profundo...")
+
+        datos = analizar_partido_completo(match_id)
+        if not datos or (isinstance(datos, dict) and datos.get('error')):
+            return jsonify({'error': (datos or {}).get('error', 'No se pudieron obtener datos.')}), 500
+
+        # --- Lógica para el payload complejo (la original) ---
+        def df_to_rows(df):
+            rows = []
+            try:
+                if df is not None and hasattr(df, 'iterrows'):
+                    for idx, row in df.iterrows():
+                        label = str(idx)
+                        label = label.replace('Shots on Goal', 'Tiros a Puerta')                                     .replace('Shots', 'Tiros')                                     .replace('Dangerous Attacks', 'Ataques Peligrosos')                                     .replace('Attacks', 'Ataques')
+                        try:
+                            home_val = row['Casa']
+                        except Exception:
+                            home_val = ''
+                        try:
+                            away_val = row['Fuera']
+                        except Exception:
+                            away_val = ''
+                        rows.append({'label': label, 'home': home_val or '', 'away': away_val or ''})
+            except Exception:
+                pass
+            return rows
+
+        payload = {
+            'match_id': match_id,
+            'home_team': datos.get('home_name', ''),
+            'away_team': datos.get('away_name', ''),
+            'final_score': datos.get('score'),
+            'match_date': datos.get('match_date'),
+            'match_time': datos.get('match_time'),
+            'match_datetime': datos.get('match_datetime'),
+            'recent_indirect_full': {
+                'last_home': None,
+                'last_away': None,
+                'h2h_col3': None
+            },
+            'comparativas_indirectas': {
+                'left': None,
+                'right': None
+            }
+        }
+        
+        # --- START COVERAGE CALCULATION ---
+        main_odds = datos.get("main_match_odds_data")
+        home_name = datos.get("home_name")
+        away_name = datos.get("away_name")
+        ah_actual_num = parse_ah_to_number_of(main_odds.get('ah_linea_raw', ''))
+        
+        favorito_actual_name = "Ninguno (línea en 0)"
+        if ah_actual_num is not None:
+            if ah_actual_num > 0: favorito_actual_name = home_name
+            elif ah_actual_num < 0: favorito_actual_name = away_name
+
+        def get_cover_status_vs_current(details):
+            if not details or ah_actual_num is None:
+                return 'NEUTRO'
+            try:
+                score_str = details.get('score', '').replace(' ', '').replace(':', '-')
+                if not score_str or '?' in score_str:
+                    return 'NEUTRO'
+
+                h_home = details.get('home_team')
+                h_away = details.get('away_team')
+                
+                status, _ = check_handicap_cover(score_str, ah_actual_num, favorito_actual_name, h_home, h_away, home_name)
+                return status
+            except Exception:
+                return 'NEUTRO'
+                
+        # --- Análisis mejorado de H2H Rivales ---
+        def analyze_h2h_rivals(home_result, away_result):
+            if not home_result or not away_result:
+                return None
+                
+            try:
+                # Obtener resultados de los partidos
+                home_goals = list(map(int, home_result.get('score', '0-0').split('-')))
+                away_goals = list(map(int, away_result.get('score', '0-0').split('-')))
+                
+                # Calcular diferencia de goles
+                home_goal_diff = home_goals[0] - home_goals[1]
+                away_goal_diff = away_goals[0] - away_goals[1]
+                
+                # Comparar resultados
+                if home_goal_diff > away_goal_diff:
+                    return "Contra rivales comunes, el Equipo Local ha obtenido mejores resultados"
+                elif away_goal_diff > home_goal_diff:
+                    return "Contra rivales comunes, el Equipo Visitante ha obtenido mejores resultados"
+                else:
+                    return "Los rivales han tenido resultados similares"
+            except Exception:
+                return None
+                
+        # --- Análisis de Comparativas Indirectas ---
+        def analyze_indirect_comparison(result, team_name):
+            if not result:
+                return None
+                
+            try:
+                # Determinar si el equipo cubrió el handicap
+                status = get_cover_status_vs_current(result)
+                
+                if status == 'CUBIERTO':
+                    return f"Contra este rival, {team_name} habría cubierto el handicap"
+                elif status == 'NO CUBIERTO':
+                    return f"Contra este rival, {team_name} no habría cubierto el handicap"
+                else:
+                    return f"Contra este rival, el resultado para {team_name} sería indeterminado"
+            except Exception:
+                return None
+        # --- END COVERAGE CALCULATION ---
+
+        last_home = (datos.get('last_home_match') or {})
+        last_home_details = last_home.get('details') or {}
+        if last_home_details:
+            payload['recent_indirect_full']['last_home'] = {
+                'home': last_home_details.get('home_team'),
+                'away': last_home_details.get('away_team'),
+                'score': (last_home_details.get('score') or '').replace(':', ' : '),
+                'ah': format_ah_as_decimal_string_of(last_home_details.get('handicap_line_raw') or '-'),
+                'ou': last_home_details.get('ouLine') or '-',
+                'stats_rows': df_to_rows(last_home.get('stats')),
+                'date': last_home_details.get('date'),
+                'cover_status': get_cover_status_vs_current(last_home_details)
+            }
+
+        last_away = (datos.get('last_away_match') or {})
+        last_away_details = last_away.get('details') or {}
+        if last_away_details:
+            payload['recent_indirect_full']['last_away'] = {
+                'home': last_away_details.get('home_team'),
+                'away': last_away_details.get('away_team'),
+                'score': (last_away_details.get('score') or '').replace(':', ' : '),
+                'ah': format_ah_as_decimal_string_of(last_away_details.get('handicap_line_raw') or '-'),
+                'ou': last_away_details.get('ouLine') or '-',
+                'stats_rows': df_to_rows(last_away.get('stats')),
+                'date': last_away_details.get('date'),
+                'cover_status': get_cover_status_vs_current(last_away_details)
+            }
+
+        h2h_col3 = (datos.get('h2h_col3') or {})
+        h2h_col3_details = h2h_col3.get('details') or {}
+        if h2h_col3_details and h2h_col3_details.get('status') == 'found':
+            h2h_col3_details_adapted = {
+                'score': f"{h2h_col3_details.get('goles_home')}:{h2h_col3_details.get('goles_away')}",
+                'home_team': h2h_col3_details.get('h2h_home_team_name'),
+                'away_team': h2h_col3_details.get('h2h_away_team_name')
+            }
+            payload['recent_indirect_full']['h2h_col3'] = {
+                'home': h2h_col3_details.get('h2h_home_team_name'),
+                'away': h2h_col3_details.get('h2h_away_team_name'),
+                'score': f"{h2h_col3_details.get('goles_home')} : {h2h_col3_details.get('goles_away')}",
+                'ah': format_ah_as_decimal_string_of(h2h_col3_details.get('handicap_line_raw') or '-'),
+                'ou': h2h_col3_details.get('ou_result') or '-',
+                'stats_rows': df_to_rows(h2h_col3.get('stats')),
+                'date': h2h_col3_details.get('date'),
+                'cover_status': get_cover_status_vs_current(h2h_col3_details_adapted),
+                'analysis': analyze_h2h_rivals(last_home_details, last_away_details)
+            }
+
+        h2h_general = (datos.get('h2h_general') or {})
+        h2h_general_details = h2h_general.get('details') or {}
+        if h2h_general_details:
+            score_text = h2h_general_details.get('res6') or ''
+            cover_input = {
+                'score': score_text,
+                'home_team': h2h_general_details.get('h2h_gen_home'),
+                'away_team': h2h_general_details.get('h2h_gen_away')
+            }
+            payload['recent_indirect_full']['h2h_general'] = {
+                'home': h2h_general_details.get('h2h_gen_home'),
+                'away': h2h_general_details.get('h2h_gen_away'),
+                'score': score_text.replace(':', ' : '),
+                'ah': h2h_general_details.get('ah6') or '-',
+                'ou': h2h_general_details.get('ou_result6') or '-',
+                'stats_rows': df_to_rows(h2h_general.get('stats')),
+                'date': h2h_general_details.get('date'),
+                'cover_status': get_cover_status_vs_current(cover_input) if score_text else 'NEUTRO'
+            }
+
+        comp_left = (datos.get('comp_L_vs_UV_A') or {})
+        comp_left_details = comp_left.get('details') or {}
+        if comp_left_details:
+            payload['comparativas_indirectas']['left'] = {
+                'title_home_name': datos.get('home_name'),
+                'title_away_name': datos.get('away_name'),
+                'home_team': comp_left_details.get('home_team'),
+                'away_team': comp_left_details.get('away_team'),
+                'score': (comp_left_details.get('score') or '').replace(':', ' : '),
+                'ah': format_ah_as_decimal_string_of(comp_left_details.get('ah_line') or '-'),
+                'ou': comp_left_details.get('ou_line') or '-',
+                'localia': comp_left_details.get('localia') or '',
+                'stats_rows': df_to_rows(comp_left.get('stats')),
+                'cover_status': get_cover_status_vs_current(comp_left_details),
+                'analysis': analyze_indirect_comparison(comp_left_details, datos.get('home_name'))
+            }
+
+        comp_right = (datos.get('comp_V_vs_UL_H') or {})
+        comp_right_details = comp_right.get('details') or {}
+        if comp_right_details:
+            payload['comparativas_indirectas']['right'] = {
+                'title_home_name': datos.get('home_name'),
+                'title_away_name': datos.get('away_name'),
+                'home_team': comp_right_details.get('home_team'),
+                'away_team': comp_right_details.get('away_team'),
+                'score': (comp_right_details.get('score') or '').replace(':', ' : '),
+                'ah': format_ah_as_decimal_string_of(comp_right_details.get('ah_line') or '-'),
+                'ou': comp_right_details.get('ou_line') or '-',
+                'localia': comp_right_details.get('localia') or '',
+                'stats_rows': df_to_rows(comp_right.get('stats')),
+                'cover_status': get_cover_status_vs_current(comp_right_details),
+                'analysis': analyze_indirect_comparison(comp_right_details, datos.get('away_name'))
+            }
+
+        # --- Lógica para el HTML simplificado ---
+        h2h_data = datos.get("h2h_data")
+        simplified_html = ""
+        if all([main_odds, h2h_data, home_name, away_name]):
+            simplified_html = generar_analisis_completo_mercado(main_odds, h2h_data, home_name, away_name)
+        
+        payload['simplified_html'] = simplified_html
+
+        save_preview_to_cache(match_id, payload)
+
+        end_time = time.time()
+        elapsed = end_time - start_time
+        logging.warning(f"[PERFORMANCE] El análisis completo para el partido {match_id} tardó {elapsed:.2f} segundos.")
+
+        return jsonify(payload)
+
+    except Exception as e:
+        print(f"Error en la ruta /api/analisis/{match_id}: {e}")
+        return jsonify({'error': 'Ocurrió un error interno en el servidor.'}), 500
+
+@app.route('/start_analysis_background', methods=['POST'])
+def start_analysis_background():
+    match_id = request.json.get('match_id')
+    if not match_id:
+        return jsonify({'status': 'error', 'message': 'No se proporcionó match_id'}), 400
+
+    def analysis_worker(app, match_id):
+        with app.app_context():
+            print(f"Iniciando análisis en segundo plano para el ID: {match_id}")
+            try:
+                analizar_partido_completo(match_id)
+                print(f"Análisis en segundo plano finalizado para el ID: {match_id}")
+            except Exception as e:
+                print(f"Error en el hilo de análisis para el ID {match_id}: {e}")
+
+    thread = threading.Thread(target=analysis_worker, args=(app, match_id))
+    thread.start()
+
+    return jsonify({'status': 'success', 'message': f'Análisis iniciado para el partido {match_id}'})
+
+@app.route('/api/quick_view/<match_id>', methods=['GET'])
+def api_quick_view(match_id):
+    try:
+        # Usamos analizar_partido_completo para obtener todos los datos
+        # Force refresh=False para usar caché si existe
+        data = analizar_partido_completo(match_id, force_refresh=False)
+        
+        if "error" in data:
+            return jsonify({'error': data['error']}), 404
+            
+        # Filtramos solo lo necesario para la vista rápida
+        quick_view_data = {
+            "market_analysis_data": data.get("market_analysis_data"),
+            "last_home_match": data.get("last_home_match"),
+            "last_away_match": data.get("last_away_match"),
+            "h2h_col3": data.get("h2h_col3"),
+            "comparativas_indirectas": data.get("comparativas_indirectas"),
+            "home_name": data.get("home_name"),
+            "away_name": data.get("away_name"),
+            "final_score": data.get("final_score")
+        }
+        
+        return jsonify(quick_view_data)
+    except Exception as e:
+        print(f"Error en quick_view: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/pattern_search', methods=['POST'])
+def api_pattern_search():
+    try:
+        data = request.json
+        upcoming_match = data.get('upcoming_match')
+        print(f"DEBUG: Pattern Search Request. Upcoming Match: {upcoming_match}")
+        filter_mode = data.get('filter_mode', 'global') # global, home_strict, away_strict
+        
+        if not upcoming_match:
+            return jsonify({'error': 'Faltan datos del partido futuro'}), 400
+
+        # Cargar histórico (usando data.json para tener todos los partidos)
+        data_full = load_data_from_file()
+        history_data = data_full.get('finished_matches', [])
+        
+        # Cargar history.json (partidos estudiados previamente)
+        try:
+            if STUDIED_MATCHES_JSON.exists():
+                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
+                    old_history = json.load(f)
+                    if isinstance(old_history, list):
+                        # Evitar duplicados por match_id si es posible
+                        existing_ids = set(m.get('match_id') or m.get('id') for m in history_data)
+                        for m in old_history:
+                            mid = m.get('match_id') or m.get('id')
+                            if not mid or mid not in existing_ids:
+                                history_data.append(m)
+        except Exception as e:
+            print(f"Warning: Could not load history.json: {e}")
+        
+        if not history_data:
+             return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
+            
+        results = find_similar_patterns(upcoming_match, history_data, config={'filter_mode': filter_mode})
+        
+        # Limitar resultados si es necesario (top 100)
+        results = results[:100]
+        
+        return jsonify({'results': results})
+    except Exception as e:
+        print(f"Error en pattern search: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/explorador')
+def explorador():
+    """Muestra la vista del Explorador de Datos."""
+    return render_template('explorer.html')
+
+@app.route('/api/explorer_search', methods=['POST'])
+def api_explorer_search():
+    try:
+        data = request.json
+        filters = data.get('filters', {})
+        print(f"DEBUG: Explorer Search Request. Filters: {filters}")
+        
+        # Cargar SOLO history.json (partidos estudiados)
+        history_data = []
+        try:
+            if STUDIED_MATCHES_JSON.exists():
+                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
+                    history_data = json.load(f)
+                    if not isinstance(history_data, list):
+                        history_data = []
+            else:
+                print(f"Warning: history.json not found at {STUDIED_MATCHES_JSON}")
+        except Exception as e:
+            print(f"Error loading history.json: {e}")
+            
+        if not history_data:
+             return jsonify({'results': [], 'message': 'No hay histórico disponible en history.json.'})
+            
+        results = explore_matches(history_data, filters=filters)
+        
+        return jsonify({'results': results})
+    except Exception as e:
+        print(f"Error en explorer search: {e}")
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True) # debug=True es útil para desarrollar
+
+

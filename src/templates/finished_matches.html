@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todos los Resultados Finalizados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #edf2f7;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .team-name {
+            font-weight: 500;
+        }
+
+        .score-badge {
+            font-weight: 700;
+            min-width: 60px;
+        }
+
+        .odds-badge {
+            font-size: 0.8rem;
+            padding: 0.25em 0.6em;
+            border-radius: 4px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #64748b;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #0f172a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/estudio" class="back-btn">
+            <i class="fa-solid fa-arrow-left"></i> Volver al Estudio
+        </a>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fa-solid fa-flag-checkered me-2 text-primary"></i>Resultados Finalizados</h4>
+                <button id="refresh-btn" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Actualizar
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="results-table">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Hora</th>
+                                <th>Local</th>
+                                <th class="text-center">Resultado</th>
+                                <th>Visitante</th>
+                                <th class="text-center">AH</th>
+                                <th class="text-center">O/U</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <div class="spinner-border text-primary mb-2" role="status"></div>
+                                    <p class="mb-0">Cargando resultados...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-white text-muted text-center py-3">
+                <small id="status-text">Cargando datos...</small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('results-body');
+            const statusText = document.getElementById('status-text');
+            const refreshBtn = document.getElementById('refresh-btn');
+
+            const loadMatches = async () => {
+                statusText.textContent = 'Actualizando lista...';
+                refreshBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/all_finished_matches');
+                    const data = await response.json();
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    renderTable(data.matches);
+                    statusText.textContent = `Mostrando ${data.matches.length} partidos finalizados.`;
+                } catch (error) {
+                    console.error('Error:', error);
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-danger">
+                                <i class="fa-solid fa-circle-exclamation mb-2 fs-4"></i><br>
+                                Error al cargar los datos: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                    statusText.textContent = 'Error de carga.';
+                } finally {
+                    refreshBtn.disabled = false;
+                }
+            };
+
+            const renderTable = (matches) => {
+                if (!matches || matches.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                No hay partidos finalizados registrados.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                const html = matches.map(m => `
+                    <tr>
+                        <td class="ps-4 text-muted small">${m.time}</td>
+                        <td class="fw-semibold text-end" style="width: 25%;">${m.home_team}</td>
+                        <td class="text-center">
+                            <span class="badge bg-dark score-badge">${m.score}</span>
+                        </td>
+                        <td class="fw-semibold" style="width: 25%;">${m.away_team}</td>
+                        <td class="text-center">
+                            <span class="odds-badge">${m.handicap || '-'}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="odds-badge">${m.goal_line || '-'}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="/estudio/${m.id}" class="btn btn-sm btn-primary">
+                                <i class="fa-solid fa-chart-simple"></i> Estudio
+                            </a>
+                        </td>
+                    </tr>
+                `).join('');
+
+                tableBody.innerHTML = html;
+            };
+
+            refreshBtn.addEventListener('click', loadMatches);
+
+            // Initial load
+            loadMatches();
+        });
+    </script>
+</body>
+
+</html>

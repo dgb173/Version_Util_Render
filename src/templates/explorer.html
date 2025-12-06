@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Datos ⚽</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .nav-link {
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+
+        .nav-link i {
+            width: 25px;
+        }
+
+        /* Excel-like Table Styles */
+        .excel-table {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .excel-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+        }
+
+        .excel-table td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .excel-table tbody tr:hover {
+            background-color: #e8f0fe;
+        }
+
+        /* Filter Inputs in Header */
+        .header-filter {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        /* Specific Column Styles */
+        .col-ah {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+            background-color: #e8f5e9;
+        }
+
+        .col-res {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .col-team {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .col-prev {
+            font-size: 0.85rem;
+        }
+
+        .bg-win {
+            background-color: #d1e7dd;
+        }
+
+        .bg-loss {
+            background-color: #f8d7da;
+        }
+
+        .bg-draw {
+            background-color: #fff3cd;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                width: 280px;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+                padding-top: 60px;
+                /* Space for mobile header */
+            }
+
+            .mobile-header {
+                display: flex !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 50px;
+                background: #fff;
+                z-index: 999;
+                padding: 0 15px;
+                align-items: center;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            /* Table optimizations for mobile */
+            .excel-table {
+                font-size: 0.75rem;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                padding: 4px;
+            }
+
+            .header-filter {
+                font-size: 0.7rem;
+                padding: 2px;
+            }
+
+            .col-ah,
+            .col-res {
+                width: 50px;
+                font-size: 0.85rem;
+            }
+
+            .col-team {
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+
+            .col-prev {
+                min-width: 110px;
+            }
+        }
+
+        .mobile-header {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <!-- Mobile Header & Overlay -->
+    <div class="mobile-header">
+        <button class="btn btn-link text-dark p-0 me-3" id="mobile-menu-toggle">
+            <i class="fa-solid fa-bars fa-lg"></i>
+        </button>
+        <h5 class="mb-0">Explorador</h5>
+    </div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="mb-4 text-primary"><i class="fa-solid fa-futbol me-2"></i>Analizador</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
+            <a class="nav-link active" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+            <a class="nav-link" href="/todos_resultados"><i class="fa-solid fa-list"></i> Resultados</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>Explorador de Datos</h4>
+            <div class="d-flex gap-2">
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" id="filter-exclude-empty">
+                    <label class="form-check-label small" for="filter-exclude-empty">Ocultar vacíos</label>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="triggerSearch()"><i class="fa-solid fa-filter me-1"></i>
+                    Aplicar Filtros</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm excel-table" id="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Fecha</th>
+                        <th>Local <input type="text" class="header-filter" id="filter-team-home"
+                                placeholder="Buscar..."></th>
+                        <th>Visitante <input type="text" class="header-filter" id="filter-team-away"
+                                placeholder="Buscar..."></th>
+                        <th style="width: 80px;">
+                            HA
+                            <select class="header-filter" id="filter-handicap">
+                                <option value="">Todos</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.5">2.5</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-2.0">-2.0</option>
+                                <option value="-2.5">-2.5</option>
+                            </select>
+                        </th>
+                        <th style="width: 80px;">FT</th>
+                        <th>
+                            Prev Home
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-prev-home-ah" style="width: 60px;">
+                                    <option value="">AH</option>
+                                    <option value="0.0">0.0</option>
+                                    <option value="0.5">0.5</option>
+                                    <option value="1.0">1.0</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2.0">2.0</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="-1.0">-1.0</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-2.0">-2.0</option>
+                                </select>
+                                <select class="header-filter" id="filter-prev-home-res">
+                                    <option value="">Res...</option>
+                                    <option value="W">Win</option>
+                                    <option value="D">Draw</option>
+                                    <option value="L">Loss</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>
+                            Prev Away
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-prev-away-ah" style="width: 60px;">
+                                    <option value="">AH</option>
+                                    <option value="0.0">0.0</option>
+                                    <option value="0.5">0.5</option>
+                                    <option value="1.0">1.0</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2.0">2.0</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="-1.0">-1.0</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-2.0">-2.0</option>
+                                </select>
+                                <select class="header-filter" id="filter-prev-away-res">
+                                    <option value="">Res...</option>
+                                    <option value="W">Win</option>
+                                    <option value="D">Draw</option>
+                                    <option value="L">Loss</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th>H2H Col3</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Results will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-overlay" class="d-none">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const handicapParam = urlParams.get('handicap');
+
+            if (handicapParam) {
+                const select = document.getElementById('filter-handicap');
+                if (select) {
+                    select.value = handicapParam;
+                }
+            }
+            triggerSearch();
+        });
+
+        function triggerSearch() {
+            const filters = {
+                handicap: document.getElementById('filter-handicap').value || null,
+                team: document.getElementById('filter-team-home').value || document.getElementById('filter-team-away').value || null,
+                prev_home_wdl: document.getElementById('filter-prev-home-res').value || null,
+                prev_away_wdl: document.getElementById('filter-prev-away-res').value || null,
+                prev_home_ah: document.getElementById('filter-prev-home-ah').value || null,
+                prev_away_ah: document.getElementById('filter-prev-away-ah').value || null,
+                exclude_empty: document.getElementById('filter-exclude-empty').checked,
+                limit: 100 // Increased limit to show all history
+            };
+
+            const spinner = document.getElementById('loading-overlay');
+            spinner.classList.remove('d-none');
+
+            fetch('/api/explorer_search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filters: filters })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    spinner.classList.add('d-none');
+                    renderTable(data.results);
+                })
+                .catch(err => {
+                    spinner.classList.add('d-none');
+                    alert('Error al cargar datos: ' + err.message);
+                });
+        }
+
+        function renderTable(results) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (!results || results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No se encontraron resultados</td></tr>';
+                return;
+            }
+
+            const formatAh = (val) => val !== null && val !== undefined ? val : '-';
+
+            results.forEach(item => {
+                const c = item.candidate;
+                const tr = document.createElement('tr');
+
+                // Prev Home Cell
+                let prevHomeHtml = '<span class="text-muted">-</span>';
+                if (item.prev_home) {
+                    const wdlClass = item.prev_home.wdl === 'W' ? 'text-success' : (item.prev_home.wdl === 'L' ? 'text-danger' : 'text-warning');
+                    prevHomeHtml = `
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
+                            <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
+                        </div>
+                        <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_home.rival}</div>
+                    `;
+                }
+
+                // Prev Away Cell
+                let prevAwayHtml = '<span class="text-muted">-</span>';
+                if (item.prev_away) {
+                    const wdlClass = item.prev_away.wdl === 'W' ? 'text-success' : (item.prev_away.wdl === 'L' ? 'text-danger' : 'text-warning');
+                    prevAwayHtml = `
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
+                            <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
+                        </div>
+                        <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_away.rival}</div>
+                    `;
+                }
+
+                // H2H Col3 Cell
+                let h2hHtml = '<span class="text-muted">-</span>';
+                if (item.h2h_col3) {
+                    const homeT = item.h2h_col3.home_team || 'Local';
+                    const awayT = item.h2h_col3.away_team || 'Visitante';
+                    h2hHtml = `
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold small">${formatAh(item.h2h_col3.ah)}</span>
+                            <span class="fw-bold">${item.h2h_col3.score}</span>
+                        </div>
+                        <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="text-center text-muted small">
+                        <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted" title="Abrir en Estudio">
+                            ${c.date}
+                        </a>
+                    </td>
+                    <td class="col-team text-primary">${c.home}</td>
+                    <td class="col-team text-danger">${c.away}</td>
+                    <td class="col-ah">${formatAh(c.ah_real)}</td>
+                    <td class="col-res bg-light">${c.score}</td>
+                    <td class="col-prev">${prevHomeHtml}</td>
+                    <td class="col-prev">${prevAwayHtml}</td>
+                    <td class="col-prev">${h2hHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Enter key on inputs triggers search
+        document.querySelectorAll('.header-filter').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    triggerSearch();
+                }
+            });
+            input.addEventListener('change', function (e) {
+                if (e.target.tagName === 'SELECT') {
+                    triggerSearch();
+                }
+            });
+        });
+        // Mobile Menu Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileToggle = document.getElementById('mobile-menu-toggle');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const sidebar = document.querySelector('.sidebar');
+
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    const icon = mobileToggle.querySelector('i');
+                    if (sidebar.classList.contains('active')) {
+                        icon.classList.replace('fa-bars', 'fa-xmark');
+                    } else {
+                        icon.classList.replace('fa-xmark', 'fa-bars');
+                    }
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    mobileToggle.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
