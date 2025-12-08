@@ -198,8 +198,9 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             {% if odds.ah_linea and odds.ah_linea != '-' %}
-            <a href="/explorador?handicap={{ odds.ah_linea }}" class="btn btn-outline-info btn-sm"
-                title="Buscar partidos históricos con el mismo hándicap">
+            {% set is_home_fav = ('-' in odds.ah_linea|string) or (odds.ah_linea|string == '0') %}
+            <a href="/explorador?handicap={{ odds.ah_linea }}&{% if is_home_fav %}prev_home_ah={{ format_ah(data.last_home_match.handicap_line_raw) if data.last_home_match else '' }}{% else %}prev_away_ah={{ format_ah(data.last_away_match.handicap_line_raw) if data.last_away_match else '' }}{% endif %}"
+                class="btn btn-outline-info btn-sm" title="Buscar partidos históricos con el mismo hándicap">
                 <i class="fa-solid fa-globe me-1"></i>Global
             </a>
             <button class="btn btn-outline-info btn-sm pattern-search-trigger" data-handicap="{{ odds.ah_linea }}"

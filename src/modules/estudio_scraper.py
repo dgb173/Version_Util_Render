@@ -232,10 +232,31 @@ def _analizar_precedente_handicap(precedente_data, ah_actual_num, favorito_actua
     else:
         cover_html = f"<span style='color: #6c757d; font-weight: bold;'>{resultado_cover.upper()} 🤔</span>"
 
+    
+    # Formateo mejorado en dos filas
+    score_fmt = res_raw.replace('-', ':')
+    
+    # Fila 1: Resultado y Equipos
+    row1_html = (
+        f"<div style='margin-bottom: 2px;'>"
+        f"  <span style='color: #2563eb; font-weight: bold;'>{home_team_precedente}</span> "
+        f"  <span style='font-weight: bold; padding: 0 4px;'>{score_fmt}</span> "
+        f"  <span style='color: #f97316; font-weight: bold;'>{away_team_precedente}</span>"
+        f"</div>"
+    )
+
+    # Fila 2: Análisis de cuota
+    row2_html = (
+        f"<div>"
+        f"  <span class='ah-value'>Hándicap:</span> {comparativa_texto} "
+        f"  La línea actual habría sido {cover_html}."
+        f"</div>"
+    )
+
     return {
-        "html": f"<li><span class='ah-value'>Hándicap:</span> {comparativa_texto}Con el resultado ({res_raw.replace('-' , ':')}), la línea actual se habría considerado {cover_html}.</li>",
+        "html": f"<li style='margin-bottom: 8px;'>{row1_html}{row2_html}</li>",
         "movement": line_movement_str if 'line_movement_str' in locals() else "N/A",
-        "result": res_raw.replace('-', ':'),
+        "result": score_fmt,
         "evaluation": resultado_cover,
         "is_covered": cubierto
     }
@@ -1024,12 +1045,14 @@ def fetch_odds_from_ajax(match_id):
                         vals = part.split(',')
                         if len(vals) >= 14:
                             # Verificar que tenga datos válidos (no vacíos)
-                            if vals[4] and vals[12]:
+                            # Priorizar índice 8 (Main AH) sobre índice 4 (Secondary AH)
+                            ah_val = vals[8] if vals[8] else vals[4]
+                            
+                            if ah_val and vals[12]:
                                 target_odds = {
-                                    "ah_linea_raw": vals[4],
+                                    "ah_linea_raw": ah_val,
                                     "goals_linea_raw": vals[12]
                                 }
-                                # print(f"Found odds for ID '{pid}': {target_odds}")
                                 # print(f"Found odds for ID '{pid}': {target_odds}")
                                 break
                     if target_odds: break
@@ -1276,7 +1299,7 @@ def load_cached_finished_matches():
     # Intentar localizar data.json en directorios padres
     candidates = [
         Path(__file__).resolve().parent.parent.parent / 'data.json', # src/modules/../.. -> root
-        Path("C:/Users/Usuario/Desktop/V_buena/data.json") # Absolute fallback
+        Path("data.json").resolve() # Fallback to current working directory
     ]
     
     data_file = None

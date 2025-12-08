@@ -240,6 +240,7 @@
         <nav class="nav flex-column">
             <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
             <a class="nav-link active" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+            <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
             <a class="nav-link" href="/todos_resultados"><i class="fa-solid fa-list"></i> Resultados</a>
         </nav>
     </div>
@@ -258,15 +259,55 @@
             </div>
         </div>
 
+        <!-- Pending Results Section -->
+        <div class="mb-3">
+            <div class="d-flex align-items-center mb-2 gap-3">
+                <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#pendingMatchesCollapse" aria-expanded="false"
+                    aria-controls="pendingMatchesCollapse" onclick="loadPendingMatches()">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Ver Partidos Pendientes (??)
+                </button>
+
+                <!-- Top Pagination Controls -->
+                <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none">
+                    <ul class="pagination pagination-sm mb-0" id="pagination-lista-top">
+                        <!-- Javascript populates this -->
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="collapse" id="pendingMatchesCollapse">
+                <div class="card card-body bg-light">
+                    <h6 class="card-title">Partidos sin resultado final</h6>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered bg-white" id="pending-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Local</th>
+                                    <th>Visitante</th>
+                                    <th>Marcador</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-sm excel-table" id="results-table">
                 <thead>
                     <tr>
                         <th style="width: 100px;">Fecha</th>
-                        <th>Local <input type="text" class="header-filter" id="filter-team-home"
-                                placeholder="Buscar..."></th>
-                        <th>Visitante <input type="text" class="header-filter" id="filter-team-away"
-                                placeholder="Buscar..."></th>
+                        <th>Local</th>
+                        <th>Visitante</th>
                         <th style="width: 80px;">
                             HA
                             <select class="header-filter" id="filter-handicap">
@@ -287,51 +328,51 @@
                         <th style="width: 80px;">FT</th>
                         <th>
                             Prev Home
-                            <div class="d-flex gap-1 mt-1">
-                                <select class="header-filter" id="filter-prev-home-ah" style="width: 60px;">
-                                    <option value="">AH</option>
-                                    <option value="0.0">0.0</option>
-                                    <option value="0.5">0.5</option>
-                                    <option value="1.0">1.0</option>
-                                    <option value="1.5">1.5</option>
-                                    <option value="2.0">2.0</option>
-                                    <option value="-0.5">-0.5</option>
-                                    <option value="-1.0">-1.0</option>
-                                    <option value="-1.5">-1.5</option>
-                                    <option value="-2.0">-2.0</option>
-                                </select>
-                                <select class="header-filter" id="filter-prev-home-res">
-                                    <option value="">Res...</option>
-                                    <option value="W">Win</option>
-                                    <option value="D">Draw</option>
-                                    <option value="L">Loss</option>
-                                </select>
-                            </div>
+                            <select class="header-filter mt-1" id="filter-prev-home-ah" style="width: 100%;">
+                                <option value="">AH</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2.0">2.0</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-2.0">-2.0</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="HOME_WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="AWAY_WIN">Loss</option>
+                            </select>
                         </th>
                         <th>
                             Prev Away
-                            <div class="d-flex gap-1 mt-1">
-                                <select class="header-filter" id="filter-prev-away-ah" style="width: 60px;">
-                                    <option value="">AH</option>
-                                    <option value="0.0">0.0</option>
-                                    <option value="0.5">0.5</option>
-                                    <option value="1.0">1.0</option>
-                                    <option value="1.5">1.5</option>
-                                    <option value="2.0">2.0</option>
-                                    <option value="-0.5">-0.5</option>
-                                    <option value="-1.0">-1.0</option>
-                                    <option value="-1.5">-1.5</option>
-                                    <option value="-2.0">-2.0</option>
-                                </select>
-                                <select class="header-filter" id="filter-prev-away-res">
-                                    <option value="">Res...</option>
-                                    <option value="W">Win</option>
-                                    <option value="D">Draw</option>
-                                    <option value="L">Loss</option>
-                                </select>
-                            </div>
+                            <select class="header-filter mt-1" id="filter-prev-away-ah" style="width: 100%;">
+                                <option value="">AH</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.5">0.5</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2.0">2.0</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-2.0">-2.0</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="HOME_WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="AWAY_WIN">Loss</option>
+                            </select>
                         </th>
+                        <th style="width: 100px;">H2H Estadio</th>
+                        <th style="width: 100px;">H2H General</th>
                         <th>H2H Col3</th>
+                        <th>Ind. Local</th>
+                        <th>Ind. Visitante</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -345,32 +386,22 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initial load
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const handicapParam = urlParams.get('handicap');
-
-            if (handicapParam) {
-                const select = document.getElementById('filter-handicap');
-                if (select) {
-                    select.value = handicapParam;
-                }
-            }
-            triggerSearch();
-        });
+        // Pagination State
+        let currentPage = 1;
+        const itemsPerPage = 300;
+        let totalResults = [];
 
         function triggerSearch() {
             const filters = {
                 handicap: document.getElementById('filter-handicap').value || null,
-                team: document.getElementById('filter-team-home').value || document.getElementById('filter-team-away').value || null,
+                team: null, // Team search inputs removed
                 prev_home_wdl: document.getElementById('filter-prev-home-res').value || null,
                 prev_away_wdl: document.getElementById('filter-prev-away-res').value || null,
                 prev_home_ah: document.getElementById('filter-prev-home-ah').value || null,
                 prev_away_ah: document.getElementById('filter-prev-away-ah').value || null,
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
-                limit: 100 // Increased limit to show all history
+                limit: 2000 // Fetch large amount to allow client-side pagination up to user needs
             };
 
             const spinner = document.getElementById('loading-overlay');
@@ -378,13 +409,20 @@
 
             fetch('/api/explorer_search', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ filters: filters })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filters: filters
+                })
             })
                 .then(response => response.json())
                 .then(data => {
                     spinner.classList.add('d-none');
-                    renderTable(data.results);
+                    // Store results and render first page
+                    totalResults = data.results || [];
+                    currentPage = 1;
+                    renderTableWithPagination();
                 })
                 .catch(err => {
                     spinner.classList.add('d-none');
@@ -392,12 +430,62 @@
                 });
         }
 
+        function renderTableWithPagination() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = totalResults.slice(start, end);
+            renderTable(pageItems);
+            renderPaginationControls();
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(totalResults.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTableWithPagination();
+        }
+
+        function renderPaginationControls() {
+            const navTop = document.getElementById('pagination-nav-top');
+            const listaTop = document.getElementById('pagination-lista-top');
+            const totalPages = Math.ceil(totalResults.length / itemsPerPage);
+
+            if (totalPages <= 1) {
+                if (navTop) navTop.classList.add('d-none');
+                return;
+            }
+
+            if (navTop) navTop.classList.remove('d-none');
+
+            listaTop.innerHTML = '';
+
+            // Previous
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Anterior</a>`;
+            listaTop.appendChild(prevLi);
+
+            // Info
+            const infoLi = document.createElement('li');
+            infoLi.className = 'page-item disabled';
+            infoLi.innerHTML = `<span class="page-link">Pág ${currentPage}/${totalPages} (${totalResults.length})</span>`;
+            listaTop.appendChild(infoLi);
+
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Siguiente</a>`;
+            listaTop.appendChild(nextLi);
+        }
+
         function renderTable(results) {
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
             if (!results || results.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No se encontraron resultados</td></tr>';
+                tbody.innerHTML = `<tr>
+        <td colspan="8" class="text-center py-4">No se encontraron resultados</td>
+    </tr>`;
                 return;
             }
 
@@ -410,27 +498,29 @@
                 // Prev Home Cell
                 let prevHomeHtml = '<span class="text-muted">-</span>';
                 if (item.prev_home) {
-                    const wdlClass = item.prev_home.wdl === 'W' ? 'text-success' : (item.prev_home.wdl === 'L' ? 'text-danger' : 'text-warning');
+                    const wdlClass = item.prev_home.wdl === 'W' ? 'text-success' : (item.prev_home.wdl === 'L' ? 'text-danger' :
+                        'text-warning');
                     prevHomeHtml = `
-                        <div class="d-flex justify-content-between">
-                            <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
-                            <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
-                        </div>
-                        <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_home.rival}</div>
-                    `;
+    <div class="d-flex justify-content-between">
+        <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
+        <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
+    </div>
+    <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_home.rival}</div>
+    `;
                 }
 
                 // Prev Away Cell
                 let prevAwayHtml = '<span class="text-muted">-</span>';
                 if (item.prev_away) {
-                    const wdlClass = item.prev_away.wdl === 'W' ? 'text-success' : (item.prev_away.wdl === 'L' ? 'text-danger' : 'text-warning');
+                    const wdlClass = item.prev_away.wdl === 'W' ? 'text-success' : (item.prev_away.wdl === 'L' ? 'text-danger' :
+                        'text-warning');
                     prevAwayHtml = `
-                        <div class="d-flex justify-content-between">
-                            <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
-                            <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
-                        </div>
-                        <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_away.rival}</div>
-                    `;
+    <div class="d-flex justify-content-between">
+        <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
+        <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
+    </div>
+    <div class="small text-muted text-truncate" style="max-width: 120px;">${item.prev_away.rival} vs</div>
+    `;
                 }
 
                 // H2H Col3 Cell
@@ -439,28 +529,101 @@
                     const homeT = item.h2h_col3.home_team || 'Local';
                     const awayT = item.h2h_col3.away_team || 'Visitante';
                     h2hHtml = `
-                        <div class="d-flex justify-content-between">
-                            <span class="fw-bold small">${formatAh(item.h2h_col3.ah)}</span>
-                            <span class="fw-bold">${item.h2h_col3.score}</span>
-                        </div>
-                        <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
-                    `;
+    <div class="d-flex justify-content-between">
+        <span class="fw-bold small">${formatAh(item.h2h_col3.ah)}</span>
+        <span class="fw-bold">${item.h2h_col3.score}</span>
+    </div>
+    <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
+    `;
                 }
 
                 tr.innerHTML = `
-                    <td class="text-center text-muted small">
-                        <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted" title="Abrir en Estudio">
-                            ${c.date}
-                        </a>
-                    </td>
-                    <td class="col-team text-primary">${c.home}</td>
-                    <td class="col-team text-danger">${c.away}</td>
-                    <td class="col-ah">${formatAh(c.ah_real)}</td>
-                    <td class="col-res bg-light">${c.score}</td>
-                    <td class="col-prev">${prevHomeHtml}</td>
-                    <td class="col-prev">${prevAwayHtml}</td>
-                    <td class="col-prev">${h2hHtml}</td>
-                `;
+    <td class="text-center text-muted small">
+        <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted"
+            title="Abrir en Estudio">
+            ${c.date}
+        </a>
+    </td>
+    <td class="col-team text-primary small" style="font-size: 0.8rem;">${c.home}</td>
+    <td class="col-team text-danger small" style="font-size: 0.8rem;">${c.away}</td>
+    <td class="col-ah">${formatAh(c.ah_real)}</td>
+    <td class="col-res bg-light">${c.score}</td>
+    
+    <!-- Prev Home (Merged) -->
+    <td class="col-prev">
+        ${item.prev_home ? `
+             <div class="d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
+                    <span class="${item.prev_home.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_home.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-warning')} fw-bold">${item.prev_home.score || '?:?'}</span>
+                </div>
+                <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_home.rival}">${item.prev_home.rival || '-'}</div>
+             </div>
+        ` : '<span class="text-muted">-</span>'}
+    </td>
+
+    <!-- Prev Away (Merged) -->
+    <td class="col-prev">
+        ${item.prev_away ? `
+             <div class="d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
+                    <span class="${item.prev_away.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_away.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-warning')} fw-bold">${item.prev_away.score || '?:?'}</span>
+                </div>
+                <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_away.rival}">${item.prev_away.rival || '-'}</div>
+             </div>
+        ` : '<span class="text-muted">-</span>'}
+    </td>
+    
+    <!-- H2H Estadio (Movement + Score from market_analysis_html) -->
+    <td class="col-prev text-center">
+        ${item.h2h_stadium ? `
+            <div class="d-flex flex-column">
+                <div class="fw-bold small ${item.h2h_stadium.mov_direction === 'UP' ? 'text-success' : (item.h2h_stadium.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_stadium.movement || '-'}</div>
+                ${item.h2h_stadium.score ? `<div class="small ${item.h2h_stadium.wdl === 'HOME_WIN' ? 'text-success' : (item.h2h_stadium.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_stadium.score}</div>` : ''}
+            </div>
+        ` : '<span class="text-muted">-</span>'}
+    </td>
+    <!-- H2H General (Movement + Score from market_analysis_html) -->
+    <td class="col-prev text-center">
+        ${item.h2h_general ? `
+            <div class="d-flex flex-column">
+                <div class="fw-bold small ${item.h2h_general.mov_direction === 'UP' ? 'text-success' : (item.h2h_general.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_general.movement || '-'}</div>
+                ${item.h2h_general.score ? `<div class="small ${item.h2h_general.wdl === 'HOME_WIN' ? 'text-success' : (item.h2h_general.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_general.score}</div>` : ''}
+            </div>
+        ` : '<span class="text-muted">-</span>'}
+    </td>
+
+    <td class="col-prev">${h2hHtml}</td>
+    
+    <!-- Ind. Local -->
+    <td class="col-prev">
+        ${item.ind_local ? `
+            <div class="d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold small">${item.ind_local.ah_line || item.ind_local.ah || '-'}</span>
+                    <span class="fw-bold">${item.ind_local.score || '?:?'}</span>
+                </div>
+                <div class="small text-muted" style="font-size: 0.7rem;">${item.ind_local.home_team || ''} vs ${item.ind_local.away_team || ''}</div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${item.ind_local.localia || '?'}</div>
+            </div>
+        ` : '<span class="text-muted">NO</span>'}
+    </td>
+    
+    <!-- Ind. Visitante -->
+    <td class="col-prev">
+        ${item.ind_visitante ? `
+            <div class="d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold small">${item.ind_visitante.ah_line || item.ind_visitante.ah || '-'}</span>
+                    <span class="fw-bold">${item.ind_visitante.score || '?:?'}</span>
+                </div>
+                <div class="small text-muted" style="font-size: 0.7rem;">${item.ind_visitante.home_team || ''} vs ${item.ind_visitante.away_team || ''}</div>
+                <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${item.ind_visitante.localia || '?'}</div>
+            </div>
+        ` : '<span class="text-muted">NO</span>'}
+    </td>
+    `;
                 tbody.appendChild(tr);
             });
         }
@@ -505,6 +668,81 @@
                 });
             }
         });
+        // Match re-analysis logic is handled via API
+        function loadPendingMatches() {
+            const tbody = document.getElementById('pending-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+
+            fetch('/api/pending_matches')
+                .then(res => res.json())
+                .then(data => {
+                    renderPendingTable(data.matches || []);
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error: ${err.message}</td></tr>`;
+                });
+        }
+
+        function renderPendingTable(matches) {
+            const tbody = document.getElementById('pending-table-body');
+            if (matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay partidos pendientes.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            matches.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${m.match_date || m.date || '-'}</td>
+                    <td>${m.home_team || m.home_name}</td>
+                    <td>${m.away_team || m.away_name}</td>
+                    <td class="fw-bold text-center">${m.score || m.final_score || '??'}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary" onclick="reanalyzeMatch('${m.match_id}', this)">
+                            <i class="fa-solid fa-rotate"></i> Re-scan
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function reanalyzeMatch(matchId, btn) {
+            if (!confirm('¿Re-analizar este partido para buscar resultado final?')) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            fetch('/api/reanalyze_pending', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                    } else {
+                        if (data.result_found) {
+                            alert(`¡Actualizado! Nuevo resultado: ${data.match.score}`);
+                            // Reload list
+                            loadPendingMatches();
+                        } else {
+                            alert('Aún no hay resultado final disponible.');
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                        }
+                    }
+                })
+                .catch(err => {
+                    alert('Error de red: ' + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                });
+        }
     </script>
 </body>
 

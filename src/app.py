@@ -4,10 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from flask import Flask, render_template, abort, request, redirect, url_for
 import asyncio
-try:
-    from playwright.async_api import async_playwright
-except ImportError:
-    async_playwright = None
+
 from bs4 import BeautifulSoup
 import datetime
 import re
@@ -22,6 +19,12 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import csv
 import os
+import concurrent.futures
+
+_json_save_lock = threading.Lock()
+
+from modules import league_scraper
+from modules import history_manager
 
 # ¡Importante! Importa tu nuevo módulo de scraping
 from modules.estudio_scraper import (
@@ -118,52 +121,23 @@ def save_match_to_csv(match_data):
     except Exception as e:
         print(f"Error guardando en CSV: {e}")
 
+from modules import data_manager
+
 def save_match_to_json(match_data):
-    """Guarda los datos del partido en un archivo JSON, evitando duplicados."""
+    """Guarda los datos del partido usando el nuevo sistema de buckets."""
     try:
-        STUDIED_MATCHES_DIR.mkdir(parents=True, exist_ok=True)
-        
-        # Cargar datos existentes
-        existing_data = []
-        if STUDIED_MATCHES_JSON.exists():
-            try:
-                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
-                    existing_data = json.load(f)
-            except json.JSONDecodeError:
-                print("Error al leer JSON existente, se creará uno nuevo.")
-                existing_data = []
-
-        # Verificar si ya existe el partido
-        match_id = str(match_data.get('match_id', ''))
-        if not match_id:
-            return # No guardar si no hay ID
-
-        # Buscar si ya existe
-        for match in existing_data:
-            if str(match.get('match_id')) == match_id:
-                # Ya existe, actualizamos o ignoramos? 
-                # El usuario pidió "evite los duplicados", asumiremos que si existe no se añade de nuevo
-                # O podríamos actualizarlo. Para "cachear", mejor actualizar si ya existe, o simplemente retornar si ya está.
-                # El usuario dijo "evite los duplicados", así que si ya está, no hacemos nada.
-                print(f"Partido {match_id} ya existe en JSON. Saltando.")
-                return
-
-        # Preparar datos para guardar (limpiar un poco si es necesario, o guardar todo el objeto)
-        # El usuario dijo "guarde en formato json para trabajar mejor con los datos".
-        # Guardaremos el objeto match_data completo, que tiene toda la info del análisis.
-        
-        # Añadir timestamp de cacheo
         match_data['cached_at'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        existing_data.append(match_data)
-        
-        # Guardar archivo actualizado
-        with open(STUDIED_MATCHES_JSON, 'w', encoding='utf-8') as f:
-            json.dump(existing_data, f, ensure_ascii=False, indent=2)
-        print(f"Partido {match_id} guardado en JSON.")
-            
+        saved = data_manager.save_match(match_data)
+        if saved:
+            print(f"Partido {match_data.get('match_id')} guardado en bucket.")
+        else:
+            print(f"Partido {match_data.get('match_id')} ignorado (filtro).")
     except Exception as e:
         print(f"Error guardando en JSON: {e}")
+
+def save_match_to_json_thread_safe(match_data):
+    # data_manager is already thread-safe per file
+    save_match_to_json(match_data)
 
 
 # --- Mantén tu lógica para la página principal ---
@@ -386,6 +360,11 @@ def _filter_and_slice_matches(section, limit=None, offset=0, handicap_filter=Non
             prepared = prepared[:limit_val]
 
     for entry in prepared:
+        # Add start_time before removing _sort_time
+        if '_sort_time' in entry:
+             spain_time = entry['_sort_time'] + datetime.timedelta(hours=1) # Matching the +1 logic from parsing
+             entry['start_time'] = spain_time.isoformat()
+        
         entry.pop('_sort_time', None)
     return prepared
 
@@ -628,8 +607,34 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
     paginated_matches = upcoming_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=2)).strftime('%H:%M')
-        del match['time_obj']
+        # Spanish time: UTC+1 in winter, adjust as needed
+        # We need to preserve the full datetime for frontend filtering
+        # _filter_and_slice_matches ensures '_sort_time' is available but we popped it? No, wait.
+        # Here we are processing 'paginated_matches' which are just dicts.
+        
+        # We already have 'match_time' available as 'time_obj' or we can reconstruct it?
+        # In this function 'parse_main_page_matches', we created 'time_obj'.
+        # We should iterate passing 'time_obj' to string BEFORE deleting it if we want custom format,
+        # OR just keep 'time_obj' until the end.
+        
+        # Let's add 'start_time' ISO string
+        if 'time_obj' in match:
+            # We want Spain time for display, but maybe ISO for filtering?
+            # Let's keep consistent with existing logic: existing logic adds 1 hour.
+            spain_time = match['time_obj'] + datetime.timedelta(hours=1)
+            match['time'] = spain_time.strftime('%H:%M')
+            match['start_time'] = spain_time.isoformat() # Full ISO for filtering
+            
+            # If date is not today, we might want to include date in 'time' field? 
+            # The user asked for "Fecha" column to show date if not today.
+            # Frontend will handle display, we just provide data.
+            
+            del match['time_obj']
+        elif '_sort_time' in match:
+             # Fallback if coming from _filter_and_slice_matches logic where time_obj might be absent
+             spain_time = match['_sort_time'] + datetime.timedelta(hours=1)
+             match['time'] = spain_time.strftime('%H:%M')
+             match['start_time'] = spain_time.isoformat()
 
     return paginated_matches
 
@@ -709,12 +714,17 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
     paginated_matches = finished_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=2)).strftime('%d/%m %H:%M')
+        # Existing logic added +2 hours for finished matches? 
+        # Line 687 in original: match['time'] = (match['time_obj'] + datetime.timedelta(hours=2)).strftime('%d/%m %H:%M')
+        # Let's keep that logic
+        spain_time = match['time_obj'] + datetime.timedelta(hours=2)
+        match['time'] = spain_time.strftime('%d/%m %H:%M')
+        match['start_time'] = spain_time.isoformat()
         del match['time_obj']
 
     return paginated_matches
 
-async def get_main_page_matches_async(limit=None, offset=0, handicap_filter=None, goal_line_filter=None):
+async def get_main_page_matches_async(limit=None, offset=0, handicap_filter=None, goal_line_filter=None, min_time=None):
     return _filter_and_slice_matches(
         'upcoming_matches',
         limit=limit,
@@ -722,6 +732,7 @@ async def get_main_page_matches_async(limit=None, offset=0, handicap_filter=None
         handicap_filter=handicap_filter,
         goal_line_filter=goal_line_filter,
         sort_desc=False,
+        min_time=min_time
     )
 
 
@@ -776,7 +787,7 @@ def _render_matches_dashboard(page_mode='upcoming', page_title='Partidos'):
 
 @app.route('/')
 def index():
-    return redirect(url_for('mostrar_estudio'))
+    return redirect(url_for('precacheo'))
 
 
 @app.route('/resultados')
@@ -801,7 +812,7 @@ def api_matches():
     try:
         offset = int(request.args.get('offset', 0))
         limit = int(request.args.get('limit', 5))
-        limit = min(limit, 50)
+        limit = min(limit, 1000)
         matches = asyncio.run(get_main_page_matches_async(limit, offset, request.args.get('handicap'), request.args.get('ou')))
         return jsonify({'matches': matches})
     except Exception as e:
@@ -812,7 +823,7 @@ def api_finished_matches():
     try:
         offset = int(request.args.get('offset', 0))
         limit = int(request.args.get('limit', 5))
-        limit = min(limit, 50)
+        limit = min(limit, 1000)
         matches = asyncio.run(get_main_page_finished_matches_async(limit, offset, request.args.get('handicap'), request.args.get('ou')))
         return jsonify({'matches': matches})
     except Exception as e:
@@ -828,50 +839,312 @@ def api_all_finished_matches():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def process_all_finished_matches_background():
-    """Procesa todos los partidos finalizados en segundo plano."""
-    print("Iniciando proceso de cacheo en segundo plano...")
-    try:
-        # 1. Obtener todos los partidos finalizados
-        # Usamos un límite alto para traer todos
-        matches = asyncio.run(get_main_page_finished_matches_async(limit=2000, offset=0))
-        print(f"Se encontraron {len(matches)} partidos finalizados para procesar.")
-        
-        count = 0
-        for match in matches:
-            match_id = match.get('id')
-            if not match_id: continue
-            
-            print(f"Procesando partido {match_id} ({count + 1}/{len(matches)})...")
+# --- CACHE STATE PERSISTENCE ---
+CACHE_STATE_FILE = Path(__file__).resolve().parent / 'cache_state.json'
+_cache_state_lock = threading.Lock()
+
+def load_cache_state():
+    with _cache_state_lock:
+        if CACHE_STATE_FILE.exists():
             try:
-                # 2. Analizar partido (esto ya extrae datos y hace backtesting)
-                # Nota: analizar_partido_completo es síncrono, así que está bien aquí.
-                match_data = analizar_partido_completo(match_id)
+                with open(CACHE_STATE_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+    return {'processed_ids': []}
+
+def save_cache_state(state):
+    with _cache_state_lock:
+        try:
+            with open(CACHE_STATE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(state, f, ensure_ascii=False)
+        except Exception as e:
+            print(f"Error saving cache state: {e}")
+
+def add_processed_id(match_id):
+    state = load_cache_state()
+    if str(match_id) not in state['processed_ids']:
+        state['processed_ids'].append(str(match_id))
+        save_cache_state(state)
+
+
+# --- PRE-CACHE STATE PERSISTENCE ---
+PRECACHE_STATE_FILE = Path(__file__).resolve().parent / 'precache_state.json'
+_precache_state_lock = threading.Lock()
+
+def load_precache_state():
+    with _precache_state_lock:
+        if PRECACHE_STATE_FILE.exists():
+            try:
+                with open(PRECACHE_STATE_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+    return {'processed_ids': []}
+
+def save_precache_state(state):
+    with _precache_state_lock:
+        try:
+            with open(PRECACHE_STATE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(state, f, ensure_ascii=False)
+        except Exception as e:
+            print(f"Error saving precache state: {e}")
+
+def add_precache_processed_id(match_id):
+    state = load_precache_state()
+    if str(match_id) not in state['processed_ids']:
+        state['processed_ids'].append(str(match_id))
+        save_precache_state(state)
+
+def process_single_match_worker(match_id):
+    """Worker function for single match processing."""
+    try:
+        # Check if already processed in this session/state
+        # (Though we check before submitting, keeping it robust)
+        
+        # Analyze
+        match_data = analizar_partido_completo(str(match_id))
+        if match_data and not match_data.get('error'):
+            save_match_to_json(match_data)
+            add_processed_id(match_id)
+            return True, match_id
+        else:
+            return False, match_id
+            
+    except Exception as e:
+        print(f"Error processing {match_id}: {e}")
+        return False, match_id
+
+def process_single_precache_worker(match_id):
+    """Worker for upcoming matches (Pre-Cacheo)."""
+    try:
+        match_data = analizar_partido_completo(str(match_id))
+        if match_data and not match_data.get('error'):
+             match_data['match_id'] = str(match_id)
+             match_data['precacheo_date'] = datetime.datetime.now().isoformat()
+             data_manager.save_precacheo_match(match_data)
+             add_precache_processed_id(match_id)
+             return True, match_id
+        else:
+            return False, match_id
+    except Exception as e:
+        print(f"Error precaching {match_id}: {e}")
+        return False, match_id
+
+def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=None):
+    """
+    Procesa partidos PRÓXIMOS (Pre-Cacheo) en segundo plano con optimizaciones:
+    - Filtros
+    - Concurrencia
+    - Persistencia (Setpoint)
+    """
+    filter_desc = f"AH={handicap_filter}, OU={goal_line_filter}"
+    print(f"Iniciando PRE-CACHEO Background ({filter_desc})...")
+    
+    try:
+        # 1. Obtener partidos próximos (limit alto)
+        # Filtrar para que solo sean partidos que empiezan de AHORA en adelante
+        # (o quizás un margen de 15 mins atrás por si acaba de empezar y quieres apurar)
+        # Por petición de usuario: "no los que ya han finalizado".
+        # Usamos now() como referencia.
+        matches = asyncio.run(get_main_page_matches_async(
+            limit=2000, 
+            offset=0, 
+            handicap_filter=handicap_filter, 
+            goal_line_filter=goal_line_filter,
+            min_time=datetime.datetime.now()
+        ))
+        
+        print(f"Se encontraron {len(matches)} partidos próximos candidatos.")
+        
+        # 2. Cargar estado
+        state = load_precache_state()
+        processed_ids = set(state.get('processed_ids', []))
+        
+        # 3. Filtrar los que ya están hechos (ya sea en estado o en data_manager)
+        # Checkeo rápido contra el archivo (state) es más eficiente que cargar todo data_manager
+        # Pero para ser robustos, si data_manager ya lo tiene, también saltar.
+        # Por simplicidad y velocidad, confiamos en state + check interno de worker si fuese critico.
+        
+        to_process = []
+        for m in matches:
+            mid = str(m.get('id') or m.get('match_id'))
+            
+            # FIX: Verificar si REALMENTE tenemos datos, no solo si el state dice que sí.
+            # Esto corrige el problema donde state=processed pero data=missing (por error de paths).
+            exists_in_data = False
+            # Opcional: Podríamos confiar solo en data_manager y obviar processed_ids para precacheo
+            # Pero para ser eficientes, si no está en processed_ids, seguro es nuevo.
+            # Si ESTÁ en processed_ids, verificamos si existe de verdad.
+            
+            is_processed = mid in processed_ids
+            if is_processed:
+                 # Doble check: ¿está en el archivo de precacheo?
+                 cached_match = data_manager.get_precacheo_match(mid)
+                 if cached_match:
+                     exists_in_data = True
+            
+            if mid and not exists_in_data:
+                to_process.append(mid)
                 
-                # 3. Guardar en JSON (antes CSV)
-                save_match_to_json(match_data)
+        print(f"De los cuales {len(to_process)} son nuevos y se scrapearán.")
+        
+        if not to_process:
+            print("Nada nuevo que scrapear en Pre-Cacheo.")
+            return
+
+        # 4. Procesar en paralelo
+        max_workers = 5 
+        total = len(to_process)
+        completed = 0
+        
+        print(f"Iniciando Pool Pre-Cacheo con {max_workers} workers...")
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(process_single_precache_worker, mid): mid for mid in to_process}
+            
+            for future in concurrent.futures.as_completed(futures):
+                if STOP_CACHE_EVENT.is_set():
+                    print("Señal de parada recibida (Pre-Cacheo). Cancelando tareas...")
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
+
+                mid = futures[future]
+                try:
+                    success, _ = future.result()
+                    completed += 1
+                    
+                    if completed % 5 == 0 or completed == total:
+                        print(f"Progreso Pre-Cacheo: {completed}/{total} procesados.")
+                        
+                except Exception as e:
+                    print(f"Excepción en worker Pre-Cacheo {mid}: {e}")
+                    
+        if STOP_CACHE_EVENT.is_set():
+             print(f"Pre-Cacheo detenido. {completed} partidos completados.")
+        else:
+             print(f"Pre-Cacheo finalizado. {completed} partidos intentados.")
+        
+    except Exception as e:
+        print(f"Error fatal en Pre-Cacheo background: {e}")
+
+def process_all_finished_matches_background(handicap_filter=None, goal_line_filter=None):
+    """
+    Procesa partidos finalizados en segundo plano con optimizaciones:
+    - Filtros
+    - Concurrencia
+    - Persistencia (Setpoint)
+    """
+    filter_desc = f"AH={handicap_filter}, OU={goal_line_filter}"
+    print(f"Iniciando proceso de cacheo OPTIMIZADO ({filter_desc})...")
+    
+    try:
+        # 1. Obtener partidos (usando filtros si existen)
+        # Traemos MUCHOS para filtrar luego si es necesario, o confiamos en el endpoint
+        matches = asyncio.run(get_main_page_finished_matches_async(
+            limit=2000, 
+            offset=0, 
+            handicap_filter=handicap_filter, 
+            goal_line_filter=goal_line_filter
+        ))
+        
+        print(f"Se encontraron {len(matches)} partidos candidatos.")
+        
+        # 2. Cargar estado anterior
+        state = load_cache_state()
+        processed_ids = set(state.get('processed_ids', []))
+        
+        # 3. Filtrar los que ya están hechos
+        to_process = []
+        for m in matches:
+            mid = str(m.get('id'))
+            if mid not in processed_ids:
+                to_process.append(mid)
                 
-                # Pequeña pausa para no saturar
-                time.sleep(1) 
-                count += 1
-            except Exception as e:
-                print(f"Error procesando partido {match_id}: {e}")
-                
-        print(f"Proceso de cacheo finalizado. {count} partidos procesados.")
+        print(f"De los cuales {len(to_process)} son nuevos y se procesarán.")
+        
+        if not to_process:
+            print("Nada nuevo que procesar.")
+            return
+
+        # 4. Procesar en paralelo
+        max_workers = 5 # Ajustable
+        total = len(to_process)
+        completed = 0
+        
+        print(f"Iniciando Pool con {max_workers} workers...")
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(process_single_match_worker, mid): mid for mid in to_process}
+            
+            for future in concurrent.futures.as_completed(futures):
+                # STOP CHECK
+                if STOP_CACHE_EVENT.is_set():
+                    print("Señal de parada recibida. Cancelando tareas restantes...")
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
+
+                mid = futures[future]
+                try:
+                    success, _ = future.result()
+                    completed += 1
+                    if success:
+                        pass # Log extra if needed
+                    
+                    # Log de progreso simple
+                    if completed % 5 == 0 or completed == total:
+                        print(f"Progreso: {completed}/{total} procesados.")
+                        
+                except Exception as e:
+                    print(f"Excepción en worker {mid}: {e}")
+                    
+        if STOP_CACHE_EVENT.is_set():
+            print(f"Proceso detenido. {completed} partidos completados antes de parar.")
+        else:
+            print(f"Proceso de cacheo finalizado. {completed} partidos intentados.")
         
     except Exception as e:
         print(f"Error fatal en proceso de background: {e}")
 
+        return jsonify({'error': str(e)}), 500
+
+
+# --- BACKGROUND CONTROL ---
+STOP_CACHE_EVENT = threading.Event()
+
+@app.route('/api/stop_background_cache', methods=['POST'])
+def api_stop_background_cache():
+    """Endpoint para detener el cacheo en background."""
+    STOP_CACHE_EVENT.set()
+    return jsonify({'status': 'success', 'message': 'Se ha enviado la señal de parada. El proceso se detendrá pronto.'})
+
 @app.route('/api/cache_all_finished_background', methods=['POST'])
 def api_cache_all_finished_background():
-    """Endpoint para iniciar el cacheo de todos los partidos finalizados."""
+    """Endpoint para iniciar el cacheo (acepta filtros)."""
     try:
+        # Debug headers
+        print(f"DEBUG Headers: {request.headers}")
+        # Force JSON parsing even if Content-Type is missing/wrong
+        data = request.get_json(force=True, silent=True) or {}
+        print(f"DEBUG Payload: {data}")
+        handicap_filter = data.get('handicap')
+        goal_line_filter = data.get('ou')
+        
+        # Resetear señal de parada
+        STOP_CACHE_EVENT.clear()
+
         # Iniciar hilo en segundo plano
-        thread = threading.Thread(target=process_all_finished_matches_background)
-        thread.daemon = True # Para que no bloquee el cierre del server
+        thread = threading.Thread(
+            target=process_all_finished_matches_background,
+            args=(handicap_filter, goal_line_filter)
+        )
+        thread.daemon = True 
         thread.start()
         
-        return jsonify({'status': 'success', 'message': 'Proceso de cacheo iniciado en segundo plano.'})
+        return jsonify({
+            'status': 'success', 
+            'message': f'Cacheo iniciado (Filtros: AH={handicap_filter}, OU={goal_line_filter}).'
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1427,24 +1700,16 @@ def api_pattern_search():
         if not upcoming_match:
             return jsonify({'error': 'Faltan datos del partido futuro'}), 400
 
-        # Cargar histórico (usando data.json para tener todos los partidos)
-        data_full = load_data_from_file()
-        history_data = data_full.get('finished_matches', [])
+        # Determine target AH to load only relevant bucket
+        target_ah = upcoming_match.get('ah_open_home')
         
-        # Cargar history.json (partidos estudiados previamente)
-        try:
-            if STUDIED_MATCHES_JSON.exists():
-                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
-                    old_history = json.load(f)
-                    if isinstance(old_history, list):
-                        # Evitar duplicados por match_id si es posible
-                        existing_ids = set(m.get('match_id') or m.get('id') for m in history_data)
-                        for m in old_history:
-                            mid = m.get('match_id') or m.get('id')
-                            if not mid or mid not in existing_ids:
-                                history_data.append(m)
-        except Exception as e:
-            print(f"Warning: Could not load history.json: {e}")
+        # Load data from buckets using data_manager
+        # If target_ah is None, we might need all data? 
+        # Usually pattern search requires an AH. If None, it returns empty.
+        # But find_similar_patterns handles None.
+        # Let's load by bucket if possible.
+        
+        history_data = data_manager.load_matches_by_bucket(target_ah)
         
         if not history_data:
              return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
@@ -1471,27 +1736,331 @@ def api_explorer_search():
         filters = data.get('filters', {})
         print(f"DEBUG: Explorer Search Request. Filters: {filters}")
         
-        # Cargar SOLO history.json (partidos estudiados)
-        history_data = []
-        try:
-            if STUDIED_MATCHES_JSON.exists():
-                with open(STUDIED_MATCHES_JSON, 'r', encoding='utf-8') as f:
-                    history_data = json.load(f)
-                    if not isinstance(history_data, list):
-                        history_data = []
-            else:
-                print(f"Warning: history.json not found at {STUDIED_MATCHES_JSON}")
-        except Exception as e:
-            print(f"Error loading history.json: {e}")
+        # Load data using data_manager
+        # If handicap filter is present, load only that bucket
+        ah_filter = filters.get('handicap')
+        
+        history_data = data_manager.load_matches_by_bucket(ah_filter)
             
         if not history_data:
-             return jsonify({'results': [], 'message': 'No hay histórico disponible en history.json.'})
+             return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
             
         results = explore_matches(history_data, filters=filters)
         
         return jsonify({'results': results})
     except Exception as e:
         print(f"Error en explorer search: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# --- PRE-CACHEO ROUTES ---
+@app.route('/precacheo')
+def precacheo():
+    """Muestra la vista de Pre-Cacheo para partidos próximos."""
+    return render_template('precacheo.html')
+
+@app.route('/api/precacheo_list')
+def api_precacheo_list():
+    """Lista todos los partidos pre-cacheados."""
+    try:
+        matches = data_manager.load_precacheo_matches()
+        return jsonify({'matches': matches})
+    except Exception as e:
+        print(f"Error loading precacheo: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/precacheo_scrape', methods=['POST'])
+def api_precacheo_scrape():
+    """Scrapea un partido y lo guarda en precacheo."""
+    try:
+        data = request.json
+        match_id = data.get('match_id')
+        
+        if not match_id:
+            return jsonify({'error': 'Falta match_id'}), 400
+        
+        # Scrape the match
+        match_data = analizar_partido_completo(str(match_id))
+        
+        if not match_data or match_data.get('error'):
+            return jsonify({'error': match_data.get('error', 'No se pudo scrapear')}), 500
+        
+        match_data['match_id'] = str(match_id)
+        match_data['precacheo_date'] = datetime.datetime.now().isoformat()
+        
+        # Save to precacheo
+        data_manager.save_precacheo_match(match_data)
+        
+        return jsonify({'status': 'success', 'match': {
+            'match_id': match_id,
+            'home_name': match_data.get('home_name'),
+            'away_name': match_data.get('away_name'),
+            'handicap': match_data.get('main_match_odds', {}).get('ah_linea'),
+            'score': match_data.get('score')
+        }})
+    except Exception as e:
+        print(f"Error scraping for precacheo: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/precacheo_scrape_background', methods=['POST'])
+def api_precacheo_scrape_background():
+    """Endpoint para iniciar el scrapeo de pre-cacheo en background (con filtros)."""
+    try:
+        data = request.json or {}
+        handicap_filter = data.get('handicap')
+        goal_line_filter = data.get('ou')
+        
+        # Iniciar hilo
+        thread = threading.Thread(
+            target=process_upcoming_matches_background,
+            args=(handicap_filter, goal_line_filter)
+        )
+        thread.daemon = True 
+        thread.start()
+        
+        return jsonify({
+            'status': 'success', 
+            'message': f'Pre-Cacheo iniciado (Filtros: AH={handicap_filter}, OU={goal_line_filter}).'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/precacheo_finalize/<match_id>', methods=['POST'])
+def api_precacheo_finalize(match_id):
+    """Re-scrapea un partido finalizado y lo mueve al bucket oficial."""
+    try:
+        # Re-scrape to get final result
+        match_data = analizar_partido_completo(str(match_id), force_refresh=True)
+        
+        if not match_data or match_data.get('error'):
+            return jsonify({'error': match_data.get('error', 'No se pudo re-scrapear')}), 500
+        
+        match_data['match_id'] = str(match_id)
+        
+        # Check if match is actually finished
+        score = match_data.get('score') or match_data.get('final_score')
+        if not score or score in ['??', '?-?', '? - ?']:
+            return jsonify({'error': 'El partido aún no ha terminado'}), 400
+        
+        # Save to official bucket
+        data_manager.save_match(match_data)
+        
+        # Remove from precacheo
+        data_manager.remove_from_precacheo(match_id)
+        
+        return jsonify({'status': 'success', 'message': f'Partido {match_id} finalizado y movido al bucket oficial.'})
+    except Exception as e:
+        print(f"Error finalizing precacheo match: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/precacheo_finalize_batch', methods=['POST'])
+def api_precacheo_finalize_batch():
+    """Finaliza un lote de partidos (optimizado)."""
+    try:
+        data = request.json
+        match_ids = data.get('match_ids', [])
+        
+        if not match_ids:
+            return jsonify({'error': 'No match_ids provided'}), 400
+
+        success, failed, errors = data_manager.finalize_precacheo_batch(match_ids)
+        
+        return jsonify({
+            'status': 'success',
+            'processed': len(match_ids),
+            'success_count': success,
+            'failed_count': failed,
+            'errors': errors[:5] # Limit errors returned
+        })
+    except Exception as e:
+        print(f"Error executing batch finalize: {e}")
+        return jsonify({'error': str(e)}), 500
+@app.route('/scraper')
+def scraper_view():
+    pending_matches = history_manager.get_pending_matches()
+    return render_template('scraper.html', pending_matches=pending_matches)
+
+@app.route('/api/scrape_league', methods=['POST'])
+def api_scrape_league():
+    try:
+        data = request.json
+        season = data.get('season')
+        league_ids_raw = data.get('league_ids')
+        ah_filter = data.get('ah_filter') # New filter
+
+        if not season or not league_ids_raw:
+            return jsonify({'error': 'Faltan datos (season, league_ids)'}), 400
+
+        league_ids = [lid.strip() for lid in league_ids_raw.split(',') if lid.strip()]
+        
+        results = []
+        total_matches = 0
+        
+        for lid in league_ids:
+            # Pass ah_filter to the scraper
+            scrape_result = league_scraper.extract_ids_by_params(season, lid, ah_filter=ah_filter)
+            
+            if "error" in scrape_result:
+                results.append(f"Liga {lid}: Error - {scrape_result['error']}")
+            else:
+                matches = scrape_result['match_data']
+                count = len(matches)
+                total_matches += count
+                
+                # Add to pending matches
+                history_manager.add_pending_matches(season, lid, matches)
+                results.append(f"Liga {lid}: {count} partidos encontrados.")
+
+        return jsonify({
+            'message': f"Proceso completado. Total partidos encontrados: {total_matches}",
+            'details': results
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Global list to track active scraper processes
+ACTIVE_SCRAPERS = []
+ACTIVE_SCRAPERS_LOCK = threading.Lock()
+
+@app.route('/api/stop_scraping', methods=['POST'])
+def api_stop_scraping():
+    """Stops all active scraper subprocesses."""
+    count = 0
+    with ACTIVE_SCRAPERS_LOCK:
+        for p in ACTIVE_SCRAPERS:
+            try:
+                p.terminate() # Try graceful termination first
+                count += 1
+            except Exception as e:
+                print(f"Error stopping process: {e}")
+        ACTIVE_SCRAPERS.clear()
+        
+    return jsonify({"message": f"Se han detenido {count} procesos de scraping."})
+
+@app.route('/api/cache_matches', methods=['POST'])
+def api_cache_matches():
+    # ... existing code ...
+    pass # Placeholder, do not replace entire function if not full content
+
+# --- PENDING MATCHES ENDPOINTS ---
+
+@app.route('/api/pending_matches')
+def api_pending_matches():
+    """Devuelve la lista de partidos con resultado pendiente (??)."""
+    try:
+        # Load directly from the specific bucket file if possible, or search all
+        # To be safe and consistent with data_manager, we should use a method there.
+        # For now, let's load manualy or generic.
+        # Assuming data_manager has logic or we implement reading 'data_pending_results.json'
+        
+        pending_file =  Path(__file__).resolve().parent / 'data' / 'data_pending_results.json'
+        matches = []
+        if pending_file.exists():
+            try:
+                with open(pending_file, 'r', encoding='utf-8') as f:
+                    matches = json.load(f)
+            except:
+                matches = []
+        return jsonify({'matches': matches})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reanalyze_pending', methods=['POST'])
+def api_reanalyze_pending():
+    """Re-analiza un partido pendiente para ver si ya tiene resultado."""
+    try:
+        data = request.json
+        match_id = data.get('match_id')
+        if not match_id:
+             return jsonify({'error': 'Falta match_id'}), 400
+             
+        # Re-analyze
+        match_data = analizar_partido_completo(str(match_id), force_refresh=True)
+        if not match_data or match_data.get('error'):
+             return jsonify({'error': 'Falló el análisis'}), 500
+             
+        # Check new score
+        score = match_data.get('score') or match_data.get('final_score')
+        result_found = score and score != '??' and score != '?-?'
+        
+        # Save (this handles moving to correct bucket if score found, or updating pending if not)
+        data_manager.save_match(match_data)
+        
+        # If result found, we should remove from pending file explicitly if save_match doesn't do it automatically
+        # data_manager.save_match ADDS to buckets. It might not remove from pending if it goes to another bucket.
+        # We need to manually remove from pending if it moved to a numbered bucket.
+        
+        if result_found:
+            # Load pending, remove this id, save
+            pending_file = Path(__file__).resolve().parent / 'data' / 'data_pending_results.json'
+            if pending_file.exists():
+                try:
+                    with open(pending_file, 'r', encoding='utf-8') as f:
+                        pm = json.load(f)
+                    
+                    new_pm = [m for m in pm if str(m.get('match_id')) != str(match_id)]
+                    
+                    if len(new_pm) != len(pm):
+                         with open(pending_file, 'w', encoding='utf-8') as f:
+                            json.dump(new_pm, f, indent=2, ensure_ascii=False)
+                except:
+                    pass
+        
+        return jsonify({
+            'status': 'success', 
+            'match': match_data,
+            'result_found': bool(result_found)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    data = request.json
+    matches_to_cache = data.get('matches', []) # List of {season, league_id, match_id}
+    concurrency = int(data.get('concurrency', 1))
+    
+    if not matches_to_cache:
+        return jsonify({'error': 'No matches provided'}), 400
+
+    import subprocess
+    import tempfile
+    
+    # Create temp job file that will persist until the background process deletes it
+    # We use delete=False so it stays on disk
+    try:
+        # Generate a unique filename in a 'jobs' directory or tmp
+        jobs_dir = Path(__file__).resolve().parent.parent / 'jobs'
+        jobs_dir.mkdir(exist_ok=True)
+        job_file_path = jobs_dir / f"job_{int(time.time())}_{len(matches_to_cache)}.json"
+        
+        with open(job_file_path, 'w') as f:
+            json.dump(matches_to_cache, f)
+            
+        print(f"Created job file: {job_file_path}")
+        
+        # Prepare command to launch background_runner.py
+        # We need to find where background_runner.py is (root dim)
+        runner_script = Path(__file__).resolve().parent.parent / 'background_runner.py'
+        
+        if not runner_script.exists():
+             return jsonify({'error': f'Runner script not found at {runner_script}'}), 500
+
+        # Command: py background_runner.py --job_file <path> --concurrency <N>
+        python_cmd = "py" # As per user rules
+        
+        cmd = [python_cmd, str(runner_script), "--job_file", str(job_file_path), "--concurrency", str(concurrency)]
+        
+        # Launch in new console
+        creation_flags = subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0
+        
+        # We use Popen to let it run detached
+        subprocess.Popen(cmd, creationflags=creation_flags, close_fds=True)
+        
+        return jsonify({
+            'status': 'started', 
+            'message': f'Proceso iniciado en nueva ventana. {len(matches_to_cache)} partidos en cola.'
+        })
+
+    except Exception as e:
+        print(f"Error launching background process: {e}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

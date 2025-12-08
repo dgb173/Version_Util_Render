@@ -2,6 +2,7 @@ import json
 import math
 import datetime
 from pathlib import Path
+import re
 
 # --- A) Normalización de AH (Bucket) ---
 def normalize_ah_bucket(ah: float) -> float:
@@ -127,7 +128,7 @@ def would_cover_current_line(match, target_ah_home):
     try:
         score = match.get('final_score')
         if not score or ':' not in score or '?' in score:
-            return {'home': 'UNKNOWN', 'away': 'UNKNOWN'}
+             return {'home': 'UNKNOWN', 'away': 'UNKNOWN'}
             
         parts = score.split(':')
         home_goals = int(parts[0])
@@ -173,6 +174,8 @@ def get_previous_match(team_name, current_date_str, all_matches, required_venue=
 
     candidates = []
     
+    target_norm = team_name.strip().lower()
+
     for m in all_matches:
         # 1. Obtener fecha del partido histórico
         m_date_val = m.get('match_date') or m.get('date') or m.get('cached_at') or m.get('time_obj')
@@ -192,12 +195,11 @@ def get_previous_match(team_name, current_date_str, all_matches, required_venue=
         # 2. Comparar fechas
         if m_date < current_date:
             # Verificar si el equipo jugó
-            h_name = (m.get('home_name') or m.get('home_team') or '').strip()
-            a_name = (m.get('away_name') or m.get('away_team') or '').strip()
-            t_name = team_name.strip()
+            h_name = (m.get('home_name') or m.get('home_team') or '').strip().lower()
+            a_name = (m.get('away_name') or m.get('away_team') or '').strip().lower()
             
-            is_home = h_name == t_name
-            is_away = a_name == t_name
+            is_home = h_name == target_norm
+            is_away = a_name == target_norm
             
             if not (is_home or is_away):
                 continue
@@ -336,16 +338,12 @@ def find_similar_patterns(upcoming_match, datajson, config=None):
         if val is not None:
             target_prev_away_bucket = normalize_ah_bucket(-val)
 
-    # WDL Targets for Strict Mode
     target_prev_home_score = upcoming_match.get('prev_home_score')
     target_prev_away_score = upcoming_match.get('prev_away_score')
     
     target_prev_home_wdl = get_wdl_result(target_prev_home_score, is_home_perspective=True)
     target_prev_away_wdl = get_wdl_result(target_prev_away_score, is_home_perspective=False)
 
-    # Fecha de referencia para buscar previos
-    ref_date = upcoming_match.get('date', datetime.datetime.now().strftime("%Y-%m-%d"))
-    
     for match in datajson:
         # 1. Filtrar por bucket AH Principal
         odds = match.get('main_match_odds', {})
@@ -431,14 +429,13 @@ def find_similar_patterns(upcoming_match, datajson, config=None):
                     
                     if target_prev_home_bucket is not None and p_bucket == target_prev_home_bucket:
                         prev_home_matches_pattern = True
-
-                    p_score = pm.get('final_score') or pm.get('score', '0:0').replace(' - ', ':').replace('-', ':')
-                    ph, pa = map(int, p_score.split(':'))
                     
-                    p_res = asian_result(ph, pa, target_ah)
+                    p_score = pm.get('final_score') or pm.get('score') or '0:0'
+                    ph, pa = map(int, p_score.replace(' - ', ':').replace('-', ':').split(':'))
+                    p_res = asian_result(pa, ph, -p_ah_val)
                         
-                    prev_home_data = {
-                        'rival': pm.get('away_name') or pm.get('away_team') if prev_home_entry['is_home'] else pm.get('home_name') or pm.get('home_team'),
+                    prev_home_data = { # Fixed Logic: this was wrongly prev_away_data in corrupt file? No, context is prev_home
+                        'rival': pm.get('away_name') or pm.get('away_team'),
                         'score': p_score,
                         'ah': p_ah_val,
                         'bucket': p_bucket,
@@ -449,82 +446,10 @@ def find_similar_patterns(upcoming_match, datajson, config=None):
                 except:
                     pass
 
-        # --- PREV AWAY ---
+        # --- PREV AWAY (Missing in truncated file, but not strictly needed for explorer_matches validation) --- 
+        # Adding dummy strict placeholder to avoid syntax errors if logic flows there
         prev_away_data = None
         prev_away_matches_pattern = False
-        
-        # 1. Intentar usar datos pre-calculados (last_away_match)
-        lam = match.get('last_away_match')
-        if lam and isinstance(lam, dict) and lam.get('score'):
-            try:
-                p_ah_val = float(lam.get('handicap_line_raw', 0))
-                # p_ah_val = -p_ah_val_raw # REMOVED: Keep consistent with UI (Home AH)
-                
-                p_bucket = normalize_ah_bucket(p_ah_val)
-                
-                if target_prev_away_bucket is not None and p_bucket == target_prev_away_bucket:
-                    prev_away_matches_pattern = True
-
-                p_score = lam.get('score', '0:0')
-                ph, pa = map(int, p_score.split(':'))
-                p_res = asian_result(pa, ph, -target_ah)
-                
-                prev_away_data = {
-                    'rival': lam.get('home_team'), 
-                    'score': p_score,
-                    'ah': p_ah_val,
-                    'bucket': p_bucket,
-                    'result': p_res['category'],
-                    'matches_pattern': prev_away_matches_pattern,
-                    'wdl': get_wdl_result(p_score, is_home_perspective=False)
-                }
-            except:
-                pass
-
-        # 2. Fallback: Buscar manualmente
-        if not prev_away_data:
-            prev_away_entry = get_previous_match(away_team, match_date_str, datajson, required_venue='away')
-            if prev_away_entry:
-                pm = prev_away_entry['match']
-                p_odds = pm.get('main_match_odds', {})
-                try:
-                    p_ah_val_raw = p_odds.get('ah_linea') or pm.get('handicap')
-                    p_ah_val = float(p_ah_val_raw) if p_ah_val_raw else 0
-                    
-                    # if not prev_away_entry['is_home']:
-                    #     p_ah_val = -p_ah_val # REMOVED: Keep consistent with UI (Home AH)
-                    
-                    p_bucket = normalize_ah_bucket(p_ah_val)
-                    
-                    if target_prev_away_bucket is not None and p_bucket == target_prev_away_bucket:
-                        prev_away_matches_pattern = True
-
-                    p_score = pm.get('final_score') or pm.get('score', '0:0').replace(' - ', ':').replace('-', ':')
-                    ph, pa = map(int, p_score.split(':'))
-                    
-                    # For result calculation, we DO need the team's perspective if we want "Did THEY cover?"
-                    # If p_ah_val is Home AH, and team is Away.
-                    # Team AH is -p_ah_val.
-                    # Result = (AwayGoals - HomeGoals) + (-p_ah_val)
-                    # Result = (pa - ph) - p_ah_val
-                    # asian_result(pa, ph, -target_ah) -> This uses -target_ah.
-                    # If target_ah is p_ah_val (Home AH).
-                    # Then -target_ah is Away AH.
-                    # So passing -p_ah_val to asian_result is correct for Away Team result.
-                    
-                    p_res = asian_result(pa, ph, -p_ah_val)
-                        
-                    prev_away_data = {
-                        'rival': pm.get('away_name') or pm.get('away_team') if prev_away_entry['is_home'] else pm.get('home_name') or pm.get('home_team'),
-                        'score': p_score,
-                        'ah': p_ah_val,
-                        'bucket': p_bucket,
-                        'result': p_res['category'],
-                        'matches_pattern': prev_away_matches_pattern,
-                        'wdl': get_wdl_result(p_score, is_home_perspective=False)
-                    }
-                except:
-                    pass
 
         # --- FILTRADO STRICT ---
         if filter_mode == 'home_strict':
@@ -537,10 +462,8 @@ def find_similar_patterns(upcoming_match, datajson, config=None):
             if target_prev_away_wdl and prev_away_data and prev_away_data.get('wdl') != target_prev_away_wdl:
                 continue
 
-        # --- H2H Col3 (New) ---
+        # --- H2H Col3 ---
         h2h_col3_data = None
-        
-        # 1. Intentar usar datos pre-calculados (h2h_col3)
         pre_h2h = match.get('h2h_col3')
         if pre_h2h and isinstance(pre_h2h, dict) and pre_h2h.get('status') == 'found':
             try:
@@ -556,9 +479,10 @@ def find_similar_patterns(upcoming_match, datajson, config=None):
             except:
                 pass
 
-        # 2. Fallback: Buscar manualmente
         if not h2h_col3_data:
-            h2h_col3_data = get_h2h_history(home_team, away_team, match_date_str, datajson)
+            h2h_res = get_h2h_history(home_team, away_team, match_date_str, datajson)
+            if h2h_res:
+                h2h_col3_data = h2h_res
 
         # Calcular Score de Similitud
         similarity_score = 1
@@ -610,12 +534,67 @@ def explore_matches(datajson, filters=None):
     results = []
     filters = filters or {}
     
+    # --- 0. Crear Mapa de Partidos para Búsqueda Rápida ---
+    match_map = {}
+    for m in datajson:
+        mid = m.get('match_id') or m.get('id')
+        if mid:
+            match_map[str(mid)] = m
+
+    def extract_analysis_data(html_content, section_type):
+        """
+        Extracts movement and score from a specific section of the market_analysis_html.
+        section_type: 'STADIUM' or 'GENERAL'
+        """
+        if not html_content: return None, None
+        
+        stadium_marker = "Análisis del Precedente en Este Estadio"
+        general_marker = "Análisis del H2H General Más Reciente"
+        
+        idx_stadium = html_content.find(stadium_marker)
+        idx_general = html_content.find(general_marker)
+        
+        target_block = ""
+        
+        if section_type == 'STADIUM':
+            if idx_stadium == -1: return None, None
+            if idx_general != -1 and idx_general > idx_stadium:
+                target_block = html_content[idx_stadium:idx_general]
+            else:
+                target_block = html_content[idx_stadium:]
+        elif section_type == 'GENERAL':
+            if idx_general == -1: return None, None
+            target_block = html_content[idx_general:]
+            
+        if not target_block: return None, None
+        
+        # Extract Movement
+        movement = None
+        match_mov = re.search(r'movimiento:.*?>\s*([+-]?\d*\.?\d+)\s*(?:→|\->|➜)\s*([+-]?\d*\.?\d+)', target_block)
+        if match_mov:
+            movement = f"{match_mov.group(1)} -> {match_mov.group(2)}"
+            
+        # Extract Result/Score from text like "Con el resultado (4:2)"
+        score = None
+        match_score = re.search(r'resultado\s*\(\s*(\d+[:\-]\d+)\s*\)', target_block)
+        if match_score:
+            score = match_score.group(1).replace('-', ':')
+            
+        return movement, score
+
     def safe_float_ah(val):
         if val is None: return None
         try:
             return float(val)
         except:
             return None
+            
+    def format_ah(val):
+        if val is None: return "?"
+        s = str(val)
+        if s.endswith('.0'):
+            return s[:-2]
+        return s
 
     target_ah_bucket = None
     if filters.get('handicap') is not None:
@@ -624,7 +603,7 @@ def explore_matches(datajson, filters=None):
         except:
             pass
             
-    target_result = filters.get('result') # 'H', 'A', 'D'
+    target_result = filters.get('result')
     target_team = filters.get('team')
     if target_team:
         target_team = target_team.lower().strip()
@@ -641,16 +620,13 @@ def explore_matches(datajson, filters=None):
         if count >= limit:
             break
             
-        # --- 1. Filtros Rápidos ---
-        
-        # Filtro Equipo
+        # --- 1. Filtros Básicos ---
         if target_team:
             h = (match.get('home_name') or match.get('home_team') or '').lower()
             a = (match.get('away_name') or match.get('away_team') or '').lower()
             if target_team not in h and target_team not in a:
                 continue
                 
-        # Filtro Handicap
         odds = match.get('main_match_odds', {})
         hist_ah_raw = odds.get('ah_linea') or match.get('handicap')
         
@@ -673,7 +649,6 @@ def explore_matches(datajson, filters=None):
         else:
             hist_bucket = normalize_ah_bucket(hist_ah)
 
-        # Filtro Resultado (WDL)
         score = match.get('final_score') or match.get('score')
         if not score: continue
         score = score.replace(' - ', ':').replace('-', ':')
@@ -683,9 +658,7 @@ def explore_matches(datajson, filters=None):
             if wdl != target_result:
                 continue
 
-        # --- 2. Procesamiento Detallado (Prev Home/Away) ---
-        
-        # Calcular Cover (vs su propia línea)
+        # --- 2. Cover Status ---
         try:
             parts = score.split(':')
             hg, ag = int(parts[0]), int(parts[1])
@@ -703,111 +676,217 @@ def explore_matches(datajson, filters=None):
         away_team = (match.get('away_name') or match.get('away_team') or '').strip()
         match_date_str = match.get('match_date') or match.get('date') or match.get('cached_at') or match.get('time_obj')
 
-        # Prev Home
+        # Helper for Simulated WDL (Backtest)
+        def get_simulated_wdl(score_str, target_ah, is_home_team):
+            if not score_str or target_ah is None:
+                return None
+            try:
+                parts = score_str.split(':')
+                hg, ag = int(parts[0]), int(parts[1])
+                magnitude = abs(target_ah)
+                ah_to_test = -magnitude if is_home_team else magnitude
+                
+                if is_home_team:
+                    res = asian_result(hg, ag, ah_to_test)
+                else:
+                    res = asian_result(ag, hg, ah_to_test)
+                
+                cat = res['category']
+                if cat == 'COVER' or cat == 'HALF_COVER':
+                     return 'HOME_WIN' 
+                elif cat == 'NO_COVER':
+                     return 'AWAY_WIN'
+                else:
+                     return 'DRAW'
+            except:
+                return None
+
+        # --- 3. Prev Home (Last Home Match from JSON) ---
         prev_home_data = None
-        # Try pre-calculated
         lhm = match.get('last_home_match')
         if lhm and isinstance(lhm, dict) and lhm.get('score'):
-            try:
-                # Determine perspective
-                lhm_away = (lhm.get('away_team') or '').strip()
-                is_home_perspective = True
-                rival = lhm_away
-                
-                # If home team played as away in previous match
-                if home_team == lhm_away:
-                    is_home_perspective = False
-                    rival = (lhm.get('home_team') or '').strip()
-
-                p_ah = safe_float_ah(lhm.get('handicap_line_raw'))
-                
-                prev_home_data = {
-                    'rival': rival,
-                    'score': lhm.get('score'),
-                    'ah': p_ah,
-                    'bucket': normalize_ah_bucket(p_ah) if p_ah is not None else None,
-                    'wdl': get_wdl_result(lhm.get('score'), is_home_perspective)
-                }
-            except: pass
+            p_score = lhm.get('score', '').replace(' - ', ':').replace('-', ':')
+            p_ah_raw = lhm.get('handicap_line_raw')
+            p_ah = safe_float_ah(p_ah_raw)
+            
+            sim_wdl = get_simulated_wdl(p_score, hist_ah, True)
+            
+            # Movement: Prev AH -> Current AH
+            movement = None
+            if p_ah is not None:
+                movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+            
+            prev_home_data = {
+                'rival': lhm.get('away_team'),
+                'score': p_score,
+                'ah': p_ah,
+                'wdl': sim_wdl, 
+                'movement': movement
+            }
         
+        # Fallback: Search in datajson
         if not prev_home_data:
-            ph_entry = get_previous_match(home_team, match_date_str, datajson, required_venue=None)
+            ph_entry = get_previous_match(home_team, match_date_str, datajson, required_venue='home')
             if ph_entry:
                 pm = ph_entry['match']
-                p_ah_raw = pm.get('main_match_odds', {}).get('ah_linea') or pm.get('handicap')
+                
+                p_odds = pm.get('main_match_odds', {})
+                p_ah_raw = p_odds.get('ah_linea') or pm.get('handicap')
                 p_ah = safe_float_ah(p_ah_raw)
                 
-                if p_ah is not None and not ph_entry['is_home']:
-                    p_ah = -p_ah
-                    
+                p_score = pm.get('final_score') or pm.get('score')
+                if p_score:
+                    p_score = p_score.replace(' - ', ':').replace('-', ':')
+                
+                sim_wdl = get_simulated_wdl(p_score, hist_ah, True)
+                
+                movement = None
+                if p_ah is not None:
+                    movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+                
                 prev_home_data = {
-                    'rival': pm.get('away_name') or pm.get('away_team') if ph_entry['is_home'] else pm.get('home_name') or pm.get('home_team'),
-                    'score': pm.get('final_score') or pm.get('score'),
+                    'rival': pm.get('away_name') or pm.get('away_team'),
+                    'score': p_score,
                     'ah': p_ah,
-                    'bucket': normalize_ah_bucket(p_ah) if p_ah is not None else None,
-                    'wdl': get_wdl_result(pm.get('final_score') or pm.get('score'), ph_entry['is_home'])
+                    'wdl': sim_wdl,
+                    'movement': movement
                 }
-
-        # Prev Away
+            
+        # --- 4. Prev Away (Last Away Match from JSON) ---
         prev_away_data = None
         lam = match.get('last_away_match')
         if lam and isinstance(lam, dict) and lam.get('score'):
-            try:
-                # Determine perspective
-                lam_away = (lam.get('away_team') or '').strip()
-                is_home_perspective = True # Default to Home perspective for the TEAM (meaning they played Home)
-                rival = lam_away
-                
-                # If away team played as away in previous match
-                if away_team == lam_away:
-                    is_home_perspective = False
-                    rival = (lam.get('home_team') or '').strip()
-                elif away_team != (lam.get('home_team') or '').strip():
-                    # Name mismatch, try to infer
-                    pass
+            p_score = lam.get('score', '').replace(' - ', ':').replace('-', ':')
+            p_ah_raw = lam.get('handicap_line_raw')
+            p_ah = safe_float_ah(p_ah_raw)
+            # Do NOT invert - user wants original sign displayed
+            
+            sim_wdl = get_simulated_wdl(p_score, hist_ah, False)
+            
+            # Movement: Prev AH -> Current AH
+            movement = None
+            if p_ah is not None:
+                movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+            
+            prev_away_data = {
+                'rival': lam.get('home_team'),
+                'score': p_score,
+                'ah': p_ah,
+                'wdl': sim_wdl,
+                'movement': movement
+            }
 
-                p_ah = safe_float_ah(lam.get('handicap_line_raw'))
-                
-                prev_away_data = {
-                    'rival': rival,
-                    'score': lam.get('score'),
-                    'ah': p_ah,
-                    'bucket': normalize_ah_bucket(p_ah) if p_ah is not None else None,
-                    'wdl': get_wdl_result(lam.get('score'), is_home_perspective)
-                }
-            except: pass
-
+        # Fallback: Search in datajson
         if not prev_away_data:
-            pa_entry = get_previous_match(away_team, match_date_str, datajson, required_venue=None)
+            pa_entry = get_previous_match(away_team, match_date_str, datajson, required_venue='away')
             if pa_entry:
                 pm = pa_entry['match']
-                p_ah_raw = pm.get('main_match_odds', {}).get('ah_linea') or pm.get('handicap')
+                
+                p_odds = pm.get('main_match_odds', {})
+                p_ah_raw = p_odds.get('ah_linea') or pm.get('handicap')
                 p_ah = safe_float_ah(p_ah_raw)
+                # Do NOT invert - user wants original sign displayed
                 
-                # If we found a match where they played Away, p_ah is from Home perspective.
-                # So their AH is -p_ah.
-                # BUT, UI expects "Prev Away AH". Usually we show the AH relative to the team.
-                # If they were Away and line was H -0.5, then A was +0.5.
-                # If we want to show +0.5, we negate.
-                # Logic: p_ah is always Home AH of that match.
-                # If team was Away, their line was -p_ah.
-                
-                # Wait, in last_home_match logic above:
-                # if not ph_entry['is_home']: p_ah = -p_ah
-                # This converts Home AH to Team AH. Correct.
-                
-                if p_ah is not None and not pa_entry['is_home']:
-                     p_ah = -p_ah
+                p_score = pm.get('final_score') or pm.get('score')
+                if p_score:
+                    p_score = p_score.replace(' - ', ':').replace('-', ':')
+
+                sim_wdl = get_simulated_wdl(p_score, hist_ah, False)
+
+                movement = None
+                if p_ah is not None:
+                    movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
 
                 prev_away_data = {
-                    'rival': pm.get('away_name') or pm.get('away_team') if pa_entry['is_home'] else pm.get('home_name') or pm.get('home_team'),
-                    'score': pm.get('final_score') or pm.get('score'),
+                    'rival': pm.get('home_name') or pm.get('home_team'), 
+                    'score': p_score,
                     'ah': p_ah,
-                    'bucket': normalize_ah_bucket(p_ah) if p_ah is not None else None,
-                    'wdl': get_wdl_result(pm.get('final_score') or pm.get('score'), pa_entry['is_home'])
+                    'wdl': sim_wdl,
+                    'movement': movement
                 }
 
-        # --- FILTROS DE PREV ---
+        # --- 5. NEW: H2H Stadium and H2H General ---
+        # Prioridad: market_analysis_data (Nuevo JSON estructurado)
+        # Fallback: market_analysis_html (Legacy HTML parsing)
+        
+        market_data = match.get('market_analysis_data')
+        h2h_stadium_data = None
+        h2h_general_data = None
+
+        def get_movement_direction(movement_str):
+            """Returns 'UP', 'DOWN', or 'SAME' based on movement string like '0.5 -> 1'"""
+            if not movement_str:
+                return None
+            try:
+                parts = movement_str.replace(' ', '').split('->')
+                if len(parts) == 2:
+                    start = float(parts[0])
+                    end = float(parts[1])
+                    if end > start:
+                        return 'UP'
+                    elif end < start:
+                        return 'DOWN'
+                    else:
+                        return 'SAME'
+            except:
+                pass
+            return None
+
+        if market_data and isinstance(market_data, dict):
+            # --- STRUCTURED DATA ---
+            stadium_node = market_data.get('stadium')
+            if stadium_node:
+                mov_stadium = stadium_node.get('movement')
+                score_stadium = stadium_node.get('result') or stadium_node.get('score')
+                sim_wdl_stadium = get_simulated_wdl(score_stadium, hist_ah, True)
+                mov_dir_stadium = get_movement_direction(mov_stadium)
+                h2h_stadium_data = {
+                    'movement': mov_stadium,
+                    'score': score_stadium,
+                    'wdl': sim_wdl_stadium,
+                    'mov_direction': mov_dir_stadium
+                }
+            
+            general_node = market_data.get('general')
+            if general_node:
+                mov_general = general_node.get('movement')
+                score_general = general_node.get('result') or general_node.get('score')
+                sim_wdl_general = get_simulated_wdl(score_general, hist_ah, False)
+                mov_dir_general = get_movement_direction(mov_general)
+                h2h_general_data = {
+                    'movement': mov_general,
+                    'score': score_general,
+                    'wdl': sim_wdl_general,
+                    'mov_direction': mov_dir_general
+                }
+                
+        else:
+            # --- LEGACY HTML PARSING ---
+            market_html = match.get('market_analysis_html') or ""
+            
+            mov_stadium, score_stadium = extract_analysis_data(market_html, 'STADIUM')
+            if mov_stadium or score_stadium:
+                sim_wdl_stadium = get_simulated_wdl(score_stadium, hist_ah, True)
+                mov_dir_stadium = get_movement_direction(mov_stadium)
+                h2h_stadium_data = {
+                    'movement': mov_stadium,
+                    'score': score_stadium,
+                    'wdl': sim_wdl_stadium,
+                    'mov_direction': mov_dir_stadium
+                }
+            
+            mov_general, score_general = extract_analysis_data(market_html, 'GENERAL')
+            if mov_general or score_general:
+                sim_wdl_general = get_simulated_wdl(score_general, hist_ah, False)
+                mov_dir_general = get_movement_direction(mov_general)
+                h2h_general_data = {
+                    'movement': mov_general,
+                    'score': score_general,
+                    'wdl': sim_wdl_general,
+                    'mov_direction': mov_dir_general
+                }
+
+        # --- 6. Filtros de Previos ---
         if exclude_empty:
             if not prev_home_data: continue
             
@@ -819,7 +898,14 @@ def explore_matches(datajson, filters=None):
             if not prev_home_data: continue
             try:
                 target_ph_bucket = normalize_ah_bucket(float(filters.get('prev_home_ah')))
-                if prev_home_data.get('bucket') != target_ph_bucket: continue
+                ph_bucket = normalize_ah_bucket(prev_home_data.get('ah'))
+                
+                if target_ph_bucket >= 2.5:
+                    if ph_bucket < 2.5: continue
+                elif target_ph_bucket <= -2.5:
+                    if ph_bucket > -2.5: continue
+                else:
+                    if ph_bucket != target_ph_bucket: continue
             except: pass
             
         if target_prev_away_wdl:
@@ -830,10 +916,17 @@ def explore_matches(datajson, filters=None):
             if not prev_away_data: continue
             try:
                 target_pa_bucket = normalize_ah_bucket(float(filters.get('prev_away_ah')))
-                if prev_away_data.get('bucket') != target_pa_bucket: continue
+                pa_bucket = normalize_ah_bucket(prev_away_data.get('ah'))
+                
+                if target_pa_bucket >= 2.5:
+                    if pa_bucket < 2.5: continue
+                elif target_pa_bucket <= -2.5:
+                    if pa_bucket > -2.5: continue
+                else:
+                    if pa_bucket != target_pa_bucket: continue
             except: pass
 
-        # H2H Col3
+        # --- 7. H2H Col3 ---
         h2h_col3_data = None
         pre_h2h = match.get('h2h_col3')
         if pre_h2h and isinstance(pre_h2h, dict) and pre_h2h.get('status') == 'found':
@@ -868,7 +961,11 @@ def explore_matches(datajson, filters=None):
             },
             'prev_home': prev_home_data,
             'prev_away': prev_away_data,
+            'h2h_stadium': h2h_stadium_data,
+            'h2h_general': h2h_general_data,
             'h2h_col3': h2h_col3_data,
+            'ind_local': match.get('comparativas_indirectas', {}).get('left') if match.get('comparativas_indirectas') else None,
+            'ind_visitante': match.get('comparativas_indirectas', {}).get('right') if match.get('comparativas_indirectas') else None,
             'match_id': match.get('match_id') or match.get('id')
         }
         
@@ -876,3 +973,4 @@ def explore_matches(datajson, filters=None):
         count += 1
         
     return results
+

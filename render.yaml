@@ -1,10 +1,12 @@
 services:
   - type: web
     name: nowgoal-app
-    env: python
+    runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -b 0.0.0.0:$PORT src.app:app
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT --timeout 120 wsgi:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: "3.11.0"
+      - key: FLASK_ENV
+        value: production

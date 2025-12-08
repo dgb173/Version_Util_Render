@@ -258,6 +258,20 @@
                         <span class="badge">{{ finished_matches|length if finished_matches else 0 }}</span>
                     </button>
                 </div>
+                <div class="mb-3 d-flex gap-2">
+                    <a href="/scraper" class="btn btn-outline-primary w-100">
+                        <i class="fa-solid fa-cloud-arrow-down me-2"></i> Gestor
+                    </a>
+                    <div class="d-flex gap-1 w-100">
+                        <button type="button" class="btn btn-success flex-grow-1" onclick="triggerBackgroundCache()">
+                            <i class="fa-solid fa-database me-1"></i> Cachear
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="triggerStopCache()"
+                            title="Detener Cacheo">
+                            <i class="fa-solid fa-stop"></i>
+                        </button>
+                    </div>
+                </div>
                 <form class="filters-form" method="get">
                     <div class="mb-2">
                         <label for="handicap-filter" class="form-label">Filtro por hándicap</label>
@@ -627,6 +641,47 @@
                 html += '</tbody></table></div>';
                 patternContainer.innerHTML = html;
             }
+
+            // Expose to global scope for onclick
+            window.triggerBackgroundCache = function () {
+                const handicap = document.getElementById('handicap-filter').value;
+                const ou = document.getElementById('goal-line-filter').value;
+                console.log("DEBUG Cache Trigger -> Handicap:", handicap, "OU:", ou);
+
+                if (!confirm(`¿Iniciar cacheo de fondo para AH=${handicap || 'Todos'} y OU=${ou || 'Todos'}?\nSe usarán multiples hilos y se guardará el progreso.`)) return;
+
+                fetch('/api/cache_all_finished_background', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        handicap: handicap,
+                        ou: ou
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert(data.message);
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(err => alert('Error de red: ' + err));
+            };
+
+            window.triggerStopCache = function () {
+                if (!confirm('¿Estás seguro de que quieres detener el proceso de cacheo en segundo plano?')) return;
+
+                fetch('/api/stop_background_cache', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message);
+                    })
+                    .catch(err => alert('Error al detener: ' + err));
+            };
 
             autoSelectFirstCard(state.activeList);
         })();
