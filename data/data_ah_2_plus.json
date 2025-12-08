@@ -5314,9 +5314,9 @@
         "ou_overs": 2,
         "ou_unders": 1,
         "match_ids": [
-          "2888143",
-          "2906395",
-          "2906398"
+          "2907311",
+          "2906230",
+          "2872876"
         ]
       },
       "prob_ah": 100.0,
@@ -5324,8 +5324,8 @@
       "prob_under": 33.33333333333333,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.5 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 3.75 hubiera sido OVER el 66.7% y UNDER el 33.3%."
     },
-    "execution_time_seconds": 20.57,
-    "precacheo_date": "2025-12-07T18:48:03.753885"
+    "execution_time_seconds": 11.39,
+    "cached_at": "2025-12-08 06:56:00"
   },
   {
     "match_id": "2830481",
@@ -7171,8 +7171,8 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH 4.25 + O/U 5.25."
     },
-    "execution_time_seconds": 26.6,
-    "precacheo_date": "2025-12-07T18:52:19.859011"
+    "execution_time_seconds": 14.99,
+    "cached_at": "2025-12-08 06:53:44"
   },
   {
     "match_id": "2825333",
@@ -7463,24 +7463,21 @@
     "backtest_global": {
       "validez": true,
       "stats": {
-        "total_muestras": 4,
-        "ah_wins": 4,
-        "ou_overs": 2,
-        "ou_unders": 2,
+        "total_muestras": 1,
+        "ah_wins": 1,
+        "ou_overs": 0,
+        "ou_unders": 1,
         "match_ids": [
-          "2843642",
-          "2834876",
-          "2906399",
-          "2906400"
+          "2907122"
         ]
       },
       "prob_ah": 100.0,
-      "prob_over": 50.0,
-      "prob_under": 50.0,
-      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.25 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 3.5 hubiera sido OVER el 50.0% y UNDER el 50.0%."
+      "prob_over": 0.0,
+      "prob_under": 100.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.25 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 3.5 hubiera sido OVER el 0.0% y UNDER el 100.0%."
     },
-    "execution_time_seconds": 12.85,
-    "precacheo_date": "2025-12-07T18:54:10.846145"
+    "execution_time_seconds": 16.5,
+    "cached_at": "2025-12-08 06:51:58"
   },
   {
     "match_id": "2834878",
@@ -8127,7 +8124,7 @@
         "ou_overs": 0,
         "ou_unders": 1,
         "match_ids": [
-          "2815081"
+          "2907164"
         ]
       },
       "prob_ah": 100.0,
@@ -8135,8 +8132,8 @@
       "prob_under": 100.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 3.75 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 4.5 hubiera sido OVER el 0.0% y UNDER el 100.0%."
     },
-    "execution_time_seconds": 25.29,
-    "precacheo_date": "2025-12-07T18:52:42.737255"
+    "execution_time_seconds": 19.0,
+    "cached_at": "2025-12-08 06:53:34"
   },
   {
     "match_id": "2869990",
@@ -9576,7 +9573,7 @@
         "ou_overs": 1,
         "ou_unders": 0,
         "match_ids": [
-          "2906562"
+          "2906889"
         ]
       },
       "prob_ah": 100.0,
@@ -9584,8 +9581,8 @@
       "prob_under": 0.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 3.5 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 4.5 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 29.5,
-    "precacheo_date": "2025-12-07T18:48:34.616271"
+    "execution_time_seconds": 8.37,
+    "cached_at": "2025-12-08 06:55:52"
   },
   {
     "match_id": "2907121",
@@ -12379,11 +12376,23 @@
       "stats_rows": []
     },
     "backtest_global": {
-      "validez": false,
-      "mensaje": "No se encontraron clones con Patrón AH 2 + O/U 2.75."
+      "validez": true,
+      "stats": {
+        "total_muestras": 1,
+        "ah_wins": 1,
+        "ou_overs": 1,
+        "ou_unders": 0,
+        "match_ids": [
+          "2907182"
+        ]
+      },
+      "prob_ah": 100.0,
+      "prob_over": 100.0,
+      "prob_under": 0.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.0 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 41.44,
-    "precacheo_date": "2025-12-07T18:47:40.861637"
+    "execution_time_seconds": 13.79,
+    "cached_at": "2025-12-08 06:56:12"
   },
   {
     "match_id": "2907219",
@@ -12674,23 +12683,22 @@
     "backtest_global": {
       "validez": true,
       "stats": {
-        "total_muestras": 3,
-        "ah_wins": 3,
-        "ou_overs": 1,
-        "ou_unders": 2,
+        "total_muestras": 2,
+        "ah_wins": 1,
+        "ou_overs": 2,
+        "ou_unders": 0,
         "match_ids": [
-          "2830481",
-          "2906511",
-          "2858954"
+          "2855053",
+          "2835436"
         ]
       },
-      "prob_ah": 100.0,
-      "prob_over": 33.33333333333333,
-      "prob_under": 66.66666666666666,
-      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.0 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 3.5 hubiera sido OVER el 33.3% y UNDER el 66.7%."
+      "prob_ah": 50.0,
+      "prob_over": 100.0,
+      "prob_under": 0.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 2.0 se hubiera cubierto en el 50.0% de casos similares.\n - La línea O/U 3.5 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 17.04,
-    "precacheo_date": "2025-12-07T18:48:50.382790"
+    "execution_time_seconds": 10.89,
+    "cached_at": "2025-12-08 06:55:35"
   },
   {
     "match_id": "2907221",
@@ -13011,8 +13019,8 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH 3.5 + O/U 5."
     },
-    "execution_time_seconds": 14.41,
-    "precacheo_date": "2025-12-07T18:51:50.133129"
+    "execution_time_seconds": 13.77,
+    "cached_at": "2025-12-08 06:54:06"
   },
   {
     "match_id": "2907271",
