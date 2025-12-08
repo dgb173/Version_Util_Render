@@ -340,7 +340,16 @@
                                 <option value="-2.5">-2.5</option>
                             </select>
                         </th>
-                        <th style="width: 80px;">FT</th>
+                        <th style="width: 80px;">
+                            FT
+                            <select class="header-filter mt-1" id="filter-cover-result" style="width: 100%;"
+                                onchange="applyClientFilters()">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Fav. Cubrió</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">Fav. NO Cubrió</option>
+                            </select>
+                        </th>
                         <th>
                             Prev Home
                             <select class="header-filter mt-1" id="filter-prev-home-ah" style="width: 100%;">
@@ -457,6 +466,64 @@
                     const hasPrevHome = item.prev_home && item.prev_home.score;
                     const hasPrevAway = item.prev_away && item.prev_away.score;
                     return hasPrevHome && hasPrevAway;
+                });
+            }
+
+            // Filtro de cobertura AH (client-side)
+            const coverFilter = document.getElementById('filter-cover-result').value;
+            if (coverFilter) {
+                filteredResults = filteredResults.filter(item => {
+                    const c = item.candidate;
+                    if (!c.score || c.ah_real === null || c.ah_real === undefined) return false;
+
+                    // Determinar favorito según el signo del AH
+                    // AH > 0: Favorito es LOCAL
+                    // AH <= 0: Favorito es VISITANTE
+                    const ah = parseFloat(c.ah_real);
+                    const favoritoEsLocal = ah > 0;
+
+                    // Parsear resultado
+                    const parts = c.score.split(':');
+                    if (parts.length !== 2) return false;
+                    const golesLocal = parseInt(parts[0]);
+                    const golesVisitante = parseInt(parts[1]);
+
+                    // Calcular diferencia de goles
+                    const diferenciaGoles = golesLocal - golesVisitante;
+
+                    // Determinar resultado desde perspectiva del FAVORITO
+                    let resultadoFavorito; // 'COVER', 'PUSH', 'NO_COVER'
+
+                    if (favoritoEsLocal) {
+                        // Favorito es LOCAL. Local da 'ah' goles de ventaja.
+                        // Local cubre si: diferenciaGoles > ah
+                        // Push si: diferenciaGoles === ah (solo posible con AH enteros)
+                        // No cubre si: diferenciaGoles < ah
+                        if (diferenciaGoles > ah) {
+                            resultadoFavorito = 'COVER';
+                        } else if (diferenciaGoles === ah) {
+                            resultadoFavorito = 'PUSH';
+                        } else {
+                            resultadoFavorito = 'NO_COVER';
+                        }
+                    } else {
+                        // Favorito es VISITANTE. Visitante da 'abs(ah)' goles de ventaja.
+                        // Visitante cubre si: golesVisitante - golesLocal > abs(ah)
+                        // Push si: golesVisitante - golesLocal === abs(ah)
+                        // No cubre si: golesVisitante - golesLocal < abs(ah)
+                        const ventajaVisitante = golesVisitante - golesLocal;
+                        const lineaAbs = Math.abs(ah);
+
+                        if (ventajaVisitante > lineaAbs) {
+                            resultadoFavorito = 'COVER';
+                        } else if (ventajaVisitante === lineaAbs) {
+                            resultadoFavorito = 'PUSH';
+                        } else {
+                            resultadoFavorito = 'NO_COVER';
+                        }
+                    }
+
+                    return resultadoFavorito === coverFilter;
                 });
             }
 
