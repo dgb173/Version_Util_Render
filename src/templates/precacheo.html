@@ -132,6 +132,16 @@
             color: #17a2b8;
             font-weight: 600;
         }
+
+        /* H2H Col3 - Fondo rosa para distinguirla */
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
     </style>
 </head>
 
@@ -164,6 +174,13 @@
                     </button>
                 </div>
                 <span class="badge bg-info" id="current-time-badge">Hora España: --:--</span>
+                <div class="form-check ms-3">
+                    <input class="form-check-input" type="checkbox" id="filter-only-with-history"
+                        onchange="triggerSearch()">
+                    <label class="form-check-label small" for="filter-only-with-history">
+                        Solo con historial
+                    </label>
+                </div>
             </div>
             <div class="d-flex gap-2 align-items-center">
                 <div id="scraping-status" class="d-none"></div>
@@ -587,6 +604,21 @@
             }
 
             return matches.filter(m => {
+                // Filtro: Solo con historial (Prev Home y Prev Away deben tener datos)
+                const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+                if (onlyWithHistory) {
+                    const pc = precacheoData[m.id];
+                    if (!pc) return false;
+
+                    // Verificar que tenga datos en Prev Home
+                    const hasPrevHome = pc.last_home_match && pc.last_home_match.score;
+                    // Verificar que tenga datos en Prev Away  
+                    const hasPrevAway = pc.last_away_match && pc.last_away_match.score;
+
+                    // Si alguno de los dos no tiene datos, filtrar
+                    if (!hasPrevHome || !hasPrevAway) return false;
+                }
+
                 // Team filter
                 if (teamHome && !(m.home_team || '').toLowerCase().includes(teamHome)) return false;
                 if (teamAway && !(m.away_team || '').toLowerCase().includes(teamAway)) return false;
@@ -838,55 +870,93 @@
                 }
 
                 // H2H Col3 (from h2h_col3 object)
-                let h2hCol3Html = '<span class="text-muted">-</span>';
+                let h2hCol3Html = '';
                 if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
                     const col3 = pc.h2h_col3;
-                    const score = (col3.goles_home !== undefined && col3.goles_away !== undefined) ? `${col3.goles_home}:${col3.goles_away}` : '-';
-                    h2hCol3Html = `
-                        <div class="d-flex flex-column">
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${col3.handicap || '-'}</span>
-                                <span class="fw-bold">${score}</span>
+                    // Verificar que no hay undefined en los datos
+                    const handicap = (col3.handicap !== undefined && col3.handicap !== 'undefined') ? col3.handicap : null;
+                    const golesHome = col3.goles_home;
+                    const golesAway = col3.goles_away;
+                    const homeTeam = (col3.h2h_home_team_name && col3.h2h_home_team_name !== 'undefined') ? col3.h2h_home_team_name : '';
+                    const awayTeam = (col3.h2h_away_team_name && col3.h2h_away_team_name !== 'undefined') ? col3.h2h_away_team_name : '';
+
+                    const score = (golesHome !== undefined && golesHome !== null &&
+                        golesAway !== undefined && golesAway !== null)
+                        ? `${golesHome}:${golesAway}` : null;
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (handicap || score) {
+                        h2hCol3Html = `
+                            <div class="d-flex flex-column">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${handicap || '-'}</span>
+                                    <span class="fw-bold">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
                             </div>
-                            <div class="small text-muted" style="font-size: 0.75rem;">
-                                ${col3.h2h_home_team_name || ''} vs ${col3.h2h_away_team_name || ''}
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 }
 
-                // Ind. Comparisons
-                let indLeftHtml = '<span class="text-muted">NO</span>';
+                // Ind. Comparisons - Helper para validar undefined
+                const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+                let indLeftHtml = '';
+                let indLeftHasData = false;
                 if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.left) {
                     const l = pc.comparativas_indirectas.left;
-                    const cov = l.cover_status === 'CUBIERTO' ? 'text-success' : (l.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
-                    indLeftHtml = `
-                        <div class="d-flex flex-column">
-                             <div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${l.ah_line || l.ah || '-'}</span>
-                                <span class="fw-bold ${cov}">${l.score}</span>
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+                    const homeTeam = isValidValue(l.home_team) ? l.home_team : '';
+                    const awayTeam = isValidValue(l.away_team) ? l.away_team : '';
+                    const localia = isValidValue(l.localia) ? l.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indLeftHasData = true;
+                        const cov = l.cover_status === 'CUBIERTO' ? 'text-success' : (l.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
+                        indLeftHtml = `
+                            <div class="d-flex flex-column">
+                                 <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${localia}</div>` : ''}
                             </div>
-                            <div class="small text-muted" style="font-size: 0.75rem;">${l.home_team || ''} vs ${l.away_team || ''}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${l.localia || '?'}</div>
-                        </div>
-                    `;
+                        `;
+                    }
                 }
 
-                let indRightHtml = '<span class="text-muted">NO</span>';
+                let indRightHtml = '';
+                let indRightHasData = false;
                 if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.right) {
                     const r = pc.comparativas_indirectas.right;
-                    const cov = r.cover_status === 'CUBIERTO' ? 'text-success' : (r.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
-                    indRightHtml = `
-                        <div class="d-flex flex-column">
-                             <div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${r.ah_line || r.ah || '-'}</span>
-                                <span class="fw-bold ${cov}">${r.score}</span>
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+                    const homeTeam = isValidValue(r.home_team) ? r.home_team : '';
+                    const awayTeam = isValidValue(r.away_team) ? r.away_team : '';
+                    const localia = isValidValue(r.localia) ? r.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indRightHasData = true;
+                        const cov = r.cover_status === 'CUBIERTO' ? 'text-success' : (r.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
+                        indRightHtml = `
+                            <div class="d-flex flex-column">
+                                 <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${localia}</div>` : ''}
                             </div>
-                            <div class="small text-muted" style="font-size: 0.75rem;">${r.home_team || ''} vs ${r.away_team || ''}</div>
-                            <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${r.localia || '?'}</div>
-                        </div>
-                    `;
+                        `;
+                    }
                 }
+
+                // Determinar si H2H Col3 tiene datos
+                let h2hCol3HasData = h2hCol3Html !== '';
 
                 tr.innerHTML = `
                     <td class="text-center"><span class="badge bg-secondary">${fecha}</span></td>
@@ -898,9 +968,9 @@
                     <td class="col-prev">${prevAwayHtml}</td>
                     <td class="col-prev text-center">${h2hStadiumHtml}</td>
                     <td class="col-prev text-center">${h2hGeneralHtml}</td>
-                    <td class="col-prev">${h2hCol3Html}</td>
-                    <td class="col-prev">${indLeftHtml}</td>
-                    <td class="col-prev">${indRightHtml}</td>
+                    <td class="col-prev col-h2h-col3 text-center">${h2hCol3Html}</td>
+                    <td class="col-prev ${!indLeftHasData ? 'cell-no-data' : ''}">${indLeftHtml}</td>
+                    <td class="col-prev ${!indRightHasData ? 'cell-no-data' : ''}">${indRightHtml}</td>
                     <td class="text-center">
                         ${!isScraped
                         ? `<button class="btn btn-sm btn-primary" onclick="scrapeMatch('${matchId}')" title="Scrapear">

@@ -7,7 +7,7 @@ echo Por favor, asegurate de cerrar otras ventanas de terminal que esten ejecuta
 
 echo Abriendo navegador en http://localhost:5000/estudio ...
 timeout /t 3 >nul
-start http://localhost:5000/estudio
+start http://localhost:5000
 
 echo Ejecutando servidor Flask...
 py src/app.py
