@@ -219,6 +219,16 @@
         .mobile-header {
             display: none;
         }
+
+        /* H2H Col3 - Fondo rosa para distinguirla */
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
     </style>
 </head>
 
@@ -250,6 +260,11 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>Explorador de Datos</h4>
             <div class="d-flex gap-2">
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" id="filter-only-with-history"
+                        onchange="applyClientFilters()">
+                    <label class="form-check-label small" for="filter-only-with-history">Solo con historial</label>
+                </div>
                 <div class="form-check d-flex align-items-center">
                     <input class="form-check-input me-2" type="checkbox" id="filter-exclude-empty">
                     <label class="form-check-label small" for="filter-exclude-empty">Ocultar vacíos</label>
@@ -401,6 +416,7 @@
                 prev_home_ah: document.getElementById('filter-prev-home-ah').value || null,
                 prev_away_ah: document.getElementById('filter-prev-away-ah').value || null,
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
+                only_with_history: document.getElementById('filter-only-with-history').checked,
                 limit: 2000 // Fetch large amount to allow client-side pagination up to user needs
             };
 
@@ -431,11 +447,29 @@
         }
 
         function renderTableWithPagination() {
+            // Aplicar filtro client-side "Solo con historial"
+            const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+            let filteredResults = totalResults;
+
+            if (onlyWithHistory) {
+                filteredResults = totalResults.filter(item => {
+                    // Requiere datos en AMBOS Prev Home y Prev Away
+                    const hasPrevHome = item.prev_home && item.prev_home.score;
+                    const hasPrevAway = item.prev_away && item.prev_away.score;
+                    return hasPrevHome && hasPrevAway;
+                });
+            }
+
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const pageItems = totalResults.slice(start, end);
+            const pageItems = filteredResults.slice(start, end);
             renderTable(pageItems);
-            renderPaginationControls();
+            renderPaginationControls(filteredResults.length);
+        }
+
+        function applyClientFilters() {
+            currentPage = 1;
+            renderTableWithPagination();
         }
 
         function changePage(page) {
@@ -445,10 +479,11 @@
             renderTableWithPagination();
         }
 
-        function renderPaginationControls() {
+        function renderPaginationControls(totalCount) {
+            if (totalCount === undefined) totalCount = totalResults.length;
             const navTop = document.getElementById('pagination-nav-top');
             const listaTop = document.getElementById('pagination-lista-top');
-            const totalPages = Math.ceil(totalResults.length / itemsPerPage);
+            const totalPages = Math.ceil(totalCount / itemsPerPage);
 
             if (totalPages <= 1) {
                 if (navTop) navTop.classList.add('d-none');
@@ -468,7 +503,7 @@
             // Info
             const infoLi = document.createElement('li');
             infoLi.className = 'page-item disabled';
-            infoLi.innerHTML = `<span class="page-link">Pág ${currentPage}/${totalPages} (${totalResults.length})</span>`;
+            infoLi.innerHTML = `<span class="page-link">Pág ${currentPage}/${totalPages} (${totalCount})</span>`;
             listaTop.appendChild(infoLi);
 
             // Next
@@ -484,57 +519,124 @@
 
             if (!results || results.length === 0) {
                 tbody.innerHTML = `<tr>
-        <td colspan="8" class="text-center py-4">No se encontraron resultados</td>
+        <td colspan="10" class="text-center py-4">No se encontraron resultados</td>
     </tr>`;
                 return;
             }
 
             const formatAh = (val) => val !== null && val !== undefined ? val : '-';
 
+            // Helper igual a Pre-Cacheo
+            const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
             results.forEach(item => {
                 const c = item.candidate;
                 const tr = document.createElement('tr');
 
-                // Prev Home Cell
-                let prevHomeHtml = '<span class="text-muted">-</span>';
+                // Prev Home Cell Logic
+                let prevHomeHtml = '';
+                let prevHomeHasData = false;
                 if (item.prev_home) {
-                    const wdlClass = item.prev_home.wdl === 'W' ? 'text-success' : (item.prev_home.wdl === 'L' ? 'text-danger' :
-                        'text-warning');
-                    prevHomeHtml = `
-    <div class="d-flex justify-content-between">
-        <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
-        <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
-    </div>
-    <div class="small text-muted text-truncate" style="max-width: 120px;">vs ${item.prev_home.rival}</div>
-    `;
+                    // Check if meaningful data exists
+                    if (isValidValue(item.prev_home.score) || isValidValue(item.prev_home.ah)) {
+                        prevHomeHasData = true;
+                        const wdlClass = item.prev_home.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_home.wdl === 'AWAY_WIN' ? 'text-danger' : (item.prev_home.wdl === 'DRAW' ? 'text-warning' : (item.prev_home.wdl === 'W' ? 'text-success' : (item.prev_home.wdl === 'L' ? 'text-danger' : 'text-warning'))));
+
+                        prevHomeHtml = `
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
+                                <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
+                            </div>
+                            <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_home.rival}">${item.prev_home.rival || '-'}</div>
+                        </div>`;
+                    }
                 }
 
-                // Prev Away Cell
-                let prevAwayHtml = '<span class="text-muted">-</span>';
+                // Prev Away Cell Logic
+                let prevAwayHtml = '';
+                let prevAwayHasData = false;
                 if (item.prev_away) {
-                    const wdlClass = item.prev_away.wdl === 'W' ? 'text-success' : (item.prev_away.wdl === 'L' ? 'text-danger' :
-                        'text-warning');
-                    prevAwayHtml = `
-    <div class="d-flex justify-content-between">
-        <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
-        <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
-    </div>
-    <div class="small text-muted text-truncate" style="max-width: 120px;">${item.prev_away.rival} vs</div>
-    `;
+                    if (isValidValue(item.prev_away.score) || isValidValue(item.prev_away.ah)) {
+                        prevAwayHasData = true;
+                        const wdlClass = item.prev_away.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_away.wdl === 'AWAY_WIN' ? 'text-danger' : (item.prev_away.wdl === 'DRAW' ? 'text-warning' : (item.prev_away.wdl === 'W' ? 'text-success' : (item.prev_away.wdl === 'L' ? 'text-danger' : 'text-warning'))));
+
+                        prevAwayHtml = `
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
+                                <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
+                            </div>
+                            <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_away.rival}">${item.prev_away.rival || '-'}</div>
+                        </div>`;
+                    }
                 }
 
-                // H2H Col3 Cell
-                let h2hHtml = '<span class="text-muted">-</span>';
+                // H2H Col3 Cell Logic
+                let h2hHtml = '';
+                // H2H Col3 siempre es rosa, pero verificamos contenido
                 if (item.h2h_col3) {
-                    const homeT = item.h2h_col3.home_team || 'Local';
-                    const awayT = item.h2h_col3.away_team || 'Visitante';
-                    h2hHtml = `
-    <div class="d-flex justify-content-between">
-        <span class="fw-bold small">${formatAh(item.h2h_col3.ah)}</span>
-        <span class="fw-bold">${item.h2h_col3.score}</span>
-    </div>
-    <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
-    `;
+                    const h = item.h2h_col3;
+                    const handicap = isValidValue(h.ah) ? h.ah : null;
+                    const score = isValidValue(h.score) ? h.score : null;
+
+                    if (handicap || score) {
+                        const homeT = h.home_team || 'Local';
+                        const awayT = h.away_team || 'Visitante';
+                        h2hHtml = `
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold small">${formatAh(h.ah)}</span>
+                            <span class="fw-bold">${h.score}</span>
+                        </div>
+                        <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
+                        `;
+                    }
+                }
+
+                // Ind. Local Logic
+                let indLocalHtml = '';
+                let indLocalHasData = false;
+                if (item.ind_local) {
+                    const l = item.ind_local;
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+
+                    if (ahLine || score) {
+                        indLocalHasData = true;
+                        indLocalHtml = `
+                            <div class="d-flex flex-column">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold">${score || '-'}</span>
+                                </div>
+                                ${(l.home_team || l.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${l.home_team || ''} vs ${l.away_team || ''}</div>` : ''}
+                                ${l.localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${l.localia}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // Ind. Visitante Logic
+                let indVisitanteHtml = '';
+                let indVisitanteHasData = false;
+                if (item.ind_visitante) {
+                    const r = item.ind_visitante;
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+
+                    if (ahLine || score) {
+                        indVisitanteHasData = true;
+                        indVisitanteHtml = `
+                            <div class="d-flex flex-column">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold">${score || '-'}</span>
+                                </div>
+                                ${(r.home_team || r.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${r.home_team || ''} vs ${r.away_team || ''}</div>` : ''}
+                                ${r.localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${r.localia}</div>` : ''}
+                            </div>
+                        `;
+                    }
                 }
 
                 tr.innerHTML = `
@@ -549,33 +651,13 @@
     <td class="col-ah">${formatAh(c.ah_real)}</td>
     <td class="col-res bg-light">${c.score}</td>
     
-    <!-- Prev Home (Merged) -->
-    <td class="col-prev">
-        ${item.prev_home ? `
-             <div class="d-flex flex-column">
-                <div class="d-flex justify-content-between">
-                    <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
-                    <span class="${item.prev_home.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_home.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-warning')} fw-bold">${item.prev_home.score || '?:?'}</span>
-                </div>
-                <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_home.rival}">${item.prev_home.rival || '-'}</div>
-             </div>
-        ` : '<span class="text-muted">-</span>'}
-    </td>
+    <!-- Prev Home -->
+    <td class="col-prev ${!prevHomeHasData ? 'cell-no-data' : ''}">${prevHomeHtml}</td>
 
-    <!-- Prev Away (Merged) -->
-    <td class="col-prev">
-        ${item.prev_away ? `
-             <div class="d-flex flex-column">
-                <div class="d-flex justify-content-between">
-                    <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
-                    <span class="${item.prev_away.wdl === 'HOME_WIN' ? 'text-success' : (item.prev_away.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-warning')} fw-bold">${item.prev_away.score || '?:?'}</span>
-                </div>
-                <div class="text-muted text-truncate small" style="font-size: 0.7rem; max-width: 100px;" title="${item.prev_away.rival}">${item.prev_away.rival || '-'}</div>
-             </div>
-        ` : '<span class="text-muted">-</span>'}
-    </td>
+    <!-- Prev Away -->
+    <td class="col-prev ${!prevAwayHasData ? 'cell-no-data' : ''}">${prevAwayHtml}</td>
     
-    <!-- H2H Estadio (Movement + Score from market_analysis_html) -->
+    <!-- H2H Estadio -->
     <td class="col-prev text-center">
         ${item.h2h_stadium ? `
             <div class="d-flex flex-column">
@@ -584,7 +666,7 @@
             </div>
         ` : '<span class="text-muted">-</span>'}
     </td>
-    <!-- H2H General (Movement + Score from market_analysis_html) -->
+    <!-- H2H General -->
     <td class="col-prev text-center">
         ${item.h2h_general ? `
             <div class="d-flex flex-column">
@@ -594,35 +676,14 @@
         ` : '<span class="text-muted">-</span>'}
     </td>
 
-    <td class="col-prev">${h2hHtml}</td>
+    <!-- H2H Col3 (Always Pink) -->
+    <td class="col-prev col-h2h-col3 text-center">${h2hHtml}</td>
     
     <!-- Ind. Local -->
-    <td class="col-prev">
-        ${item.ind_local ? `
-            <div class="d-flex flex-column">
-                <div class="d-flex justify-content-between">
-                    <span class="fw-bold small">${item.ind_local.ah_line || item.ind_local.ah || '-'}</span>
-                    <span class="fw-bold">${item.ind_local.score || '?:?'}</span>
-                </div>
-                <div class="small text-muted" style="font-size: 0.7rem;">${item.ind_local.home_team || ''} vs ${item.ind_local.away_team || ''}</div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${item.ind_local.localia || '?'}</div>
-            </div>
-        ` : '<span class="text-muted">NO</span>'}
-    </td>
+    <td class="col-prev ${!indLocalHasData ? 'cell-no-data' : ''}">${indLocalHtml}</td>
     
     <!-- Ind. Visitante -->
-    <td class="col-prev">
-        ${item.ind_visitante ? `
-            <div class="d-flex flex-column">
-                <div class="d-flex justify-content-between">
-                    <span class="fw-bold small">${item.ind_visitante.ah_line || item.ind_visitante.ah || '-'}</span>
-                    <span class="fw-bold">${item.ind_visitante.score || '?:?'}</span>
-                </div>
-                <div class="small text-muted" style="font-size: 0.7rem;">${item.ind_visitante.home_team || ''} vs ${item.ind_visitante.away_team || ''}</div>
-                <div class="small text-muted" style="font-size: 0.65rem;">Loc: ${item.ind_visitante.localia || '?'}</div>
-            </div>
-        ` : '<span class="text-muted">NO</span>'}
-    </td>
+    <td class="col-prev ${!indVisitanteHasData ? 'cell-no-data' : ''}">${indVisitanteHtml}</td>
     `;
                 tbody.appendChild(tr);
             });

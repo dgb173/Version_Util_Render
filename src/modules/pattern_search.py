@@ -611,6 +611,7 @@ def explore_matches(datajson, filters=None):
     target_prev_home_wdl = filters.get('prev_home_wdl')
     target_prev_away_wdl = filters.get('prev_away_wdl')
     exclude_empty = filters.get('exclude_empty', False)
+    only_with_history = filters.get('only_with_history', False)
 
     limit = filters.get('limit', 100)
     
@@ -887,6 +888,11 @@ def explore_matches(datajson, filters=None):
                 }
 
         # --- 6. Filtros de Previos ---
+        # only_with_history: Requiere datos en AMBOS Prev Home y Prev Away
+        if only_with_history:
+            if not prev_home_data or not prev_away_data:
+                continue
+        
         if exclude_empty:
             if not prev_home_data: continue
             
