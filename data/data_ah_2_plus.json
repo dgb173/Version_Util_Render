@@ -13263,8 +13263,7 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH 2.25 + O/U 3.25."
     },
-    "execution_time_seconds": 10.98,
-    "cached_at": "2025-12-07 20:10:39"
+    "execution_time_seconds": 22.81
   },
   {
     "match_id": "2795743",
@@ -13585,8 +13584,7 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH 2 + O/U 3.75."
     },
-    "execution_time_seconds": 23.35,
-    "cached_at": "2025-12-07 20:15:20"
+    "execution_time_seconds": 58.87
   },
   {
     "match_id": "2905529",
@@ -13844,5 +13842,541 @@
     },
     "execution_time_seconds": 6.52,
     "cached_at": "2025-12-07 20:18:30"
+  },
+  {
+    "match_id": "2905704",
+    "home_name": "Farul Constanta (W)",
+    "away_name": "Atletic Olimpia Gherla (W)",
+    "league_name": "Romania Liga 1 Women",
+    "final_score": "8:0",
+    "time": "10:00",
+    "home_standings": {
+      "name": "Farul Constanta (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Atletic Olimpia Gherla (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "3",
+      "goals_linea": "4.5"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH 3 / Goles 4.5 | Favorito: <span class='home-color'>Farul Constanta (W)</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>12 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>SUPERADA (Over)</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Farul Constanta (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-11-16</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"\">ASU Politehnica Timisoara (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-11-05</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Unirea Alba Iulia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-10-12</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">FK Csikszereda Miercurea Ciuc (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-09-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">8:0</td>\n                            <td class=\"\">Vasas Odorhei (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">4.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2735</td>\n                            <td>2025-09-17</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">HB Koge (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-09-14</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"\">Olimpia Cluj (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-09-03</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">Gloria 2018 Bistrita Nasaud (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1715</td>\n                            <td>2025-06-11</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">FK Csikszereda Miercurea Ciuc (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-05-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Farul Constanta (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">10:1</td>\n                            <td class=\"\">Olimpia Cluj (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 6</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Atletic Olimpia Gherla (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-11-16</td>\n                            <td class=\"text-end \">Unirea Alba Iulia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-11-05</td>\n                            <td class=\"text-end \">Vasas Odorhei (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:6</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-10-11</td>\n                            <td class=\"text-end \">Gloria 2018 Bistrita Nasaud (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:2</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-09-27</td>\n                            <td class=\"text-end \">ASU Politehnica Timisoara (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-09-14</td>\n                            <td class=\"text-end \">FK Csikszereda Miercurea Ciuc (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-08-31</td>\n                            <td class=\"text-end \">Olimpia Cluj (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-05-18</td>\n                            <td class=\"text-end \">Vasas Odorhei (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-05-11</td>\n                            <td class=\"text-end \">AFC Hermannstadt (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:3</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1686</td>\n                            <td>2025-05-04</td>\n                            <td class=\"text-end \">Unirea Alba Iulia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1715</td>\n                            <td>2025-04-16</td>\n                            <td class=\"text-end \">Vasas Odorhei (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"fw-bold text-primary\">Atletic Olimpia Gherla (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 5</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-16",
+      "home_team": "Farul Constanta (W)",
+      "away_team": "ASU Politehnica Timisoara (W)",
+      "score": "4:1",
+      "handicap_line_raw": "1.75",
+      "match_id": "2898951",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "11"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "9",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "110",
+          "away": "73"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "69",
+          "away": "26"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-11-16",
+      "home_team": "Unirea Alba Iulia (W)",
+      "away_team": "Atletic Olimpia Gherla (W)",
+      "score": "4:0",
+      "handicap_line_raw": "-0.5",
+      "match_id": "2898952",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "10",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "7",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "74",
+          "away": "79"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "35",
+          "away": "35"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "2",
+      "goles_away": "1",
+      "handicap": "1.5",
+      "match_id": "2897331",
+      "h2h_home_team_name": "ASU Politehnica Timisoara (W)",
+      "h2h_away_team_name": "Unirea Alba Iulia (W)",
+      "date": "2025-11-09",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "10",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "105",
+          "away": "98"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "48",
+          "away": "40"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "3:1",
+        "ah_line": "3.75",
+        "localia": "H",
+        "home_team": "Farul Constanta (W)",
+        "away_team": "Unirea Alba Iulia (W)",
+        "match_id": "2895545",
+        "date": "2025-11-05",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Unirea Alba Iulia (W)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "10",
+            "away": "11"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "94",
+            "away": "93"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "56",
+            "away": "41"
+          }
+        ],
+        "title_home_name": "Farul Constanta (W)",
+        "title_away_name": "Atletic Olimpia Gherla (W)"
+      },
+      "right": {
+        "score": "0:3",
+        "ah_line": "-",
+        "localia": "H",
+        "home_team": "Atletic Olimpia Gherla (W)",
+        "away_team": "ASU Politehnica Timisoara (W)",
+        "match_id": "2900599",
+        "date": "2025-11-22",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "ASU Politehnica Timisoara (W)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "100",
+            "away": "134"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "83",
+            "away": "151"
+          }
+        ],
+        "title_home_name": "Farul Constanta (W)",
+        "title_away_name": "Atletic Olimpia Gherla (W)"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "12:0",
+      "res1_raw": "12-0",
+      "match1_id": "2697388",
+      "ah6": "-",
+      "res6": "0:2",
+      "res6_raw": "0-2",
+      "match6_id": "2882864",
+      "h2h_gen_home": "Atletic Olimpia Gherla (W)",
+      "h2h_gen_away": "Farul Constanta (W)",
+      "date": "2024-12-08",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "12:0",
+      "res1_raw": "12-0",
+      "match1_id": "2697388",
+      "ah6": "-",
+      "res6": "0:2",
+      "res6_raw": "0-2",
+      "match6_id": "2882864",
+      "h2h_gen_home": "Atletic Olimpia Gherla (W)",
+      "h2h_gen_away": "Farul Constanta (W)",
+      "date": "2024-12-08",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH 3 + O/U 4.5."
+    },
+    "execution_time_seconds": 47.68
+  },
+  {
+    "match_id": "2907472",
+    "home_name": "ICL Mumbai",
+    "away_name": "PIFA Sports",
+    "league_name": "India Mumbai Elite League",
+    "final_score": "0:2",
+    "time": "10:50",
+    "home_standings": {
+      "name": "ICL Mumbai",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "PIFA Sports",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "3",
+      "goals_linea": "4"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH 3 / Goles 4.0 | Favorito: <span class='home-color'>ICL Mumbai</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(ICL Mumbai)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1709</td>\n                            <td>2024-03-20</td>\n                            <td class=\"text-end fw-bold text-primary\">ICL Mumbai</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Kalina Rangers</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2024-02-14</td>\n                            <td class=\"text-end fw-bold text-primary\">ICL Mumbai</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">DK Pharma FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2024-02-02</td>\n                            <td class=\"text-end fw-bold text-primary\">ICL Mumbai</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Reliance FYC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2023-11-29</td>\n                            <td class=\"text-end fw-bold text-primary\">ICL Mumbai</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"\">Ambernath United</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(PIFA Sports)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1709</td>\n                            <td>2024-02-05</td>\n                            <td class=\"text-end \">Kalina Rangers</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">9:1</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2024-01-30</td>\n                            <td class=\"text-end \">Sellebrity</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2023-11-28</td>\n                            <td class=\"text-end \">Millat FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2022-05-05</td>\n                            <td class=\"text-end \">DK Pharma FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2020-03-13</td>\n                            <td class=\"text-end \">Mumbai Strikers</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2020-01-21</td>\n                            <td class=\"text-end \">Sellebrity</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2019-01-19</td>\n                            <td class=\"text-end \">Millat FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1709</td>\n                            <td>2018-03-05</td>\n                            <td class=\"text-end \">Union Bank</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">PIFA Sports</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2024-03-20",
+      "home_team": "ICL Mumbai",
+      "away_team": "Kalina Rangers",
+      "score": "0:2",
+      "handicap_line_raw": "-1.75",
+      "match_id": "2556749",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "7",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "0",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "92",
+          "away": "106"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "60",
+          "away": "91"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2024-02-05",
+      "home_team": "Kalina Rangers",
+      "away_team": "PIFA Sports",
+      "score": "9:1",
+      "handicap_line_raw": "3.5",
+      "match_id": "2532825",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "14",
+          "away": "3"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "10",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "94",
+          "away": "81"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "66",
+          "away": "57"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "not_found",
+      "resultado": "H2H directo no encontrado para Kalina Rangers vs Kalina Rangers.",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "0:2",
+        "ah_line": "-1.75",
+        "localia": "H",
+        "home_team": "ICL Mumbai",
+        "away_team": "Kalina Rangers",
+        "match_id": "2556749",
+        "date": "2024-03-20",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Kalina Rangers",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "7",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "0",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "92",
+            "away": "106"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "60",
+            "away": "91"
+          }
+        ],
+        "title_home_name": "ICL Mumbai",
+        "title_away_name": "PIFA Sports"
+      },
+      "right": {
+        "score": "9:1",
+        "ah_line": "3.5",
+        "localia": "A",
+        "home_team": "Kalina Rangers",
+        "away_team": "PIFA Sports",
+        "match_id": "2532825",
+        "date": "2024-02-05",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Kalina Rangers",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "14",
+            "away": "3"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "10",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "94",
+            "away": "81"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "66",
+            "away": "57"
+          }
+        ],
+        "title_home_name": "ICL Mumbai",
+        "title_away_name": "PIFA Sports"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 2,
+        "ah_wins": 2,
+        "ou_overs": 1,
+        "ou_unders": 1,
+        "match_ids": [
+          "2907271",
+          "2907146"
+        ]
+      },
+      "prob_ah": 100.0,
+      "prob_over": 50.0,
+      "prob_under": 50.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 3.0 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 4.0 hubiera sido OVER el 50.0% y UNDER el 50.0%."
+    },
+    "execution_time_seconds": 21.53
   }
 ]

@@ -282,13 +282,6 @@
                     aria-controls="pendingMatchesCollapse" onclick="loadPendingMatches()">
                     <i class="fa-solid fa-clock-rotate-left me-1"></i> Ver Partidos Pendientes (??)
                 </button>
-
-                <!-- Top Pagination Controls -->
-                <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none">
-                    <ul class="pagination pagination-sm mb-0" id="pagination-lista-top">
-                        <!-- Javascript populates this -->
-                    </ul>
-                </nav>
             </div>
 
             <div class="collapse" id="pendingMatchesCollapse">
@@ -316,6 +309,17 @@
             </div>
         </div>
 
+        <!-- Pagination Controls Above Table -->
+        <div class="d-flex justify-content-between align-items-center mb-2 px-2 py-2 bg-light rounded"
+            id="pagination-bar" style="display: none !important;">
+            <span class="text-muted small" id="pagination-info">Mostrando 0 de 0</span>
+            <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none">
+                <ul class="pagination pagination-sm mb-0" id="pagination-lista-top">
+                    <!-- Javascript populates this -->
+                </ul>
+            </nav>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-sm excel-table" id="results-table">
                 <thead>
@@ -338,6 +342,15 @@
                                 <option value="-1.5">-1.5</option>
                                 <option value="-2.0">-2.0</option>
                                 <option value="-2.5">-2.5</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-ou" style="width: 100%;"
+                                onchange="applyClientFilters()">
+                                <option value="">O/U</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3.0">3.0</option>
+                                <option value="3.5">3.5</option>
+                                <option value="4.0">4+</option>
                             </select>
                         </th>
                         <th style="width: 80px;">
@@ -413,7 +426,7 @@
     <script>
         // Pagination State
         let currentPage = 1;
-        const itemsPerPage = 300;
+        const itemsPerPage = 500;
         let totalResults = [];
 
         function triggerSearch() {
@@ -527,6 +540,24 @@
                 });
             }
 
+            // Filtro O/U (client-side)
+            const ouFilter = document.getElementById('filter-ou').value;
+            if (ouFilter) {
+                const filterOU = parseFloat(ouFilter);
+                filteredResults = filteredResults.filter(item => {
+                    const ouLine = parseFloat(item.candidate.ou_line);
+                    if (isNaN(ouLine)) return false;
+
+                    // Si el filtro es 4.0, coger 4 o superior
+                    if (filterOU >= 4.0) {
+                        return ouLine >= 4.0;
+                    } else {
+                        // Para otros valores, fuzzy match (+/- 0.26)
+                        return Math.abs(ouLine - filterOU) <= 0.26;
+                    }
+                });
+            }
+
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const pageItems = filteredResults.slice(start, end);
@@ -548,9 +579,21 @@
 
         function renderPaginationControls(totalCount) {
             if (totalCount === undefined) totalCount = totalResults.length;
+            const paginationBar = document.getElementById('pagination-bar');
+            const paginationInfo = document.getElementById('pagination-info');
             const navTop = document.getElementById('pagination-nav-top');
             const listaTop = document.getElementById('pagination-lista-top');
             const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+            // Siempre mostrar la barra si hay resultados
+            if (totalCount > 0) {
+                if (paginationBar) paginationBar.style.cssText = 'display: flex !important;';
+                const start = (currentPage - 1) * itemsPerPage + 1;
+                const end = Math.min(currentPage * itemsPerPage, totalCount);
+                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start}-${end} de ${totalCount}`;
+            } else {
+                if (paginationBar) paginationBar.style.cssText = 'display: none !important;';
+            }
 
             if (totalPages <= 1) {
                 if (navTop) navTop.classList.add('d-none');
@@ -570,7 +613,7 @@
             // Info
             const infoLi = document.createElement('li');
             infoLi.className = 'page-item disabled';
-            infoLi.innerHTML = `<span class="page-link">Pág ${currentPage}/${totalPages} (${totalCount})</span>`;
+            infoLi.innerHTML = `<span class="page-link">Pág ${currentPage}/${totalPages}</span>`;
             listaTop.appendChild(infoLi);
 
             // Next
@@ -715,7 +758,10 @@
     </td>
     <td class="col-team text-primary small" style="font-size: 0.8rem;">${c.home}</td>
     <td class="col-team text-danger small" style="font-size: 0.8rem;">${c.away}</td>
-    <td class="col-ah">${formatAh(c.ah_real)}</td>
+    <td class="col-ah">
+        ${formatAh(c.ah_real)}
+        ${c.ou_line ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${c.ou_line}</div>` : ''}
+    </td>
     <td class="col-res bg-light">${c.score}</td>
     
     <!-- Prev Home -->

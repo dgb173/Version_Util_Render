@@ -1028,6 +1028,129 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
     except Exception as e:
         print(f"Error fatal en Pre-Cacheo background: {e}")
 
+def scrape_pending_results_background():
+    """
+    Scrapea SOLO el resultado final de partidos ya pre-cacheados que:
+    - Empezaron hace +2 horas
+    - No tienen resultado válido (score es ?:? o ??)
+    """
+    print("Iniciando SCRAPE de resultados pendientes...")
+    
+    try:
+        import pytz
+        
+        # 1. Cargar todos los partidos pre-cacheados
+        precacheo_matches = data_manager.load_precacheo_matches()
+        
+        if not precacheo_matches:
+            print("No hay partidos en pre-cacheo.")
+            return
+            
+        print(f"Encontrados {len(precacheo_matches)} partidos en pre-cacheo.")
+        
+        # 2. Hora actual en España
+        spain_tz = pytz.timezone('Europe/Madrid')
+        now_spain = datetime.datetime.now(spain_tz)
+        two_hours_ago = now_spain - datetime.timedelta(hours=2)
+        
+        print(f"Hora España: {now_spain.strftime('%H:%M')}, buscando partidos que empezaron antes de {two_hours_ago.strftime('%H:%M')}")
+        
+        # 3. Filtrar: partidos sin resultado que empezaron hace +2 horas
+        to_process = []
+        today_str = now_spain.strftime('%Y-%m-%d')
+        
+        for m in precacheo_matches:
+            # Verificar que no tenga resultado
+            score = m.get('score') or m.get('final_score') or ''
+            if score and score not in ['??', '?:?', '? : ?', '?-?'] and ':' in score:
+                continue  # Ya tiene resultado, saltar
+            
+            # Verificar hora del partido
+            match_time_str = m.get('match_time') or m.get('time')
+            match_date_str = m.get('match_date') or today_str
+            
+            if not match_time_str:
+                continue
+                
+            try:
+                # Parsear hora del partido
+                if ':' in match_time_str:
+                    h, mi = map(int, match_time_str.split(':'))
+                else:
+                    continue
+                    
+                # Crear datetime del partido en zona España
+                match_dt = spain_tz.localize(datetime.datetime.strptime(
+                    f"{match_date_str} {match_time_str}", 
+                    "%Y-%m-%d %H:%M"
+                ))
+                
+                # Solo si empezó hace +2 horas
+                if match_dt <= two_hours_ago:
+                    mid = m.get('match_id')
+                    if mid:
+                        to_process.append(mid)
+                        print(f"  Pendiente: {m.get('home_name')} vs {m.get('away_name')} ({match_time_str})")
+            except Exception as e:
+                # Si no puede parsear la hora, asumir que puede ser candidato
+                mid = m.get('match_id')
+                if mid:
+                    to_process.append(mid)
+        
+        print(f"Partidos a scrapear para resultado: {len(to_process)}")
+        
+        if not to_process:
+            print("No hay partidos pendientes de resultado (todos recientes o ya tienen score).")
+            return
+        
+        # 4. Scrapear en paralelo con 8 workers
+        success_count = 0
+        max_workers = 8
+        total = len(to_process)
+        completed = 0
+        
+        print(f"Iniciando scrape de resultados con {max_workers} workers...")
+        
+        def scrape_single_result(mid):
+            """Worker para scrapear un solo partido."""
+            try:
+                match_data = analizar_partido_completo(str(mid), force_refresh=True)
+                
+                if match_data and not match_data.get('error'):
+                    new_score = match_data.get('score') or match_data.get('final_score')
+                    
+                    if new_score and new_score not in ['??', '?:?', '? : ?']:
+                        match_data['match_id'] = str(mid)
+                        data_manager.save_precacheo_match(match_data)
+                        return (True, mid, new_score)
+                    else:
+                        return (False, mid, "Sin resultado aún")
+                return (False, mid, "Error scraping")
+            except Exception as e:
+                return (False, mid, str(e))
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(scrape_single_result, mid): mid for mid in to_process}
+            
+            for future in concurrent.futures.as_completed(futures):
+                mid = futures[future]
+                completed += 1
+                try:
+                    success, match_id, info = future.result()
+                    if success:
+                        print(f"  ✓ [{completed}/{total}] {match_id}: {info}")
+                        success_count += 1
+                    else:
+                        print(f"  ✗ [{completed}/{total}] {match_id}: {info}")
+                except Exception as e:
+                    print(f"  ✗ [{completed}/{total}] {mid}: Error - {e}")
+                
+        print(f"Scrape de resultados completado. {success_count}/{total} obtuvieron resultado.")
+        
+    except Exception as e:
+        print(f"Error fatal en scrape de resultados pendientes: {e}")
+
+
 def process_all_finished_matches_background(handicap_filter=None, goal_line_filter=None):
     """
     Procesa partidos finalizados en segundo plano con optimizaciones:
@@ -1824,6 +1947,234 @@ def api_precacheo_scrape_background():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/scrape_pending_results', methods=['POST'])
+def api_scrape_pending_results():
+    """Endpoint para scrapear solo los resultados de partidos pendientes (+2h sin score)."""
+    try:
+        # Iniciar hilo
+        thread = threading.Thread(target=scrape_pending_results_background)
+        thread.daemon = True 
+        thread.start()
+        
+        return jsonify({
+            'status': 'success', 
+            'message': 'Buscando resultados de partidos pendientes (partidos +2h sin score)...'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/precacheo_pattern_search', methods=['POST'])
+def api_precacheo_pattern_search():
+    """
+    Busca patrones similares en el histórico para un partido de Pre-Cacheo.
+    Criterios: AH actual = mismo bucket, AH del partido previo del favorito = mismo bucket
+    """
+    try:
+        data = request.json
+        match_id = data.get('match_id')
+        
+        if not match_id:
+            return jsonify({'error': 'Falta match_id'}), 400
+        
+        # 1. Cargar datos del partido desde precacheo
+        precacheo_match = data_manager.get_precacheo_match(str(match_id))
+        
+        if not precacheo_match:
+            return jsonify({'error': 'Partido no encontrado en precacheo'}), 404
+        
+        # 2. Extraer AH actual
+        main_odds = precacheo_match.get('main_match_odds', {})
+        ah_actual_raw = main_odds.get('ah_linea') or precacheo_match.get('handicap')
+        
+        if not ah_actual_raw:
+            return jsonify({'error': 'No hay AH disponible'}), 400
+        
+        try:
+            ah_actual = float(ah_actual_raw)
+        except:
+            return jsonify({'error': f'AH inválido: {ah_actual_raw}'}), 400
+        
+        # 3. Determinar favorito (AH > 0: Local, AH < 0: Visitante)
+        is_home_favorite = ah_actual > 0
+        
+        # 4. Extraer AH del partido previo del favorito
+        if is_home_favorite:
+            prev_match = precacheo_match.get('last_home_match', {})
+            fav_name = precacheo_match.get('home_name', 'Local')
+        else:
+            prev_match = precacheo_match.get('last_away_match', {})
+            fav_name = precacheo_match.get('away_name', 'Visitante')
+        
+        prev_ah_raw = prev_match.get('handicap_line_raw') if prev_match else None
+        prev_ah = None
+        if prev_ah_raw:
+            try:
+                prev_ah = float(prev_ah_raw)
+            except:
+                prev_ah = None
+        
+        # 5. Detectar si el favorito cubrió en su partido previo
+        # IMPORTANTE: Cover = si el favorito cubrió el handicap de SU partido previo
+        prev_fav_covered = None  # None = no data, True = cubrió, False = no cubrió
+        if prev_match:
+            prev_score = prev_match.get('score') or prev_match.get('final_score')
+            prev_ah_for_calc = prev_match.get('handicap_line_raw')
+            prev_was_home = prev_match.get('was_home', True)
+            
+            # Usar la función asian_result para calcular correctamente
+            if prev_score and prev_ah_for_calc:
+                try:
+                    from modules.pattern_search import asian_result
+                    
+                    # Parsear score
+                    score_clean = prev_score.replace(' ', '').replace('-', ':')
+                    parts = score_clean.split(':')
+                    if len(parts) == 2:
+                        hg, ag = int(parts[0]), int(parts[1])
+                        ah_val = float(prev_ah_for_calc)
+                        
+                        # El favorito actual jugó en ese partido
+                        if prev_was_home:
+                            # Favorito jugó de LOCAL, AH que tenía era el line_raw
+                            # Si AH era negativo, era el favorito, si positivo, era underdog
+                            res = asian_result(hg, ag, ah_val)
+                        else:
+                            # Favorito jugó de VISITANTE
+                            # Invertir goles y signo del AH
+                            res = asian_result(ag, hg, -ah_val)
+                        
+                        cat = res.get('category', 'UNKNOWN')
+                        if cat == 'COVER':
+                            prev_fav_covered = True
+                        elif cat == 'NO_COVER':
+                            prev_fav_covered = False
+                        # PUSH = None (no se cuenta)
+                except Exception as e:
+                    print(f"Error calculando prev_fav_covered: {e}")
+                    pass
+        
+        # 6. Cargar datos históricos
+        from modules.pattern_search import explore_matches
+        history_data = data_manager.load_matches_by_bucket(ah_actual)
+        
+        if not history_data:
+            return jsonify({'results': [], 'message': 'No hay datos históricos'})
+        
+        # 7. Buscar con filtros
+        filters = {'handicap': ah_actual, 'limit': 100}  # Más resultados para poder filtrar
+        if prev_ah is not None:
+            if is_home_favorite:
+                filters['prev_home_ah'] = prev_ah
+            else:
+                filters['prev_away_ah'] = prev_ah
+        
+        all_results = explore_matches(history_data, filters=filters)
+        
+        # 7. Formatear con TODOS los datos (máximo 30)
+        formatted_results = []
+        for item in all_results[:30]:
+            c = item.get('candidate', {})
+            ev = item.get('evaluation', {})
+            cover_status = ev.get('home') if is_home_favorite else ev.get('away')
+            
+            # Prev Home data - ahora con movement
+            prev_home = item.get('prev_home', {}) or {}
+            prev_home_data = None
+            if prev_home.get('score'):
+                prev_home_data = {
+                    'ah': prev_home.get('ah'),
+                    'score': prev_home.get('score'),
+                    'wdl': prev_home.get('wdl'),
+                    'rival': prev_home.get('rival'),
+                    'movement': prev_home.get('movement')  # ej: "0.25 -> 0.5"
+                }
+            
+            # Prev Away data - ahora con movement
+            prev_away = item.get('prev_away', {}) or {}
+            prev_away_data = None
+            if prev_away.get('score'):
+                prev_away_data = {
+                    'ah': prev_away.get('ah'),
+                    'score': prev_away.get('score'),
+                    'wdl': prev_away.get('wdl'),
+                    'rival': prev_away.get('rival'),
+                    'movement': prev_away.get('movement')
+                }
+            
+            # H2H Estadio data - tiene movement y score
+            h2h_stadium = item.get('h2h_stadium', {}) or {}
+            h2h_stadium_data = None
+            if h2h_stadium.get('score') or h2h_stadium.get('movement'):
+                h2h_stadium_data = {
+                    'movement': h2h_stadium.get('movement'),  # ej: "0.5 -> 0.75"
+                    'score': h2h_stadium.get('score'),
+                    'wdl': h2h_stadium.get('wdl')
+                }
+            
+            # H2H General data - tiene movement y score
+            h2h_general = item.get('h2h_general', {}) or {}
+            h2h_general_data = None
+            if h2h_general.get('score') or h2h_general.get('movement'):
+                h2h_general_data = {
+                    'movement': h2h_general.get('movement'),
+                    'score': h2h_general.get('score'),
+                    'wdl': h2h_general.get('wdl')
+                }
+            
+            # H2H Col3 data - tiene home_team/away_team
+            h2h_col3 = item.get('h2h_col3', {}) or {}
+            h2h_col3_data = None
+            if h2h_col3.get('score'):
+                h2h_col3_data = {
+                    'score': h2h_col3.get('score'),
+                    'ah': h2h_col3.get('ah'),
+                    'home_team': h2h_col3.get('home_team'),
+                    'away_team': h2h_col3.get('away_team')
+                }
+            
+            # Ind. Local e Ind. Visitante
+            ind_local = item.get('ind_local') or {}
+            ind_visitante = item.get('ind_visitante') or {}
+            
+            formatted_results.append({
+                'match_id': item.get('match_id') or c.get('match_id'),
+                'date': c.get('date'),
+                'home': c.get('home'),
+                'away': c.get('away'),
+                'score': c.get('score'),
+                'ah': c.get('ah_real'),
+                'ou': c.get('ou_line'),
+                'covered': cover_status,
+                'prev_home': prev_home_data,
+                'prev_away': prev_away_data,
+                'h2h_stadium': h2h_stadium_data,
+                'h2h_general': h2h_general_data,
+                'h2h_col3': h2h_col3_data,
+                'ind_local': ind_local if isinstance(ind_local, dict) and (ind_local.get('score') or ind_local.get('ah')) else None,
+                'ind_visitante': ind_visitante if isinstance(ind_visitante, dict) and (ind_visitante.get('score') or ind_visitante.get('ah')) else None
+            })
+        
+        return jsonify({
+            'status': 'success',
+            'match_info': {
+                'ah_actual': ah_actual, 
+                'favorito': fav_name, 
+                'prev_ah_favorito': prev_ah, 
+                'is_home_fav': is_home_favorite,
+                'prev_fav_covered': prev_fav_covered  # True/False/None para auto-filtrar
+            },
+            'results': formatted_results,
+            'total_found': len(all_results)
+        })
+        
+    except Exception as e:
+        print(f"Error en pattern search: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/precacheo_finalize/<match_id>', methods=['POST'])
 def api_precacheo_finalize(match_id):
     """Re-scrapea un partido finalizado y lo mueve al bucket oficial."""
@@ -2064,6 +2415,6 @@ def api_reanalyze_pending():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True) # debug=True es útil para desarrollar
+    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
 
 

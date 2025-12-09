@@ -959,6 +959,7 @@ def explore_matches(datajson, filters=None):
                 'away': away_team,
                 'score': score,
                 'ah_real': hist_ah,
+                'ou_line': odds.get('goals_linea'),
                 'bucket': hist_bucket
             },
             'evaluation': {

@@ -21809,10 +21809,10 @@
         "ou_unders": 2,
         "match_ids": [
           "2907208",
+          "2907270",
           "2842034",
           "2907091",
-          "2907416",
-          "2850334"
+          "2907416"
         ]
       },
       "prob_ah": 20.0,
@@ -21820,8 +21820,7 @@
       "prob_under": 40.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.5 se hubiera cubierto en el 20.0% de casos similares.\n - La línea O/U 3.25 hubiera sido OVER el 60.0% y UNDER el 40.0%."
     },
-    "execution_time_seconds": 10.54,
-    "cached_at": "2025-12-07 20:10:39"
+    "execution_time_seconds": 21.7
   },
   {
     "match_id": "2823766",
@@ -22141,13 +22140,12 @@
     "backtest_global": {
       "validez": true,
       "stats": {
-        "total_muestras": 2,
+        "total_muestras": 1,
         "ah_wins": 0,
-        "ou_overs": 2,
+        "ou_overs": 1,
         "ou_unders": 0,
         "match_ids": [
-          "2822352",
-          "2722924"
+          "2822352"
         ]
       },
       "prob_ah": 0.0,
@@ -22155,8 +22153,7 @@
       "prob_under": 0.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 21.45,
-    "cached_at": "2025-12-07 20:14:35"
+    "execution_time_seconds": 43.45
   },
   {
     "match_id": "2905284",
@@ -22448,8 +22445,7 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH -1.75 + O/U 2.75."
     },
-    "execution_time_seconds": 14.9,
-    "cached_at": "2025-12-07 20:19:21"
+    "execution_time_seconds": 27.17
   },
   {
     "match_id": "2865771",
@@ -22770,8 +22766,7 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH -1.75 + O/U 2.75."
     },
-    "execution_time_seconds": 38.96,
-    "cached_at": "2025-12-07 20:24:29"
+    "execution_time_seconds": 40.76
   },
   {
     "match_id": "2835583",
@@ -23075,8 +23070,7 @@
       "prob_under": 0.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 2.5 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 24.98,
-    "cached_at": "2025-12-07 20:28:14"
+    "execution_time_seconds": 28.83
   },
   {
     "match_id": "2830275",
@@ -23369,8 +23363,7 @@
       "prob_under": 66.66666666666666,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 33.3% y UNDER el 66.7%."
     },
-    "execution_time_seconds": 13.82,
-    "cached_at": "2025-12-07 20:28:46"
+    "execution_time_seconds": 35.81
   },
   {
     "match_id": "2828716",
@@ -23541,23 +23534,10 @@
       "stats_rows": []
     },
     "backtest_global": {
-      "validez": true,
-      "stats": {
-        "total_muestras": 1,
-        "ah_wins": 0,
-        "ou_overs": 0,
-        "ou_unders": 1,
-        "match_ids": [
-          "2906674"
-        ]
-      },
-      "prob_ah": 0.0,
-      "prob_over": 0.0,
-      "prob_under": 100.0,
-      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.25 hubiera sido OVER el 0.0% y UNDER el 100.0%."
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -1.25 + O/U 3.25."
     },
-    "execution_time_seconds": 13.23,
-    "cached_at": "2025-12-07 20:28:52"
+    "execution_time_seconds": 24.07
   },
   {
     "match_id": "2907163",
@@ -23877,22 +23857,22 @@
     "backtest_global": {
       "validez": true,
       "stats": {
-        "total_muestras": 2,
-        "ah_wins": 1,
-        "ou_overs": 1,
+        "total_muestras": 3,
+        "ah_wins": 2,
+        "ou_overs": 2,
         "ou_unders": 1,
         "match_ids": [
+          "2884481",
           "2906980",
           "2866748"
         ]
       },
-      "prob_ah": 50.0,
-      "prob_over": 50.0,
-      "prob_under": 50.0,
-      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 50.0% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 50.0% y UNDER el 50.0%."
+      "prob_ah": 66.66666666666666,
+      "prob_over": 66.66666666666666,
+      "prob_under": 33.33333333333333,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 66.7% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 66.7% y UNDER el 33.3%."
     },
-    "execution_time_seconds": 15.54,
-    "cached_at": "2025-12-07 20:33:32"
+    "execution_time_seconds": 10.02
   },
   {
     "match_id": "2907416",
@@ -24252,8 +24232,7 @@
       "prob_under": 40.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.5 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 60.0% y UNDER el 40.0%."
     },
-    "execution_time_seconds": 12.56,
-    "cached_at": "2025-12-08 06:45:40"
+    "execution_time_seconds": 21.98
   },
   {
     "match_id": "2901798",
@@ -24543,8 +24522,7 @@
       "validez": false,
       "mensaje": "No se encontraron clones con Patrón AH -1.25 + O/U 3.25."
     },
-    "execution_time_seconds": 14.03,
-    "cached_at": "2025-12-08 06:47:05"
+    "execution_time_seconds": 57.14
   },
   {
     "match_id": "2814838",
@@ -24839,8 +24817,7 @@
       "prob_under": 40.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.5 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 60.0% y UNDER el 40.0%."
     },
-    "execution_time_seconds": 21.3,
-    "cached_at": "2025-12-08 06:47:26"
+    "execution_time_seconds": 78.6
   },
   {
     "match_id": "2856858",
@@ -25408,8 +25385,7 @@
       "prob_under": 33.33333333333333,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 66.7% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 66.7% y UNDER el 33.3%."
     },
-    "execution_time_seconds": 12.02,
-    "cached_at": "2025-12-08 06:48:27"
+    "execution_time_seconds": 67.82
   },
   {
     "match_id": "2907131",
@@ -25742,8 +25718,7 @@
       "prob_under": 0.0,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 100.0% y UNDER el 0.0%."
     },
-    "execution_time_seconds": 16.09,
-    "cached_at": "2025-12-08 06:49:49"
+    "execution_time_seconds": 75.56
   },
   {
     "match_id": "2907270",
@@ -26001,7 +25976,1186 @@
       "prob_under": 66.66666666666666,
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 33.3% y UNDER el 66.7%."
     },
-    "execution_time_seconds": 8.23,
-    "cached_at": "2025-12-08 06:51:15"
+    "execution_time_seconds": 3.25
+  },
+  {
+    "match_id": "2815868",
+    "home_name": "Hatayspor",
+    "away_name": "Sariyer",
+    "league_name": "Turkey 1. Lig",
+    "final_score": "0:3",
+    "time": "11:30",
+    "home_standings": {
+      "name": "Hatayspor",
+      "ranking": "19",
+      "total_pj": "15",
+      "total_v": "0",
+      "total_e": "5",
+      "total_d": "10",
+      "total_gf": "15",
+      "total_gc": "39",
+      "specific_pj": "7",
+      "specific_v": "0",
+      "specific_e": "2",
+      "specific_d": "5",
+      "specific_gf": "5",
+      "specific_gc": "17",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Sariyer",
+      "ranking": "18",
+      "total_pj": "15",
+      "total_v": "4",
+      "total_e": "2",
+      "total_d": "9",
+      "total_gf": "13",
+      "total_gc": "22",
+      "specific_pj": "8",
+      "specific_v": "2",
+      "specific_e": "0",
+      "specific_d": "6",
+      "specific_gf": "8",
+      "specific_gc": "14",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1.5",
+      "goals_linea": "3"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1.5 / Goles 3.0 | Favorito: <span class='away-color'>Sariyer</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Hatayspor</span>   <span style='font-weight: bold; padding: 0 4px;'>2:0</span>   <span style='color: #f97316; font-weight: bold;'>Sariyer</span></div><div>  <span class='ah-value'>Hándicap:</span> Ha habido un <strong>cambio total de favoritismo</strong>. En el precedente el favorito era 'Hatayspor' (movimiento: <strong style='color: red; font-size:1.2em;'>1.5 → -1.5</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "1.5 → -1.5",
+        "result": "2:0",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      },
+      "general": {
+        "movement": "1.5 → -1.5",
+        "result": "2:0",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Hatayspor)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>130</td>\n                            <td>2025-11-22</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Pendikspor</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-10-31</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">Erzurum BB</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-10-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">Corum Belediyespor</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-09-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">Bandirmaspor</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-09-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">Boluspor</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>167</td>\n                            <td>2025-09-16</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">Erciyes 38</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-08-30</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Istanbulspor</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-08-09</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"\">Keciorengucu</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>30</td>\n                            <td>2025-05-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Hatayspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"\">Fenerbahce</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 6</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Sariyer)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>167</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end \">Istanbulspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-11-24</td>\n                            <td class=\"text-end \">Serik Belediyespor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-11-01</td>\n                            <td class=\"text-end \">Keciorengucu</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>167</td>\n                            <td>2025-10-28</td>\n                            <td class=\"text-end \">Yeni Orduspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-10-17</td>\n                            <td class=\"text-end \">Umraniyespor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-09-29</td>\n                            <td class=\"text-end \">Adana Demirspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-09-25</td>\n                            <td class=\"text-end \">Amedspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-09-13</td>\n                            <td class=\"text-end \">Sivasspor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-08-22</td>\n                            <td class=\"text-end \">Corum Belediyespor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>130</td>\n                            <td>2025-08-09</td>\n                            <td class=\"text-end \">76 Igdir Belediye spor</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Sariyer</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 3</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 7</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-22",
+      "home_team": "Hatayspor",
+      "away_team": "Pendikspor",
+      "score": "0:1",
+      "handicap_line_raw": "-1.25",
+      "match_id": "2815847",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "14"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "35",
+          "away": "45"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "23",
+          "away": "30"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-11-24",
+      "home_team": "Serik Belediyespor",
+      "away_team": "Sariyer",
+      "score": "3:0",
+      "handicap_line_raw": "0",
+      "match_id": "2815851",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "13",
+          "away": "9"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "7",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "95",
+          "away": "108"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "38",
+          "away": "63"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "4",
+      "goles_away": "0",
+      "handicap": "1",
+      "match_id": "2815820",
+      "h2h_home_team_name": "Pendikspor",
+      "h2h_away_team_name": "Serik Belediyespor",
+      "date": "2025-10-25",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "15",
+          "away": "9"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "74",
+          "away": "74"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "28",
+          "away": "40"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Hatayspor",
+        "title_away_name": "Sariyer",
+        "rival_name": "Serik Belediyespor"
+      },
+      "right": {
+        "score": "0:2",
+        "ah_line": "0",
+        "localia": "H",
+        "home_team": "Sariyer",
+        "away_team": "Pendikspor",
+        "match_id": "2815770",
+        "date": "2025-09-21",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Pendikspor",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "10",
+            "away": "13"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "83",
+            "away": "85"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "72",
+            "away": "48"
+          }
+        ],
+        "title_home_name": "Hatayspor",
+        "title_away_name": "Sariyer"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "1.5",
+      "res1": "2:0",
+      "res1_raw": "2-0",
+      "match1_id": "2491398",
+      "ah6": "1.5",
+      "res6": "2:0",
+      "res6_raw": "2-0",
+      "match6_id": "2491398",
+      "h2h_gen_home": "Hatayspor",
+      "h2h_gen_away": "Sariyer",
+      "date": "2023-10-31",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "20",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "129",
+          "away": "95"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "87",
+          "away": "45"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "1.5",
+      "res1": "2:0",
+      "res1_raw": "2-0",
+      "match1_id": "2491398",
+      "ah6": "1.5",
+      "res6": "2:0",
+      "res6_raw": "2-0",
+      "match6_id": "2491398",
+      "h2h_gen_home": "Hatayspor",
+      "h2h_gen_away": "Sariyer",
+      "date": "2023-10-31",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "20",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "129",
+          "away": "95"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "87",
+          "away": "45"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 1,
+        "ah_wins": 0,
+        "ou_overs": 1,
+        "ou_unders": 0,
+        "match_ids": [
+          "2905284"
+        ]
+      },
+      "prob_ah": 0.0,
+      "prob_over": 100.0,
+      "prob_under": 0.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.5 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 100.0% y UNDER el 0.0%."
+    },
+    "execution_time_seconds": 63.82
+  },
+  {
+    "match_id": "2901676",
+    "home_name": "Philippines (W)",
+    "away_name": "Vietnam (W)",
+    "league_name": "Southeast Asian Games Women",
+    "final_score": "1:0",
+    "time": "11:30",
+    "home_standings": {
+      "name": "Philippines (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Vietnam (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1",
+      "goals_linea": "2.75"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1 / Goles 2.75 | Favorito: <span class='away-color'>Vietnam (W)</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Philippines (W)</span>   <span style='font-weight: bold; padding: 0 4px;'>0:2</span>   <span style='color: #f97316; font-weight: bold;'>Vietnam (W)</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>menos favorito</strong> que en el precedente (movimiento: <strong style='color: orange; font-size:1.2em;'>-1.5 → -1</strong>).    La línea actual habría sido <span style='color: green; font-weight: bold;'>CUBIERTO ✅</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Vietnam (W)</span>   <span style='font-weight: bold; padding: 0 4px;'>1:2</span>   <span style='color: #f97316; font-weight: bold;'>Philippines (W)</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>0.25 → -1</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>SUPERADA (Over)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "-1.5 → -1",
+        "result": "0:2",
+        "evaluation": "CUBIERTO",
+        "is_covered": true
+      },
+      "general": {
+        "movement": "0.25 → -1",
+        "result": "1:2",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Philippines (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-10-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">Uzbekistan (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-13</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Myanmar (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-07</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">7:0</td>\n                            <td class=\"\">Timor Leste (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-07-05</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">China Hong Kong (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-06-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Saudi Arabia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-06-03</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Chinese Taipei (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-05-30</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Chinese Taipei (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-10-30</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">Kenya (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-10-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Jordan (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-02-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Philippines (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Slovenia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Vietnam (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-09</td>\n                            <td class=\"text-end \">Indonesia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:7</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-4</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-07-02</td>\n                            <td class=\"text-end \">United Arab Emirates (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:6</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-10-29</td>\n                            <td class=\"text-end \">China (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-09-11</td>\n                            <td class=\"text-end \">FC Viktoria Plzen (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-09-08</td>\n                            <td class=\"text-end \">Pardubice (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:6</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-09-04</td>\n                            <td class=\"text-end \">RB Leipzig (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1136</td>\n                            <td>2023-11-01</td>\n                            <td class=\"text-end \">Japan (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">4.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1136</td>\n                            <td>2023-10-29</td>\n                            <td class=\"text-end \">India (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1136</td>\n                            <td>2023-10-26</td>\n                            <td class=\"text-end \">Uzbekistan (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>405</td>\n                            <td>2023-09-28</td>\n                            <td class=\"text-end \">Japan (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">7:0</td>\n                            <td class=\"fw-bold text-primary\">Vietnam (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 5</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": null,
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Philippines (W)",
+        "title_away_name": "Vietnam (W)",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "Philippines (W)",
+        "title_away_name": "Vietnam (W)",
+        "rival_name": "N/A"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-1.5",
+      "res1": "0:2",
+      "res1_raw": "0-2",
+      "match1_id": "1821112",
+      "ah6": "0.25",
+      "res6": "1:2",
+      "res6_raw": "1-2",
+      "match6_id": "2383787",
+      "h2h_gen_home": "Vietnam (W)",
+      "h2h_gen_away": "Philippines (W)",
+      "date": "2019-12-05",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "10",
+          "away": "16"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "120",
+          "away": "150"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "71",
+          "away": "97"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "-1.5",
+      "res1": "0:2",
+      "res1_raw": "0-2",
+      "match1_id": "1821112",
+      "ah6": "0.25",
+      "res6": "1:2",
+      "res6_raw": "1-2",
+      "match6_id": "2383787",
+      "h2h_gen_home": "Vietnam (W)",
+      "h2h_gen_away": "Philippines (W)",
+      "date": "2019-12-05",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "14",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "141",
+          "away": "134"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "57",
+          "away": "60"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 3,
+        "ah_wins": 2,
+        "ou_overs": 2,
+        "ou_unders": 1,
+        "match_ids": [
+          "2884481",
+          "2906980",
+          "2866748"
+        ]
+      },
+      "prob_ah": 66.66666666666666,
+      "prob_over": 66.66666666666666,
+      "prob_under": 33.33333333333333,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 66.7% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 66.7% y UNDER el 33.3%."
+    },
+    "execution_time_seconds": 25.98
+  },
+  {
+    "match_id": "2905735",
+    "home_name": "Bahrain U23",
+    "away_name": "Qatar U23",
+    "league_name": "Arabian Gulf Cup U23",
+    "final_score": "0:1",
+    "time": "12:00",
+    "home_standings": {
+      "name": "Bahrain U23",
+      "ranking": "N/A",
+      "total_pj": "N/A",
+      "total_v": "N/A",
+      "total_e": "N/A",
+      "total_d": "N/A",
+      "total_gf": "N/A",
+      "total_gc": "N/A",
+      "specific_pj": "N/A",
+      "specific_v": "N/A",
+      "specific_e": "N/A",
+      "specific_d": "N/A",
+      "specific_gf": "N/A",
+      "specific_gc": "N/A",
+      "specific_type": "N/A"
+    },
+    "away_standings": {
+      "name": "Qatar U23",
+      "ranking": "N/A",
+      "total_pj": "N/A",
+      "total_v": "N/A",
+      "total_e": "N/A",
+      "total_d": "N/A",
+      "total_gf": "N/A",
+      "total_gc": "N/A",
+      "specific_pj": "N/A",
+      "specific_v": "N/A",
+      "specific_e": "N/A",
+      "specific_d": "N/A",
+      "specific_gf": "N/A",
+      "specific_gc": "N/A",
+      "specific_type": "N/A"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1.25",
+      "goals_linea": "3"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1.25 / Goles 3.0 | Favorito: <span class='away-color'>Qatar U23</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Bahrain U23</span>   <span style='font-weight: bold; padding: 0 4px;'>2:1</span>   <span style='color: #f97316; font-weight: bold;'>Qatar U23</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado establece un favorito claro, considerándolo <strong>mucho más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>0 → -1.25</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>PUSH (Igual)</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Qatar U23</span>   <span style='font-weight: bold; padding: 0 4px;'>2:1</span>   <span style='color: #f97316; font-weight: bold;'>Bahrain U23</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>1 → -1.25</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>PUSH (Igual)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "0 → -1.25",
+        "result": "2:1",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      },
+      "general": {
+        "movement": "1 → -1.25",
+        "result": "2:1",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Bahrain U23)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-11-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Bahrain U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Russia U21</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1385</td>\n                            <td>2025-09-03</td>\n                            <td class=\"text-end fw-bold text-primary\">Bahrain U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">India U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-07-17</td>\n                            <td class=\"text-end fw-bold text-primary\">Bahrain U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Oman U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1408</td>\n                            <td>2025-03-22</td>\n                            <td class=\"text-end fw-bold text-primary\">Bahrain U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Oman U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1408</td>\n                            <td>2025-03-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Bahrain U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">United Arab Emirates U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Qatar U23)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1385</td>\n                            <td>2025-09-06</td>\n                            <td class=\"text-end \">India U23</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Qatar U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-06-10</td>\n                            <td class=\"text-end \">Ireland U21</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Qatar U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-06-06</td>\n                            <td class=\"text-end \">Sweden U21</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Qatar U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-06-03</td>\n                            <td class=\"text-end \">Croatia U21</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Qatar U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-05-30</td>\n                            <td class=\"text-end \">Croatia U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">Qatar U23</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 2</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": null,
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Bahrain U23",
+        "title_away_name": "Qatar U23",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "Bahrain U23",
+        "title_away_name": "Qatar U23",
+        "rival_name": "N/A"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "0",
+      "res1": "2:1",
+      "res1_raw": "2-1",
+      "match1_id": "1083066",
+      "ah6": "1",
+      "res6": "2:1",
+      "res6_raw": "2-1",
+      "match6_id": "2789622",
+      "h2h_gen_home": "Qatar U23",
+      "h2h_gen_away": "Bahrain U23",
+      "date": "2015-01-22",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "0",
+      "res1": "2:1",
+      "res1_raw": "2-1",
+      "match1_id": "1083066",
+      "ah6": "1",
+      "res6": "2:1",
+      "res6_raw": "2-1",
+      "match6_id": "2789622",
+      "h2h_gen_home": "Qatar U23",
+      "h2h_gen_away": "Bahrain U23",
+      "date": "2015-01-22",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "8",
+          "away": "11"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "83",
+          "away": "71"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "52",
+          "away": "50"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 3,
+        "ah_wins": 0,
+        "ou_overs": 1,
+        "ou_unders": 2,
+        "match_ids": [
+          "2896923",
+          "2872871",
+          "2901671"
+        ]
+      },
+      "prob_ah": 0.0,
+      "prob_over": 33.33333333333333,
+      "prob_under": 66.66666666666666,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.0 hubiera sido OVER el 33.3% y UNDER el 66.7%."
+    },
+    "execution_time_seconds": 25.18
+  },
+  {
+    "match_id": "2907461",
+    "home_name": "Gimnastica Segoviana (W)",
+    "away_name": "UD Bovedana (W)",
+    "league_name": "Spanish Ladies Premier League C",
+    "final_score": "3:4",
+    "time": "11:00",
+    "home_standings": {
+      "name": "Gimnastica Segoviana (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "UD Bovedana (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1",
+      "goals_linea": "2.75"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1 / Goles 2.75 | Favorito: <span class='away-color'>UD Bovedana (W)</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Gimnastica Segoviana (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1833</td>\n                            <td>2025-11-16</td>\n                            <td class=\"text-end fw-bold text-primary\">Gimnastica Segoviana (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Salamanca (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-3</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 0</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 1</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(UD Bovedana (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1833</td>\n                            <td>2025-04-13</td>\n                            <td class=\"text-end \">Valladolid (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2025-02-22</td>\n                            <td class=\"text-end \">AS Celtas (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:1</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2024-11-02</td>\n                            <td class=\"text-end \">Lostrego (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2024-10-19</td>\n                            <td class=\"text-end \">Victoria CF Coruna (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2024-09-07</td>\n                            <td class=\"text-end \">Sardoma CF (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2024-03-23</td>\n                            <td class=\"text-end \">Lostrego (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2024-01-07</td>\n                            <td class=\"text-end \">Victoria CF Coruna (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2023-12-02</td>\n                            <td class=\"text-end \">Sardoma CF (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1833</td>\n                            <td>2023-10-15</td>\n                            <td class=\"text-end \">Victoria FC Santiago (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">UD Bovedana (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 2</span> | \n                            <span class=\"text-muted fw-bold\">E: 4</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-16",
+      "home_team": "Gimnastica Segoviana (W)",
+      "away_team": "Salamanca (W)",
+      "score": "0:2",
+      "handicap_line_raw": "-3",
+      "match_id": "2900359",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "8",
+          "away": "19"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "7"
+        },
+        {
+          "label": "Ataques",
+          "home": "46",
+          "away": "58"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "21",
+          "away": "36"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-04-13",
+      "home_team": "Valladolid (W)",
+      "away_team": "UD Bovedana (W)",
+      "score": "4:1",
+      "handicap_line_raw": "1.5",
+      "match_id": "2764983",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "15",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "11",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "75",
+          "away": "61"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "43",
+          "away": "31"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "not_found",
+      "resultado": "H2H directo no encontrado para Salamanca (W) vs Valladolid (W).",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Gimnastica Segoviana (W)",
+        "title_away_name": "UD Bovedana (W)",
+        "rival_name": "Valladolid (W)"
+      },
+      "right": {
+        "score": "0:1",
+        "ah_line": "-1.25",
+        "localia": "H",
+        "home_team": "UD Bovedana (W)",
+        "away_team": "Salamanca (W)",
+        "match_id": "2895773",
+        "date": "2025-11-02",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Salamanca (W)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "18",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "12",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "69",
+            "away": "53"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "42",
+            "away": "29"
+          }
+        ],
+        "title_home_name": "Gimnastica Segoviana (W)",
+        "title_away_name": "UD Bovedana (W)"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 3,
+        "ah_wins": 2,
+        "ou_overs": 2,
+        "ou_unders": 1,
+        "match_ids": [
+          "2884481",
+          "2906980",
+          "2866748"
+        ]
+      },
+      "prob_ah": 66.66666666666666,
+      "prob_over": 66.66666666666666,
+      "prob_under": 33.33333333333333,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 66.7% de casos similares.\n - La línea O/U 2.75 hubiera sido OVER el 66.7% y UNDER el 33.3%."
+    },
+    "execution_time_seconds": 29.69
+  },
+  {
+    "match_id": "2907471",
+    "home_name": "PS Hizbul Wathan",
+    "away_name": "Persedikab Kediri",
+    "league_name": "Indonesia Liga 4",
+    "final_score": "0:10",
+    "time": "8:00:",
+    "home_standings": {
+      "name": "PS Hizbul Wathan",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Persedikab Kediri",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1",
+      "goals_linea": "3.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1 / Goles 3.25 | Favorito: <span class='away-color'>Persedikab Kediri</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(PS Hizbul Wathan)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2045</td>\n                            <td>2023-12-19</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">Bina Taruna KCM FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2023-12-08</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">Bantul United</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-11-23</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"\">Persis Solo FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-11-08</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"\">PSIM Yogyakarta</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-11-02</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Persijap Jepara</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-10-25</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">FC Bekasi City</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-10-11</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">PSCS Cilacap</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2019-08-07</td>\n                            <td class=\"text-end fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">Protaba Bantul</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 6</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Persedikab Kediri)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2045</td>\n                            <td>2024-05-16</td>\n                            <td class=\"text-end \">Sumbersari FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Persedikab Kediri</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2023-12-07</td>\n                            <td class=\"text-end \">Akademi Arema Ngunut</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:6</td>\n                            <td class=\"fw-bold text-primary\">Persedikab Kediri</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2022-03-12</td>\n                            <td class=\"text-end \">Deltras Sidoarjo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Persedikab Kediri</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2021-11-15</td>\n                            <td class=\"text-end \">PSID Jombang</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Persedikab Kediri</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2019-12-12</td>\n                            <td class=\"text-end \">Persigo Semeru FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"fw-bold text-primary\">Persedikab Kediri</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": null,
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "PS Hizbul Wathan",
+        "title_away_name": "Persedikab Kediri",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "PS Hizbul Wathan",
+        "title_away_name": "Persedikab Kediri",
+        "rival_name": "N/A"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -1 + O/U 3.25."
+    },
+    "execution_time_seconds": 2.79
+  },
+  {
+    "match_id": "2907478",
+    "home_name": "Sepidrood Rasht",
+    "away_name": "Rakhsh Khodro",
+    "league_name": "Iran Div 2",
+    "final_score": "0:0",
+    "time": "11:30",
+    "home_standings": {
+      "name": "Sepidrood Rasht",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Rakhsh Khodro",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1",
+      "goals_linea": "2.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1 / Goles 2.25 | Favorito: <span class='away-color'>Rakhsh Khodro</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Sepidrood Rasht)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-11-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Shahid Ghandi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-10-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Foolad Hormozgan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-04-20</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">FC Fard</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-04-06</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"\">Darya Babol</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-03-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Shahrdari Bandar Abbas</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-03-05</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Pas</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2025-01-05</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Shahin Tehran</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2024-12-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Shahid Ghandi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2024-12-12</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Esteghlal Zeydoon</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1830</td>\n                            <td>2024-12-06</td>\n                            <td class=\"text-end fw-bold text-primary\">Sepidrood Rasht</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Espad Tehran</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 3</span> | \n                            <span class=\"text-muted fw-bold\">E: 4</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-19",
+      "home_team": "Sepidrood Rasht",
+      "away_team": "Shahid Ghandi",
+      "score": "0:0",
+      "handicap_line_raw": "0.25",
+      "match_id": "2901659",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "5",
+          "away": "11"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "53",
+          "away": "58"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "51",
+          "away": "41"
+        }
+      ]
+    },
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Sepidrood Rasht",
+        "title_away_name": "Rakhsh Khodro",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "Sepidrood Rasht",
+        "title_away_name": "Rakhsh Khodro",
+        "rival_name": "Shahid Ghandi"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 2,
+        "ah_wins": 0,
+        "ou_overs": 1,
+        "ou_unders": 1,
+        "match_ids": [
+          "2835583",
+          "2842033"
+        ]
+      },
+      "prob_ah": 0.0,
+      "prob_over": 50.0,
+      "prob_under": 50.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.0 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 2.25 hubiera sido OVER el 50.0% y UNDER el 50.0%."
+    },
+    "execution_time_seconds": 7.41
   }
 ]
