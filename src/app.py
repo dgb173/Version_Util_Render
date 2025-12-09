@@ -931,7 +931,7 @@ def process_single_precache_worker(match_id):
         print(f"Error precaching {match_id}: {e}")
         return False, match_id
 
-def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=None):
+def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=None, workers=5):
     """
     Procesa partidos PRÓXIMOS (Pre-Cacheo) en segundo plano con optimizaciones:
     - Filtros
@@ -994,7 +994,7 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
             return
 
         # 4. Procesar en paralelo
-        max_workers = 5 
+        max_workers = workers if workers else 5 
         total = len(to_process)
         completed = 0
         
@@ -1931,18 +1931,19 @@ def api_precacheo_scrape_background():
         data = request.json or {}
         handicap_filter = data.get('handicap')
         goal_line_filter = data.get('ou')
+        workers = data.get('workers', 5)
         
         # Iniciar hilo
         thread = threading.Thread(
             target=process_upcoming_matches_background,
-            args=(handicap_filter, goal_line_filter)
+            args=(handicap_filter, goal_line_filter, workers)
         )
         thread.daemon = True 
         thread.start()
         
         return jsonify({
             'status': 'success', 
-            'message': f'Pre-Cacheo iniciado (Filtros: AH={handicap_filter}, OU={goal_line_filter}).'
+            'message': f'Pre-Cacheo iniciado (Filtros: AH={handicap_filter}, OU={goal_line_filter}, Workers={workers}).'
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

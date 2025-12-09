@@ -23,11 +23,37 @@
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
             padding: 20px;
             z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
         .main-content {
             margin-left: 250px;
             padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Collapsed Sidebar */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
         }
 
         .nav-link {
@@ -162,6 +188,9 @@
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <h4 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Pre-Cacheo</h4>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-outline-primary btn-sm active" id="btn-proximos"
@@ -187,6 +216,9 @@
                 <button class="btn btn-success btn-sm" onclick="scrapeResultsPending()"
                     title="Scrapear solo resultados de partidos +2h sin score">
                     <i class="fa-solid fa-clock-rotate-left me-1"></i> Buscar Resultados (+2h)
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="scrapeAllPending()">
+                    <i class="fa-solid fa-cloud-download-alt me-1"></i> Scrapear Pendientes
                 </button>
                 <button class="btn btn-warning btn-sm" onclick="finalizeAllWithResults()">
                     <i class="fa-solid fa-check-double me-1"></i> Finalizar Todos
@@ -1431,7 +1463,7 @@
             // Looking at the view_file, there is no explicit goal line filter INPUT in precacheo list header, 
             // only AH filter. So we pass handicap.
 
-            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH=${handicap || 'Todos'}?\nSe usarán multiples hilos y se guardará el progreso.`)) return;
+            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH=${handicap || 'Todos'}?\nSe usarán 8 workers y se guardará el progreso.`)) return;
 
             try {
                 const res = await fetch('/api/precacheo_scrape_background', {
@@ -1559,6 +1591,20 @@
                 }
             });
         });
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            // Si es móvil (ancho menor a 768px, asumimos lógica móvil)
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
 
         // Load on page load
         document.addEventListener('DOMContentLoaded', function () {

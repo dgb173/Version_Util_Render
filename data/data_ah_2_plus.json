@@ -14378,5 +14378,619 @@
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH 3.0 se hubiera cubierto en el 100.0% de casos similares.\n - La línea O/U 4.0 hubiera sido OVER el 50.0% y UNDER el 50.0%."
     },
     "execution_time_seconds": 21.53
+  },
+  {
+    "match_id": "2893713",
+    "home_name": "Nacional Potosi",
+    "away_name": "Academia del Balompie Boliviano",
+    "league_name": "Bolivia Primera Division",
+    "final_score": "2:0",
+    "time": "11:00",
+    "home_standings": {
+      "name": "Nacional Potosi",
+      "ranking": "9",
+      "total_pj": "27",
+      "total_v": "9",
+      "total_e": "7",
+      "total_d": "11",
+      "total_gf": "46",
+      "total_gc": "40",
+      "specific_pj": "13",
+      "specific_v": "6",
+      "specific_e": "1",
+      "specific_d": "6",
+      "specific_gf": "27",
+      "specific_gc": "18",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Academia del Balompie Boliviano",
+      "ranking": "14",
+      "total_pj": "27",
+      "total_v": "5",
+      "total_e": "8",
+      "total_d": "14",
+      "total_gf": "26",
+      "total_gc": "57",
+      "specific_pj": "13",
+      "specific_v": "2",
+      "specific_e": "2",
+      "specific_d": "9",
+      "specific_gf": "13",
+      "specific_gc": "36",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "2.25",
+      "goals_linea": "3.5"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH 2.25 / Goles 3.5 | Favorito: <span class='home-color'>Nacional Potosi</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Nacional Potosi</span>   <span style='font-weight: bold; padding: 0 4px;'>4:2</span>   <span style='color: #f97316; font-weight: bold;'>Academia del Balompie Boliviano</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>0.75 → 2.25</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>6 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>SUPERADA (Over)</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "0.75 → 2.25",
+        "result": "4:2",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      },
+      "general": {
+        "movement": "0.75 → 2.25",
+        "result": "4:2",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Nacional Potosi)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>593</td>\n                            <td>2025-11-30</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">Independiente Petrolero</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-11-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">San Jose de Oruro</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-11-12</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Oriente Petrolero</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-11-04</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Blooming</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Real Oruro</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-07</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Universitario De Vinto</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-09-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">San Jose de Oruro</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-09-13</td>\n                            <td class=\"text-end fw-bold text-primary\">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">San Antonio Bulo Bulo</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Academia del Balompie Boliviano)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>593</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end \">Blooming</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-11-21</td>\n                            <td class=\"text-end \">Independiente Petrolero</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-11-08</td>\n                            <td class=\"text-end \">Always Ready</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-29</td>\n                            <td class=\"text-end \">Nacional Potosi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-11</td>\n                            <td class=\"text-end \">Universitario De Vinto</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1352</td>\n                            <td>2025-10-06</td>\n                            <td class=\"text-end \">Real Oruro</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-09-30</td>\n                            <td class=\"text-end \">Club Guabira</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-09-20</td>\n                            <td class=\"text-end \">Bolivar</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-08-22</td>\n                            <td class=\"text-end \">Real Tomayapo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>593</td>\n                            <td>2025-08-02</td>\n                            <td class=\"text-end \">San Antonio Bulo Bulo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"fw-bold text-primary\">Academia del Balompie Boliviano</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 0</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 9</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-30",
+      "home_team": "Nacional Potosi",
+      "away_team": "Independiente Petrolero",
+      "score": "2:1",
+      "handicap_line_raw": "1",
+      "match_id": "2893694",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "21",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "13",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "92",
+          "away": "68"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "45",
+          "away": "35"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-12-03",
+      "home_team": "Blooming",
+      "away_team": "Academia del Balompie Boliviano",
+      "score": "6:0",
+      "handicap_line_raw": "1.25",
+      "match_id": "2893700",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "18",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "9",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "69",
+          "away": "50"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "45",
+          "away": "25"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "3",
+      "goles_away": "0",
+      "handicap": "0.25",
+      "match_id": "2845793",
+      "h2h_home_team_name": "Independiente Petrolero",
+      "h2h_away_team_name": "Blooming",
+      "date": "2025-09-15",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "25",
+          "away": "16"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "62",
+          "away": "81"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "39",
+          "away": "37"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "3:0",
+        "ah_line": "1",
+        "localia": "H",
+        "home_team": "Nacional Potosi",
+        "away_team": "Blooming",
+        "match_id": "2893681",
+        "date": "2025-11-04",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Blooming",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "19",
+            "away": "3"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "0"
+          },
+          {
+            "label": "Ataques",
+            "home": "114",
+            "away": "51"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "39",
+            "away": "17"
+          }
+        ],
+        "title_home_name": "Nacional Potosi",
+        "title_away_name": "Academia del Balompie Boliviano"
+      },
+      "right": {
+        "score": "2:0",
+        "ah_line": "1",
+        "localia": "A",
+        "home_team": "Independiente Petrolero",
+        "away_team": "Academia del Balompie Boliviano",
+        "match_id": "2893683",
+        "date": "2025-11-21",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Independiente Petrolero",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "15",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "9",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "67",
+            "away": "55"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "41",
+            "away": "35"
+          }
+        ],
+        "title_home_name": "Nacional Potosi",
+        "title_away_name": "Academia del Balompie Boliviano"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "0.75",
+      "res1": "4:2",
+      "res1_raw": "4-2",
+      "match1_id": "2883350",
+      "ah6": "0.75",
+      "res6": "4:2",
+      "res6_raw": "4-2",
+      "match6_id": "2883350",
+      "h2h_gen_home": "Nacional Potosi",
+      "h2h_gen_away": "Academia del Balompie Boliviano",
+      "date": "2025-10-29",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "76",
+          "away": "62"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "28",
+          "away": "29"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "0.75",
+      "res1": "4:2",
+      "res1_raw": "4-2",
+      "match1_id": "2883350",
+      "ah6": "0.75",
+      "res6": "4:2",
+      "res6_raw": "4-2",
+      "match6_id": "2883350",
+      "h2h_gen_home": "Nacional Potosi",
+      "h2h_gen_away": "Academia del Balompie Boliviano",
+      "date": "2025-10-29",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "76",
+          "away": "62"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "28",
+          "away": "29"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH 2.25 + O/U 3.5."
+    },
+    "execution_time_seconds": 27.82,
+    "cached_at": "2025-12-09 05:20:17"
+  },
+  {
+    "match_id": "2907656",
+    "home_name": "Olimpija Ljubljana U19",
+    "away_name": "NK Krka U19",
+    "league_name": "Slovenia U19",
+    "final_score": "4:0",
+    "time": "12:30",
+    "home_standings": {
+      "name": "Olimpija Ljubljana U19",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "NK Krka U19",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "2.5",
+      "goals_linea": "3.5"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH 2.5 / Goles 3.5 | Favorito: <span class='home-color'>Olimpija Ljubljana U19</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Olimpija Ljubljana U19</span>   <span style='font-weight: bold; padding: 0 4px;'>6:3</span>   <span style='color: #f97316; font-weight: bold;'>NK Krka U19</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>1.25 → 2.5</strong>).    La línea actual habría sido <span style='color: green; font-weight: bold;'>CUBIERTO ✅</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>9 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>SUPERADA (Over)</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>NK Krka U19</span>   <span style='font-weight: bold; padding: 0 4px;'>1:1</span>   <span style='color: #f97316; font-weight: bold;'>Olimpija Ljubljana U19</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>-0.5 → 2.5</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "1.25 → 2.5",
+        "result": "6:3",
+        "evaluation": "CUBIERTO",
+        "is_covered": true
+      },
+      "general": {
+        "movement": "-0.5 → 2.5",
+        "result": "1:1",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Olimpija Ljubljana U19)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-11-08</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">NK Fuzinar U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-10-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"\">NK Radomlje U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-10-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">NK Aluminij U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-09-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">NK Maribor U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-09-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"\">ND Ilirija U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-08-25</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Brinje Grosuplje U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-08-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">FC Koper U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-05-25</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">NK Radomlje U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-04-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">NK Bravo U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-03-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Olimpija Ljubljana U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">NK Publikum Celje U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 4</span> | \n                            <span class=\"text-danger fw-bold\">D: 1</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(NK Krka U19)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-11-29</td>\n                            <td class=\"text-end \">FC Koper U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-11-25</td>\n                            <td class=\"text-end \">NK Brezice U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-11-13</td>\n                            <td class=\"text-end \">NK Radomlje U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-10-06</td>\n                            <td class=\"text-end \">NK Aluminij U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-09-21</td>\n                            <td class=\"text-end \">NK Maribor U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">7:1</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-08-29</td>\n                            <td class=\"text-end \">ND Ilirija U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:2</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-08-21</td>\n                            <td class=\"text-end \">Brinje Grosuplje U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-03-28</td>\n                            <td class=\"text-end \">NK Radomlje U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1107</td>\n                            <td>2025-02-21</td>\n                            <td class=\"text-end \">NK Bravo U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">NK Krka U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 7</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-08",
+      "home_team": "Olimpija Ljubljana U19",
+      "away_team": "NK Fuzinar U19",
+      "score": "1:1",
+      "handicap_line_raw": "1.25",
+      "match_id": "2897755",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "15",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "123",
+          "away": "68"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "93",
+          "away": "27"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-11-29",
+      "home_team": "FC Koper U19",
+      "away_team": "NK Krka U19",
+      "score": "3:2",
+      "handicap_line_raw": "0.75",
+      "match_id": "2904443",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "12",
+          "away": "11"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "148",
+          "away": "151"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "111",
+          "away": "94"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "1",
+      "goles_away": "1",
+      "handicap": "-0.25",
+      "match_id": "2684548",
+      "h2h_home_team_name": "NK Fuzinar U19",
+      "h2h_away_team_name": "FC Koper U19",
+      "date": "2024-10-28",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "10",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "120",
+          "away": "137"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "77",
+          "away": "88"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "1:2",
+        "ah_line": "0.75",
+        "localia": "H",
+        "home_team": "Olimpija Ljubljana U19",
+        "away_team": "FC Koper U19",
+        "match_id": "2852004",
+        "date": "2025-08-19",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "FC Koper U19",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "22",
+            "away": "11"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "7",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "110",
+            "away": "90"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "85",
+            "away": "37"
+          }
+        ],
+        "title_home_name": "Olimpija Ljubljana U19",
+        "title_away_name": "NK Krka U19"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "Olimpija Ljubljana U19",
+        "title_away_name": "NK Krka U19",
+        "rival_name": "NK Fuzinar U19"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "1.25",
+      "res1": "6:3",
+      "res1_raw": "6-3",
+      "match1_id": "2272062",
+      "ah6": "-0.5",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2850848",
+      "h2h_gen_home": "NK Krka U19",
+      "h2h_gen_away": "Olimpija Ljubljana U19",
+      "date": "2022-08-17",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "24",
+          "away": "9"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "12",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "121",
+          "away": "123"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "66",
+          "away": "60"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "1.25",
+      "res1": "6:3",
+      "res1_raw": "6-3",
+      "match1_id": "2272062",
+      "ah6": "-0.5",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2850848",
+      "h2h_gen_home": "NK Krka U19",
+      "h2h_gen_away": "Olimpija Ljubljana U19",
+      "date": "2022-08-17",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "12",
+          "away": "15"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "5",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "114",
+          "away": "126"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "58",
+          "away": "68"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH 2.5 + O/U 3.5."
+    },
+    "execution_time_seconds": 19.44,
+    "cached_at": "2025-12-09 05:30:47"
   }
 ]
