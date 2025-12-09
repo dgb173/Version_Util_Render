@@ -2415,6 +2415,85 @@ def api_reanalyze_pending():
         print(f"Error launching background process: {e}")
         return jsonify({'error': str(e)}), 500
 
+# =============================================
+# AI PREDICTION ENDPOINT (Gemini API)
+# =============================================
+GEMINI_API_KEY = "AIzaSyDcfLpifS3kRQtXtDAWee82rHP_LxTP9pY"
+
+@app.route('/api/ai_prediction', methods=['POST'])
+def api_ai_prediction():
+    """Generate AI match prediction using Gemini API."""
+    try:
+        data = request.get_json()
+        match_id = data.get('match_id')
+        winner = data.get('winner', 'home')  # 'home' or 'away'
+        
+        # Accept team names from frontend (in case precacheo data doesn't have them)
+        frontend_home_team = data.get('home_team')
+        frontend_away_team = data.get('away_team')
+        
+        if not match_id:
+            return jsonify({'error': 'match_id is required'}), 400
+        
+        # Get match data from precacheo
+        precacheo_data = load_precacheo_data()
+        match_data = precacheo_data.get(str(match_id), {})
+        
+        # Use frontend team names if available, fallback to precacheo data
+        home_team = frontend_home_team or match_data.get('home_team', 'Home Team')
+        away_team = frontend_away_team or match_data.get('away_team', 'Away Team')
+        handicap = match_data.get('asian_handicap_raw') or match_data.get('asian_handicap') or 'N/A'
+        
+        # Get prev match info if available
+        prev_home = match_data.get('last_home_match', {})
+        prev_away = match_data.get('last_away_match', {})
+        
+        prev_home_info = ""
+        if prev_home and prev_home.get('score'):
+            prev_home_info = f"{home_team}'s last home game: {prev_home.get('score', 'N/A')} (AH: {prev_home.get('handicap_line_raw', 'N/A')})"
+        
+        prev_away_info = ""
+        if prev_away and prev_away.get('score'):
+            prev_away_info = f"{away_team}'s last away game: {prev_away.get('score', 'N/A')} (AH: {prev_away.get('handicap_line_raw', 'N/A')})"
+        
+        # Determine winner team name
+        winner_team = home_team if winner == 'home' else away_team
+        loser_team = away_team if winner == 'home' else home_team
+        
+        # Build prompt with specific winner
+        prompt = f"""You are a football betting analyst. The user has selected that {winner_team} will WIN this match.
+
+Match: {home_team} vs {away_team}
+Asian Handicap: {handicap}
+{prev_home_info}
+{prev_away_info}
+
+Write a confident betting prediction (50-70 words) in English explaining why {winner_team} will beat {loser_team} and cover the handicap. Mention both team names. Be specific about factors like form, home/away advantage, and handicap coverage. Do NOT hedge - the user chose {winner_team} to win."""
+
+        # Call Gemini API
+        import google.generativeai as genai
+        
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        response = model.generate_content(prompt)
+        prediction_text = response.text
+        
+        return jsonify({
+            'status': 'success',
+            'match_id': match_id,
+            'home_team': home_team,
+            'away_team': away_team,
+            'handicap': handicap,
+            'prediction': prediction_text
+        })
+        
+    except ImportError:
+        return jsonify({'error': 'google-generativeai package not installed. Run: pip install google-generativeai'}), 500
+    except Exception as e:
+        print(f"AI Prediction error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
 

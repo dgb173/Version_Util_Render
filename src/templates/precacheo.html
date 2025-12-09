@@ -1053,6 +1053,9 @@
                         </a>
                         ${isScraped ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
                             <i class="fas fa-search"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
+                            <i class="fas fa-robot"></i>
                         </button>` : ''}
                     </td>
                 `;
@@ -1107,6 +1110,152 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
             }
+        }
+
+        // AI Prediction - Show team selection, then get prediction from Gemini API
+        async function getAIPrediction(matchId, btnElement) {
+            // Toggle: if row already exists, close it
+            const existingRow = document.getElementById(`ai-row-${matchId}`);
+            if (existingRow) {
+                existingRow.remove();
+                btnElement.classList.remove('active');
+                return;
+            }
+
+            // Get match data to show team names
+            const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
+            if (!matchRow) return;
+
+            // Get team names from precacheo data or from the row
+            let matchData = precacheoData[matchId];
+            let homeTeam = matchData?.home_team || 'Local';
+            let awayTeam = matchData?.away_team || 'Visitante';
+
+            // Create selection row
+            const expandRow = document.createElement('tr');
+            expandRow.id = `ai-row-${matchId}`;
+            expandRow.className = 'ai-expand-row';
+
+            expandRow.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                            <i class="fas fa-robot text-primary" style="font-size: 1.5rem;"></i>
+                            <strong class="text-primary" style="font-size: 1.1rem;">¿Quién gana?</strong>
+                        </div>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-lg btn-primary" onclick="generateAIPrediction('${matchId}', 'home', '${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this.closest('tr'))">
+                                <i class="fas fa-home me-2"></i>${homeTeam}
+                            </button>
+                            <button class="btn btn-lg btn-danger" onclick="generateAIPrediction('${matchId}', 'away', '${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this.closest('tr'))">
+                                <i class="fas fa-plane me-2"></i>${awayTeam}
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            // Insert after match row
+            matchRow.insertAdjacentElement('afterend', expandRow);
+            btnElement.classList.add('active');
+        }
+
+        // Generate AI prediction after team selection
+        async function generateAIPrediction(matchId, winner, homeTeam, awayTeam, rowElement) {
+            // Show loading
+            rowElement.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+                        <div class="mt-2 text-muted">Generando predicción para <strong>${winner === 'home' ? homeTeam : awayTeam}</strong>...</div>
+                    </div>
+                </td>
+            `;
+
+            try {
+                const res = await fetch('/api/ai_prediction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        winner: winner,
+                        home_team: homeTeam,
+                        away_team: awayTeam
+                    })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    rowElement.innerHTML = `
+                        <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                            <div class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
+                            </div>
+                        </td>
+                    `;
+                    return;
+                }
+
+                const predictionId = `ai-prediction-text-${matchId}`;
+                const winnerBadge = winner === 'home'
+                    ? `<span class="badge bg-primary"><i class="fas fa-home me-1"></i>${homeTeam} GANA</span>`
+                    : `<span class="badge bg-danger"><i class="fas fa-plane me-1"></i>${awayTeam} GANA</span>`;
+
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <i class="fas fa-robot text-primary" style="font-size: 1.2rem;"></i>
+                                    <strong class="text-primary">AI Prediction</strong>
+                                    ${winnerBadge}
+                                    <span class="badge bg-success">AH: ${data.handicap}</span>
+                                </div>
+                                <div id="${predictionId}" class="p-3 bg-white rounded border shadow-sm" style="font-size: 0.95rem; line-height: 1.7; max-width: 900px;">
+                                    ${data.prediction}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-3" onclick="copyAIPrediction('${predictionId}')" title="Copiar texto">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+            } catch (err) {
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                        <div class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error de red: ${err.message}
+                        </div>
+                    </td>
+                `;
+            }
+        }
+
+        // Copy AI prediction text to clipboard
+        function copyAIPrediction(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const text = element.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const btn = element.closest('td').querySelector('.btn-outline-secondary');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline-secondary');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 1500);
+                }
+            }).catch(err => {
+                alert('Error al copiar: ' + err.message);
+            });
         }
 
         // Buscar patrones similares en histórico
@@ -1180,11 +1329,7 @@
                                     ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
                                     ${prevFavCovered !== null ? `| <strong class="${prevFavCovered ? 'text-success' : 'text-danger'}">Fav ${prevFavCovered ? 'CUBRIÓ' : 'NO CUBRIÓ'}</strong>` : ''}
                                 </div>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-secondary btn-sm ${autoFilter === 'all' ? 'active' : ''}" onclick="filterPatterns('${matchId}', 'all')">Todos (${results.length})</button>
-                                    <button class="btn btn-outline-success btn-sm ${autoFilter === 'cover' ? 'active' : ''}" onclick="filterPatterns('${matchId}', 'cover')">✓ Cubiertos (${covered})</button>
-                                    <button class="btn btn-outline-danger btn-sm ${autoFilter === 'nocover' ? 'active' : ''}" onclick="filterPatterns('${matchId}', 'nocover')">✗ No Cubiertos (${notCovered})</button>
-                                </div>
+
                             </div>
                             ${prevFavCovered !== null ? `<div class="alert alert-${prevFavCovered ? 'success' : 'danger'} py-1 px-2 mb-0 small">${autoFilterLabel}</div>` : ''}
                         </div>
