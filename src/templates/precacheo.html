@@ -1131,6 +1131,11 @@
             let homeTeam = matchData?.home_team || 'Local';
             let awayTeam = matchData?.away_team || 'Visitante';
 
+            // Escape team names for safe HTML insertion
+            const escapeHtml = (str) => str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+            const safeHome = escapeHtml(homeTeam);
+            const safeAway = escapeHtml(awayTeam);
+
             // Create selection row
             const expandRow = document.createElement('tr');
             expandRow.id = `ai-row-${matchId}`;
@@ -1144,16 +1149,29 @@
                             <strong class="text-primary" style="font-size: 1.1rem;">¿Quién gana?</strong>
                         </div>
                         <div class="d-flex justify-content-center gap-3">
-                            <button class="btn btn-lg btn-primary" onclick="generateAIPrediction('${matchId}', 'home', '${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this.closest('tr'))">
+                            <button class="btn btn-lg btn-primary ai-team-btn" data-match="${matchId}" data-winner="home" data-home="${safeHome}" data-away="${safeAway}">
                                 <i class="fas fa-home me-2"></i>${homeTeam}
                             </button>
-                            <button class="btn btn-lg btn-danger" onclick="generateAIPrediction('${matchId}', 'away', '${homeTeam.replace(/'/g, "\\'")}', '${awayTeam.replace(/'/g, "\\'")}', this.closest('tr'))">
+                            <button class="btn btn-lg btn-danger ai-team-btn" data-match="${matchId}" data-winner="away" data-home="${safeHome}" data-away="${safeAway}">
                                 <i class="fas fa-plane me-2"></i>${awayTeam}
                             </button>
                         </div>
                     </div>
                 </td>
             `;
+
+            // Add click handlers
+            expandRow.querySelectorAll('.ai-team-btn').forEach(btn => {
+                btn.onclick = function () {
+                    generateAIPrediction(
+                        this.dataset.match,
+                        this.dataset.winner,
+                        this.dataset.home,
+                        this.dataset.away,
+                        this.closest('tr')
+                    );
+                };
+            });
 
             // Insert after match row
             matchRow.insertAdjacentElement('afterend', expandRow);

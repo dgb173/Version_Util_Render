@@ -2435,9 +2435,13 @@ def api_ai_prediction():
         if not match_id:
             return jsonify({'error': 'match_id is required'}), 400
         
-        # Get match data from precacheo
-        precacheo_data = load_precacheo_data()
-        match_data = precacheo_data.get(str(match_id), {})
+        # Get match data from precacheo (it's a list of matches)
+        precacheo_list = data_manager.load_precacheo_matches()
+        match_data = {}
+        for m in precacheo_list:
+            if str(m.get('match_id')) == str(match_id):
+                match_data = m
+                break
         
         # Use frontend team names if available, fallback to precacheo data
         home_team = frontend_home_team or match_data.get('home_team', 'Home Team')
