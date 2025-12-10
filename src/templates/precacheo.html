@@ -1765,18 +1765,14 @@
             }
         }
 
-        // Event listeners for filters
+        // Event listeners for filters - solo Enter dispara búsqueda
         document.querySelectorAll('.header-filter').forEach(input => {
             input.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     triggerSearch();
                 }
             });
-            input.addEventListener('change', function (e) {
-                if (e.target.tagName === 'SELECT') {
-                    triggerSearch();
-                }
-            });
+            // Removed: automatic triggerSearch on SELECT change
         });
 
         // Sidebar Toggle Logic
@@ -1798,7 +1794,7 @@
             updateCurrentTimeDisplay();
             // Actualizar hora cada minuto
             setInterval(updateCurrentTimeDisplay, 60000);
-            triggerSearch();
+            triggerSearch(); // Cargar lista inicial al abrir la página
         });
     </script>
 </body>
