@@ -1325,17 +1325,50 @@
                     const covered = results.filter(r => r.covered === 'COVER').length;
                     const notCovered = results.filter(r => r.covered === 'NO_COVER').length;
 
-                    // Determinar filtro automático según comportamiento previo del favorito
+                    // Filtrar automáticamente según comportamiento previo del favorito
                     const prevFavCovered = info.prev_fav_covered;
-                    let autoFilter = 'all';
-                    let autoFilterLabel = 'Todos';
-                    if (prevFavCovered === true) {
-                        autoFilter = 'cover';
-                        autoFilterLabel = '✓ Favorito cubrió en su previo → Solo Cubiertos';
-                    } else if (prevFavCovered === false) {
-                        autoFilter = 'nocover';
-                        autoFilterLabel = '✗ Favorito NO cubrió en su previo → Solo No Cubiertos';
+                    let filteredResults = results;
+
+                    if (prevFavCovered !== null) {
+                        filteredResults = results.filter(r => {
+                            const patAH = parseFloat(r.ah);
+                            let targetPrev = null;
+                            let isHomeFav = false;
+
+                            if (patAH < 0) {
+                                targetPrev = r.prev_home;
+                                isHomeFav = true;
+                            } else if (patAH > 0) {
+                                targetPrev = r.prev_away;
+                            } else {
+                                return true;
+                            }
+
+                            if (!targetPrev || !targetPrev.score || targetPrev.ah == null) return false;
+
+                            const scoreParts = targetPrev.score.split(':');
+                            if (scoreParts.length !== 2) return false;
+                            const pHome = parseInt(scoreParts[0]);
+                            const pAway = parseInt(scoreParts[1]);
+                            const pAh = parseFloat(targetPrev.ah);
+
+                            if (isNaN(pHome) || isNaN(pAway) || isNaN(pAh)) return false;
+
+                            let diff;
+                            if (isHomeFav) {
+                                diff = (pHome + pAh) - pAway;
+                            } else {
+                                diff = (pAway + pAh) - pHome;
+                            }
+
+                            if (prevFavCovered === true) return diff > 0;
+                            if (prevFavCovered === false) return diff < 0;
+                            return true;
+                        });
                     }
+
+                    const filteredCovered = filteredResults.filter(r => r.covered === 'COVER').length;
+                    const filteredNotCovered = filteredResults.filter(r => r.covered === 'NO_COVER').length;
 
                     resultsHtml = `
                         <div class="d-flex flex-column gap-2 mb-2">
@@ -1347,9 +1380,7 @@
                                     ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
                                     ${prevFavCovered !== null ? `| <strong class="${prevFavCovered ? 'text-success' : 'text-danger'}">Fav ${prevFavCovered ? 'CUBRIÓ' : 'NO CUBRIÓ'}</strong>` : ''}
                                 </div>
-
                             </div>
-                            ${prevFavCovered !== null ? `<div class="alert alert-${prevFavCovered ? 'success' : 'danger'} py-1 px-2 mb-0 small">${autoFilterLabel}</div>` : ''}
                         </div>
                         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                         <table class="table table-sm table-bordered mb-0" style="font-size: 0.68rem;" id="patterns-table-${matchId}">
@@ -1403,41 +1434,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${results.map(r => {
+                                ${filteredResults.map(r => {
                         const wdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
                         const wdlLetter = (wdl) => wdl === 'HOME_WIN' ? 'W' : (wdl === 'AWAY_WIN' ? 'L' : 'D');
 
-                        // Prev Home: AH + movement + score + rival
                         const prevHomeHtml = r.prev_home ?
                             `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${wdlClass(r.prev_home.wdl)}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        // Prev Away: AH + movement + score + rival
                         const prevAwayHtml = r.prev_away ?
                             `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${wdlClass(r.prev_away.wdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        // H2H Estadio: movement + score
                         const h2hStadiumHtml = r.h2h_stadium ?
                             `<div class="fw-bold">${r.h2h_stadium.movement || '-'}</div><div class="${wdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        // H2H General: movement + score
                         const h2hGeneralHtml = r.h2h_general ?
                             `<div class="fw-bold">${r.h2h_general.movement || '-'}</div><div class="${wdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        // H2H Col3: ah + score + equipos
                         const h2hCol3Html = r.h2h_col3 ?
                             `<div><span class="fw-bold">${r.h2h_col3.ah || '-'}</span> ${r.h2h_col3.score || '-'}</div><div style="font-size:0.5rem;"><span class="text-primary">${r.h2h_col3.home_team || ''}</span> vs <span class="text-danger">${r.h2h_col3.away_team || ''}</span></div>` :
                             '<span class="text-muted">-</span>';
 
-                        // Ind. Local
                         const indLocalHtml = r.ind_local ?
                             `<div><span class="fw-bold">${r.ind_local.ah || r.ind_local.handicap || '-'}</span> ${r.ind_local.score || r.ind_local.resultado || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        // Ind. Visitante
                         const indVisitanteHtml = r.ind_visitante ?
                             `<div><span class="fw-bold">${r.ind_visitante.ah || r.ind_visitante.handicap || '-'}</span> ${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</div>` :
                             '<span class="text-muted">-</span>';
@@ -1448,7 +1472,7 @@
                         const prevAwayAh = r.prev_away && r.prev_away.ah != null ? Math.abs(parseFloat(r.prev_away.ah)) : '';
 
                         return `
-                                    <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}" ${autoFilter !== 'all' && ((autoFilter === 'cover' && r.covered !== 'COVER') || (autoFilter === 'nocover' && r.covered !== 'NO_COVER')) ? 'style="display:none;"' : ''}>
+                                    <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}">
                                         <td><a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none" title="Abrir análisis">${r.date || '-'} 🔗</a></td>
                                         <td class="text-primary" style="font-size:0.65rem;">${r.home || '-'}</td>
                                         <td class="text-danger" style="font-size:0.65rem;">${r.away || '-'}</td>
@@ -1470,8 +1494,8 @@
                         </table>
                         </div>
                         <div class="d-flex justify-content-between mt-2 small">
-                            <span class="text-muted">Mostrando ${results.length} de ${data.total_found}</span>
-                            <span><strong class="text-success">✓ ${covered}</strong> cubiertos | <strong class="text-danger">✗ ${notCovered}</strong> no cubiertos | Ratio: <strong>${covered > 0 ? ((covered / (covered + notCovered)) * 100).toFixed(0) : 0}%</strong></span>
+                            <span class="text-muted">Mostrando ${filteredResults.length} de ${data.total_found}</span>
+                            <span><strong class="text-success">✓ ${filteredCovered}</strong> cubiertos | <strong class="text-danger">✗ ${filteredNotCovered}</strong> no cubiertos | Ratio: <strong>${filteredCovered > 0 ? ((filteredCovered / (filteredCovered + filteredNotCovered)) * 100).toFixed(0) : 0}%</strong></span>
                         </div>
                     `;
                 }
@@ -1522,7 +1546,7 @@
 
         // Filtrar filas por columna (Prev Home/Away W/D/L y AH)
         function filterPatternsCol(matchId, colName, filterValue) {
-            const table = document.getElementById(`patterns-table-${matchId}`);
+            const table = document.getElementById(`patterns - table - ${matchId} `);
             if (!table) return;
 
             const rows = table.querySelectorAll('tbody tr');
@@ -1626,7 +1650,7 @@
             // Looking at the view_file, there is no explicit goal line filter INPUT in precacheo list header, 
             // only AH filter. So we pass handicap.
 
-            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH=${handicap || 'Todos'}?\nSe usarán 8 workers y se guardará el progreso.`)) return;
+            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH = ${handicap || 'Todos'}?\nSe usarán 8 workers y se guardará el progreso.`)) return;
 
             try {
                 const res = await fetch('/api/precacheo_scrape_background', {
@@ -1650,14 +1674,14 @@
 
         // Finalizar un partido individual (mover al Explorador)
         async function finalizeMatch(matchId) {
-            const btn = document.querySelector(`button[onclick="finalizeMatch('${matchId}')"]`);
+            const btn = document.querySelector(`button[onclick = "finalizeMatch('${matchId}')"]`);
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
             }
 
             try {
-                const res = await fetch(`/api/precacheo_finalize/${matchId}`, {
+                const res = await fetch(`/ api / precacheo_finalize / ${matchId} `, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -1703,7 +1727,7 @@
                 return;
             }
 
-            if (!confirm(`¿Finalizar ${matchesWithResults.length} partidos y moverlos al Explorador?`)) return;
+            if (!confirm(`¿Finalizar ${matchesWithResults.length} partidos y moverlos al Explorador ? `)) return;
 
             showLoading(true, `Finalizando ${matchesWithResults.length} partidos...`);
 
@@ -1729,7 +1753,7 @@
                     } else {
                         // Success completely
                         // Optional: simpler alert or just refresh
-                        // alert(`Proceso completado. ${success} partidos movidos.`);
+                        // alert(`Proceso completado.${ success } partidos movidos.`);
                     }
                     // Refresh data
                     await triggerSearch();
