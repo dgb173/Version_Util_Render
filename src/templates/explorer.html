@@ -806,11 +806,7 @@
                     triggerSearch();
                 }
             });
-            input.addEventListener('change', function (e) {
-                if (e.target.tagName === 'SELECT') {
-                    triggerSearch();
-                }
-            });
+            // Removed: automatic triggerSearch on SELECT change
         });
         // Mobile Menu Logic
         document.addEventListener('DOMContentLoaded', () => {
