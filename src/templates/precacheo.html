@@ -1325,50 +1325,66 @@
                     const covered = results.filter(r => r.covered === 'COVER').length;
                     const notCovered = results.filter(r => r.covered === 'NO_COVER').length;
 
-                    // Filtrar automáticamente según comportamiento previo del favorito
-                    const prevFavCovered = info.prev_fav_covered;
+                    // Filtrar automáticamente según WDL del partido previo del favorito
+                    // WDL = Win/Draw/Loss del resultado real (no del cover de handicap)
+                    const prevFavWdl = info.prev_fav_wdl; // 'WIN', 'DRAW', 'LOSS', or null
+                    const prevFavCovered = info.prev_fav_covered; // Para mostrar info
                     let filteredResults = results;
 
-                    if (prevFavCovered !== null) {
+                    if (prevFavWdl) {
                         filteredResults = results.filter(r => {
                             const patAH = parseFloat(r.ah);
                             let targetPrev = null;
-                            let isHomeFav = false;
+                            let teamWasHome = false;
 
-                            if (patAH < 0) {
-                                targetPrev = r.prev_home;
-                                isHomeFav = true;
-                            } else if (patAH > 0) {
-                                targetPrev = r.prev_away;
+                            // Determinar cuál es el previo del favorito del patrón
+                            // CORRECTO: AH > 0 = LOCAL es favorito, AH < 0 = VISITANTE es favorito
+                            if (patAH > 0) {
+                                targetPrev = r.prev_home; // Local es favorito, jugó de LOCAL en su previo
+                                teamWasHome = true;
+                            } else if (patAH < 0) {
+                                targetPrev = r.prev_away; // Visitante es favorito, jugó de VISITANTE en su previo
+                                teamWasHome = false;
                             } else {
-                                return true;
+                                return true; // AH = 0, incluir todos
                             }
 
-                            if (!targetPrev || !targetPrev.score || targetPrev.ah == null) return false;
+                            if (!targetPrev || !targetPrev.score) return false;
 
+                            // Parsear el score - formato "home:away" del partido previo
                             const scoreParts = targetPrev.score.split(':');
                             if (scoreParts.length !== 2) return false;
-                            const pHome = parseInt(scoreParts[0]);
-                            const pAway = parseInt(scoreParts[1]);
-                            const pAh = parseFloat(targetPrev.ah);
 
-                            if (isNaN(pHome) || isNaN(pAway) || isNaN(pAh)) return false;
+                            const homeGoals = parseInt(scoreParts[0]);
+                            const awayGoals = parseInt(scoreParts[1]);
 
-                            let diff;
-                            if (isHomeFav) {
-                                diff = (pHome + pAh) - pAway;
+                            if (isNaN(homeGoals) || isNaN(awayGoals)) return false;
+
+                            // Calcular WDL desde la perspectiva del equipo rastreado
+                            let patternWdl = null;
+                            if (teamWasHome) {
+                                // El equipo jugó de LOCAL: sus goles son homeGoals
+                                if (homeGoals > awayGoals) patternWdl = 'WIN';
+                                else if (homeGoals < awayGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
                             } else {
-                                diff = (pAway + pAh) - pHome;
+                                // El equipo jugó de VISITANTE: sus goles son awayGoals
+                                if (awayGoals > homeGoals) patternWdl = 'WIN';
+                                else if (awayGoals < homeGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
                             }
 
-                            if (prevFavCovered === true) return diff > 0;
-                            if (prevFavCovered === false) return diff < 0;
-                            return true;
+                            // Solo mostrar patrones donde el WDL coincide
+                            return patternWdl === prevFavWdl;
                         });
                     }
 
                     const filteredCovered = filteredResults.filter(r => r.covered === 'COVER').length;
                     const filteredNotCovered = filteredResults.filter(r => r.covered === 'NO_COVER').length;
+
+                    // Mostrar info de WDL en español
+                    const wdlText = prevFavWdl === 'WIN' ? 'GANÓ' : (prevFavWdl === 'DRAW' ? 'EMPATÓ' : (prevFavWdl === 'LOSS' ? 'PERDIÓ' : ''));
+                    const wdlClass = prevFavWdl === 'WIN' ? 'text-success' : (prevFavWdl === 'DRAW' ? 'text-warning' : 'text-danger');
 
                     resultsHtml = `
                         <div class="d-flex flex-column gap-2 mb-2">
@@ -1378,7 +1394,7 @@
                                     | <strong>AH:</strong> ${info.ah_actual} 
                                     | <strong>Fav:</strong> ${info.favorito}
                                     ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
-                                    ${prevFavCovered !== null ? `| <strong class="${prevFavCovered ? 'text-success' : 'text-danger'}">Fav ${prevFavCovered ? 'CUBRIÓ' : 'NO CUBRIÓ'}</strong>` : ''}
+                                    ${prevFavWdl ? `| <strong class="${wdlClass}">Fav ${wdlText}</strong>` : ''}
                                 </div>
                             </div>
                         </div>

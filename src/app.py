@@ -2055,6 +2055,40 @@ def api_precacheo_pattern_search():
                     print(f"Error calculando prev_fav_covered: {e}")
                     pass
         
+        # 5b. Calcular WDL del partido previo del favorito (WIN/DRAW/LOSS desde perspectiva del favorito)
+        prev_fav_wdl = None  # 'WIN', 'DRAW', 'LOSS'
+        if prev_match:
+            prev_score = prev_match.get('score') or prev_match.get('final_score')
+            prev_was_home = prev_match.get('was_home', True)
+            
+            if prev_score:
+                try:
+                    score_clean = prev_score.replace(' ', '').replace('-', ':')
+                    parts = score_clean.split(':')
+                    if len(parts) == 2:
+                        hg, ag = int(parts[0]), int(parts[1])
+                        
+                        # Determinar resultado desde perspectiva del favorito
+                        if prev_was_home:
+                            # Favorito jugó de LOCAL
+                            if hg > ag:
+                                prev_fav_wdl = 'WIN'
+                            elif hg < ag:
+                                prev_fav_wdl = 'LOSS'
+                            else:
+                                prev_fav_wdl = 'DRAW'
+                        else:
+                            # Favorito jugó de VISITANTE
+                            if ag > hg:
+                                prev_fav_wdl = 'WIN'
+                            elif ag < hg:
+                                prev_fav_wdl = 'LOSS'
+                            else:
+                                prev_fav_wdl = 'DRAW'
+                except Exception as e:
+                    print(f"Error calculando prev_fav_wdl: {e}")
+                    pass
+        
         # 6. Cargar datos históricos
         from modules.pattern_search import explore_matches
         history_data = data_manager.load_matches_by_bucket(ah_actual)
@@ -2163,7 +2197,8 @@ def api_precacheo_pattern_search():
                 'favorito': fav_name, 
                 'prev_ah_favorito': prev_ah, 
                 'is_home_fav': is_home_favorite,
-                'prev_fav_covered': prev_fav_covered  # True/False/None para auto-filtrar
+                'prev_fav_covered': prev_fav_covered,  # True/False/None para auto-filtrar
+                'prev_fav_wdl': prev_fav_wdl  # 'WIN'/'DRAW'/'LOSS'/None para filtrar por tipo de resultado
             },
             'results': formatted_results,
             'total_found': len(all_results)
