@@ -28,6 +28,16 @@
         .main-content {
             margin-left: 250px;
             padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Collapsed Sidebar */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
         }
 
         .nav-link {
@@ -258,7 +268,12 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>Explorador de Datos</h4>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>Explorador de Datos</h4>
+            </div>
             <div class="d-flex gap-2">
                 <div class="form-check d-flex align-items-center">
                     <input class="form-check-input me-2" type="checkbox" id="filter-only-with-history">
@@ -797,6 +812,19 @@
     `;
                 tbody.appendChild(tr);
             });
+        }
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
         }
 
         // Enter key on inputs triggers search
