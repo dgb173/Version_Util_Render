@@ -19,6 +19,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import csv
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Carga variables desde .env (local) o usa env vars de sistema (Render)
 import concurrent.futures
 
 _json_save_lock = threading.Lock()
