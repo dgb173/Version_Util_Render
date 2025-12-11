@@ -2514,7 +2514,7 @@ Asian Handicap: {handicap}
 {prev_home_info}
 {prev_away_info}
 
-Write a confident betting prediction (50-70 words) in English explaining why {winner_team} will beat {loser_team} and cover the handicap. Mention both team names. Be specific about factors like form, home/away advantage, and handicap coverage. Do NOT hedge - the user chose {winner_team} to win."""
+Write a confident, well-justified betting prediction (80-100 words) in English explaining why {winner_team} will beat {loser_team} and cover the handicap. Your prediction MUST include specific justification based on: recent form, home/away advantage, historical performance, and handicap coverage potential. Mention both team names explicitly. Provide concrete reasoning, not generic statements. Do NOT hedge - the user chose {winner_team} to win."""
 
         # Call Groq API
         from groq import Groq
@@ -2527,7 +2527,7 @@ Write a confident betting prediction (50-70 words) in English explaining why {wi
             ],
             model="llama-3.3-70b-versatile",  # Fast and capable model
             temperature=0.7,
-            max_tokens=200
+            max_tokens=300
         )
         
         prediction_text = chat_completion.choices[0].message.content

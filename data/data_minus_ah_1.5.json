@@ -30743,5 +30743,730 @@
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.25 hubiera sido OVER el 0.0% y UNDER el 100.0%."
     },
     "execution_time_seconds": 18.5
+  },
+  {
+    "match_id": "2908269",
+    "home_name": "PSPK Pasuruan Kota",
+    "away_name": "PS Hizbul Wathan",
+    "league_name": "Indonesia Liga 4",
+    "final_score": "2:3",
+    "time": "6:00:",
+    "home_standings": {
+      "name": "PSPK Pasuruan Kota",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "PS Hizbul Wathan",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1.5",
+      "goals_linea": "4"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1.5 / Goles 4.0 | Favorito: <span class='away-color'>PS Hizbul Wathan</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(PSPK Pasuruan Kota)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2045</td>\n                            <td>2021-11-29</td>\n                            <td class=\"text-end fw-bold text-primary\">PSPK Pasuruan Kota</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">Persemag Magetan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 0</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(PS Hizbul Wathan)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2645</td>\n                            <td>2025-12-10</td>\n                            <td class=\"text-end \">Nganjuk Ladang FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2023-12-11</td>\n                            <td class=\"text-end \">Tunas Ngaglik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-11-30</td>\n                            <td class=\"text-end \">FC Bekasi City</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-11-15</td>\n                            <td class=\"text-end \">PSCS Cilacap</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-10-18</td>\n                            <td class=\"text-end \">Persis Solo FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1227</td>\n                            <td>2021-10-04</td>\n                            <td class=\"text-end \">PSIM Yogyakarta</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2019-08-13</td>\n                            <td class=\"text-end \">Rajawali Gunung Kidul</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2045</td>\n                            <td>2019-07-18</td>\n                            <td class=\"text-end \">Protaba Bantul</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"fw-bold text-primary\">PS Hizbul Wathan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 0</span> | \n                            <span class=\"text-muted fw-bold\">E: 4</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": null,
+    "last_away_match": {
+      "date": "2025-12-10",
+      "home_team": "Nganjuk Ladang FC",
+      "away_team": "PS Hizbul Wathan",
+      "score": "5:1",
+      "handicap_line_raw": "-",
+      "match_id": "2908253",
+      "stats_rows": []
+    },
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "PSPK Pasuruan Kota",
+        "title_away_name": "PS Hizbul Wathan",
+        "rival_name": "Nganjuk Ladang FC"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "PSPK Pasuruan Kota",
+        "title_away_name": "PS Hizbul Wathan",
+        "rival_name": "N/A"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -1.5 + O/U 4."
+    },
+    "execution_time_seconds": 8.53
+  },
+  {
+    "match_id": "2860752",
+    "home_name": "Tai Po FC",
+    "away_name": "Cong An Ha Noi",
+    "league_name": "AFC Champions League 2",
+    "final_score": "1:0",
+    "time": "12:15",
+    "home_standings": {
+      "name": "Tai Po FC",
+      "ranking": "3",
+      "total_pj": "9",
+      "total_v": "4",
+      "total_e": "4",
+      "total_d": "1",
+      "total_gf": "18",
+      "total_gc": "10",
+      "specific_pj": "5",
+      "specific_v": "3",
+      "specific_e": "1",
+      "specific_d": "1",
+      "specific_gf": "11",
+      "specific_gc": "5",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Cong An Ha Noi",
+      "ranking": "2",
+      "total_pj": "9",
+      "total_v": "7",
+      "total_e": "2",
+      "total_d": "0",
+      "total_gf": "19",
+      "total_gc": "5",
+      "specific_pj": "3",
+      "specific_v": "2",
+      "specific_e": "1",
+      "specific_d": "0",
+      "specific_gf": "6",
+      "specific_gc": "1",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1.25",
+      "goals_linea": "3.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1.25 / Goles 3.25 | Favorito: <span class='away-color'>Cong An Ha Noi</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Cong An Ha Noi</span>   <span style='font-weight: bold; padding: 0 4px;'>3:0</span>   <span style='color: #f97316; font-weight: bold;'>Tai Po FC</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>1 → -1.25</strong>).    La línea actual habría sido <span style='color: green; font-weight: bold;'>CUBIERTO ✅</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "1 → -1.25",
+        "result": "3:0",
+        "evaluation": "CUBIERTO",
+        "is_covered": true
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Tai Po FC)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>311</td>\n                            <td>2025-11-22</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Eastern District SA</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>311</td>\n                            <td>2025-11-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:1</td>\n                            <td class=\"\">Biu Chun Rangers</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>311</td>\n                            <td>2025-10-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Eastern FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>350</td>\n                            <td>2025-10-23</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:3</td>\n                            <td class=\"\">Beijing Guoan</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>311</td>\n                            <td>2025-10-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Kitchee</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>350</td>\n                            <td>2025-09-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">FC Macarthur</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>311</td>\n                            <td>2025-09-13</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">North District FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>735</td>\n                            <td>2025-09-10</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Southern District</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>420</td>\n                            <td>2025-09-06</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Eastern FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>311</td>\n                            <td>2025-05-25</td>\n                            <td class=\"text-end fw-bold text-primary\">Tai Po FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">North District FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 7</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 1</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Cong An Ha Noi)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2574</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end \">Buriram United</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>350</td>\n                            <td>2025-11-06</td>\n                            <td class=\"text-end \">FC Macarthur</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>766</td>\n                            <td>2025-10-18</td>\n                            <td class=\"text-end \">Song Lam Nghe An</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>766</td>\n                            <td>2025-09-28</td>\n                            <td class=\"text-end \">Nam Dinh FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>350</td>\n                            <td>2025-09-18</td>\n                            <td class=\"text-end \">Beijing Guoan</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>766</td>\n                            <td>2025-08-24</td>\n                            <td class=\"text-end \">Becamex TP Ho Chi Minh</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2574</td>\n                            <td>2025-08-20</td>\n                            <td class=\"text-end \">BG Pathum United</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1265</td>\n                            <td>2025-08-09</td>\n                            <td class=\"text-end \">Nam Dinh FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1265</td>\n                            <td>2025-06-29</td>\n                            <td class=\"text-end \">Song Lam Nghe An</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"fw-bold text-primary\">Cong An Ha Noi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-10-23",
+      "home_team": "Tai Po FC",
+      "away_team": "Beijing Guoan",
+      "score": "3:3",
+      "handicap_line_raw": "-1",
+      "match_id": "2860745",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "14",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "77",
+          "away": "72"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "72",
+          "away": "51"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-11-06",
+      "home_team": "FC Macarthur",
+      "away_team": "Cong An Ha Noi",
+      "score": "2:1",
+      "handicap_line_raw": "0.25",
+      "match_id": "2860747",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "5",
+          "away": "14"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "68",
+          "away": "70"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "38",
+          "away": "71"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "3",
+      "goles_away": "0",
+      "handicap": "0.25",
+      "match_id": "2860743",
+      "h2h_home_team_name": "FC Macarthur",
+      "h2h_away_team_name": "Beijing Guoan",
+      "date": "2025-10-02",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "12",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "87",
+          "away": "118"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "55",
+          "away": "50"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "2:1",
+        "ah_line": "1.5",
+        "localia": "A",
+        "home_team": "FC Macarthur",
+        "away_team": "Tai Po FC",
+        "match_id": "2860749",
+        "date": "2025-11-27",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "FC Macarthur",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "6"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "93",
+            "away": "57"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "55",
+            "away": "27"
+          }
+        ],
+        "title_home_name": "Tai Po FC",
+        "title_away_name": "Cong An Ha Noi"
+      },
+      "right": {
+        "score": "2:1",
+        "ah_line": "0.25",
+        "localia": "H",
+        "home_team": "Cong An Ha Noi",
+        "away_team": "Beijing Guoan",
+        "match_id": "2860750",
+        "date": "2025-11-27",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Beijing Guoan",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "21",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "9",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "166",
+            "away": "110"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "126",
+            "away": "71"
+          }
+        ],
+        "title_home_name": "Tai Po FC",
+        "title_away_name": "Cong An Ha Noi"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "1",
+      "res6": "3:0",
+      "res6_raw": "3-0",
+      "match6_id": "2860744",
+      "h2h_gen_home": "Cong An Ha Noi",
+      "h2h_gen_away": "Tai Po FC",
+      "date": "2025-10-02",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "1",
+      "res6": "3:0",
+      "res6_raw": "3-0",
+      "match6_id": "2860744",
+      "h2h_gen_home": "Cong An Ha Noi",
+      "h2h_gen_away": "Tai Po FC",
+      "date": "2025-10-02",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "20",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "166",
+          "away": "136"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "96",
+          "away": "58"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": true,
+      "stats": {
+        "total_muestras": 1,
+        "ah_wins": 0,
+        "ou_overs": 0,
+        "ou_unders": 1,
+        "match_ids": [
+          "2908006"
+        ]
+      },
+      "prob_ah": 0.0,
+      "prob_over": 0.0,
+      "prob_under": 100.0,
+      "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -1.25 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.25 hubiera sido OVER el 0.0% y UNDER el 100.0%."
+    },
+    "execution_time_seconds": 41.49
+  },
+  {
+    "match_id": "2906228",
+    "home_name": "FK Iskra Danilovgrad",
+    "away_name": "Otrant",
+    "league_name": "Montenegro Division 2",
+    "final_score": "1:0",
+    "time": "12:30",
+    "home_standings": {
+      "name": "FK Iskra Danilovgrad",
+      "ranking": "6",
+      "total_pj": "19",
+      "total_v": "6",
+      "total_e": "9",
+      "total_d": "4",
+      "total_gf": "21",
+      "total_gc": "19",
+      "specific_pj": "10",
+      "specific_v": "1",
+      "specific_e": "7",
+      "specific_d": "2",
+      "specific_gf": "8",
+      "specific_gc": "9",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Otrant",
+      "ranking": "1",
+      "total_pj": "19",
+      "total_v": "12",
+      "total_e": "3",
+      "total_d": "4",
+      "total_gf": "44",
+      "total_gc": "14",
+      "specific_pj": "9",
+      "specific_v": "5",
+      "specific_e": "2",
+      "specific_d": "2",
+      "specific_gf": "13",
+      "specific_gc": "6",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-1",
+      "goals_linea": "3.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -1 / Goles 3.25 | Favorito: <span class='away-color'>Otrant</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>FK Iskra Danilovgrad</span>   <span style='font-weight: bold; padding: 0 4px;'>0:0</span>   <span style='color: #f97316; font-weight: bold;'>Otrant</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>-0.5 → -1</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>0 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "-0.5 → -1",
+        "result": "0:0",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      },
+      "general": {
+        "movement": "-0.5 → -1",
+        "result": "0:0",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(FK Iskra Danilovgrad)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-12-07</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">FK Berane</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-11-30</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">FK Rudar Pljevlja</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>639</td>\n                            <td>2025-11-26</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:4</td>\n                            <td class=\"\">FK Mornar Bar</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-11-16</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-10-26</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">FK Podgorica</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>639</td>\n                            <td>2025-10-22</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Arsenal Tivat</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-10-12</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Lovcen Cetinje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-24</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">Internacional Podgorica</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-14</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">FK Grbalj Radanovici</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-10</td>\n                            <td class=\"text-end fw-bold text-primary\">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">KOM Podgorica</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 2</span> | \n                            <span class=\"text-muted fw-bold\">E: 6</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Otrant)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-11-30</td>\n                            <td class=\"text-end \">KOM Podgorica</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>639</td>\n                            <td>2025-11-26</td>\n                            <td class=\"text-end \">OFK Petrovac</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-11-16</td>\n                            <td class=\"text-end \">FK Iskra Danilovgrad</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-11-02</td>\n                            <td class=\"text-end \">OSK Igalo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-10-18</td>\n                            <td class=\"text-end \">FK Berane</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-10-04</td>\n                            <td class=\"text-end \">Internacional Podgorica</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-24</td>\n                            <td class=\"text-end \">FK Grbalj Radanovici</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-14</td>\n                            <td class=\"text-end \">FK Podgorica</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-09-06</td>\n                            <td class=\"text-end \">Lovcen Cetinje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1520</td>\n                            <td>2025-08-23</td>\n                            <td class=\"text-end \">FK Rudar Pljevlja</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Otrant</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-12-07",
+      "home_team": "FK Iskra Danilovgrad",
+      "away_team": "FK Berane",
+      "score": "2:2",
+      "handicap_line_raw": "0.25",
+      "match_id": "2826686",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "9"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "14",
+          "away": "7"
+        },
+        {
+          "label": "Ataques",
+          "home": "121",
+          "away": "93"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "45",
+          "away": "19"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-11-30",
+      "home_team": "KOM Podgorica",
+      "away_team": "Otrant",
+      "score": "0:0",
+      "handicap_line_raw": "-0.25",
+      "match_id": "2826682",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "11",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "7",
+          "away": "8"
+        },
+        {
+          "label": "Ataques",
+          "home": "114",
+          "away": "117"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "60",
+          "away": "47"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "1",
+      "goles_away": "3",
+      "handicap": "0",
+      "match_id": "2826663",
+      "h2h_home_team_name": "FK Berane",
+      "h2h_away_team_name": "KOM Podgorica",
+      "date": "2025-11-08",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "18",
+          "away": "15"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "14",
+          "away": "14"
+        },
+        {
+          "label": "Ataques",
+          "home": "125",
+          "away": "111"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "67",
+          "away": "52"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "3:1",
+        "ah_line": "0.25",
+        "localia": "A",
+        "home_team": "KOM Podgorica",
+        "away_team": "FK Iskra Danilovgrad",
+        "match_id": "2826661",
+        "date": "2025-11-02",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "KOM Podgorica",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "13",
+            "away": "7"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "11",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "81",
+            "away": "92"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "70",
+            "away": "21"
+          }
+        ],
+        "title_home_name": "FK Iskra Danilovgrad",
+        "title_away_name": "Otrant"
+      },
+      "right": {
+        "score": "1:3",
+        "ah_line": "0",
+        "localia": "A",
+        "home_team": "FK Berane",
+        "away_team": "Otrant",
+        "match_id": "2826648",
+        "date": "2025-10-18",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "FK Berane",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "18",
+            "away": "18"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "12",
+            "away": "14"
+          },
+          {
+            "label": "Ataques",
+            "home": "86",
+            "away": "82"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "31",
+            "away": "38"
+          }
+        ],
+        "title_home_name": "FK Iskra Danilovgrad",
+        "title_away_name": "Otrant"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-0.5",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "2826670",
+      "ah6": "-0.5",
+      "res6": "0:0",
+      "res6_raw": "0-0",
+      "match6_id": "2826670",
+      "h2h_gen_home": "FK Iskra Danilovgrad",
+      "h2h_gen_away": "Otrant",
+      "date": "2025-11-16",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-0.5",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "2826670",
+      "ah6": "-0.5",
+      "res6": "0:0",
+      "res6_raw": "0-0",
+      "match6_id": "2826670",
+      "h2h_gen_home": "FK Iskra Danilovgrad",
+      "h2h_gen_away": "Otrant",
+      "date": "2025-11-16",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -1 + O/U 3.25."
+    },
+    "execution_time_seconds": 30.76
   }
 ]
