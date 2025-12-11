@@ -10,6 +10,16 @@ from src.app import process_upcoming_matches_background
 
 if __name__ == "__main__":
     print("Iniciando 'Scrapear Pendientes' (Pre-Cacheo)...")
+    
+    # Debug Paths
+    try:
+        from src.modules import data_manager
+        print(f"DEBUG: Data Manager Dir: {data_manager.DATA_DIR}")
+        from src import app
+        print(f"DEBUG: App Data File: {app.DATA_FILE}")
+    except Exception as e:
+        print(f"DEBUG Error inspecting paths: {e}")
+
     # Default parameters as used in the API endpoint
     # scrapeAllPending in html calls /api/precacheo_scrape_background with handicap filter if present
     # We will default to None for filters to scrape everything relevant
