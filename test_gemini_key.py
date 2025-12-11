@@ -9,8 +9,10 @@ except ImportError:
     print("Por favor, ejecuta: pip install google-generativeai")
     sys.exit(1)
 
-# API Key from src/app.py
-GEMINI_API_KEY = "AIzaSyDcfLpifS3kRQtXtDAWee82rHP_LxTP9pY"
+# API Key from environment variable or .env file
+from dotenv import load_dotenv
+load_dotenv()  # Load from .env if exists
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 def test_api():
     print(f"Probando API Key: {GEMINI_API_KEY[:5]}...{GEMINI_API_KEY[-5:]}")

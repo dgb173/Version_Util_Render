@@ -2458,7 +2458,7 @@ def api_reanalyze_pending():
 # =============================================
 # AI PREDICTION ENDPOINT (Gemini API)
 # =============================================
-GEMINI_API_KEY = "AIzaSyDcfLpifS3kRQtXtDAWee82rHP_LxTP9pY"
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 @app.route('/api/ai_prediction', methods=['POST'])
 def api_ai_prediction():
