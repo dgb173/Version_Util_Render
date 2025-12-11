@@ -285,9 +285,9 @@
                             </select>
                             <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
                                 <option value="">Res...</option>
-                                <option value="HOME_WIN">Win</option>
+                                <option value="WIN">Win</option>
                                 <option value="DRAW">Draw</option>
-                                <option value="AWAY_WIN">Loss</option>
+                                <option value="LOSS">Loss</option>
                             </select>
                         </th>
                         <th>
@@ -306,9 +306,9 @@
                             </select>
                             <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
                                 <option value="">Res...</option>
-                                <option value="HOME_WIN">Win</option>
+                                <option value="WIN">Win</option>
                                 <option value="DRAW">Draw</option>
-                                <option value="AWAY_WIN">Loss</option>
+                                <option value="LOSS">Loss</option>
                             </select>
                         </th>
                         <th style="width: 100px;">H2H Estadio</th>
@@ -606,6 +606,37 @@
             }
         }
 
+        // Calcula el resultado REAL (Win/Draw/Loss) basado en goles, NO en handicap
+        // isHomePerspective: true si evaluamos desde perspectiva del equipo LOCAL del partido previo
+        // Para PREV AWAY: el equipo jugó de visitante, así que isHomePerspective = false
+        function calculateRealWDL(scoreStr, isHomePerspective) {
+            if (!scoreStr) return null;
+            try {
+                const parts = scoreStr.replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const hg = parseInt(parts[0]);
+                const ag = parseInt(parts[1]);
+
+                if (isNaN(hg) || isNaN(ag)) return null;
+
+                // Calcular diferencia desde la perspectiva del equipo
+                let diff;
+                if (isHomePerspective) {
+                    diff = hg - ag; // Equipo jugó de local
+                } else {
+                    diff = ag - hg; // Equipo jugó de visitante
+                }
+
+                // WIN = el equipo ganó, DRAW = empate, LOSS = el equipo perdió
+                if (diff > 0) return 'WIN';
+                if (diff < 0) return 'LOSS';
+                return 'DRAW';
+            } catch (e) {
+                console.error("Error calc RealWDL", e);
+                return null;
+            }
+        }
+
         function normalizeBucket(ah) {
             if (ah === null || ah === undefined || ah === '') return null;
             const val = parseFloat(ah);
@@ -738,7 +769,9 @@
                     }
 
                     if (prevHomeRes) {
-                        const wdl = calculateWDL(pc.last_home_match.score, pc.last_home_match.handicap_line_raw, true);
+                        // Usar resultado REAL (goles), no cover de handicap
+                        // last_home_match = partido donde el local jugó de LOCAL
+                        const wdl = calculateRealWDL(pc.last_home_match.score, true);
                         if (wdl !== prevHomeRes) return false;
                     }
                 }
@@ -768,7 +801,9 @@
                     }
 
                     if (prevAwayRes) {
-                        const wdl = calculateWDL(pc.last_away_match.score, pc.last_away_match.handicap_line_raw, false);
+                        // Usar resultado REAL (goles), no cover de handicap
+                        // last_away_match = partido donde el equipo visitante jugó de VISITANTE
+                        const wdl = calculateRealWDL(pc.last_away_match.score, false);
                         if (wdl !== prevAwayRes) return false;
                     }
                 }
@@ -850,10 +885,10 @@
                     const lhm = pc.last_home_match;
                     const ahVal = formatAh(lhm.handicap_line_raw);
 
-                    // Calc WDL
-                    const wdl = calculateWDL(lhm.score, lhm.handicap_line_raw, true);
-                    const wdlClass = wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
-                    // For Home Perspective: HOME_WIN = Green (Won vs AH), AWAY_WIN = Red (Lost vs AH)
+                    // Calc WDL - Resultado REAL (goles), no cover de handicap
+                    const wdl = calculateRealWDL(lhm.score, true); // true = jugó de LOCAL
+                    const wdlClass = wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    // WIN = Green (Ganó por goles), LOSS = Red (Perdió por goles)
 
                     // Rival Logic: Display the team that is NOT the current home team
                     // Usually lhm is Home Game for 'home', so rival is away_team.
@@ -880,10 +915,10 @@
                     const lam = pc.last_away_match;
                     const ahVal = formatAh(lam.handicap_line_raw);
 
-                    // Calc WDL (perspective = false for away team)
-                    const wdl = calculateWDL(lam.score, lam.handicap_line_raw, false);
-                    // If calculateWDL return 'HOME_WIN', it means the "perspective team" (Away) WON the handicap
-                    const wdlClass = wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    // Calc WDL - Resultado REAL (goles), no cover de handicap
+                    const wdl = calculateRealWDL(lam.score, false); // false = jugó de VISITANTE
+                    // WIN = Green (Ganó por goles), LOSS = Red (Perdió por goles)
+                    const wdlClass = wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
 
                     // Rival Logic: Display the team that is NOT the current away team
                     // Usually lam is Away Game for 'away', so rival is home_team.
@@ -1451,41 +1486,95 @@
                             </thead>
                             <tbody>
                                 ${filteredResults.map(r => {
-                        const wdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
-                        const wdlLetter = (wdl) => wdl === 'HOME_WIN' ? 'W' : (wdl === 'AWAY_WIN' ? 'L' : 'D');
+                        // Función para calcular WDL REAL basado en goles
+                        const calcRealWdl = (score, isHome) => {
+                            if (!score) return null;
+                            const parts = (score || '').replace(' ', '').replace('-', ':').split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            const diff = isHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
 
+                        const realWdlClass = (wdl) => wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                        const realWdlLetter = (wdl) => wdl === 'WIN' ? 'W' : (wdl === 'LOSS' ? 'L' : 'D');
+
+                        // Calcular WDL real para Prev Home (equipo jugó de LOCAL)
+                        const prevHomeRealWdl = r.prev_home ? calcRealWdl(r.prev_home.score, true) : null;
                         const prevHomeHtml = r.prev_home ?
-                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${wdlClass(r.prev_home.wdl)}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
+                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${realWdlClass(prevHomeRealWdl)}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
                             '<span class="text-muted">-</span>';
 
+                        // Calcular WDL real para Prev Away (equipo jugó de VISITANTE)
+                        const prevAwayRealWdl = r.prev_away ? calcRealWdl(r.prev_away.score, false) : null;
                         const prevAwayHtml = r.prev_away ?
-                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${wdlClass(r.prev_away.wdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
+                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${realWdlClass(prevAwayRealWdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
                             '<span class="text-muted">-</span>';
 
                         const h2hStadiumHtml = r.h2h_stadium ?
-                            `<div class="fw-bold">${r.h2h_stadium.movement || '-'}</div><div class="${wdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
+                            `<div class="fw-bold">${r.h2h_stadium.movement || '-'}</div><div class="${realWdlClass(calcRealWdl(r.h2h_stadium.score, true))}">${r.h2h_stadium.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
                         const h2hGeneralHtml = r.h2h_general ?
-                            `<div class="fw-bold">${r.h2h_general.movement || '-'}</div><div class="${wdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
+                            `<div class="fw-bold">${r.h2h_general.movement || '-'}</div><div class="${realWdlClass(calcRealWdl(r.h2h_general.score, true))}">${r.h2h_general.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
                         const h2hCol3Html = r.h2h_col3 ?
                             `<div><span class="fw-bold">${r.h2h_col3.ah || '-'}</span> ${r.h2h_col3.score || '-'}</div><div style="font-size:0.5rem;"><span class="text-primary">${r.h2h_col3.home_team || ''}</span> vs <span class="text-danger">${r.h2h_col3.away_team || ''}</span></div>` :
                             '<span class="text-muted">-</span>';
 
-                        const indLocalHtml = r.ind_local ?
-                            `<div><span class="fw-bold">${r.ind_local.ah || r.ind_local.handicap || '-'}</span> ${r.ind_local.score || r.ind_local.resultado || '-'}</div>` :
-                            '<span class="text-muted">-</span>';
+                        // Helper para calcular WDL real de comparativas indirectas
+                        const calcIndWdl = (ind) => {
+                            if (!ind || !ind.score) return null;
+                            const score = (ind.score || '').replace(' : ', ':').replace('-', ':');
+                            const parts = score.split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            // Comparativa indirecta: el equipo analizado jugó de local o visitante según 'localia'
+                            const wasHome = (ind.localia || '').toLowerCase().includes('loc') || (ind.localia || '').toLowerCase().includes('home');
+                            const diff = wasHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
 
-                        const indVisitanteHtml = r.ind_visitante ?
-                            `<div><span class="fw-bold">${r.ind_visitante.ah || r.ind_visitante.handicap || '-'}</span> ${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</div>` :
-                            '<span class="text-muted">-</span>';
+                        // Ind. Local - con colores y datos completos
+                        const indLocalWdl = calcIndWdl(r.ind_local);
+                        const indLocalHtml = r.ind_local && (r.ind_local.score || r.ind_local.ah) ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${r.ind_local.ah || r.ind_local.handicap || '-'}</span>
+                                <span class="fw-bold ${realWdlClass(indLocalWdl)}">${r.ind_local.score || r.ind_local.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_local.home_team || r.ind_local.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_local.home_team || ''} vs ${r.ind_local.away_team || ''}</div>` : ''}
+                            ${r.ind_local.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_local.localia}</div>` : ''}` :
+                            '';
 
-                        const prevHomeWdl = r.prev_home ? wdlLetter(r.prev_home.wdl) : '';
-                        const prevAwayWdl = r.prev_away ? wdlLetter(r.prev_away.wdl) : '';
+                        // Ind. Visitante - con colores y datos completos
+                        const indVisitanteWdl = calcIndWdl(r.ind_visitante);
+                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah) ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${r.ind_visitante.ah || r.ind_visitante.handicap || '-'}</span>
+                                <span class="fw-bold ${realWdlClass(indVisitanteWdl)}">${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_visitante.home_team || r.ind_visitante.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_visitante.home_team || ''} vs ${r.ind_visitante.away_team || ''}</div>` : ''}
+                            ${r.ind_visitante.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_visitante.localia}</div>` : ''}` :
+                            '';
+
+                        const prevHomeWdl = r.prev_home ? realWdlLetter(prevHomeRealWdl) : '';
+                        const prevAwayWdl = r.prev_away ? realWdlLetter(prevAwayRealWdl) : '';
                         const prevHomeAh = r.prev_home && r.prev_home.ah != null ? Math.abs(parseFloat(r.prev_home.ah)) : '';
                         const prevAwayAh = r.prev_away && r.prev_away.ah != null ? Math.abs(parseFloat(r.prev_away.ah)) : '';
+
+                        // Determinar si hay datos en las columnas ind para el fondo
+                        const hasIndLocal = r.ind_local && (r.ind_local.score || r.ind_local.ah);
+                        const hasIndVisitante = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah);
+                        const hasH2hCol3 = r.h2h_col3 && (r.h2h_col3.score || r.h2h_col3.ah);
 
                         return `
                                     <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}">
@@ -1501,9 +1590,9 @@
                                         <td>${prevAwayHtml}</td>
                                         <td style="background:#e3f2fd;">${h2hStadiumHtml}</td>
                                         <td style="background:#e3f2fd;">${h2hGeneralHtml}</td>
-                                        <td style="background:#ffe4ec;">${h2hCol3Html}</td>
-                                        <td style="background:#fff3e0;">${indLocalHtml}</td>
-                                        <td style="background:#fff3e0;">${indVisitanteHtml}</td>
+                                        <td style="background:${hasH2hCol3 ? '#ffe4ec' : '#ffcdd2'};">${h2hCol3Html || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndLocal ? '#fff3e0' : '#ffcdd2'};">${indLocalHtml || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndVisitante ? '#fff3e0' : '#ffcdd2'};">${indVisitanteHtml || '<span class="text-muted">-</span>'}</td>
                                     </tr>
                                 `}).join('')}
                             </tbody>

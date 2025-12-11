@@ -9794,5 +9794,587 @@
       "mensaje": "📊 ANÁLISIS DE LÍNEAS ACTUALES:\n - La línea AH -2.0 se hubiera cubierto en el 0.0% de casos similares.\n - La línea O/U 3.5 hubiera sido OVER el 0.0% y UNDER el 100.0%."
     },
     "execution_time_seconds": 25.62
+  },
+  {
+    "match_id": "2871979",
+    "home_name": "Qarabag U19",
+    "away_name": "Ajax U19",
+    "league_name": "UEFA Youth League U19",
+    "final_score": "0:8",
+    "time": "10:00",
+    "home_standings": {
+      "name": "Qarabag U19",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Ajax U19",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-3.25",
+      "goals_linea": "4.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -3.25 / Goles 4.25 | Favorito: <span class='away-color'>Ajax U19</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Qarabag U19)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1327</td>\n                            <td>2025-11-05</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"\">Chelsea FC U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2025-10-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"\">FC Kobenhavn U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2017-11-22</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"\">Chelsea FC U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2017-10-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:5</td>\n                            <td class=\"\">Atletico de Madrid U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2017-09-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">AS Roma U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1692</td>\n                            <td>2017-02-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">FK Gabala U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1692</td>\n                            <td>2016-12-14</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:0</td>\n                            <td class=\"\">Turan Tovuz U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1692</td>\n                            <td>2016-11-09</td>\n                            <td class=\"text-end fw-bold text-primary\">Qarabag U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"\">Standard Sumqayit U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 3</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 5</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Ajax U19)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1674</td>\n                            <td>2025-11-29</td>\n                            <td class=\"text-end \">Feyenoord U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2025-10-22</td>\n                            <td class=\"text-end \">Chelsea FC U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:3</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2025-09-30</td>\n                            <td class=\"text-end \">Marseille U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:5</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1674</td>\n                            <td>2025-04-19</td>\n                            <td class=\"text-end \">FC Twente'Heracles U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:4</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1674</td>\n                            <td>2024-12-14</td>\n                            <td class=\"text-end \">Feyenoord U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2023-03-01</td>\n                            <td class=\"text-end \">Sporting Lisbon U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2023-02-08</td>\n                            <td class=\"text-end \">MTK Budapest U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2022-11-01</td>\n                            <td class=\"text-end \">Glasgow Rangers U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:6</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2022-10-12</td>\n                            <td class=\"text-end \">Napoli(U19)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1327</td>\n                            <td>2022-09-13</td>\n                            <td class=\"text-end \">Liverpool U19</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"fw-bold text-primary\">Ajax U19</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-11-05",
+      "home_team": "Qarabag U19",
+      "away_team": "Chelsea FC U19",
+      "score": "0:5",
+      "handicap_line_raw": "-5",
+      "match_id": "2871945",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "6",
+          "away": "28"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "1",
+          "away": "15"
+        },
+        {
+          "label": "Ataques",
+          "home": "65",
+          "away": "184"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "30",
+          "away": "154"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-10-22",
+      "home_team": "Chelsea FC U19",
+      "away_team": "Ajax U19",
+      "score": "6:3",
+      "handicap_line_raw": "1.25",
+      "match_id": "2871922",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "16",
+          "away": "15"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "11",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "101",
+          "away": "111"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "59",
+          "away": "63"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "not_found",
+      "resultado": "H2H directo no encontrado para Chelsea FC U19 vs Chelsea FC U19.",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "0:5",
+        "ah_line": "-5",
+        "localia": "H",
+        "home_team": "Qarabag U19",
+        "away_team": "Chelsea FC U19",
+        "match_id": "2871945",
+        "date": "2025-11-05",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Chelsea FC U19",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "28"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "1",
+            "away": "15"
+          },
+          {
+            "label": "Ataques",
+            "home": "65",
+            "away": "184"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "30",
+            "away": "154"
+          }
+        ],
+        "title_home_name": "Qarabag U19",
+        "title_away_name": "Ajax U19"
+      },
+      "right": {
+        "score": "6:3",
+        "ah_line": "1.25",
+        "localia": "A",
+        "home_team": "Chelsea FC U19",
+        "away_team": "Ajax U19",
+        "match_id": "2871922",
+        "date": "2025-10-22",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Chelsea FC U19",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "16",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "11",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "101",
+            "away": "111"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "59",
+            "away": "63"
+          }
+        ],
+        "title_home_name": "Qarabag U19",
+        "title_away_name": "Ajax U19"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -3.25 + O/U 4.25."
+    },
+    "execution_time_seconds": 16.88
+  },
+  {
+    "match_id": "2901670",
+    "home_name": "Singapore (W)",
+    "away_name": "Thailand (W)",
+    "league_name": "Southeast Asian Games Women",
+    "final_score": "0:2",
+    "time": "11:30",
+    "home_standings": {
+      "name": "Singapore (W)",
+      "ranking": "N/A",
+      "total_pj": "N/A",
+      "total_v": "N/A",
+      "total_e": "N/A",
+      "total_d": "N/A",
+      "total_gf": "N/A",
+      "total_gc": "N/A",
+      "specific_pj": "N/A",
+      "specific_v": "N/A",
+      "specific_e": "N/A",
+      "specific_d": "N/A",
+      "specific_gf": "N/A",
+      "specific_gc": "N/A",
+      "specific_type": "N/A"
+    },
+    "away_standings": {
+      "name": "Thailand (W)",
+      "ranking": "N/A",
+      "total_pj": "N/A",
+      "total_v": "N/A",
+      "total_e": "N/A",
+      "total_d": "N/A",
+      "total_gf": "N/A",
+      "total_gc": "N/A",
+      "specific_pj": "N/A",
+      "specific_v": "N/A",
+      "specific_e": "N/A",
+      "specific_d": "N/A",
+      "specific_gf": "N/A",
+      "specific_gc": "N/A",
+      "specific_type": "N/A"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-6",
+      "goals_linea": "6.75"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -6 / Goles 6.75 | Favorito: <span class='away-color'>Thailand (W)</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Singapore (W)</span>   <span style='font-weight: bold; padding: 0 4px;'>0:8</span>   <span style='color: #f97316; font-weight: bold;'>Thailand (W)</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>menos favorito</strong> que en el precedente (movimiento: <strong style='color: orange; font-size:1.2em;'>-7.75 → -6</strong>).    La línea actual habría sido <span style='color: green; font-weight: bold;'>CUBIERTO ✅</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>8 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>SUPERADA (Over)</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Thailand (W)</span>   <span style='font-weight: bold; padding: 0 4px;'>4:0</span>   <span style='color: #f97316; font-weight: bold;'>Singapore (W)</span></div><div>  <span class='ah-value'>Hándicap:</span> El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>5 → -6</strong>).    La línea actual habría sido <span style='color: red; font-weight: bold;'>NO CUBIERTO ❌</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>4 goles</strong>, por lo que la línea actual habría resultado <span style='color: green; font-weight: bold;'>NO SUPERADA (UNDER)</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "-7.75 → -6",
+        "result": "0:8",
+        "evaluation": "CUBIERTO",
+        "is_covered": true
+      },
+      "general": {
+        "movement": "5 → -6",
+        "result": "4:0",
+        "evaluation": "NO CUBIERTO",
+        "is_covered": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Singapore (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>571</td>\n                            <td>2025-12-07</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:3</td>\n                            <td class=\"\">Indonesia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-11-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">7:0</td>\n                            <td class=\"\">Seychelles (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">4.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-11-25</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">9:0</td>\n                            <td class=\"\">Seychelles (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-10-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"\">Saudi Arabia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-07-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Lebanon (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-07-10</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:4</td>\n                            <td class=\"\">Iran (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2024-12-02</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"\">Indonesia (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2024-11-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Timor Leste (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-07-16</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">9:0</td>\n                            <td class=\"\">Macao China (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>405</td>\n                            <td>2023-09-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Singapore (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:10</td>\n                            <td class=\"\">North Korea (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-6.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 3</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 6</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Thailand (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-19</td>\n                            <td class=\"text-end \">Vietnam (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-16</td>\n                            <td class=\"text-end \">Myanmar (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-12</td>\n                            <td class=\"text-end \">Vietnam (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>725</td>\n                            <td>2025-08-09</td>\n                            <td class=\"text-end \">Cambodia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:7</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-4.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-07-02</td>\n                            <td class=\"text-end \">Mongolia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:11</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>798</td>\n                            <td>2025-06-26</td>\n                            <td class=\"text-end \">Timor Leste (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:4</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-4.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-04-08</td>\n                            <td class=\"text-end \">China (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-04-05</td>\n                            <td class=\"text-end \">Zambia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2025-02-20</td>\n                            <td class=\"text-end \">Russia (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1366</td>\n                            <td>2024-10-30</td>\n                            <td class=\"text-end \">Mexico (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:0</td>\n                            <td class=\"fw-bold text-primary\">Thailand (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 6</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2025-12-07",
+      "home_team": "Singapore (W)",
+      "away_team": "Indonesia (W)",
+      "score": "1:3",
+      "handicap_line_raw": "-0.75",
+      "match_id": "2901671",
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "6",
+          "away": "17"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "8"
+        },
+        {
+          "label": "Ataques",
+          "home": "96",
+          "away": "164"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "44",
+          "away": "121"
+        }
+      ]
+    },
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Singapore (W)",
+        "title_away_name": "Thailand (W)",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "score": "8:0",
+        "ah_line": "2.5",
+        "localia": "H",
+        "home_team": "Thailand (W)",
+        "away_team": "Indonesia (W)",
+        "match_id": "2901668",
+        "date": "2025-12-04",
+        "home_red": null,
+        "away_red": null,
+        "rival_name": "Indonesia (W)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "16",
+            "away": "2"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "8",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "15",
+            "away": "30"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "4",
+            "away": "12"
+          }
+        ],
+        "title_home_name": "Singapore (W)",
+        "title_away_name": "Thailand (W)"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-7.75",
+      "res1": "0:8",
+      "res1_raw": "0-8",
+      "match1_id": "1256788",
+      "ah6": "5",
+      "res6": "4:0",
+      "res6_raw": "4-0",
+      "match6_id": "2383788",
+      "h2h_gen_home": "Thailand (W)",
+      "h2h_gen_away": "Singapore (W)",
+      "date": "2016-07-28",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-7.75",
+      "res1": "0:8",
+      "res1_raw": "0-8",
+      "match1_id": "1256788",
+      "ah6": "5",
+      "res6": "4:0",
+      "res6_raw": "4-0",
+      "match6_id": "2383788",
+      "h2h_gen_home": "Thailand (W)",
+      "h2h_gen_away": "Singapore (W)",
+      "date": "2016-07-28",
+      "home_red": null,
+      "away_red": null,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "24",
+          "away": "3"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "13",
+          "away": "0"
+        },
+        {
+          "label": "Ataques",
+          "home": "190",
+          "away": "92"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "119",
+          "away": "47"
+        }
+      ]
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -6 + O/U 6.75."
+    },
+    "execution_time_seconds": 21.8
+  },
+  {
+    "match_id": "2908005",
+    "home_name": "Pyrgos AFC (W)",
+    "away_name": "Asteras Tripolis (W)",
+    "league_name": "Greece Cup Women",
+    "final_score": "0:2",
+    "time": "1:00:",
+    "home_standings": {
+      "name": "Pyrgos AFC (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Asteras Tripolis (W)",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-5.5",
+      "goals_linea": "6.25"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH -5.5 / Goles 6.25 | Favorito: <span class='away-color'>Asteras Tripolis (W)</span></span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Asteras Tripolis (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end \">Trikala 2011 (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-3.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-11-08</td>\n                            <td class=\"text-end \">OFI FC (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-10-12</td>\n                            <td class=\"text-end \">Agia Paraskevi (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-04-13</td>\n                            <td class=\"text-end \">AEK Athens (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-03-23</td>\n                            <td class=\"text-end \">Panathinaikos (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-03-08</td>\n                            <td class=\"text-end \">AO Rea (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-02-09</td>\n                            <td class=\"text-end \">OFI FC (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2025-01-19</td>\n                            <td class=\"text-end \">Atromitos (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2024-12-22</td>\n                            <td class=\"text-end \">Agia Paraskevi (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1786</td>\n                            <td>2024-11-17</td>\n                            <td class=\"text-end \">Trikala 2011 (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Asteras Tripolis (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": null,
+    "last_away_match": null,
+    "h2h_col3": {
+      "status": "error",
+      "resultado": "N/A (Datos incompletos para H2H)",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "stats_rows": null,
+        "title_home_name": "Pyrgos AFC (W)",
+        "title_away_name": "Asteras Tripolis (W)",
+        "rival_name": "N/A"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "Pyrgos AFC (W)",
+        "title_away_name": "Asteras Tripolis (W)",
+        "rival_name": "N/A"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "ah6": "-",
+      "res6": "?:?",
+      "res6_raw": "?-?",
+      "match6_id": null,
+      "h2h_gen_home": "Local (H2H Gen)",
+      "h2h_gen_away": "Visitante (H2H Gen)",
+      "stats_rows": []
+    },
+    "backtest_global": {
+      "validez": false,
+      "mensaje": "No se encontraron clones con Patrón AH -5.5 + O/U 6.25."
+    },
+    "execution_time_seconds": 4.74
   }
 ]

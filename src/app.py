@@ -2021,7 +2021,9 @@ def api_precacheo_pattern_search():
         if prev_match:
             prev_score = prev_match.get('score') or prev_match.get('final_score')
             prev_ah_for_calc = prev_match.get('handicap_line_raw')
-            prev_was_home = prev_match.get('was_home', True)
+            # IMPORTANTE: El favorito jugó de LOCAL si is_home_favorite=True (last_home_match)
+            # o de VISITANTE si is_home_favorite=False (last_away_match)
+            prev_was_home = is_home_favorite
             
             # Usar la función asian_result para calcular correctamente
             if prev_score and prev_ah_for_calc:
@@ -2059,7 +2061,10 @@ def api_precacheo_pattern_search():
         prev_fav_wdl = None  # 'WIN', 'DRAW', 'LOSS'
         if prev_match:
             prev_score = prev_match.get('score') or prev_match.get('final_score')
-            prev_was_home = prev_match.get('was_home', True)
+            # IMPORTANTE: Determinar si el favorito jugó de LOCAL o VISITANTE en su partido previo
+            # - Si is_home_favorite = True, usamos last_home_match, donde el favorito jugó de LOCAL
+            # - Si is_home_favorite = False, usamos last_away_match, donde el favorito jugó de VISITANTE
+            prev_was_home = is_home_favorite  # Crucial: inverso de lo que teníamos antes
             
             if prev_score:
                 try:
