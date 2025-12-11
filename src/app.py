@@ -2458,13 +2458,13 @@ def api_reanalyze_pending():
         return jsonify({'error': str(e)}), 500
 
 # =============================================
-# AI PREDICTION ENDPOINT (Gemini API)
+# AI PREDICTION ENDPOINT (Groq API)
 # =============================================
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 
 @app.route('/api/ai_prediction', methods=['POST'])
 def api_ai_prediction():
-    """Generate AI match prediction using Gemini API."""
+    """Generate AI match prediction using Groq API."""
     try:
         data = request.get_json()
         match_id = data.get('match_id')
@@ -2516,14 +2516,21 @@ Asian Handicap: {handicap}
 
 Write a confident betting prediction (50-70 words) in English explaining why {winner_team} will beat {loser_team} and cover the handicap. Mention both team names. Be specific about factors like form, home/away advantage, and handicap coverage. Do NOT hedge - the user chose {winner_team} to win."""
 
-        # Call Gemini API
-        import google.generativeai as genai
+        # Call Groq API
+        from groq import Groq
         
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        client = Groq(api_key=GROQ_API_KEY)
         
-        response = model.generate_content(prompt)
-        prediction_text = response.text
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            model="llama-3.3-70b-versatile",  # Fast and capable model
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        prediction_text = chat_completion.choices[0].message.content
         
         return jsonify({
             'status': 'success',
@@ -2535,7 +2542,7 @@ Write a confident betting prediction (50-70 words) in English explaining why {wi
         })
         
     except ImportError:
-        return jsonify({'error': 'google-generativeai package not installed. Run: pip install google-generativeai'}), 500
+        return jsonify({'error': 'groq package not installed. Run: pip install groq'}), 500
     except Exception as e:
         print(f"AI Prediction error: {e}")
         return jsonify({'error': str(e)}), 500
