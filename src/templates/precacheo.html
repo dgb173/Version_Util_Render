@@ -1620,9 +1620,10 @@
 
                         // Ind. Local - con colores y datos completos
                         const indLocalWdl = calcIndWdl(r.ind_local);
-                        const indLocalHtml = r.ind_local && (r.ind_local.score || r.ind_local.ah) ?
+                        const indLocalAh = r.ind_local ? (r.ind_local.ah || r.ind_local.ah_line || r.ind_local.handicap || '-') : '-';
+                        const indLocalHtml = r.ind_local && (r.ind_local.score || indLocalAh !== '-') ?
                             `<div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${r.ind_local.ah || r.ind_local.handicap || '-'}</span>
+                                <span class="fw-bold small">${indLocalAh}</span>
                                 <span class="fw-bold ${realWdlClass(indLocalWdl)}">${r.ind_local.score || r.ind_local.resultado || '-'}</span>
                             </div>
                             ${(r.ind_local.home_team || r.ind_local.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_local.home_team || ''} vs ${r.ind_local.away_team || ''}</div>` : ''}
@@ -1631,9 +1632,10 @@
 
                         // Ind. Visitante - con colores y datos completos
                         const indVisitanteWdl = calcIndWdl(r.ind_visitante);
-                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah) ?
+                        const indVisitanteAh = r.ind_visitante ? (r.ind_visitante.ah || r.ind_visitante.ah_line || r.ind_visitante.handicap || '-') : '-';
+                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || indVisitanteAh !== '-') ?
                             `<div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${r.ind_visitante.ah || r.ind_visitante.handicap || '-'}</span>
+                                <span class="fw-bold small">${indVisitanteAh}</span>
                                 <span class="fw-bold ${realWdlClass(indVisitanteWdl)}">${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</span>
                             </div>
                             ${(r.ind_visitante.home_team || r.ind_visitante.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_visitante.home_team || ''} vs ${r.ind_visitante.away_team || ''}</div>` : ''}
