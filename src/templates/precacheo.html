@@ -345,8 +345,36 @@
                                 <option value="LOSS">Loss</option>
                             </select>
                         </th>
-                        <th style="width: 100px;">H2H Estadio</th>
-                        <th style="width: 100px;">H2H General</th>
+                        <th style="width: 100px;">
+                            H2H Estadio
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H General
+                            <select class="header-filter mt-1" id="filter-h2h-general-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-general-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
                         <th>H2H Col3</th>
                         <th>Ind. Local</th>
                         <th>Ind. Visitante</th>
@@ -685,6 +713,17 @@
             return sign * (base + 0.5);
         }
 
+        function getMovementDirection(movStr) {
+            if (!movStr) return null;
+            const parts = movStr.replace(' ', '').split('->').map(parseFloat); // e.g. ["0.5","0.75"]
+            if (parts.length !== 2) return null;
+            if (isNaN(parts[0]) || isNaN(parts[1])) return null;
+
+            if (parts[1] > parts[0]) return 'UP';
+            if (parts[1] < parts[0]) return 'DOWN';
+            return 'SAME';
+        }
+
         function applyFilters(matches) {
             // Team filters removed (inputs deleted)
             const teamHome = '';
@@ -697,6 +736,12 @@
             // New Result Filters
             const prevHomeRes = document.getElementById('filter-prev-home-res').value;
             const prevAwayRes = document.getElementById('filter-prev-away-res').value;
+
+            // New H2H Filters
+            const h2hStadiumMov = document.getElementById('filter-h2h-stadium-mov').value;
+            const h2hStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+            const h2hGeneralMov = document.getElementById('filter-h2h-general-mov').value;
+            const h2hGeneralRes = document.getElementById('filter-h2h-general-res').value;
 
             // Normalize buckets only once if filters exist
             const fBucketPrevHome = prevHomeAh ? normalizeBucket(prevHomeAh) : null;
@@ -810,7 +855,6 @@
                     }
                 }
 
-                // Prev Away Attributes
                 if (prevAwayAh || prevAwayRes) {
                     const pc = precacheoData[m.id];
                     if (!pc || !pc.last_away_match) return false;
@@ -839,6 +883,38 @@
                         // last_away_match = partido donde el equipo visitante jugó de VISITANTE
                         const wdl = calculateRealWDL(pc.last_away_match.score, false);
                         if (wdl !== prevAwayRes) return false;
+                    }
+                }
+
+                // H2H Stadium Filters
+                if (h2hStadiumMov || h2hStadiumRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.stadium) return false;
+                    const st = pc.market_analysis_data.stadium;
+
+                    if (h2hStadiumMov) {
+                        const dir = getMovementDirection(st.movement);
+                        if (dir !== h2hStadiumMov) return false;
+                    }
+                    if (h2hStadiumRes) {
+                        const wdl = calculateRealWDL(st.result, true); // Assuming Home perspective (Home Team History)
+                        if (wdl !== h2hStadiumRes) return false;
+                    }
+                }
+
+                // H2H General Filters
+                if (h2hGeneralMov || h2hGeneralRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) return false;
+                    const gen = pc.market_analysis_data.general;
+
+                    if (h2hGeneralMov) {
+                        const dir = getMovementDirection(gen.movement);
+                        if (dir !== h2hGeneralMov) return false;
+                    }
+                    if (h2hGeneralRes) {
+                        const wdl = calculateRealWDL(gen.result, true); // Assuming Home perspective (Home Team History)
+                        if (wdl !== h2hGeneralRes) return false;
                     }
                 }
 

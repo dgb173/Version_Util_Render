@@ -451,8 +451,36 @@
                                 <option value="AWAY_WIN">Loss</option>
                             </select>
                         </th>
-                        <th style="width: 100px;">H2H Estadio</th>
-                        <th style="width: 100px;">H2H General</th>
+                        <th style="width: 100px;">
+                            H2H Estadio
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H General
+                            <select class="header-filter mt-1" id="filter-h2h-general-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-general-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
                         <th>H2H Col3</th>
                         <th>Ind. Local</th>
                         <th>Ind. Visitante</th>
@@ -483,6 +511,12 @@
                 prev_away_wdl: document.getElementById('filter-prev-away-res').value || null,
                 prev_home_ah: document.getElementById('filter-prev-home-ah').value || null,
                 prev_away_ah: document.getElementById('filter-prev-away-ah').value || null,
+                // New H2H Filters
+                h2h_stadium_mov: document.getElementById('filter-h2h-stadium-mov').value || null,
+                h2h_stadium_res: document.getElementById('filter-h2h-stadium-res').value || null,
+                h2h_general_mov: document.getElementById('filter-h2h-general-mov').value || null,
+                h2h_general_res: document.getElementById('filter-h2h-general-res').value || null,
+
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
                 only_with_history: document.getElementById('filter-only-with-history').checked,
                 limit: 2000 // Fetch large amount to allow client-side pagination up to user needs

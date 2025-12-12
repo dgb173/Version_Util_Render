@@ -549,6 +549,13 @@ def explore_matches(datajson, filters=None):
         
     target_prev_home_wdl = filters.get('prev_home_wdl')
     target_prev_away_wdl = filters.get('prev_away_wdl')
+    
+    # New H2H Filters
+    target_stadium_mov = filters.get('h2h_stadium_mov')
+    target_stadium_res = filters.get('h2h_stadium_res')
+    target_general_mov = filters.get('h2h_general_mov')
+    target_general_res = filters.get('h2h_general_res')
+    
     exclude_empty = filters.get('exclude_empty', False)
     only_with_history = filters.get('only_with_history', False)
 
@@ -770,6 +777,23 @@ def explore_matches(datajson, filters=None):
                         return 'SAME'
             except:
                 pass
+            except:
+                pass
+            return None
+            
+        def get_real_wdl_helper(score_str, is_home_perspective=True):
+            if not score_str: return None
+            try:
+                parts = score_str.replace(' ', '').replace('-', ':').split(':')
+                if len(parts) == 2:
+                    hg, ag = int(parts[0]), int(parts[1])
+                    diff = hg - ag
+                    if not is_home_perspective: diff = -diff
+                    
+                    if diff > 0: return 'WIN'
+                    elif diff < 0: return 'LOSS'
+                    return 'DRAW'
+            except: pass
             return None
 
         if market_data and isinstance(market_data, dict):
@@ -780,11 +804,13 @@ def explore_matches(datajson, filters=None):
                 score_stadium = stadium_node.get('result') or stadium_node.get('score')
                 sim_wdl_stadium = get_simulated_wdl(score_stadium, hist_ah, True)
                 mov_dir_stadium = get_movement_direction(mov_stadium)
+                real_wdl_stadium = get_real_wdl_helper(score_stadium, True)
                 h2h_stadium_data = {
                     'movement': mov_stadium,
                     'score': score_stadium,
                     'wdl': sim_wdl_stadium,
-                    'mov_direction': mov_dir_stadium
+                    'mov_direction': mov_dir_stadium,
+                    'real_wdl': real_wdl_stadium
                 }
             
             general_node = market_data.get('general')
@@ -793,11 +819,13 @@ def explore_matches(datajson, filters=None):
                 score_general = general_node.get('result') or general_node.get('score')
                 sim_wdl_general = get_simulated_wdl(score_general, hist_ah, False)
                 mov_dir_general = get_movement_direction(mov_general)
+                real_wdl_general = get_real_wdl_helper(score_general, True)
                 h2h_general_data = {
                     'movement': mov_general,
                     'score': score_general,
                     'wdl': sim_wdl_general,
-                    'mov_direction': mov_dir_general
+                    'mov_direction': mov_dir_general,
+                    'real_wdl': real_wdl_general
                 }
                 
         else:
@@ -808,11 +836,13 @@ def explore_matches(datajson, filters=None):
             if mov_stadium or score_stadium:
                 sim_wdl_stadium = get_simulated_wdl(score_stadium, hist_ah, True)
                 mov_dir_stadium = get_movement_direction(mov_stadium)
+                real_wdl_stadium = get_real_wdl_helper(score_stadium, True)
                 h2h_stadium_data = {
                     'movement': mov_stadium,
                     'score': score_stadium,
                     'wdl': sim_wdl_stadium,
-                    'mov_direction': mov_dir_stadium
+                    'mov_direction': mov_dir_stadium,
+                    'real_wdl': real_wdl_stadium
                 }
             
             mov_general, score_general = extract_analysis_data(market_html, 'GENERAL')
@@ -870,6 +900,23 @@ def explore_matches(datajson, filters=None):
                 else:
                     if pa_bucket != target_pa_bucket: continue
             except: pass
+        
+        # --- 6.5 H2H Filters ---
+        if target_stadium_mov:
+            if not h2h_stadium_data: continue
+            if h2h_stadium_data.get('mov_direction') != target_stadium_mov: continue
+            
+        if target_stadium_res:
+            if not h2h_stadium_data: continue
+            if h2h_stadium_data.get('real_wdl') != target_stadium_res: continue
+            
+        if target_general_mov:
+            if not h2h_general_data: continue
+            if h2h_general_data.get('mov_direction') != target_general_mov: continue
+            
+        if target_general_res:
+            if not h2h_general_data: continue
+            if h2h_general_data.get('real_wdl') != target_general_res: continue
 
         # --- 7. H2H Col3 ---
         h2h_col3_data = None
