@@ -1195,10 +1195,10 @@
             const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
             if (!matchRow) return;
 
-            // Get team names from precacheo data or from the row
-            let matchData = precacheoData[matchId];
-            let homeTeam = matchData?.home_team || 'Local';
-            let awayTeam = matchData?.away_team || 'Visitante';
+            // Get team names from DOM (Source of Truth) or precacheo data
+            const tds = matchRow.querySelectorAll('td');
+            let homeTeam = tds[1]?.textContent?.trim() || matchData?.home_team || 'Local';
+            let awayTeam = tds[2]?.textContent?.trim() || matchData?.away_team || 'Visitante';
 
             // Escape team names for safe HTML insertion
             const escapeHtml = (str) => str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
