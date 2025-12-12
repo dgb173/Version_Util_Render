@@ -1197,6 +1197,7 @@
 
             // Get team names from DOM (Source of Truth) or precacheo data
             const tds = matchRow.querySelectorAll('td');
+            let matchData = precacheoData[matchId];
             let homeTeam = tds[1]?.textContent?.trim() || matchData?.home_team || 'Local';
             let awayTeam = tds[2]?.textContent?.trim() || matchData?.away_team || 'Visitante';
 
