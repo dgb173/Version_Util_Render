@@ -1479,7 +1479,7 @@
                                     <th>Cover</th>
                                     <th>Prev Home
                                         <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0" style="font-size:0.55rem;width:55px;" onchange="filterPatternsCol('${matchId}', 'prev-home-ah', this.value)">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-ah" style="font-size:0.55rem;width:55px;">
                                                 <option value="">AH</option>
                                                 <option value="0">0.0</option>
                                                 <option value="0.25">0.25</option>
@@ -1503,7 +1503,7 @@
                                                 <option value="-2.25">-2.25</option>
                                                 <option value="-2.5">-2.5+</option>
                                             </select>
-                                            <select class="form-select form-select-sm py-0" style="font-size:0.55rem;width:35px;" onchange="filterPatternsCol('${matchId}', 'prev-home', this.value)">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-res" style="font-size:0.55rem;width:35px;">
                                                 <option value="">Res</option>
                                                 <option value="W">W</option>
                                                 <option value="D">D</option>
@@ -1513,7 +1513,7 @@
                                     </th>
                                     <th>Prev Away
                                         <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0" style="font-size:0.55rem;width:55px;" onchange="filterPatternsCol('${matchId}', 'prev-away-ah', this.value)">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-ah" style="font-size:0.55rem;width:55px;">
                                                 <option value="">AH</option>
                                                 <option value="0">0.0</option>
                                                 <option value="0.25">0.25</option>
@@ -1537,7 +1537,7 @@
                                                 <option value="-2.25">-2.25</option>
                                                 <option value="-2.5">-2.5+</option>
                                             </select>
-                                            <select class="form-select form-select-sm py-0" style="font-size:0.55rem;width:35px;" onchange="filterPatternsCol('${matchId}', 'prev-away', this.value)">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-res" style="font-size:0.55rem;width:35px;">
                                                 <option value="">Res</option>
                                                 <option value="W">W</option>
                                                 <option value="D">D</option>
@@ -1550,6 +1550,11 @@
                                     <th style="background:#ffe4ec;">H2H Col3</th>
                                     <th style="background:#fff3e0;">Ind. Local</th>
                                     <th style="background:#fff3e0;">Ind. Visitante</th>
+                                    <th style="background:#d4edda;">
+                                        <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.6rem;" onclick="applyPatternFilters('${matchId}')">
+                                            <i class="fa-solid fa-filter"></i> Aplicar
+                                        </button>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1715,6 +1720,59 @@
                 else if (filterType === 'cover') btnGroup.querySelector('.btn-outline-success').classList.add('active');
                 else if (filterType === 'nocover') btnGroup.querySelector('.btn-outline-danger').classList.add('active');
             }
+        }
+
+        // Aplicar todos los filtros de patrones a la vez (botón "Aplicar")
+        function applyPatternFilters(matchId) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const container = table.closest('td');
+
+            // Leer valores de los 4 filtros
+            const prevHomeAhFilter = container.querySelector('.pattern-filter-prev-home-ah')?.value || '';
+            const prevHomeResFilter = container.querySelector('.pattern-filter-prev-home-res')?.value || '';
+            const prevAwayAhFilter = container.querySelector('.pattern-filter-prev-away-ah')?.value || '';
+            const prevAwayResFilter = container.querySelector('.pattern-filter-prev-away-res')?.value || '';
+
+            // Función para comprobar rango de AH
+            function matchesAhRange(ahVal, filterVal) {
+                if (!filterVal) return true;
+                const f = parseFloat(filterVal);
+                const v = parseFloat(ahVal);
+                if (isNaN(v)) return false;
+
+                if (f < 0) {
+                    if (f <= -2.5) return v <= -2.5;
+                    return Math.abs(v - f) <= 0.26;
+                }
+
+                if (f >= 2.5) return v >= 2.5;
+                if (f === 0) return Math.abs(v) <= 0.01;
+                return Math.abs(v - f) <= 0.26;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const prevHomeWdl = row.getAttribute('data-prev-home') || '';
+                const prevAwayWdl = row.getAttribute('data-prev-away') || '';
+                const prevHomeAh = row.getAttribute('data-prev-home-ah') || '';
+                const prevAwayAh = row.getAttribute('data-prev-away-ah') || '';
+
+                let show = true;
+
+                if (prevHomeAhFilter && !matchesAhRange(prevHomeAh, prevHomeAhFilter)) show = false;
+                if (prevHomeResFilter && prevHomeWdl !== prevHomeResFilter) show = false;
+                if (prevAwayAhFilter && !matchesAhRange(prevAwayAh, prevAwayAhFilter)) show = false;
+                if (prevAwayResFilter && prevAwayWdl !== prevAwayResFilter) show = false;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            console.log(`Filtros aplicados: ${visibleCount} filas visibles de ${rows.length}`);
         }
 
         // Filtrar filas por columna (Prev Home/Away W/D/L y AH)
