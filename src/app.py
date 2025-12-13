@@ -749,6 +749,67 @@ async def get_main_page_finished_matches_async(limit=None, offset=0, handicap_fi
     )
 
 
+# --- FUNCIONES DE SCRAPING DIRECTO PARA COLAB / BACKGROUND ---
+
+async def scrape_main_page_matches_async_direct(limit=None, offset=0, handicap_filter=None, goal_line_filter=None, min_time=None):
+    """
+    Versión DEDICADA para scripts de fondo (Colab). Descarga la web fresca.
+    NO USAR EN LA WEB (lento).
+    """
+    print("🌍 [DIRECT SCRAPE] Descargando página principal (Próximos)...")
+    html = await _fetch_nowgoal_html() # path None = home
+    if not html:
+        print("❌ [DIRECT SCRAPE] Error: No se pudo descargar HTML.")
+        return []
+
+    print(f"✅ [DIRECT SCRAPE] HTML descargado ({len(html)} bytes). Parseando...")
+    matches = parse_main_page_matches(
+        html, 
+        limit=limit, 
+        offset=offset, 
+        handicap_filter=handicap_filter, 
+        goal_line_filter=goal_line_filter
+    )
+    
+    if min_time:
+        filtered = []
+        for m in matches:
+            t_str = m.get('start_time')
+            if t_str and t_str != 'N/A':
+                try:
+                    t_obj = datetime.datetime.fromisoformat(t_str)
+                    if t_obj.replace(tzinfo=None) >= min_time.replace(tzinfo=None):
+                        filtered.append(m)
+                except Exception as e:
+                    pass
+        matches = filtered
+
+    print(f"✅ [DIRECT SCRAPE] Encontrados {len(matches)} partidos.")
+    return matches
+
+async def scrape_main_page_finished_matches_async_direct(limit=None, offset=0, handicap_filter=None, goal_line_filter=None):
+    """
+    Versión DEDICADA para scripts de fondo (Colab). Descarga la web fresca para terminados.
+    """
+    print("🌍 [DIRECT SCRAPE] Descargando página principal (Finalizados)...")
+    html = await _fetch_nowgoal_html()
+    if not html:
+        print("❌ [DIRECT SCRAPE] Error: No se pudo descargar HTML.")
+        return []
+
+    print(f"✅ [DIRECT SCRAPE] HTML descargado. Parseando...")
+    matches = parse_main_page_finished_matches(
+        html,
+        limit=limit,
+        offset=offset,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter
+    )
+    print(f"✅ [DIRECT SCRAPE] Encontrados {len(matches)} partidos terminados.")
+    return matches
+
+
+
 async def _fetch_sidebar_lists(handicap_filter=None, goal_line_filter=None):
     return await asyncio.gather(
         get_main_page_matches_async(handicap_filter=handicap_filter, goal_line_filter=goal_line_filter),
@@ -933,29 +994,37 @@ def process_single_precache_worker(match_id):
         print(f"Error precaching {match_id}: {e}")
         return False, match_id
 
-def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=None, workers=5):
+def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=None, workers=5, order_by_recent=True):
     """
     Procesa partidos PRÓXIMOS (Pre-Cacheo) en segundo plano con optimizaciones:
     - Filtros
     - Concurrencia
     - Persistencia (Setpoint)
+    - Ordenación por proximidad a hora actual (si order_by_recent=True)
     """
     filter_desc = f"AH={handicap_filter}, OU={goal_line_filter}"
     print(f"Iniciando PRE-CACHEO Background ({filter_desc})...")
     
     try:
-        # 1. Obtener partidos próximos (limit alto)
-        # Filtrar para que solo sean partidos que empiezan de AHORA en adelante
-        # (o quizás un margen de 15 mins atrás por si acaba de empezar y quieres apurar)
-        # Por petición de usuario: "no los que ya han finalizado".
-        # Usamos now() como referencia.
+        # 1. Obtener TODOS los partidos del día (sin filtro min_time para incluir los que ya empezaron)
+        # Esto permite scrapear también los que están pendientes de resultado
         matches = asyncio.run(get_main_page_matches_async(
             limit=2000, 
             offset=0, 
             handicap_filter=handicap_filter, 
             goal_line_filter=goal_line_filter,
-            min_time=datetime.datetime.now()
+            min_time=None  # Sin filtro de tiempo para incluir todos
         ))
+        
+        if not matches:
+            print("⚠️ [BACKGROUND] No hay partidos en caché local. Intentando scraping directo...")
+            matches = asyncio.run(scrape_main_page_matches_async_direct(
+                limit=2000, 
+                offset=0, 
+                handicap_filter=handicap_filter, 
+                goal_line_filter=goal_line_filter,
+                min_time=None
+            ))
         
         print(f"Se encontraron {len(matches)} partidos próximos candidatos.")
         
@@ -963,22 +1032,17 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
         state = load_precache_state()
         processed_ids = set(state.get('processed_ids', []))
         
-        # 3. Filtrar los que ya están hechos (ya sea en estado o en data_manager)
+        # 3. Filtrar los que ya están hechos y preparar para ordenar por proximidad temporal
         # Checkeo rápido contra el archivo (state) es más eficiente que cargar todo data_manager
-        # Pero para ser robustos, si data_manager ya lo tiene, también saltar.
-        # Por simplicidad y velocidad, confiamos en state + check interno de worker si fuese critico.
         
-        to_process = []
+        now = datetime.datetime.now()
+        candidates = []  # Lista de (match_id, start_time_str, distance_from_now)
+        
         for m in matches:
             mid = str(m.get('id') or m.get('match_id'))
             
             # FIX: Verificar si REALMENTE tenemos datos, no solo si el state dice que sí.
-            # Esto corrige el problema donde state=processed pero data=missing (por error de paths).
             exists_in_data = False
-            # Opcional: Podríamos confiar solo en data_manager y obviar processed_ids para precacheo
-            # Pero para ser eficientes, si no está en processed_ids, seguro es nuevo.
-            # Si ESTÁ en processed_ids, verificamos si existe de verdad.
-            
             is_processed = mid in processed_ids
             if is_processed:
                  # Doble check: ¿está en el archivo de precacheo?
@@ -987,7 +1051,28 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
                      exists_in_data = True
             
             if mid and not exists_in_data:
-                to_process.append(mid)
+                # Extraer hora de inicio para ordenar
+                start_time_str = m.get('start_time')
+                try:
+                    if start_time_str:
+                        # ISO format: YYYY-MM-DDTHH:MM:SS
+                        match_time = datetime.datetime.fromisoformat(start_time_str)
+                        # Distancia absoluta desde ahora (para ordenar por proximidad)
+                        distance = abs((match_time - now).total_seconds())
+                    else:
+                        distance = float('inf')  # Sin hora, al final
+                except:
+                    distance = float('inf')
+                
+                candidates.append((mid, distance))
+        
+        # 4. Ordenar por proximidad a la hora actual (más cercano primero)
+        if order_by_recent:
+            candidates.sort(key=lambda x: x[1])  # Ordenar por distancia temporal
+            print(f"Ordenando partidos por proximidad temporal (más cercanos primero)...")
+        
+        # Extraer solo los IDs
+        to_process = [c[0] for c in candidates]
                 
         print(f"De los cuales {len(to_process)} son nuevos y se scrapearán.")
         
@@ -995,32 +1080,43 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
             print("Nada nuevo que scrapear en Pre-Cacheo.")
             return
 
-        # 4. Procesar en paralelo
+        # 5. Procesar en paralelo PERO manteniendo orden de proximidad
+        # Usamos chunks del tamaño de workers para procesar en batches ordenados
         max_workers = workers if workers else 5 
         total = len(to_process)
         completed = 0
         
-        print(f"Iniciando Pool Pre-Cacheo con {max_workers} workers...")
+        print(f"Iniciando Pool Pre-Cacheo con {max_workers} workers (orden: más cercanos primero)...")
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(process_single_precache_worker, mid): mid for mid in to_process}
+        # Procesar en batches ordenados para garantizar que los más cercanos se hagan primero
+        batch_size = max_workers * 2  # Procesar en batches un poco más grandes para eficiencia
+        
+        for batch_start in range(0, total, batch_size):
+            if STOP_CACHE_EVENT.is_set():
+                print("Señal de parada recibida (Pre-Cacheo). Deteniendo...")
+                break
+                
+            batch = to_process[batch_start:batch_start + batch_size]
             
-            for future in concurrent.futures.as_completed(futures):
-                if STOP_CACHE_EVENT.is_set():
-                    print("Señal de parada recibida (Pre-Cacheo). Cancelando tareas...")
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    break
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(process_single_precache_worker, mid): mid for mid in batch}
+                
+                for future in concurrent.futures.as_completed(futures):
+                    if STOP_CACHE_EVENT.is_set():
+                        print("Señal de parada recibida (Pre-Cacheo). Cancelando tareas...")
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        break
 
-                mid = futures[future]
-                try:
-                    success, _ = future.result()
-                    completed += 1
-                    
-                    if completed % 5 == 0 or completed == total:
-                        print(f"Progreso Pre-Cacheo: {completed}/{total} procesados.")
+                    mid = futures[future]
+                    try:
+                        success, _ = future.result()
+                        completed += 1
                         
-                except Exception as e:
-                    print(f"Excepción en worker Pre-Cacheo {mid}: {e}")
+                        if completed % 5 == 0 or completed == total:
+                            print(f"Progreso Pre-Cacheo: {completed}/{total} procesados.")
+                            
+                    except Exception as e:
+                        print(f"Excepción en worker Pre-Cacheo {mid}: {e}")
                     
         if STOP_CACHE_EVENT.is_set():
              print(f"Pre-Cacheo detenido. {completed} partidos completados.")
@@ -1153,11 +1249,11 @@ def scrape_pending_results_background():
         print(f"Error fatal en scrape de resultados pendientes: {e}")
 
 
-def process_all_finished_matches_background(handicap_filter=None, goal_line_filter=None):
+def process_all_finished_matches_background(handicap_filter=None, goal_line_filter=None, workers=5):
     """
     Procesa partidos finalizados en segundo plano con optimizaciones:
     - Filtros
-    - Concurrencia
+    - Concurrencia (workers configurable)
     - Persistencia (Setpoint)
     """
     filter_desc = f"AH={handicap_filter}, OU={goal_line_filter}"
@@ -1172,6 +1268,15 @@ def process_all_finished_matches_background(handicap_filter=None, goal_line_filt
             handicap_filter=handicap_filter, 
             goal_line_filter=goal_line_filter
         ))
+        
+        if not matches:
+            print("⚠️ [BACKGROUND] No hay partidos terminados en caché local. Intentando scraping directo...")
+            matches = asyncio.run(scrape_main_page_finished_matches_async_direct(
+                limit=2000, 
+                offset=0, 
+                handicap_filter=handicap_filter, 
+                goal_line_filter=goal_line_filter
+            ))
         
         print(f"Se encontraron {len(matches)} partidos candidatos.")
         
@@ -1193,7 +1298,7 @@ def process_all_finished_matches_background(handicap_filter=None, goal_line_filt
             return
 
         # 4. Procesar en paralelo
-        max_workers = 5 # Ajustable
+        max_workers = workers
         total = len(to_process)
         completed = 0
         
@@ -1233,6 +1338,8 @@ def process_all_finished_matches_background(handicap_filter=None, goal_line_filt
 
         return jsonify({'error': str(e)}), 500
 
+# Alias para importar con nombre explícito
+process_all_finished_matches_background_with_workers = process_all_finished_matches_background
 
 # --- BACKGROUND CONTROL ---
 STOP_CACHE_EVENT = threading.Event()
