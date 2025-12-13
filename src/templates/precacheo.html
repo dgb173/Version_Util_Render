@@ -714,13 +714,41 @@
         }
 
         function getMovementDirection(movStr) {
-            if (!movStr) return null;
-            const parts = movStr.replace(' ', '').split('->').map(parseFloat); // e.g. ["0.5","0.75"]
+            if (!movStr || movStr === 'N/A' || movStr.trim() === '') return null;
+
+            // Normalizar separadores: soportar tanto -> como → (Unicode)
+            let normalized = movStr.replace(/\s/g, '').replace('→', '->');
+            const parts = normalized.split('->').map(parseFloat); // e.g. ["0.5","0.75"]
+
             if (parts.length !== 2) return null;
             if (isNaN(parts[0]) || isNaN(parts[1])) return null;
 
-            if (parts[1] > parts[0]) return 'UP';
-            if (parts[1] < parts[0]) return 'DOWN';
+            // Normalizar a buckets: 0.25, 0.5, 0.75 son equivalentes (bucket 0.5)
+            // -0.25, -0.5, -0.75 son equivalentes (bucket -0.5)
+            const normalizeToBucket = (val) => {
+                if (val === 0) return 0;
+                const absVal = Math.abs(val);
+                const sign = val >= 0 ? 1 : -1;
+
+                // Determinar el bucket base
+                const intPart = Math.floor(absVal);
+                const decPart = absVal - intPart;
+
+                // 0.0 -> 0, 0.25/0.5/0.75 -> 0.5, 1.0 -> 1, 1.25/1.5/1.75 -> 1.5, etc.
+                if (decPart < 0.01) {
+                    // Es un entero (0, 1, 2, etc.)
+                    return sign * intPart;
+                } else {
+                    // Tiene decimal, redondear al .5 más cercano
+                    return sign * (intPart + 0.5);
+                }
+            };
+
+            const bucket1 = normalizeToBucket(parts[0]);
+            const bucket2 = normalizeToBucket(parts[1]);
+
+            if (bucket2 > bucket1) return 'UP';
+            if (bucket2 < bucket1) return 'DOWN';
             return 'SAME';
         }
 
@@ -989,16 +1017,30 @@
                     ftHtml = '<span class="text-muted">?:?</span>';
                 }
 
+                // Obtener el AH del partido actual para calcular cover simulado
+                const currentAh = parseFloat(ah);
+                const localEsFavorito = !isNaN(currentAh) && currentAh > 0;
+
                 // Prev Home
                 let prevHomeHtml = '<span class="text-muted">-</span>';
                 if (pc && pc.last_home_match && pc.last_home_match.score) {
                     const lhm = pc.last_home_match;
                     const ahVal = formatAh(lhm.handicap_line_raw);
 
-                    // Calc WDL - Resultado REAL (goles), no cover de handicap
-                    const wdl = calculateRealWDL(lhm.score, true); // true = jugó de LOCAL
-                    const wdlClass = wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
-                    // WIN = Green (Ganó por goles), LOSS = Red (Perdió por goles)
+                    // Calc WDL - Usar el AH del partido ACTUAL para simular cover
+                    // Si local es favorito en partido actual: calculamos si el resultado previo hubiera cubierto con AH actual
+                    // El equipo local del partido actual (home) jugó de LOCAL en su previo partido
+                    let wdlClass = 'text-dark';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        // Calcular cover basado en AH del partido actual
+                        const coverResult = calculateWDL(lhm.score, currentAh, true); // true = jugó de LOCAL
+                        // HOME_WIN = cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
+                        wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    } else {
+                        // Sin AH válido, usar el WDL real por goles
+                        const realWdl = calculateRealWDL(lhm.score, true);
+                        wdlClass = realWdl === 'WIN' ? 'text-success' : (realWdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    }
 
                     // Rival Logic: Display the team that is NOT the current home team
                     // Usually lhm is Home Game for 'home', so rival is away_team.
@@ -1025,10 +1067,21 @@
                     const lam = pc.last_away_match;
                     const ahVal = formatAh(lam.handicap_line_raw);
 
-                    // Calc WDL - Resultado REAL (goles), no cover de handicap
-                    const wdl = calculateRealWDL(lam.score, false); // false = jugó de VISITANTE
-                    // WIN = Green (Ganó por goles), LOSS = Red (Perdió por goles)
-                    const wdlClass = wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    // Calc WDL - Usar el AH del partido ACTUAL (invertido para away)
+                    // El equipo visitante del partido actual (away) jugó de VISITANTE en su previo partido
+                    let wdlClass = 'text-dark';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        // Para prev_away: usar AH invertido ya que estamos evaluando al equipo visitante
+                        // Si AH > 0 = Local favorito, Away es underdog. Para el away, AH efectivo es negativo.
+                        const awayAh = -currentAh; // Invertir para perspectiva del away
+                        const coverResult = calculateWDL(lam.score, awayAh, false); // false = jugó de VISITANTE
+                        // HOME_WIN = cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
+                        wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    } else {
+                        // Sin AH válido, usar el WDL real por goles
+                        const realWdl = calculateRealWDL(lam.score, false);
+                        wdlClass = realWdl === 'WIN' ? 'text-success' : (realWdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    }
 
                     // Rival Logic: Display the team that is NOT the current away team
                     // Usually lam is Away Game for 'away', so rival is home_team.
@@ -1052,26 +1105,38 @@
                 let h2hStadiumHtml = '<span class="text-muted">-</span>';
                 if (pc && pc.market_analysis_data && pc.market_analysis_data.stadium) {
                     const st = pc.market_analysis_data.stadium;
-                    const movColor = st.is_covered === true ? 'text-success' : (st.is_covered === false ? 'text-danger' : 'text-dark');
-                    h2hStadiumHtml = `
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold small ${movColor}">${st.movement || '-'}</div>
-                            ${st.result ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.result}</div>` : ''}
-                        </div>
-                    `;
+                    // Verificar que movement tenga un valor real (no "N/A" ni vacío)
+                    const hasValidMovement = st.movement && st.movement !== 'N/A' && st.movement.trim() !== '';
+                    const hasValidResult = st.result && st.result !== 'N/A' && st.result.trim() !== '' && st.result !== '?:?';
+
+                    if (hasValidMovement || hasValidResult) {
+                        const movColor = st.is_covered === true ? 'text-success' : (st.is_covered === false ? 'text-danger' : 'text-dark');
+                        h2hStadiumHtml = `
+                            <div class="d-flex flex-column">
+                                <div class="fw-bold small ${movColor}">${hasValidMovement ? st.movement : '-'}</div>
+                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.result}</div>` : ''}
+                            </div>
+                        `;
+                    }
                 }
 
                 // H2H General (from market_analysis_data.general)
                 let h2hGeneralHtml = '<span class="text-muted">-</span>';
                 if (pc && pc.market_analysis_data && pc.market_analysis_data.general) {
                     const gen = pc.market_analysis_data.general;
-                    const movColor = gen.is_covered === true ? 'text-success' : (gen.is_covered === false ? 'text-danger' : 'text-dark');
-                    h2hGeneralHtml = `
-                        <div class="d-flex flex-column">
-                            <div class="fw-bold small ${movColor}">${gen.movement || '-'}</div>
-                            ${gen.result ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.result}</div>` : ''}
-                        </div>
-                    `;
+                    // Verificar que movement tenga un valor real (no "N/A" ni vacío)
+                    const hasValidMovement = gen.movement && gen.movement !== 'N/A' && gen.movement.trim() !== '';
+                    const hasValidResult = gen.result && gen.result !== 'N/A' && gen.result.trim() !== '' && gen.result !== '?:?';
+
+                    if (hasValidMovement || hasValidResult) {
+                        const movColor = gen.is_covered === true ? 'text-success' : (gen.is_covered === false ? 'text-danger' : 'text-dark');
+                        h2hGeneralHtml = `
+                            <div class="d-flex flex-column">
+                                <div class="fw-bold small ${movColor}">${hasValidMovement ? gen.movement : '-'}</div>
+                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.result}</div>` : ''}
+                            </div>
+                        `;
+                    }
                 }
 
                 // H2H Col3 (from h2h_col3 object)
@@ -1665,12 +1730,16 @@
                             `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${realWdlClass(prevAwayRealWdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        const h2hStadiumHtml = r.h2h_stadium ?
-                            `<div class="fw-bold">${r.h2h_stadium.movement || '-'}</div><div class="${realWdlClass(calcRealWdl(r.h2h_stadium.score, true))}">${r.h2h_stadium.score || '-'}</div>` :
+                        // Helper para obtener clase de color basado en WDL simulado (cover del favorito)
+                        // HOME_WIN = el favorito cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
+                        const simWdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+
+                        const h2hStadiumHtml = r.h2h_stadium && r.h2h_stadium.movement && r.h2h_stadium.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_stadium.movement}</div><div class="${simWdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
-                        const h2hGeneralHtml = r.h2h_general ?
-                            `<div class="fw-bold">${r.h2h_general.movement || '-'}</div><div class="${realWdlClass(calcRealWdl(r.h2h_general.score, true))}">${r.h2h_general.score || '-'}</div>` :
+                        const h2hGeneralHtml = r.h2h_general && r.h2h_general.movement && r.h2h_general.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_general.movement}</div><div class="${simWdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
                             '<span class="text-muted">-</span>';
 
                         const h2hCol3Html = r.h2h_col3 ?

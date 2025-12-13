@@ -852,19 +852,19 @@
     
     <!-- H2H Estadio -->
     <td class="col-prev text-center">
-        ${item.h2h_stadium ? `
+        ${(item.h2h_stadium && item.h2h_stadium.movement && item.h2h_stadium.movement !== 'N/A') ? `
             <div class="d-flex flex-column">
-                <div class="fw-bold small ${item.h2h_stadium.mov_direction === 'UP' ? 'text-success' : (item.h2h_stadium.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_stadium.movement || '-'}</div>
-                ${item.h2h_stadium.score ? `<div class="small ${item.h2h_stadium.wdl === 'HOME_WIN' ? 'text-success' : (item.h2h_stadium.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_stadium.score}</div>` : ''}
+                <div class="fw-bold small ${item.h2h_stadium.mov_direction === 'UP' ? 'text-success' : (item.h2h_stadium.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_stadium.movement}</div>
+                ${(item.h2h_stadium.score && item.h2h_stadium.score !== 'N/A' && item.h2h_stadium.score !== '?:?') ? `<div class="small ${item.h2h_stadium.real_wdl === 'WIN' ? 'text-success' : (item.h2h_stadium.real_wdl === 'LOSS' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_stadium.score}</div>` : ''}
             </div>
         ` : '<span class="text-muted">-</span>'}
     </td>
     <!-- H2H General -->
     <td class="col-prev text-center">
-        ${item.h2h_general ? `
+        ${(item.h2h_general && item.h2h_general.movement && item.h2h_general.movement !== 'N/A') ? `
             <div class="d-flex flex-column">
-                <div class="fw-bold small ${item.h2h_general.mov_direction === 'UP' ? 'text-success' : (item.h2h_general.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_general.movement || '-'}</div>
-                ${item.h2h_general.score ? `<div class="small ${item.h2h_general.wdl === 'HOME_WIN' ? 'text-success' : (item.h2h_general.wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_general.score}</div>` : ''}
+                <div class="fw-bold small ${item.h2h_general.mov_direction === 'UP' ? 'text-success' : (item.h2h_general.mov_direction === 'DOWN' ? 'text-danger' : 'text-dark')}">${item.h2h_general.movement}</div>
+                ${(item.h2h_general.score && item.h2h_general.score !== 'N/A' && item.h2h_general.score !== '?:?') ? `<div class="small ${item.h2h_general.real_wdl === 'WIN' ? 'text-success' : (item.h2h_general.real_wdl === 'LOSS' ? 'text-danger' : 'text-dark')}" style="font-size: 0.7rem;">${item.h2h_general.score}</div>` : ''}
             </div>
         ` : '<span class="text-muted">-</span>'}
     </td>

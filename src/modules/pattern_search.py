@@ -761,22 +761,43 @@ def explore_matches(datajson, filters=None):
         h2h_general_data = None
 
         def get_movement_direction(movement_str):
-            """Returns 'UP', 'DOWN', or 'SAME' based on movement string like '0.5 -> 1'"""
-            if not movement_str:
+            """Returns 'UP', 'DOWN', or 'SAME' based on movement string like '0.5 -> 1'
+            Uses bucket normalization: 0.25/0.5/0.75 are equivalent (bucket 0.5)
+            """
+            if not movement_str or movement_str == 'N/A':
                 return None
             try:
-                parts = movement_str.replace(' ', '').split('->')
+                # Soportar tanto -> como → (Unicode)
+                normalized = movement_str.replace(' ', '').replace('→', '->')
+                parts = normalized.split('->')
                 if len(parts) == 2:
                     start = float(parts[0])
                     end = float(parts[1])
-                    if end > start:
+                    
+                    # Normalizar a buckets
+                    def normalize_to_bucket(val):
+                        if val == 0:
+                            return 0
+                        abs_val = abs(val)
+                        sign = 1 if val >= 0 else -1
+                        int_part = int(abs_val)
+                        dec_part = abs_val - int_part
+                        
+                        # 0.0 -> 0, 0.25/0.5/0.75 -> 0.5, 1.0 -> 1, etc.
+                        if dec_part < 0.01:
+                            return sign * int_part
+                        else:
+                            return sign * (int_part + 0.5)
+                    
+                    bucket_start = normalize_to_bucket(start)
+                    bucket_end = normalize_to_bucket(end)
+                    
+                    if bucket_end > bucket_start:
                         return 'UP'
-                    elif end < start:
+                    elif bucket_end < bucket_start:
                         return 'DOWN'
                     else:
                         return 'SAME'
-            except:
-                pass
             except:
                 pass
             return None
