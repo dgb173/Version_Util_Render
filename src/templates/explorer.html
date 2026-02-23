@@ -1,0 +1,2648 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Datos ⚽</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Collapsed Sidebar */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .nav-link {
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+
+        .nav-link i {
+            width: 25px;
+        }
+
+        /* Excel-like Table Styles */
+        .excel-table {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .excel-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+            overflow: visible;
+            /* Allow dropdowns to overflow */
+        }
+
+        .excel-table td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .excel-table tbody tr:hover {
+            background-color: #e8f0fe;
+        }
+
+        /* Filter Inputs in Header */
+        .header-filter {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        /* Specific Column Styles */
+        .col-ah {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+            background-color: #e8f5e9;
+        }
+
+        .col-res {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .col-team {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .col-prev {
+            font-size: 0.85rem;
+        }
+
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
+
+        /* Stats Styles */
+        .text-home {
+            color: #0d6efd !important;
+        }
+
+        .text-away {
+            color: #dc3545 !important;
+        }
+
+        .bg-home {
+            background-color: #0d6efd !important;
+        }
+
+        .bg-away {
+            background-color: #dc3545 !important;
+        }
+
+        .stat-row {
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-win {
+            background-color: #d1e7dd;
+        }
+
+        .bg-loss {
+            background-color: #f8d7da;
+        }
+
+        .bg-draw {
+            background-color: #fff3cd;
+        }
+
+        /* Estilo naranja para PUSH */
+        .text-push {
+            color: #ff9800 !important;
+            font-weight: 600;
+        }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                width: 280px;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+                padding-top: 60px;
+                /* Space for mobile header */
+            }
+
+            .mobile-header {
+                display: flex !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 50px;
+                background: #fff;
+                z-index: 999;
+                padding: 0 15px;
+                align-items: center;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            /* Table optimizations for mobile */
+            .excel-table {
+                font-size: 0.75rem;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                padding: 4px;
+            }
+
+            .header-filter {
+                font-size: 0.7rem;
+                padding: 2px;
+            }
+
+            .col-ah,
+            .col-res {
+                width: 50px;
+                font-size: 0.85rem;
+            }
+
+            .col-team {
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+
+            .col-prev {
+                min-width: 110px;
+            }
+        }
+
+        .mobile-header {
+            display: none;
+        }
+
+        /* H2H Col3 - Fondo rosa para distinguirla */
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
+
+        /* MultiSelect Styles */
+        .multiselect-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .multiselect-btn {
+            width: 100%;
+            text-align: left;
+            background: linear-gradient(to bottom, #fff, #f8f9fa);
+            border: 1px solid #adb5bd;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+
+        .multiselect-btn:hover {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            border-color: #6c757d;
+        }
+
+        .multiselect-btn::after {
+            content: '▼';
+            font-size: 0.6rem;
+            margin-left: 5px;
+            color: #6c757d;
+        }
+
+        .multiselect-dropdown {
+            display: none;
+            position: fixed;
+            /* Fixed instead of absolute to escape overflow:hidden containers */
+            width: 260px;
+            max-height: 350px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #adb5bd;
+            z-index: 9999;
+            /* Very high z-index */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 4px 0;
+        }
+
+        .multiselect-dropdown.show {
+            display: block;
+        }
+
+        .multiselect-option {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.15s;
+        }
+
+        .multiselect-option:last-child {
+            border-bottom: none;
+        }
+
+        .multiselect-option:hover {
+            background-color: #e3f2fd;
+        }
+
+        .multiselect-option input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Color coding for positive/negative handicaps */
+        .multiselect-option[data-positive="true"] {
+            color: #0d6efd;
+        }
+
+        .multiselect-option[data-negative="true"] {
+            color: #dc3545;
+        }
+
+        .multiselect-option strong {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <!-- Mobile Header & Overlay -->
+    <div class="mobile-header">
+        <button class="btn btn-link text-dark p-0 me-3" id="mobile-menu-toggle">
+            <i class="fa-solid fa-bars fa-lg"></i>
+        </button>
+        <h5 class="mb-0">Explorador</h5>
+    </div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="mb-4 text-primary"><i class="fa-solid fa-futbol me-2"></i>Analizador</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
+            <a class="nav-link active" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+            <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+            <a class="nav-link" href="/grandes_ligas"><i class="fa-solid fa-trophy"></i> Grandes Ligas</a>
+            <a class="nav-link" href="/ligas_favoritas"><i class="fa-solid fa-star"></i> Ligas Favoritas</a>
+            <a class="nav-link" href="/scraper"><i class="fa-solid fa-cloud-download-alt"></i> Scraper</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>Explorador de Datos</h4>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" id="filter-only-with-history">
+                    <label class="form-check-label small" for="filter-only-with-history">Solo con historial</label>
+                </div>
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input me-2" type="checkbox" id="filter-exclude-empty">
+                    <label class="form-check-label small" for="filter-exclude-empty">Ocultar vacíos</label>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="triggerSearch()"><i class="fa-solid fa-filter me-1"></i>
+                    Aplicar Filtros</button>
+            </div>
+        </div>
+
+
+
+        <!-- Pagination Controls Above Table -->
+        <div class="d-flex justify-content-between align-items-center mb-2 px-2 py-2 bg-light rounded"
+            id="pagination-bar" style="display: none !important;">
+            <span class="text-muted small" id="pagination-info">Mostrando 0 de 0</span>
+            <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none">
+                <ul class="pagination pagination-sm mb-0" id="pagination-lista-top">
+                    <!-- Javascript populates this -->
+                </ul>
+            </nav>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm excel-table" id="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Fecha</th>
+                        <th>Local</th>
+                        <th>Visitante</th>
+                        <th style="width: 80px;">
+                            HA
+                            <div class="multiselect-container mt-1" id="container-filter-handicap">
+                                <!-- JS will populate this -->
+                            </div>
+                            <select class="header-filter mt-1" id="filter-ou" style="width: 100%;">
+                                <option value="">O/U</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3.0">3.0</option>
+                                <option value="3.5">3.5</option>
+                                <option value="4.0">4+</option>
+                            </select>
+                        </th>
+                        <th style="width: 80px;">
+                            FT
+                            <select class="header-filter mt-1" id="filter-cover-result" style="width: 100%;">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
+                            </select>
+                        </th>
+                        <th>
+                            Prev Home
+                            <div class="multiselect-container mt-1" id="container-filter-prev-home-ah">
+                                <!-- JS will populate this -->
+                            </div>
+                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="HOME_WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="AWAY_WIN">Loss</option>
+                            </select>
+                        </th>
+                        <th>
+                            Prev Away
+                            <div class="multiselect-container mt-1" id="container-filter-prev-away-ah">
+                                <!-- JS will populate this -->
+                            </div>
+                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="HOME_WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="AWAY_WIN">Loss</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H Estadio
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-mov" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-res" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
+                            </select>
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-h2h-stadium-start-ah"
+                                    style="flex:1;font-size:0.7rem;" onchange="renderTableWithPagination()">
+                                    <option value="">Ini...</option>
+                                    <option value="-2.5">-2.5-</option>
+                                    <option value="-2">-2</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-1">-1</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="0">0</option>
+                                    <option value="0.5">+0.5</option>
+                                    <option value="1">+1</option>
+                                    <option value="1.5">+1.5</option>
+                                    <option value="2">+2</option>
+                                    <option value="2.5">+2.5+</option>
+                                </select>
+                                <select class="header-filter" id="filter-h2h-stadium-end-ah"
+                                    style="flex:1;font-size:0.7rem;" onchange="renderTableWithPagination()">
+                                    <option value="">Fin...</option>
+                                    <option value="-2.5">-2.5-</option>
+                                    <option value="-2">-2</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-1">-1</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="0">0</option>
+                                    <option value="0.5">+0.5</option>
+                                    <option value="1">+1</option>
+                                    <option value="1.5">+1.5</option>
+                                    <option value="2">+2</option>
+                                    <option value="2.5">+2.5+</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H General
+                            <select class="header-filter mt-1" id="filter-h2h-general-mov" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-general-res" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
+                            </select>
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-h2h-general-start-ah"
+                                    style="flex:1;font-size:0.7rem;" onchange="renderTableWithPagination()">
+                                    <option value="">Ini...</option>
+                                    <option value="-2.5">-2.5-</option>
+                                    <option value="-2">-2</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-1">-1</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="0">0</option>
+                                    <option value="0.5">+0.5</option>
+                                    <option value="1">+1</option>
+                                    <option value="1.5">+1.5</option>
+                                    <option value="2">+2</option>
+                                    <option value="2.5">+2.5+</option>
+                                </select>
+                                <select class="header-filter" id="filter-h2h-general-end-ah"
+                                    style="flex:1;font-size:0.7rem;" onchange="renderTableWithPagination()">
+                                    <option value="">Fin...</option>
+                                    <option value="-2.5">-2.5-</option>
+                                    <option value="-2">-2</option>
+                                    <option value="-1.5">-1.5</option>
+                                    <option value="-1">-1</option>
+                                    <option value="-0.5">-0.5</option>
+                                    <option value="0">0</option>
+                                    <option value="0.5">+0.5</option>
+                                    <option value="1">+1</option>
+                                    <option value="1.5">+1.5</option>
+                                    <option value="2">+2</option>
+                                    <option value="2.5">+2.5+</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th style="width: 120px;">
+                            H2H Col3
+                            <select class="header-filter mt-1" id="filter-h2h-col3-mirror" style="width: 100%;">
+                                <option value="">Espejo...</option>
+                                <option value="directa">Directa</option>
+                                <option value="inversa">Inversa</option>
+                            </select>
+                            <div class="multiselect-container mt-1" id="container-filter-h2h-col3-ah">
+                                <!-- JS will populate this -->
+                            </div>
+                            <select class="header-filter mt-1" id="filter-h2h-col3-cover" style="width: 100%;">
+                                <option value="">Cover HA...</option>
+                                <option value="MEJORA">MEJORA</option>
+                                <option value="IGUALA">IGUALA</option>
+                                <option value="EMPEORA">EMPEORA</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            Ind. Local
+                            <div class="multiselect-container mt-1" id="container-filter-ind-local-ah">
+                                <!-- JS will populate this -->
+                            </div>
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-ind-local-res" style="width: 50%;">
+                                    <option value="">Cover...</option>
+                                    <option value="COVER">Cubierto</option>
+                                    <option value="PUSH">Push</option>
+                                    <option value="NO_COVER">No Cubierto</option>
+                                </select>
+                                <select class="header-filter" id="filter-ind-local-loc" style="width: 50%;">
+                                    <option value="">Loc...</option>
+                                    <option value="H">H</option>
+                                    <option value="A">A</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th style="width: 100px;">
+                            Ind. Visitante
+                            <div class="multiselect-container mt-1" id="container-filter-ind-visitante-ah">
+                                <!-- JS will populate this -->
+                            </div>
+                            <div class="d-flex gap-1 mt-1">
+                                <select class="header-filter" id="filter-ind-visitante-res" style="width: 50%;">
+                                    <option value="">Cover...</option>
+                                    <option value="COVER">Cubierto</option>
+                                    <option value="PUSH">Push</option>
+                                    <option value="NO_COVER">No Cubierto</option>
+                                </select>
+                                <select class="header-filter" id="filter-ind-visitante-loc" style="width: 50%;">
+                                    <option value="">Loc...</option>
+                                    <option value="H">H</option>
+                                    <option value="A">A</option>
+                                </select>
+                            </div>
+                        </th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Results will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="loading-overlay" class="d-none">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Pagination State
+        let currentPage = 1;
+        const itemsPerPage = 250;
+        let totalResults = [];
+        // URL presets from "Buscar Patrones": strict favorite layer injected into backend filters.
+        let explorerPresetStrictFilters = {};
+
+        // --- MultiSelect Class ---
+        class MultiSelect {
+            constructor(containerId, options, placeholder = 'Select...', onChangeCallback = null) {
+                this.container = document.getElementById(containerId);
+                this.options = options; // [{value, label}]
+                this.placeholder = placeholder;
+                this.onChange = onChangeCallback;
+                this.selectedValues = [];
+
+                this.render();
+            }
+
+            render() {
+                if (!this.container) return;
+                this.container.innerHTML = '';
+                this.container.classList.add('multiselect-container');
+
+                // Button
+                this.btn = document.createElement('div');
+                this.btn.className = 'multiselect-btn';
+                this.updateBtnText();
+                this.btn.onclick = (e) => {
+                    e.stopPropagation();
+                    // Close others
+                    document.querySelectorAll('.multiselect-dropdown.show').forEach(el => {
+                        if (el !== this.dropdown) el.classList.remove('show');
+                    });
+
+                    // Calculate position for fixed dropdown
+                    const rect = this.btn.getBoundingClientRect();
+                    this.dropdown.style.top = (rect.bottom + 2) + 'px';
+                    this.dropdown.style.left = rect.left + 'px';
+
+                    // Ensure dropdown doesn't go off-screen to the right
+                    const dropdownWidth = 260;
+                    if (rect.left + dropdownWidth > window.innerWidth) {
+                        this.dropdown.style.left = (window.innerWidth - dropdownWidth - 10) + 'px';
+                    }
+
+                    this.dropdown.classList.toggle('show');
+                };
+                this.container.appendChild(this.btn);
+
+                // Dropdown
+                this.dropdown = document.createElement('div');
+                this.dropdown.className = 'multiselect-dropdown';
+
+                // "All/Clear" option
+                const allOpt = document.createElement('div');
+                allOpt.className = 'multiselect-option';
+                allOpt.innerHTML = '<strong>Limpiar / Todos</strong>';
+                allOpt.onclick = () => {
+                    this.selectedValues = [];
+                    this.updateBtnText();
+                    this.renderOptions(); // Re-render checkboxes
+                    if (this.onChange) this.onChange();
+                };
+                this.dropdown.appendChild(allOpt);
+
+                this.optionsListCtx = document.createElement('div');
+                this.dropdown.appendChild(this.optionsListCtx);
+
+                this.renderOptions();
+
+                this.container.appendChild(this.dropdown);
+
+                // Close on click outside
+                document.addEventListener('click', (e) => {
+                    if (!this.container.contains(e.target)) {
+                        this.dropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            renderOptions() {
+                this.optionsListCtx.innerHTML = '';
+                this.options.forEach(opt => {
+                    const div = document.createElement('div');
+                    div.className = 'multiselect-option';
+
+                    // Apply color coding for positive/negative values
+                    const numVal = parseFloat(opt.value);
+                    if (!isNaN(numVal)) {
+                        if (numVal > 0) {
+                            div.setAttribute('data-positive', 'true');
+                            div.style.color = '#0d6efd'; // Blue for positive (Home Underdog)
+                        } else if (numVal < 0) {
+                            div.setAttribute('data-negative', 'true');
+                            div.style.color = '#dc3545'; // Red for negative (Home Favorite)
+                        }
+                    }
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.checked = this.selectedValues.includes(opt.value);
+                    cb.onchange = (e) => {
+                        if (e.target.checked) {
+                            this.selectedValues.push(opt.value);
+                        } else {
+                            this.selectedValues = this.selectedValues.filter(v => v !== opt.value);
+                        }
+                        this.updateBtnText();
+                        if (this.onChange) this.onChange();
+                    };
+
+                    div.appendChild(cb);
+
+                    // Create label with icon for better visibility
+                    const label = document.createElement('span');
+                    const numVal2 = parseFloat(opt.value);
+                    if (!isNaN(numVal2) && numVal2 !== 0) {
+                        const icon = numVal2 > 0 ? '↑' : '↓';
+                        label.textContent = `${icon} ${opt.label}`;
+                    } else {
+                        label.textContent = opt.label;
+                    }
+                    div.appendChild(label);
+
+                    // Allow clicking row to toggle
+                    div.onclick = (e) => {
+                        if (e.target !== cb) {
+                            cb.checked = !cb.checked;
+                            cb.dispatchEvent(new Event('change'));
+                        }
+                    };
+
+                    this.optionsListCtx.appendChild(div);
+                });
+            }
+
+            updateBtnText() {
+                if (this.selectedValues.length === 0) {
+                    this.btn.textContent = this.placeholder;
+                } else if (this.selectedValues.length <= 2) {
+                    this.btn.textContent = this.selectedValues.map(v => v.toString()).join(', ');
+                } else {
+                    this.btn.textContent = `${this.selectedValues.length} sel.`;
+                }
+            }
+
+            getValues() {
+                return this.selectedValues;
+            }
+        }
+
+        // MultiSelect Instances
+        let msHandicap, msPrevHomeAh, msPrevAwayAh, msH2hCol3Ah, msIndLocalAh, msIndVisitanteAh;
+
+        // Helper for MultiSelect AH matching - Uses buckets:
+        // 0 = exactly 0
+        // 0.5 = 0.25, 0.5, 0.75
+        // 1 = exactly 1
+        // 1.5 = 1.25, 1.5, 1.75
+        // 2.0 = exacto
+        // 2.5+ = 2.25, 2.5, 2.75, 3, etc.
+        const checkAhMatch = (rowAhStr, selectedValues) => {
+            if (!selectedValues || selectedValues.length === 0) return true;
+            const rowAh = parseFloat(rowAhStr);
+            if (isNaN(rowAh)) return false;
+
+            const absRowAh = Math.abs(rowAh);
+
+            return selectedValues.some(valStr => {
+                const fAh = parseFloat(valStr);
+                const absFAh = Math.abs(fAh);
+
+                // 2.5+ bucket (or -2.5 and lower)
+                if (absFAh >= 2.49) {
+                    if (fAh > 0) return rowAh >= 2.24;
+                    else return rowAh <= -2.24;
+                }
+
+                // 2.0 bucket: strict 2.0 / -2.0
+                if (Math.abs(absFAh - 2) < 0.01) {
+                    if (fAh > 0) return Math.abs(rowAh - 2) < 0.01;
+                    else return Math.abs(rowAh + 2) < 0.01;
+                }
+
+                // For 1.5 bucket: includes 1.25, 1.5, 1.75
+                if (Math.abs(absFAh - 1.5) < 0.01) {
+                    if (fAh > 0) return rowAh >= 1.24 && rowAh <= 1.76;     // Solo positivos
+                    else return rowAh <= -1.24 && rowAh >= -1.76;           // Solo negativos
+                }
+
+                // For 1 bucket: exactly 1
+                if (Math.abs(absFAh - 1) < 0.01) {
+                    if (fAh > 0) return Math.abs(rowAh - 1) < 0.01;         // Solo +1
+                    else return Math.abs(rowAh + 1) < 0.01;                 // Solo -1
+                }
+
+                // For 0.5 bucket: includes 0.25, 0.5, 0.75
+                if (Math.abs(absFAh - 0.5) < 0.01) {
+                    if (fAh > 0) return rowAh >= 0.24 && rowAh <= 0.76;     // Solo positivos
+                    else return rowAh <= -0.24 && rowAh >= -0.76;           // Solo negativos
+                }
+
+                // For 0 bucket: exactly 0
+                if (absFAh < 0.01) {
+                    return absRowAh < 0.01;
+                }
+
+                // Fallback: exact match with tolerance
+                return Math.abs(rowAh - fAh) < 0.01;
+            });
+        };
+
+        // Parsear movimiento H2H para obtener AH inicial y final
+        // Ejemplo: "-0.5 → 0" => { start: -0.5, end: 0 }
+        function parseH2HMovement(movementStr) {
+            if (!movementStr || movementStr === 'N/A' || typeof movementStr !== 'string') {
+                return { start: null, end: null };
+            }
+
+            const normalizedMovement = movementStr.replace(/,/g, '.');
+
+            // Regex robusta para capturar dos números (decimales o enteros, positivos o negativos)
+            // separados por cualquier cosa que no sea número/punto/guión
+            // Soporta "→", "->", " a ", " to ", etc.
+            const match = normalizedMovement.match(/([+-]?\d*\.?\d+)\s*[^\d.\-]+\s*([+-]?\d*\.?\d+)/);
+
+            if (match && match.length >= 3) {
+                return {
+                    start: parseFloat(match[1]),
+                    end: parseFloat(match[2])
+                };
+            }
+
+            // Fallback para separadores conocidos si el regex falla (ej: casos raros)
+            const separators = ['\u2192', '->', ' a ', ' to '];
+            let parts = null;
+            for (const sep of separators) {
+                if (normalizedMovement.includes(sep)) {
+                    parts = normalizedMovement.split(sep).map(s => s.trim());
+                    break;
+                }
+            }
+
+            if (!parts || parts.length !== 2) {
+                // Último intento: buscar si hay SOLO una flecha unicode específica
+                if (normalizedMovement.indexOf('→') !== -1) {
+                    parts = normalizedMovement.split('→').map(s => s.trim());
+                } else {
+                    return { start: null, end: null };
+                }
+            }
+
+            if (!parts || parts.length !== 2) return { start: null, end: null };
+
+            const parseAh = (s) => {
+                const cleaned = s.replace(/[^\d.\-+]/g, '');
+                const num = parseFloat(cleaned);
+                return isNaN(num) ? null : num;
+            };
+            return {
+                start: parseAh(parts[0]),
+                end: parseAh(parts[1])
+            };
+        }
+
+        // Normalizar AH a bucket para comparación (0.25, 0.5, 0.75 se tratan como 0.5)
+        function normalizeToHandicapBucket(ah) {
+            if (ah === null || ah === undefined || isNaN(ah)) return null;
+            const absAh = Math.abs(ah);
+            const decimal = absAh % 1;
+            // Si está entre 0.24 y 0.76, es bucket 0.5
+            if (decimal >= 0.24 && decimal <= 0.76) {
+                return ah >= 0 ? Math.floor(absAh) + 0.5 : -(Math.floor(absAh) + 0.5);
+            }
+            // Si está cerca de un entero, redondear
+            if (decimal < 0.24) {
+                return ah >= 0 ? Math.floor(absAh) : -Math.floor(absAh);
+            }
+            return ah >= 0 ? Math.ceil(absAh) : -Math.ceil(absAh);
+        }
+
+        function toExplorerBucketValue(rawVal) {
+            const num = parseFloat(rawVal);
+            if (isNaN(num)) return '';
+            const bucket = normalizeToHandicapBucket(num);
+            if (bucket === null) return '';
+            if (bucket >= 2.5) return '2.5';
+            if (bucket <= -2.5) return '-2.5';
+            return String(bucket);
+        }
+
+        function matchesBucketOrExtreme(movBucket, filterRaw) {
+            if (movBucket === null || movBucket === undefined) return false;
+            const filterBucket = normalizeToHandicapBucket(parseFloat(filterRaw));
+            if (filterBucket === null) return false;
+            if (filterBucket >= 2.5) return movBucket >= 2.5;
+            if (filterBucket <= -2.5) return movBucket <= -2.5;
+            return movBucket === filterBucket;
+        }
+
+        function getH2HGeneralMovementDirection(movementStr) {
+            const mov = parseH2HMovement(movementStr);
+            if (mov.start === null || mov.end === null) return null;
+
+            // H2H General can come with inverted home/away.
+            // Compare ABS buckets so movement means "more/less favorite" consistently.
+            const startBucket = normalizeToHandicapBucket(mov.start);
+            const endBucket = normalizeToHandicapBucket(mov.end);
+            if (startBucket === null || endBucket === null) return null;
+
+            const absStart = Math.abs(startBucket);
+            const absEnd = Math.abs(endBucket);
+            if (Math.abs(absStart - absEnd) < 0.01) return 'SAME';
+            return absEnd > absStart ? 'UP' : 'DOWN';
+        }
+
+        function applyExplorerUrlPresetFilters() {
+            const params = new URLSearchParams(window.location.search);
+
+            let hasPreset = false;
+            const isPatternAutoSearch = params.get('auto_search') === '1' && !!params.get('source_match_id');
+            const applyH2hLinePresets = !isPatternAutoSearch || params.get('apply_h2h_line') === '1';
+
+            const applySelectValue = (id, rawValue) => {
+                if (!rawValue) return false;
+                const el = document.getElementById(id);
+                if (!el) return false;
+                const value = toExplorerBucketValue(rawValue);
+                if (!value) return false;
+                const exists = Array.from(el.options).some(opt => opt.value === value);
+                if (!exists) return false;
+                el.value = value;
+                return true;
+            };
+
+            const applySelectRawValue = (id, rawValue, allowedValues) => {
+                if (!rawValue) return false;
+                const el = document.getElementById(id);
+                if (!el) return false;
+                if (!allowedValues.includes(rawValue)) return false;
+                el.value = rawValue;
+                return true;
+            };
+
+            const applyMultiSelectValue = (ms, rawValue) => {
+                if (!ms || rawValue === null || rawValue === undefined || rawValue === '') return false;
+                const value = toExplorerBucketValue(rawValue);
+                if (!value) return false;
+                const exists = Array.isArray(ms.options) && ms.options.some(opt => String(opt.value) === String(value));
+                if (!exists) return false;
+                ms.selectedValues = [String(value)];
+                ms.updateBtnText();
+                if (ms.renderOptions) ms.renderOptions();
+                return true;
+            };
+
+            // Presets for H2H General
+            const generalStartRaw = params.get('h2h_general_start');
+            const generalEndRaw = params.get('h2h_general_end');
+            const generalMovRaw = params.get('h2h_general_mov');
+            const generalResRaw = params.get('h2h_general_res');
+
+            if (applyH2hLinePresets) {
+                hasPreset = applySelectValue('filter-h2h-general-start-ah', generalStartRaw) || hasPreset;
+                hasPreset = applySelectValue('filter-h2h-general-end-ah', generalEndRaw) || hasPreset;
+            }
+            hasPreset = applySelectRawValue('filter-h2h-general-mov', generalMovRaw, ['UP', 'DOWN', 'SAME']) || hasPreset;
+            hasPreset = applySelectRawValue('filter-h2h-general-res', generalResRaw, ['COVER', 'PUSH', 'NO_COVER']) || hasPreset;
+
+            // Presets for H2H Stadium (fallback source)
+            const stadiumStartRaw = params.get('h2h_stadium_start');
+            const stadiumEndRaw = params.get('h2h_stadium_end');
+            const stadiumMovRaw = params.get('h2h_stadium_mov');
+            const stadiumResRaw = params.get('h2h_stadium_res');
+
+            if (applyH2hLinePresets) {
+                hasPreset = applySelectValue('filter-h2h-stadium-start-ah', stadiumStartRaw) || hasPreset;
+                hasPreset = applySelectValue('filter-h2h-stadium-end-ah', stadiumEndRaw) || hasPreset;
+            }
+            hasPreset = applySelectRawValue('filter-h2h-stadium-mov', stadiumMovRaw, ['UP', 'DOWN', 'SAME']) || hasPreset;
+            hasPreset = applySelectRawValue('filter-h2h-stadium-res', stadiumResRaw, ['COVER', 'PUSH', 'NO_COVER']) || hasPreset;
+
+            // Strict layer from source match: same favorite side + exact AH + favorite result.
+            explorerPresetStrictFilters = {};
+
+            const favAhRaw = params.get('fav_ah_exact');
+            if (favAhRaw !== null && favAhRaw !== '') {
+                const favAh = parseFloat(String(favAhRaw).replace(',', '.'));
+                if (!isNaN(favAh)) {
+                    explorerPresetStrictFilters.exact_handicap = favAh;
+                }
+            }
+
+            const favSideRaw = (params.get('fav_side') || '').toUpperCase();
+            if (favSideRaw === 'HOME' || favSideRaw === 'AWAY') {
+                explorerPresetStrictFilters.favorite_side = favSideRaw;
+            }
+
+            const favResultRaw = (params.get('fav_result') || '').toUpperCase();
+            if (favResultRaw === 'COVER' || favResultRaw === 'PUSH' || favResultRaw === 'NO_COVER') {
+                explorerPresetStrictFilters.favorite_result = favResultRaw;
+            }
+
+            // Optional preset for favorite previous match layer.
+            const prevHomeAhRaw = params.get('prev_home_ah');
+            const prevHomeResRaw = params.get('prev_home_res');
+            const prevAwayAhRaw = params.get('prev_away_ah');
+            const prevAwayResRaw = params.get('prev_away_res');
+
+            hasPreset = applyMultiSelectValue(msPrevHomeAh, prevHomeAhRaw) || hasPreset;
+            const prevHomeResNorm = (() => {
+                const v = (prevHomeResRaw || '').toUpperCase();
+                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
+                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
+                if (v === 'D') return 'DRAW';
+                return v;
+            })();
+            hasPreset = applySelectRawValue('filter-prev-home-res', prevHomeResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
+            hasPreset = applyMultiSelectValue(msPrevAwayAh, prevAwayAhRaw) || hasPreset;
+            const prevAwayResNorm = (() => {
+                const v = (prevAwayResRaw || '').toUpperCase();
+                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
+                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
+                if (v === 'D') return 'DRAW';
+                return v;
+            })();
+            hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
+
+            const shouldAutoSearch = params.get('auto_search') === '1';
+            if ((hasPreset || Object.keys(explorerPresetStrictFilters).length > 0) && shouldAutoSearch) {
+                triggerSearch();
+            }
+        }
+
+        // Helper function to calculate Asian Result Category
+        function getAsianResultCategory(teamGoals, oppGoals, ahValue) {
+            if (teamGoals === null || oppGoals === null || ahValue === null || isNaN(ahValue)) return 'UNKNOWN';
+
+            const diff = teamGoals - oppGoals;
+            const line = parseFloat(ahValue);
+            const finalDiff = diff + line;
+
+            if (finalDiff > 0) return 'HOME_WIN';
+            if (finalDiff < 0) return 'AWAY_WIN';
+            return 'DRAW'; // Push
+        }
+
+        // Helper: calcular resultado H2H COVER/PUSH/NO_COVER
+        // COVER = el FAVORITO cubrió el handicap actual
+        // isInverted = true para H2H General (el partido fue en estadio del visitante actual)
+        function calculateH2HResult(resultStr, currentAh, isInverted = false) {
+            if (!resultStr || !resultStr.includes(':')) return null;
+            if (currentAh === null || currentAh === undefined || isNaN(currentAh)) return null;
+
+            const parts = resultStr.replace('-', ':').split(':');
+            let h = parseInt(parts[0]);
+            let a = parseInt(parts[1]);
+
+            if (isNaN(h) || isNaN(a)) return null;
+
+            // Regla Crítica: AH POSITIVO (> 0) = LOCAL FAVORITO. AH CERO O NEGATIVO (<= 0) = VISITANTE FAVORITO.
+            const favIsLocal = currentAh > 0;
+            const absAh = Math.abs(currentAh);
+
+            let diff; // Diferencia goles desde la perspectiva del favorito
+            if (isInverted) {
+                diff = favIsLocal ? (a - h) : (h - a);
+            } else {
+                diff = favIsLocal ? (h - a) : (a - h);
+            }
+
+            // Aplicar handicap al favorito (lo DA, por eso es -absAh)
+            const finalDiff = diff - absAh;
+
+            if (finalDiff > 0) return 'COVER'; // Verde
+            if (finalDiff < 0) return 'NO_COVER'; // Rojo
+            return 'PUSH'; // Naranja
+        }
+
+        function calculateWDL(scoreStr, ahForTeam, isHomePerspective = true) {
+            if (!scoreStr || ahForTeam === null || ahForTeam === undefined) return null;
+            try {
+                const parts = scoreStr.replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const hg = parseInt(parts[0]);
+                const ag = parseInt(parts[1]);
+                if (isNaN(hg) || isNaN(ag)) return null;
+
+                if (isHomePerspective) {
+                    return getAsianResultCategory(hg, ag, ahForTeam);
+                } else {
+                    return getAsianResultCategory(ag, hg, ahForTeam);
+                }
+            } catch (e) {
+                console.error("Error calc WDL", e);
+                return null;
+            }
+        }
+
+        const getIndCoverStatus = (score, localia, isSubjectHome, currentAh) => {
+            if (!score || score === '?:?' || isNaN(currentAh)) return null;
+            const isSubjectLocalInInd = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home');
+            const subjectPerspectiveAh = isSubjectHome ? -currentAh : currentAh;
+            const wdl = calculateWDL(score, subjectPerspectiveAh, isSubjectLocalInInd);
+            if (wdl === 'HOME_WIN') return 'COVER';
+            if (wdl === 'AWAY_WIN') return 'NO_COVER';
+            if (wdl === 'DRAW') return 'PUSH';
+            return null;
+        };
+
+        // Helper global para validar valores
+        const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+
+
+        function triggerSearch() {
+            // Helper to get single value or null
+            const getSingleOrNull = (ms) => {
+                if (!ms) return null;
+                const vals = ms.getValues();
+                return vals.length === 1 ? vals[0] : null;
+            };
+
+            const params = new URLSearchParams(window.location.search);
+            const mapPrevResToApi = (rawVal) => {
+                const v = (rawVal || '').toUpperCase();
+                if (!v) return null;
+                if (v === 'HOME_WIN' || v === 'DRAW' || v === 'AWAY_WIN') return v;
+                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
+                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
+                if (v === 'D') return 'DRAW';
+                return null;
+            };
+
+            const filters = {
+                handicap: getSingleOrNull(msHandicap),
+                team: null, // Team search inputs removed
+                prev_home_wdl: document.getElementById('filter-prev-home-res').value || null,
+                prev_away_wdl: document.getElementById('filter-prev-away-res').value || null,
+                prev_home_ah: getSingleOrNull(msPrevHomeAh),
+                prev_away_ah: getSingleOrNull(msPrevAwayAh),
+                // New H2H Filters
+                h2h_stadium_mov: document.getElementById('filter-h2h-stadium-mov').value || null,
+                h2h_stadium_res: document.getElementById('filter-h2h-stadium-res').value || null,
+                h2h_general_mov: document.getElementById('filter-h2h-general-mov').value || null,
+                h2h_general_res: document.getElementById('filter-h2h-general-res').value || null,
+
+                // NEW: FT Result and O/U Filters
+                cover_result: document.getElementById('filter-cover-result').value || null,
+                ou_limit: document.getElementById('filter-ou').value || null,
+
+                exclude_empty: document.getElementById('filter-exclude-empty').checked,
+                only_with_history: document.getElementById('filter-only-with-history').checked,
+                analyze_all: true,
+                include_stats: true,
+                limit: 20000
+            };
+
+            // URL fallback (if UI presets were not reflected, keep backend filtering aligned).
+            if (!filters.prev_home_ah) {
+                const p = params.get('prev_home_ah');
+                if (p !== null && p !== '') filters.prev_home_ah = toExplorerBucketValue(p);
+            }
+            if (!filters.prev_home_wdl) {
+                filters.prev_home_wdl = mapPrevResToApi(params.get('prev_home_res'));
+            }
+            if (!filters.prev_away_ah) {
+                const p = params.get('prev_away_ah');
+                if (p !== null && p !== '') filters.prev_away_ah = toExplorerBucketValue(p);
+            }
+            if (!filters.prev_away_wdl) {
+                filters.prev_away_wdl = mapPrevResToApi(params.get('prev_away_res'));
+            }
+
+            const prevResMode = (params.get('prev_res_mode') || '').toLowerCase();
+            if (prevResMode === 'real') {
+                const phReal = mapPrevResToApi(params.get('prev_home_res'));
+                const paReal = mapPrevResToApi(params.get('prev_away_res'));
+                if (phReal) filters.prev_home_real_wdl = phReal;
+                if (paReal) filters.prev_away_real_wdl = paReal;
+                if (params.get('auto_search') === '1') {
+                    if (filters.prev_home_real_wdl) filters.prev_home_wdl = null;
+                    if (filters.prev_away_real_wdl) filters.prev_away_wdl = null;
+                }
+            }
+
+            if (explorerPresetStrictFilters && Object.keys(explorerPresetStrictFilters).length > 0) {
+                Object.assign(filters, explorerPresetStrictFilters);
+            }
+
+            const spinner = document.getElementById('loading-overlay');
+            spinner.classList.remove('d-none');
+
+            fetch('/api/explorer_search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    filters: filters
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    spinner.classList.add('d-none');
+                    totalResults = data.results || [];
+
+                    currentPage = 1;
+                    // Aplicar filtros client-side inmediatamente después de cargar
+                    renderTableWithPagination();
+
+                    // Reinicializar Bootstrap collapses para que funcionen correctamente
+                    reinitBootstrapCollapses();
+                })
+                .catch(err => {
+                    spinner.classList.add('d-none');
+                    alert('Error al cargar datos: ' + err.message);
+                });
+        }
+
+        function renderTableWithPagination() {
+            // Aplicar filtro client-side "Solo con historial"
+            const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+            let filteredResults = totalResults;
+            // DEBUG:
+            // console.log(`Total Results: ${ totalResults.length } `);
+            if (totalResults.length === 0) {
+                // Si no hay resultados de la API, no hay nada que filtrar.
+                renderTable([]);
+                renderPaginationControls(0);
+                return;
+            }
+
+            if (onlyWithHistory) {
+                filteredResults = totalResults.filter(item => {
+                    // Requiere datos en AMBOS Prev Home y Prev Away
+                    const hasPrevHome = item.prev_home && item.prev_home.score;
+                    const hasPrevAway = item.prev_away && item.prev_away.score;
+                    return hasPrevHome && hasPrevAway;
+                });
+            }
+
+            // Filtro: Excluir partidos juveniles (excepto Italia U20/U21 e Inglaterra U21/U23)
+            filteredResults = filteredResults.filter(item => {
+                const c = item.candidate;
+                const homeTeam = (c.home_team || c.home || '').toLowerCase();
+                const awayTeam = (c.away_team || c.away || '').toLowerCase();
+                const league = (c.league || '').toLowerCase();
+
+                // Ligas juveniles permitidas
+                const allowedJuvenile = league.includes('italy') || league.includes('italia') ||
+                    league.includes('england') || league.includes('ingla') ||
+                    league.includes('serie c') || league.includes('premier league 2');
+
+                if (allowedJuvenile) return true;
+
+                // Excluir si el equipo o liga contiene patrones juveniles
+                const excludePatterns = ['u19', 'u21', 'u20', 'u18', 'u17', 'u23', 'sub-19', 'sub-21', 'sub-20', 'sub-18', 'sub 19', 'sub 21'];
+                for (const pattern of excludePatterns) {
+                    if (homeTeam.includes(pattern) || awayTeam.includes(pattern) || league.includes(pattern)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            // Filtro: Excluir partidos sin resultado definido (??)
+            filteredResults = filteredResults.filter(item => {
+                const c = item.candidate;
+                const score = c.score || '';
+                // Excluir si el score es ??, ?:?, vacío, o no tiene formato válido
+                if (!score || score === '??' || score === '?:?' || score.includes('?')) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Filtro de cobertura AH (client-side)
+            const coverFilter = document.getElementById('filter-cover-result').value;
+            if (coverFilter) {
+                filteredResults = filteredResults.filter(item => {
+                    const c = item.candidate;
+                    if (!c.score || c.ah_real === null || c.ah_real === undefined) return false;
+                    const parts = c.score.replace('-', ':').split(':');
+                    const ah = parseFloat(c.ah_real);
+                    if (parts.length !== 2) return false;
+                    const golesLocal = parseInt(parts[0]);
+                    const golesVisitante = parseInt(parts[1]);
+
+                    // LÓGICA UNIFICADA: AH > 0 significa Local es Favorito
+                    const res = calculateH2HResult(c.score, ah);
+                    return res === coverFilter;
+                });
+            }
+
+            // --- Filtros AH MultiSelect ---
+
+            // Handicap
+            const handicapValues = msHandicap ? msHandicap.getValues() : [];
+            if (handicapValues.length > 0) filteredResults = filteredResults.filter(i => checkAhMatch(i.candidate.ah_real, handicapValues));
+
+            // Prev Home AH
+            const prevHomeValues = msPrevHomeAh ? msPrevHomeAh.getValues() : [];
+            if (prevHomeValues.length > 0) filteredResults = filteredResults.filter(i => i.prev_home && checkAhMatch(i.prev_home.ah, prevHomeValues));
+
+            // Prev Away AH
+            const prevAwayValues = msPrevAwayAh ? msPrevAwayAh.getValues() : [];
+            if (prevAwayValues.length > 0) filteredResults = filteredResults.filter(i => i.prev_away && checkAhMatch(i.prev_away.ah, prevAwayValues));
+
+            // H2H Col3 AH
+            const col3Values = msH2hCol3Ah ? msH2hCol3Ah.getValues() : [];
+            if (col3Values.length > 0) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_col3 || !isValidValue(i.h2h_col3.handicap)) return false;
+                    return checkAhMatch(i.h2h_col3.handicap, col3Values);
+                });
+            }
+
+            // Ind. Local AH
+            const indLocalValues = msIndLocalAh ? msIndLocalAh.getValues() : [];
+            if (indLocalValues.length > 0) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_local) return false;
+                    const ah = isValidValue(i.ind_local.ah_line) ? i.ind_local.ah_line : i.ind_local.ah;
+                    return checkAhMatch(ah, indLocalValues);
+                });
+            }
+
+            // Ind. Visitante AH
+            const indVisitValues = msIndVisitanteAh ? msIndVisitanteAh.getValues() : [];
+            if (indVisitValues.length > 0) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_visitante) return false;
+                    const ah = isValidValue(i.ind_visitante.ah_line) ? i.ind_visitante.ah_line : i.ind_visitante.ah;
+                    return checkAhMatch(ah, indVisitValues);
+                });
+            }
+
+            // --- Filtros de Resultado (Res) - Usa el AH FINAL del movimiento H2H ---
+            const fH2HStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+            if (fH2HStadiumRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_stadium || !i.h2h_stadium.score || i.h2h_stadium.score === '?:?') return false;
+                    // Usar el AH final del movimiento H2H
+                    const mov = parseH2HMovement(i.h2h_stadium.movement);
+                    const ahFinal = mov.end;
+                    if (ahFinal === null || isNaN(ahFinal)) return false;
+                    const res = calculateH2HResult(i.h2h_stadium.score, ahFinal, false);
+                    return res === fH2HStadiumRes;
+                });
+            }
+
+            const fH2HGeneralRes = document.getElementById('filter-h2h-general-res').value;
+            if (fH2HGeneralRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_general || !i.h2h_general.score || i.h2h_general.score === '?:?') return false;
+
+                    // Consistent with renderTable: if it's the same as stadium, it's considered "empty" (-)
+                    const stData = i.h2h_stadium;
+                    const genData = i.h2h_general;
+                    const isSameAsStadium = stData && genData && stData.date === genData.date && stData.score === genData.score;
+                    if (isSameAsStadium) return false;
+
+                    // Usar el AH final del movimiento H2H
+                    const mov = parseH2HMovement(i.h2h_general.movement);
+                    const ahFinal = mov.end;
+                    if (ahFinal === null || isNaN(ahFinal)) return false;
+                    // Usar isInverted = true para H2H General
+                    const res = calculateH2HResult(i.h2h_general.score, ahFinal, true);
+                    return res === fH2HGeneralRes;
+                });
+            }
+
+            // --- Filtro H2H General Mov - Considera inversión de localías ---
+            // En H2H General, "Igual" = mismo valor absoluto (ej: 0.5 → -0.5 es "Igual")
+            const fH2HGeneralMov = document.getElementById('filter-h2h-general-mov').value;
+            if (fH2HGeneralMov) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_general || !i.h2h_general.movement) return false;
+                    // Excluir si es el mismo que stadium
+                    const stData = i.h2h_stadium;
+                    const genData = i.h2h_general;
+                    const isSameAsStadium = stData && genData && stData.date === genData.date && stData.score === genData.score;
+                    if (isSameAsStadium) return false;
+                    const direction = getH2HGeneralMovementDirection(i.h2h_general.movement);
+                    return direction === fH2HGeneralMov;
+                });
+            }
+
+            // --- Filtros H2H Stadium Movement AH ---
+            const fH2HStadiumStartAh = document.getElementById('filter-h2h-stadium-start-ah').value;
+            const fH2HStadiumEndAh = document.getElementById('filter-h2h-stadium-end-ah').value;
+            if (fH2HStadiumStartAh || fH2HStadiumEndAh) {
+                console.log(`Filtering H2H Stadium: Start=${fH2HStadiumStartAh}, End=${fH2HStadiumEndAh}`);
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_stadium || !i.h2h_stadium.movement || i.h2h_stadium.movement === 'N/A') return false;
+                    const mov = parseH2HMovement(i.h2h_stadium.movement);
+                    if (fH2HStadiumStartAh) {
+                        const movStartBucket = normalizeToHandicapBucket(mov.start);
+                        if (!matchesBucketOrExtreme(movStartBucket, fH2HStadiumStartAh)) return false;
+                    }
+                    if (fH2HStadiumEndAh) {
+                        const movEndBucket = normalizeToHandicapBucket(mov.end);
+                        if (!matchesBucketOrExtreme(movEndBucket, fH2HStadiumEndAh)) return false;
+                    }
+                    return true;
+                });
+            }
+
+            // --- Filtros H2H General Movement AH ---
+            const fH2HGeneralStartAh = document.getElementById('filter-h2h-general-start-ah').value;
+            const fH2HGeneralEndAh = document.getElementById('filter-h2h-general-end-ah').value;
+            if (fH2HGeneralStartAh || fH2HGeneralEndAh) {
+                console.log(`Filtering H2H General: Start=${fH2HGeneralStartAh}, End=${fH2HGeneralEndAh}`);
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.h2h_general || !i.h2h_general.movement || i.h2h_general.movement === 'N/A') return false;
+                    // Excluir si es el mismo que stadium
+                    const stData = i.h2h_stadium;
+                    const genData = i.h2h_general;
+                    const isSameAsStadium = stData && genData && stData.date === genData.date && stData.score === genData.score;
+                    if (isSameAsStadium) return false;
+
+                    const mov = parseH2HMovement(i.h2h_general.movement);
+                    if (fH2HGeneralStartAh) {
+                        const movStartBucket = normalizeToHandicapBucket(mov.start);
+                        if (!matchesBucketOrExtreme(movStartBucket, fH2HGeneralStartAh)) return false;
+                    }
+                    if (fH2HGeneralEndAh) {
+                        const movEndBucket = normalizeToHandicapBucket(mov.end);
+                        if (!matchesBucketOrExtreme(movEndBucket, fH2HGeneralEndAh)) return false;
+                    }
+                    return true;
+                });
+            }
+
+            // Filtro H2H Col3 (Performance)
+            const fH2HCol3Cover = document.getElementById('filter-h2h-col3-cover').value;
+            const fH2HCol3Mirror = document.getElementById('filter-h2h-col3-mirror').value;
+
+            if (fH2HCol3Cover || fH2HCol3Mirror) {
+                // Para simplificar, como Performance se calcula en renderTable, 
+                // para filtrar el array tendríamos que replicar el cálculo o usar el resultado previo si lo guardamos.
+                // En Explorer, preferimos filtrar por array para paginación.
+                // Sin embargo, el cálculo de performanceStatus es complejo.
+                // Lo aplicaremos visualmente al final para no duplicar 300 líneas de lógica de comparación.
+            }
+
+            // Ind. Local Res
+            const fIndLocalRes = document.getElementById('filter-ind-local-res').value;
+            if (fIndLocalRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_local || !i.ind_local.score) return false;
+                    const cov = getIndCoverStatus(i.ind_local.score, i.ind_local.localia, true, parseFloat(i.candidate.ah_real)) || i.ind_local.cover_status;
+                    let normCov = cov;
+                    if (cov === 'CUBIERTO') normCov = 'COVER';
+                    if (cov === 'NO CUBIERTO') normCov = 'NO_COVER';
+                    return normCov === fIndLocalRes;
+                });
+            }
+
+            // Ind. Visitante Res
+            const fIndVisitanteRes = document.getElementById('filter-ind-visitante-res').value;
+            if (fIndVisitanteRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_visitante || !i.ind_visitante.score) return false;
+                    const cov = getIndCoverStatus(i.ind_visitante.score, i.ind_visitante.localia, false, parseFloat(i.candidate.ah_real)) || i.ind_visitante.cover_status;
+                    let normCov = cov;
+                    if (cov === 'CUBIERTO') normCov = 'COVER';
+                    if (cov === 'NO CUBIERTO') normCov = 'NO_COVER';
+                    return normCov === fIndVisitanteRes;
+                });
+            }
+
+            // Ind. Local Localía (H/A)
+            const fIndLocalLoc = document.getElementById('filter-ind-local-loc').value;
+            if (fIndLocalLoc) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_local || !i.ind_local.localia) return false;
+                    const loc = i.ind_local.localia;
+                    const normLoc = (loc === 'L' || loc === 'H' || loc === 'Local' || loc === 'Home') ? 'H' : 'A';
+                    return normLoc === fIndLocalLoc;
+                });
+            }
+
+            // Ind. Visitante Localía (H/A)
+            const fIndVisitanteLoc = document.getElementById('filter-ind-visitante-loc').value;
+            if (fIndVisitanteLoc) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i.ind_visitante || !i.ind_visitante.localia) return false;
+                    const loc = i.ind_visitante.localia;
+                    const normLoc = (loc === 'L' || loc === 'H' || loc === 'Local' || loc === 'Home') ? 'H' : 'A';
+                    return normLoc === fIndVisitanteLoc;
+                });
+            }
+
+            // Filtro O/U (client-side)
+            const ouFilter = document.getElementById('filter-ou').value;
+            if (ouFilter) {
+                const filterOU = parseFloat(ouFilter);
+                filteredResults = filteredResults.filter(item => {
+                    const ouLine = parseFloat(item.candidate.ou_line);
+                    if (isNaN(ouLine)) return false;
+                    if (filterOU >= 4.0) return ouLine >= 4.0;
+                    else return Math.abs(ouLine - filterOU) <= 0.26;
+                });
+            }
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredResults.slice(start, end);
+            renderTable(pageItems);
+
+            // Filtros visuales (Performance H2H Col3)
+            if (fH2HCol3Cover || fH2HCol3Mirror) {
+                const tbody = document.getElementById('table-body');
+                const rows = tbody.querySelectorAll('tr[data-match_id]');
+                rows.forEach(row => {
+                    let show = true;
+                    if (fH2HCol3Cover && row.dataset.h2h_col3_cover !== fH2HCol3Cover) show = false;
+                    if (fH2HCol3Mirror && row.dataset.h2h_col3_mirror !== fH2HCol3Mirror) show = false;
+
+                    row.style.display = show ? '' : 'none';
+
+                    // Also hide/show the associated stats row (next sibling without data-match_id)
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow && !nextRow.hasAttribute('data-match_id')) {
+                        nextRow.style.display = show ? '' : 'none';
+                    }
+                });
+            }
+
+            renderPaginationControls(filteredResults.length);
+
+            // Reinitialize Bootstrap collapses after rendering
+            reinitBootstrapCollapses();
+        }
+
+        function applyClientFilters() {
+            currentPage = 1;
+            renderTableWithPagination();
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(totalResults.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTableWithPagination();
+        }
+
+        function renderPaginationControls(totalCount) {
+            if (totalCount === undefined) totalCount = totalResults.length;
+            const paginationBar = document.getElementById('pagination-bar');
+            const paginationInfo = document.getElementById('pagination-info');
+            const navTop = document.getElementById('pagination-nav-top');
+            const listaTop = document.getElementById('pagination-lista-top');
+            const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+            // Siempre mostrar la barra si hay resultados
+            if (totalCount > 0) {
+                if (paginationBar) paginationBar.style.cssText = 'display: flex !important;';
+                const start = (currentPage - 1) * itemsPerPage + 1;
+                const end = Math.min(currentPage * itemsPerPage, totalCount);
+                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start} -${end} de ${totalCount} `;
+            } else {
+                if (paginationBar) paginationBar.style.cssText = 'display: none !important;';
+            }
+
+            if (totalPages <= 1) {
+                if (navTop) navTop.classList.add('d-none');
+                return;
+            }
+
+            if (navTop) navTop.classList.remove('d-none');
+
+            listaTop.innerHTML = '';
+
+            // Previous
+            const prevLi = document.createElement('li');
+            prevLi.className = `page - item ${currentPage === 1 ? 'disabled' : ''} `;
+            prevLi.innerHTML = `<a class="page-link" href = "#" onclick = "changePage(${currentPage - 1}); return false;"> Anterior</a> `;
+            listaTop.appendChild(prevLi);
+
+            // Info
+            const infoLi = document.createElement('li');
+            infoLi.className = 'page-item disabled';
+            infoLi.innerHTML = `<span class="page-link"> Pág ${currentPage} /${totalPages}</span> `;
+            listaTop.appendChild(infoLi);
+
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.className = `page - item ${currentPage === totalPages ? 'disabled' : ''} `;
+            nextLi.innerHTML = `<a class="page-link" href = "#" onclick = "changePage(${currentPage + 1}); return false;"> Siguiente</a> `;
+            listaTop.appendChild(nextLi);
+        }
+
+        function renderTable(results) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (!results || results.length === 0) {
+                tbody.innerHTML = `<tr>
+                <td colspan="10" class="text-center py-4">No se encontraron resultados</td>
+    </tr> `;
+                return;
+            }
+
+            const formatAh = (val) => val !== null && val !== undefined ? val : '-';
+
+            // Helper igual a Pre-Cacheo
+            const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+            results.forEach(item => {
+                const c = item.candidate;
+
+                // League & Rank Data
+                const league = c.league || '';
+
+                const hRankVal = (item.home_standings && item.home_standings.ranking && item.home_standings.ranking !== 'N/A') ? item.home_standings.ranking : '';
+                const homeRank = hRankVal ? `[${hRankVal}]` : '';
+
+                const aRankVal = (item.away_standings && item.away_standings.ranking && item.away_standings.ranking !== 'N/A') ? item.away_standings.ranking : '';
+                const awayRank = aRankVal ? `[${aRankVal}]` : '';
+
+                // Stats Helper
+                const fmtStats = (s, type) => {
+                    if (!s) return null;
+                    const p = type === 'total' ? 'total' : 'specific';
+                    const v = s[`${p}_v`];
+                    const e = s[`${p}_e`];
+                    const d = s[`${p}_d`];
+                    if (v === '' || v === undefined || v === 'N/A') return null;
+                    return `${v} -${e} -${d} `;
+                };
+
+                let homeStatsHtml = '';
+                if (item.home_standings) {
+                    const g = fmtStats(item.home_standings, 'total');
+                    const s = fmtStats(item.home_standings, 'specific');
+                    if (g || s) {
+                        homeStatsHtml = `
+            <div class="mt-1 text-muted" style = "font-size: 0.7rem; line-height: 1.1;">
+                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>L: ${s}</div>` : ''}
+                            </div> `;
+                    }
+                }
+
+                let awayStatsHtml = '';
+                if (item.away_standings) {
+                    const g = fmtStats(item.away_standings, 'total');
+                    const s = fmtStats(item.away_standings, 'specific');
+                    if (g || s) {
+                        awayStatsHtml = `
+            <div class="mt-1 text-muted" style = "font-size: 0.7rem; line-height: 1.1;">
+                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>V: ${s}</div>` : ''}
+                            </div> `;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+
+                // Prev Home Cell Logic
+                let prevHomeHtml = '';
+                let prevHomeHasData = false;
+                if (item.prev_home) {
+                    // Check if meaningful data exists
+                    if (isValidValue(item.prev_home.score) || isValidValue(item.prev_home.ah)) {
+                        prevHomeHasData = true;
+                        const currentAh = parseFloat(c.ah_real);
+                        let wdlClass = 'text-dark';
+                        if (!isNaN(currentAh)) {
+                            const localPerspectiveAh = -currentAh;
+                            const coverResult = calculateWDL(item.prev_home.score, localPerspectiveAh, true);
+                            wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-push');
+                        }
+
+                        let rHome = item.prev_home.home_team;
+                        let rAway = item.prev_home.away_team;
+                        if (!rHome || !rAway) {
+                            const parts = (item.prev_home.rival || '').split(' vs ');
+                            if (parts.length > 1) {
+                                rHome = parts[0];
+                                rAway = parts[1];
+                            } else {
+                                rHome = c.home;
+                                rAway = item.prev_home.rival || '';
+                            }
+                        }
+
+                        prevHomeHtml = `
+                        <div class="d-flex flex-column">
+                            ${item.prev_home.date ? `<div class="text-muted" style="font-size: 0.55rem;">${item.prev_home.date}</div>` : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${formatAh(item.prev_home.ah)}</span>
+                                <span class="${wdlClass} fw-bold">${item.prev_home.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
+                            </div>
+                        </div>`;
+                    }
+                }
+
+                // Prev Away Cell Logic
+                let prevAwayHtml = '';
+                let prevAwayHasData = false;
+                if (item.prev_away) {
+                    if (isValidValue(item.prev_away.score) || isValidValue(item.prev_away.ah)) {
+                        prevAwayHasData = true;
+                        const currentAh = parseFloat(c.ah_real);
+                        let wdlClass = 'text-dark';
+                        if (!isNaN(currentAh)) {
+                            const awayPerspectiveAh = currentAh;
+                            const coverResult = calculateWDL(item.prev_away.score, awayPerspectiveAh, false);
+                            wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-push');
+                        }
+
+                        let rHome = item.prev_away.home_team;
+                        let rAway = item.prev_away.away_team;
+                        if (!rHome || !rAway) {
+                            const parts = (item.prev_away.rival || '').split(' vs ');
+                            if (parts.length > 1) {
+                                rHome = parts[0];
+                                rAway = parts[1];
+                            } else {
+                                rHome = item.prev_away.rival || '';
+                                rAway = c.away;
+                            }
+                        }
+
+                        prevAwayHtml = `
+                        <div class="d-flex flex-column">
+                            ${item.prev_away.date ? `<div class="text-muted" style="font-size: 0.55rem;">${item.prev_away.date}</div>` : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${formatAh(item.prev_away.ah)}</span>
+                                <span class="${wdlClass} fw-bold">${item.prev_away.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
+                            </div>
+                        </div>`;
+                    }
+                }
+
+                // --- H2H Estadio with calculated WDL colors ---
+                // --- FT Result Color Logic ---
+                const currentAh = parseFloat(c.ah_real);
+                let ftColor = 'text-dark';
+                let ftRes = '';
+                if (c.score && c.score !== '?:?' && !isNaN(currentAh)) {
+                    ftRes = calculateH2HResult(c.score, currentAh);
+                    if (ftRes === 'COVER') ftColor = 'text-success';
+                    else if (ftRes === 'NO_COVER') ftColor = 'text-danger';
+                    else if (ftRes === 'PUSH') ftColor = 'text-push';
+                }
+
+                // Nota: localEsFavorito no se usa directamente para H2H (usa calculateH2HResult)
+                // pero lo mantenemos consistente: AH > 0 = Local Favorito
+                const localEsFavorito = !isNaN(currentAh) && currentAh > 0;
+
+                let h2hStadiumHtml = '<span class="text-muted">-</span>';
+                let h2hStadiumResAttr = '';
+                if (item.h2h_stadium && ((item.h2h_stadium.movement && item.h2h_stadium.movement !== 'N/A') || (item.h2h_stadium.score && item.h2h_stadium.score !== '?:?'))) {
+                    const st = item.h2h_stadium;
+                    let movColor = 'text-dark';
+                    if (st.score && st.score !== 'N/A' && st.score !== '?:?' && !isNaN(currentAh)) {
+                        const h2hRes = calculateH2HResult(st.score, currentAh);
+                        h2hStadiumResAttr = h2hRes;
+                        movColor = h2hRes === 'COVER' ? 'text-success' : (h2hRes === 'NO_COVER' ? 'text-danger' : 'text-push');
+                    }
+                    h2hStadiumHtml = `
+            <div class="d-flex flex-column">
+                ${st.date ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
+        <div class="fw-bold small ${movColor}">${st.movement}</div>
+                            ${(st.score && st.score !== 'N/A' && st.score !== '?:?') ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.score}</div>` : ''}
+                        </div>
+            `;
+                }
+
+                // --- H2H General with calculated WDL colors ---
+                // NUEVO: Si H2H General es el mismo partido que H2H Estadio, no mostrar
+                let h2hGeneralHtml = '<span class="text-muted">-</span>';
+                let h2hGeneralResAttr = '';
+
+                // Verificar si es el mismo partido que H2H Estadio
+                // Comparamos fecha y score (más fiable que match_id)
+                const stData = item.h2h_stadium;
+                const genData = item.h2h_general;
+                const isSameAsStadium = stData && genData && stData.date === genData.date && stData.score === genData.score;
+
+                if (item.h2h_general && ((item.h2h_general.movement && item.h2h_general.movement !== 'N/A') || (item.h2h_general.score && item.h2h_general.score !== '?:?')) && !isSameAsStadium) {
+                    const gen = item.h2h_general;
+                    let movColor = 'text-dark';
+                    if (gen.score && gen.score !== 'N/A' && gen.score !== '?:?' && !isNaN(currentAh)) {
+                        const h2hRes = calculateH2HResult(gen.score, currentAh, true);
+                        h2hGeneralResAttr = h2hRes;
+                        movColor = h2hRes === 'COVER' ? 'text-success' : (h2hRes === 'NO_COVER' ? 'text-danger' : 'text-push');
+                    }
+                    h2hGeneralHtml = `
+            <div class="d-flex flex-column">
+                ${gen.date ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
+        <div class="fw-bold small ${movColor}">${gen.movement}</div>
+                            ${(gen.score && gen.score !== 'N/A' && gen.score !== '?:?') ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.score}</div>` : ''}
+                        </div>
+            `;
+                }
+
+                // --- H2H Col3 Comparator: MEJORA / IGUALA / EMPEORA ---
+                // REGLAS CORRECTAS:
+                // 1. Favorito: HA <= 0 → VISITANTE, HA > 0 → LOCAL
+                // 2. WDL del favorito: De Prev Home (si LOCAL) o Prev Away (si VISITANTE)
+                // 3. Equipo espejo: El rival del otro equipo (si fav=VISITANTE → rival de Prev Home, si fav=LOCAL → rival de Prev Away)
+                // 4. WDL del espejo: Desde H2H Col3 para ese equipo
+                // 5. Comparación: L=0, D=1, W=2; rank(fav)> rank(espejo) → MEJORA
+
+                const getWDLRank = (scoreStr, isHome) => {
+                    if (!scoreStr || scoreStr === '?:?' || scoreStr === '?-?') return null;
+                    const parts = scoreStr.replace('-', ':').split(':');
+                    if (parts.length !== 2) return null;
+                    const gh = parseInt(parts[0]);
+                    const ga = parseInt(parts[1]);
+                    if (isNaN(gh) || isNaN(ga)) return null;
+
+                    const teamGoals = isHome ? gh : ga;
+                    const oppGoals = isHome ? ga : gh;
+
+                    if (teamGoals > oppGoals) return 2; // W
+                    if (teamGoals === oppGoals) return 1; // D
+                    return 0; // L
+                };
+
+                const currentAhRaw = parseFloat(c.ah_real);
+                const favIsVisitor = currentAhRaw <= 0;
+                const favIsLocal = currentAhRaw > 0;
+
+                let performanceStatus = 'N/A';
+                let favWDL = null;
+                let mirrorWDL = null;
+                let mirrorTeamName = null;
+
+                // 1. Obtener WDL del favorito desde Prev Home o Prev Away
+                if (favIsLocal && item.prev_home && item.prev_home.score) {
+                    // Favorito es LOCAL actual → usar Prev Home (partido previo del Local)
+                    const prevHomeTeam = (item.prev_home.home_team || '').toLowerCase().trim();
+                    const currentHomeTeam = c.home.toLowerCase().trim();
+                    // ¿El local actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevHomeTeam === currentHomeTeam;
+                    favWDL = getWDLRank(item.prev_home.score, favPlayedHome);
+                    // El equipo espejo es el rival del VISITANTE actual (de Prev Away)
+                    if (item.prev_away) {
+                        const prevAwayHome = (item.prev_away.home_team || '').toLowerCase().trim();
+                        const prevAwayAway = (item.prev_away.away_team || '').toLowerCase().trim();
+                        const currentAwayTeam = c.away.toLowerCase().trim();
+                        // El rival es el equipo que NO es el visitante actual
+                        mirrorTeamName = (prevAwayHome === currentAwayTeam) ? prevAwayAway : prevAwayHome;
+                    }
+                } else if (favIsVisitor && item.prev_away && item.prev_away.score) {
+                    // Favorito es VISITANTE actual → usar Prev Away (partido previo del Visitante)
+                    const prevAwayHome = (item.prev_away.home_team || '').toLowerCase().trim();
+                    const prevAwayAway = (item.prev_away.away_team || '').toLowerCase().trim();
+                    const currentAwayTeam = c.away.toLowerCase().trim();
+                    // ¿El visitante actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevAwayHome === currentAwayTeam;
+                    favWDL = getWDLRank(item.prev_away.score, favPlayedHome);
+                    // El equipo espejo es el rival del LOCAL actual (de Prev Home)
+                    if (item.prev_home) {
+                        const prevHomeHome = (item.prev_home.home_team || '').toLowerCase().trim();
+                        const prevHomeAway = (item.prev_home.away_team || '').toLowerCase().trim();
+                        const currentHomeTeam = c.home.toLowerCase().trim();
+                        // El rival es el equipo que NO es el local actual
+                        mirrorTeamName = (prevHomeHome === currentHomeTeam) ? prevHomeAway : prevHomeHome;
+                    }
+                }
+
+                // 2. Obtener WDL del equipo espejo desde H2H Col3
+
+
+                // Pagination Stat
+                let h2hHtml = '';
+                let mirrorCompType = ''; // 'directa' o 'inversa'
+                performanceStatus = '';
+                mirrorWDL = null;
+
+                if (item.h2h_col3) {
+                    const h = item.h2h_col3;
+                    const mirrorScore = isValidValue(h.score) ? h.score : null;
+                    const h2hHome = (h.home_team || '').toLowerCase().trim();
+                    const h2hAway = (h.away_team || '').toLowerCase().trim();
+
+                    // Calcular si es comparación directa o inversa
+                    // DIRECTA: Localías coinciden (mirror HOME en H2H, fav es LOCAL actual)
+                    // INVERSA: Localías NO coinciden (mirror HOME en H2H, fav es VISITANTE actual)
+                    // Para HA negativo (fav es visitante), las etiquetas se invierten
+                    if (mirrorTeamName) {
+                        const mirrorIsHomeInH2H = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAwayInH2H = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        // Determinar tipo base
+                        let baseType = '';
+                        if (mirrorIsHomeInH2H) {
+                            baseType = 'directa'; // Mirror está de local
+                        } else if (mirrorIsAwayInH2H) {
+                            baseType = 'inversa'; // Mirror está de visitante
+                        }
+
+                        // Para HA negativo (favorito visitante), invertir la etiqueta
+                        if (favIsVisitor && baseType) {
+                            mirrorCompType = baseType === 'directa' ? 'inversa' : 'directa';
+                        } else {
+                            mirrorCompType = baseType;
+                        }
+                    }
+
+                    // Solo calcular comparación si tenemos mirrorTeamName
+                    if (mirrorScore && mirrorTeamName) {
+                        // Determinar si el equipo espejo es home o away en H2H Col3
+                        const mirrorIsHome = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAway = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        if (mirrorIsHome) {
+                            mirrorWDL = getWDLRank(mirrorScore, true);
+                        } else if (mirrorIsAway) {
+                            mirrorWDL = getWDLRank(mirrorScore, false);
+                        }
+                    }
+
+                    // 3. Comparar
+                    if (favWDL !== null && mirrorWDL !== null) {
+                        if (favWDL > mirrorWDL) performanceStatus = 'MEJORA';
+                        else if (favWDL === mirrorWDL) performanceStatus = 'IGUALA';
+                        else performanceStatus = 'EMPEORA';
+                    }
+
+                    // SIEMPRE renderizar si hay datos de H2H Col3
+                    if (isValidValue(h.score) || isValidValue(h.ah)) {
+                        const homeT = h.home_team || 'Local';
+                        const awayT = h.away_team || 'Visitante';
+                        const date = h.date ? h.date : '';
+
+                        let statusColor = 'text-muted';
+                        if (performanceStatus === 'MEJORA') statusColor = 'text-success';
+                        else if (performanceStatus === 'EMPEORA') statusColor = 'text-danger';
+                        else if (performanceStatus === 'IGUALA') statusColor = 'text-push';
+
+                        // Mostrar tipo de comparación (directa/inversa)
+                        const mirrorTypeLabel = mirrorCompType === 'directa'
+                            ? '<span class="badge bg-info" style="font-size: 0.55rem;">Directa</span>'
+                            : mirrorCompType === 'inversa'
+                                ? '<span class="badge bg-warning text-dark" style="font-size: 0.55rem;">Inversa</span>'
+                                : '';
+
+                        h2hHtml = `
+            <div class="d-flex flex-column">
+                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">${performanceStatus} ${mirrorTypeLabel}</div>
+                            ${date ? `<div class="text-muted" style="font-size: 0.55rem;">${date}</div>` : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${formatAh(h.ah)}</span>
+                                <span class="fw-bold">${h.score || '-'}</span>
+                            </div>
+                            <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
+                        </div>
+            `;
+                    }
+                }
+
+                // Ind. Local Logic
+                let indLocalHtml = '';
+                let indLocalHasData = false;
+                let indLocalResAttr = '';
+                let indLocalAhAttr = '';
+                if (item.ind_local) {
+                    const l = item.ind_local;
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+
+                    if (ahLine || score) {
+                        indLocalHasData = true;
+                        indLocalAhAttr = ahLine || '';
+
+                        // Cálculo dinámico de Cover
+                        const cov = getIndCoverStatus(score, l.localia, true, currentAh);
+                        indLocalResAttr = cov || '';
+
+                        let resColor = 'text-dark';
+                        if (cov === 'COVER') resColor = 'text-success';
+                        else if (cov === 'NO_COVER') resColor = 'text-danger';
+                        else if (cov === 'PUSH') resColor = 'text-push';
+
+                        indLocalHtml = `
+            <div class="d-flex flex-column">
+                ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
+        <div class="d-flex justify-content-between">
+            <span class="fw-bold small">${ahLine || '-'}</span>
+            <span class="fw-bold ${resColor}">${score || '-'}</span>
+        </div>
+                                ${(l.home_team || l.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${l.home_team || ''} vs ${l.away_team || ''}</div>` : ''}
+                                ${l.localia ? `<div class="mt-1"><span class="badge ${(l.localia === 'L' || l.localia === 'H' || l.localia === 'Local' || l.localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(l.localia === 'L' || l.localia === 'H' || l.localia === 'Local' || l.localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                            </div>
+            `;
+                    }
+                }
+
+                // Ind. Visitante Logic
+                let indVisitanteHtml = '';
+                let indVisitanteHasData = false;
+                let indVisitanteResAttr = '';
+                let indVisitanteAhAttr = '';
+                if (item.ind_visitante) {
+                    const r = item.ind_visitante;
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+
+                    if (ahLine || score) {
+                        indVisitanteHasData = true;
+                        indVisitanteAhAttr = ahLine || '';
+
+                        // Cálculo dinámico de Cover (Perspectiva Visitante -> isSubjectHome=false)
+                        const cov = getIndCoverStatus(score, r.localia, false, currentAh);
+                        indVisitanteResAttr = cov || '';
+
+                        let resColor = 'text-dark';
+                        if (cov === 'COVER') resColor = 'text-success';
+                        else if (cov === 'NO_COVER') resColor = 'text-danger';
+                        else if (cov === 'PUSH') resColor = 'text-push';
+
+                        indVisitanteHtml = `
+            <div class="d-flex flex-column">
+                ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
+        <div class="d-flex justify-content-between">
+            <span class="fw-bold small">${ahLine || '-'}</span>
+            <span class="fw-bold ${resColor}">${score || '-'}</span>
+        </div>
+                                ${(r.home_team || r.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${r.home_team || ''} vs ${r.away_team || ''}</div>` : ''}
+                                ${r.localia ? `<div class="mt-1"><span class="badge ${(r.localia === 'L' || r.localia === 'H' || r.localia === 'Local' || r.localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(r.localia === 'L' || r.localia === 'H' || r.localia === 'Local' || r.localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                            </div>
+            `;
+                    }
+                }
+
+                // --- Stats Logic: Replicado de Pre-Cacheo ---
+                // Helper para crear filas de estadísticas
+                const createStatsRows = (statsData) => {
+                    if (!statsData || statsData.length === 0) return '';
+
+                    return statsData.map(stat => {
+                        // Extraer valores numéricos
+                        const parseVal = (str) => {
+                            if (!str) return 0;
+                            const match = str.toString().match(/(\d+)/);
+                            return match ? parseInt(match[0]) : 0;
+                        };
+                        const hVal = parseVal(stat.home);
+                        const aVal = parseVal(stat.away);
+
+                        // Colores según quién tiene más
+                        let hClass = 'text-dark';
+                        let aClass = 'text-dark';
+                        if (hVal > aVal) {
+                            hClass = 'text-success fw-bold';
+                            aClass = 'text-danger';
+                        } else if (hVal < aVal) {
+                            hClass = 'text-danger';
+                            aClass = 'text-success fw-bold';
+                        }
+
+                        return `
+            <div class="d-flex justify-content-between" style = "font-size: 0.75rem; line-height: 1.4; border-bottom: 1px solid rgba(0,0,0,0.1); padding: 2px 0;">
+                                <span class="${hClass}">${hVal}</span>
+                                <span class="text-muted" style="font-size: 0.65rem;">${stat.label}</span>
+                                <span class="${aClass}">${aVal}</span>
+                            </div>
+            `;
+                    }).join('');
+                };
+
+                // Helper para crear el HTML de una celda de stats completa con colores por grupo
+                const createStatBox = (title, data, isEmpty, colorClass, bgColor) => {
+                    if (isEmpty) {
+                        return `
+            <div style = "background: ${bgColor}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.6;">
+                                <div class="fw-bold ${colorClass} text-uppercase" style="font-size: 0.75rem; margin-bottom: 8px;">${title}</div>
+                                <span class="text-muted" style="font-size: 1rem;">-</span>
+                            </div>
+            `;
+                    }
+
+                    // Info del partido
+                    const matchLine = data.match ? `
+            <div style = "font-size: 0.75rem; margin-bottom: 6px; text-align: center;">
+                            <span class="text-success fw-bold">${data.match.home || ''}</span>
+                            <span class="fw-bold text-dark mx-2" style="font-size: 0.9rem; background: rgba(255,255,255,0.5); padding: 2px 6px; border-radius: 4px;">${data.match.score || ''}</span>
+                            <span class="text-danger fw-bold">${data.match.away || ''}</span>
+                        </div>
+            ` : '';
+
+                    // Fecha
+                    const dateLine = data.date ? `<div class="text-muted text-center" style = "font-size: 0.65rem; margin-bottom: 4px;"> ${data.date}</div> ` : '';
+
+                    // AH
+                    const ahLine = data.ah ? `<div class="text-center" style = "font-size: 0.7rem; margin-bottom: 4px;"> AH: <span class="fw-bold text-dark">${data.ah}</span></div> ` : '';
+
+                    // Stats rows
+                    const statsHtml = data.stats && data.stats.length > 0 ? `
+            <div style = "margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 6px;">
+                ${createStatsRows(data.stats)}
+                        </div>
+            ` : '';
+
+                    return `
+            <div style = "background: ${bgColor}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="fw-bold ${colorClass} text-uppercase text-center" style="font-size: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 6px; margin-bottom: 8px;">${title}</div>
+                            ${matchLine}
+                            ${dateLine}
+                            ${ahLine}
+                            ${statsHtml}
+                        </div>
+            `;
+                };
+
+                // Colores de fondo por grupo
+                const BG_PREV_HOME = '#e8f5e9';   // Verde claro
+                const BG_PREV_AWAY = '#ffebee';   // Rojo claro  
+                const BG_H2H = '#fff8e1';         // Amarillo/naranja claro
+                const BG_IND = '#e3f2fd';         // Azul claro
+
+                // Crear las 5 celdas con colores de fondo por grupo
+                let statBoxes = [];
+
+                // 1. Prev Home
+                let prevHomeStatsData = null;
+                if (item.prev_home && (isValidValue(item.prev_home.score) || isValidValue(item.prev_home.ah))) {
+                    let rHome = item.prev_home.home_team;
+                    let rAway = item.prev_home.away_team;
+                    if (!rHome || !rAway) {
+                        const parts = (item.prev_home.rival || '').split(' vs ');
+                        if (parts.length > 1) {
+                            rHome = parts[0];
+                            rAway = parts[1];
+                        } else {
+                            rHome = c.home;
+                            rAway = item.prev_home.rival || '';
+                        }
+                    }
+                    prevHomeStatsData = {
+                        match: { home: rHome || '', away: rAway || '', score: item.prev_home.score || '' },
+                        date: item.prev_home.date || '',
+                        ah: item.prev_home.ah || '',
+                        stats: item.prev_home.stats_rows || item.prev_home.stats || []
+                    };
+                }
+                statBoxes.push(createStatBox('Prev Home', prevHomeStatsData, !prevHomeStatsData, 'text-success', BG_PREV_HOME));
+
+                // 2. Prev Away
+                let prevAwayStatsData = null;
+                if (item.prev_away && (isValidValue(item.prev_away.score) || isValidValue(item.prev_away.ah))) {
+                    let rHome = item.prev_away.home_team;
+                    let rAway = item.prev_away.away_team;
+                    if (!rHome || !rAway) {
+                        const parts = (item.prev_away.rival || '').split(' vs ');
+                        if (parts.length > 1) {
+                            rHome = parts[0];
+                            rAway = parts[1];
+                        } else {
+                            rHome = item.prev_away.rival || '';
+                            rAway = c.away;
+                        }
+                    }
+                    prevAwayStatsData = {
+                        match: { home: rHome || '', away: rAway || '', score: item.prev_away.score || '' },
+                        date: item.prev_away.date || '',
+                        ah: item.prev_away.ah || '',
+                        stats: item.prev_away.stats_rows || item.prev_away.stats || []
+                    };
+                }
+                statBoxes.push(createStatBox('Prev Away', prevAwayStatsData, !prevAwayStatsData, 'text-danger', BG_PREV_AWAY));
+
+                // 3. H2H Col3
+                let h2hCol3StatsData = null;
+                if (item.h2h_col3 && (isValidValue(item.h2h_col3.score) || isValidValue(item.h2h_col3.ah))) {
+                    h2hCol3StatsData = {
+                        match: { home: item.h2h_col3.home_team || '', away: item.h2h_col3.away_team || '', score: item.h2h_col3.score || '' },
+                        date: item.h2h_col3.date || '',
+                        ah: item.h2h_col3.ah || '',
+                        stats: item.h2h_col3.stats_rows || item.h2h_col3.stats || []
+                    };
+                }
+                statBoxes.push(createStatBox('H2H Col3', h2hCol3StatsData, !h2hCol3StatsData, 'text-warning', BG_H2H));
+
+                // 4. Ind. Local
+                let indLocalStatsData = null;
+                if (item.ind_local) {
+                    const l = item.ind_local;
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+                    if (ahLine || score) {
+                        indLocalStatsData = {
+                            match: { home: l.home_team || '', away: l.away_team || '', score: score || '' },
+                            date: l.date || '',
+                            ah: ahLine || '',
+                            stats: l.stats_rows || l.stats || []
+                        };
+                    }
+                }
+                statBoxes.push(createStatBox('Ind. Local', indLocalStatsData, !indLocalStatsData, 'text-info', BG_IND));
+
+                // 5. Ind. Visitante
+                let indVisitanteStatsData = null;
+                if (item.ind_visitante) {
+                    const r = item.ind_visitante;
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+                    if (ahLine || score) {
+                        indVisitanteStatsData = {
+                            match: { home: r.home_team || '', away: r.away_team || '', score: score || '' },
+                            date: r.date || '',
+                            ah: ahLine || '',
+                            stats: r.stats_rows || r.stats || []
+                        };
+                    }
+                }
+                statBoxes.push(createStatBox('Ind. Visitante', indVisitanteStatsData, !indVisitanteStatsData, 'text-info', BG_IND));
+
+                // Siempre crear el botón y el contenido (5 celdas fijas)
+                let globalStatsBtn = '';
+                let globalStatsId = '';
+                let globalStatsHtmlContent = '';
+
+                globalStatsId = `global-stats-${item.match_id || c.match_id}`;
+                globalStatsBtn = `
+            <button class="btn btn-outline-success btn-sm p-0 d-flex align-items-center justify-content-center"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#${globalStatsId}"
+        style="width: 22px; height: 22px; border-radius: 50%;"
+        title="Ver Estadísticas">
+            <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
+                    </button>
+            `;
+
+
+                // Crear el HTML de la fila horizontal con las 5 celdas - 100% ancho
+                globalStatsHtmlContent = `
+            <div class="d-flex gap-2 w-100" style = "padding: 8px 0;">
+                ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
+                    </div>
+            `;
+
+                // Asignar el atributo de datos DESPUÉS de calcular performanceStatus
+                tr.dataset.h2h_col3_cover = performanceStatus;
+                tr.dataset.h2h_col3_mirror = mirrorCompType;
+                tr.dataset.h2h_stadium_mov = item.h2h_stadium ? item.h2h_stadium.movement : '';
+                tr.dataset.h2h_stadium_res = h2hStadiumResAttr;
+                tr.dataset.h2h_general_mov = item.h2h_general ? item.h2h_general.movement : '';
+                tr.dataset.h2h_general_res = h2hGeneralResAttr;
+                tr.dataset.ind_local_ah = indLocalAhAttr;
+                tr.dataset.ind_local_res = indLocalResAttr;
+                tr.dataset.ind_visitante_ah = indVisitanteAhAttr;
+                tr.dataset.ind_visitante_res = indVisitanteResAttr;
+                tr.dataset.match_id = item.match_id;
+                tr.dataset.handicap = c.ah_real || '';
+                tr.dataset.ou = c.ou_line || '';
+                tr.dataset.ft_res = ftRes;
+                tr.dataset.prev_home_ah = item.prev_home ? item.prev_home.ah : '';
+                tr.dataset.prev_home_wdl = item.prev_home ? item.prev_home.wdl : '';
+                tr.dataset.prev_away_ah = item.prev_away ? item.prev_away.ah : '';
+                tr.dataset.prev_away_wdl = item.prev_away ? item.prev_away.wdl : '';
+
+                tr.innerHTML = `
+            <td class="text-center text-muted small">
+                <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted"
+                    title="Abrir en Estudio">
+                    ${c.date}
+                </a>
+        ${league ? `<div class="mt-1 small text-muted text-truncate" style="font-size: 0.65rem; max-width: 90px;" title="${league}">${league}</div>` : ''}
+    </td>
+    <td class="col-team text-primary small" style="font-size: 0.8rem;">
+        <div>${c.home}</div>
+        ${homeRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${homeRank}</div>` : ''}
+        ${homeStatsHtml}
+    </td>
+    <td class="col-team text-danger small" style="font-size: 0.8rem;">
+        <div>${c.away}</div>
+        ${awayRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${awayRank}</div>` : ''}
+        ${awayStatsHtml}
+    </td>
+    <td class="col-ah">
+        ${formatAh(c.ah_real)}
+        ${c.ou_line ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${c.ou_line}</div>` : ''}
+    </td>
+    <td class="col-res bg-light ${ftColor} fw-bold">${c.score}</td>
+    
+    <!-- Prev Home -->
+    <td class="col-prev ${!prevHomeHasData ? 'cell-no-data' : ''}">${prevHomeHtml}</td>
+
+    <!--Prev Away-->
+    <td class="col-prev ${!prevAwayHasData ? 'cell-no-data' : ''}">${prevAwayHtml}</td>
+    
+    <!--H2H Estadio-->
+    <td class="col-prev text-center">${h2hStadiumHtml}</td>
+    <!--H2H General-->
+    <td class="col-prev text-center">${h2hGeneralHtml}</td>
+
+    <!--H2H Col3(Always Pink)-->
+    <td class="col-prev col-h2h-col3 text-center">${h2hHtml}</td>
+    
+    <!--Ind.Local -->
+    <td class="col-prev ${!indLocalHasData ? 'cell-no-data' : ''}">${indLocalHtml}</td>
+    
+    <!--Ind.Visitante -->
+    <td class="col-prev ${!indVisitanteHasData ? 'cell-no-data' : ''}">${indVisitanteHtml}</td>
+    
+    <!--Acciones / Stats-->
+            <td class="text-center">
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    ${globalStatsBtn}
+                    <a href="/estudio/${item.match_id}" class="btn btn-sm btn-link text-secondary p-0" title="Ver Estudio Completo" target="_blank"><i class="fa-solid fa-external-link-alt" style="font-size: 10px;"></i></a>
+                    <button class="btn btn-sm btn-link text-danger p-0 ms-1" title="Eliminar Partido" onclick="confirmDeleteMatch('${item.match_id}', '${c.ah_real}', this)">
+                        <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+                tbody.appendChild(tr);
+
+                // Añadir fila de collapse para stats globales - siempre visible con botón
+                if (globalStatsId && globalStatsHtmlContent) {
+                    const collapseTr = document.createElement('tr');
+                    collapseTr.innerHTML = `
+            <td colspan = "14" class="p-0">
+                <div class="collapse" id="${globalStatsId}">
+                    <div class="py-2 px-2" style="background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa); border-top: 1px solid #dee2e6;">
+                        ${globalStatsHtmlContent}
+                    </div>
+                </div>
+                        </td>
+            `;
+                    tbody.appendChild(collapseTr);
+                }
+            });
+        }
+
+        // Reinitialize Bootstrap collapses after rendering table
+        // This ensures the "Ver Estadísticas" button works correctly after filtering
+        function reinitBootstrapCollapses() {
+            // Wait a small delay to ensure DOM is updated
+            setTimeout(() => {
+                // Get all collapse elements
+                const collapseElements = document.querySelectorAll('.collapse');
+                collapseElements.forEach(el => {
+                    // Dispose existing collapse instance if any
+                    const existingInstance = bootstrap.Collapse.getInstance(el);
+                    if (existingInstance) {
+                        existingInstance.dispose();
+                    }
+                    // Create new collapse instance
+                    new bootstrap.Collapse(el, { toggle: false });
+                });
+
+                // Also ensure buttons have correct data-bs-toggle
+                const btns = document.querySelectorAll('[data-bs-toggle="collapse"]');
+                btns.forEach(btn => {
+                    const targetId = btn.getAttribute('data-bs-target');
+                    if (targetId) {
+                        // Remove any existing click handlers and add a new one
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                    }
+                });
+            }, 100);
+        }
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        // Enter key on inputs triggers search
+        document.querySelectorAll('.header-filter').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    triggerSearch();
+                }
+            });
+            // La búsqueda automática al cambiar SELECT ha sido eliminada por petición del usuario
+        });
+
+        // Mobile Menu Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileToggle = document.getElementById('mobile-menu-toggle');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const sidebar = document.querySelector('.sidebar');
+
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    const icon = mobileToggle.querySelector('i');
+                    if (sidebar.classList.contains('active')) {
+                        icon.classList.replace('fa-bars', 'fa-xmark');
+                    } else {
+                        icon.classList.replace('fa-xmark', 'fa-bars');
+                    }
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    mobileToggle.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+                });
+            }
+        });
+        // Match re-analysis logic is handled via API
+        function loadPendingMatches() {
+            const tbody = document.getElementById('pending-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando...</td></tr>';
+
+            fetch('/api/pending_matches')
+                .then(res => res.json())
+                .then(data => {
+                    renderPendingTable(data.matches || []);
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr> <td colspan="5" class="text-danger text-center">Error: ${err.message}</td></tr> `;
+                });
+        }
+
+        function renderPendingTable(matches) {
+            const tbody = document.getElementById('pending-table-body');
+            if (matches.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay partidos pendientes.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            matches.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+            <td> ${m.match_date || m.date || '-'}</td>
+                    <td>${m.home_team || m.home_name}</td>
+                    <td>${m.away_team || m.away_name}</td>
+                    <td class="fw-bold text-center">${m.score || m.final_score || '??'}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary" onclick="reanalyzeMatch('${m.match_id}', this)">
+                            <i class="fa-solid fa-rotate"></i> Re-scan
+                        </button>
+                    </td>
+        `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function reanalyzeMatch(matchId, btn) {
+            if (!confirm('¿Re-analizar este partido para buscar resultado final?')) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            fetch('/api/reanalyze_pending', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                    } else {
+                        if (data.result_found) {
+                            alert(`¡Actualizado! Nuevo resultado: ${data.match.score}`);
+                            // Reload list
+                            loadPendingMatches();
+                        } else {
+                            alert('Aún no hay resultado final disponible.');
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                        }
+                    }
+                })
+                .catch(err => {
+                    alert('Error de red: ' + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Re-scan';
+                });
+        }
+
+        function confirmDeleteMatch(matchId, ah, btn) {
+            if (!confirm('¿Estás seguro de que deseas eliminar este partido de la base de datos? Esta acción no se puede deshacer.')) return;
+
+            const icon = btn.querySelector('i');
+            const originalIcon = icon.className;
+            icon.className = 'fa-solid fa-spinner fa-spin';
+            btn.disabled = true;
+
+            fetch('/api/delete_match', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId, ah: ah })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Eliminar la fila de la tabla
+                        const row = btn.closest('tr');
+                        // Si hay una fila de stats (está justo después en el DOM)
+                        const nextRow = row.nextElementSibling;
+                        if (nextRow && nextRow.querySelector('.collapse')) {
+                            nextRow.remove();
+                        }
+                        row.remove();
+
+                        alert('Partido eliminado correctamente.');
+                    } else {
+                        alert('Error: ' + data.error);
+                        icon.className = originalIcon;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    alert('Error de red: ' + err.message);
+                    icon.className = originalIcon;
+                    btn.disabled = false;
+                });
+        }
+        // --- MultiSelect Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init other stuff
+            if (typeof loadLigasFavoritas === 'function') loadLigasFavoritas();
+
+            // Simplified AH Options - Buckets:
+            // 0.5 includes 0.25, 0.5, 0.75
+            // 1.5 includes 1.25, 1.5, 1.75
+            // 2.5+ includes 2.25 and higher
+            const ahOptions = [
+                { value: '0', label: '0' },
+                { value: '0.5', label: '+0.5' },
+                { value: '-0.5', label: '-0.5' },
+                { value: '1', label: '+1.0' },
+                { value: '-1', label: '-1.0' },
+                { value: '1.5', label: '+1.5' },
+                { value: '-1.5', label: '-1.5' },
+                { value: '2', label: '+2.0' },
+                { value: '-2', label: '-2.0' },
+                { value: '2.5', label: '+2.5+' },
+                { value: '-2.5', label: '-2.5-' }
+            ];
+
+            // Initialize Static MultiSelects
+            // Callback is renderTableWithPagination to refresh client-side filtering on change
+            msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', renderTableWithPagination);
+            msPrevHomeAh = new MultiSelect('container-filter-prev-home-ah', ahOptions, 'AH', renderTableWithPagination);
+            msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', renderTableWithPagination);
+            msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', renderTableWithPagination);
+            msIndVisitanteAh = new MultiSelect('container-filter-ind-visitante-ah', ahOptions, 'AH', renderTableWithPagination);
+
+            // Init H2H Col3 with same simplified options
+            msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', renderTableWithPagination);
+
+            // Si llegamos con parámetros desde "Buscar patrones similares", precargar filtros y lanzar búsqueda.
+            applyExplorerUrlPresetFilters();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

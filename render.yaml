@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: nowgoal-app
+    runtime: python
+    plan: free
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 wsgi:app
+    healthCheckPath: /precacheo
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.10"
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DATA_LEGACY_SYNC
+        value: "0"
+      - key: SQL_BOOTSTRAP_MODE
+        value: "none"
+      - key: APP_SQLITE_PATH
+        value: "/tmp/app_data.db"
+      - key: APP_SQLITE_BOOTSTRAP_LOCK
+        value: "/tmp/app_data_bootstrap.lock"
+      - key: EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS
+        value: "300"
+      - key: LIBSQL_SYNC_INTERVAL_SECONDS
+        value: "60"
+      - key: LIBSQL_URL
+        sync: false
+      - key: LIBSQL_AUTH_TOKEN
+        sync: false
+      - key: EXPLORER_CACHE_TTL_SECONDS
+        value: "60"
+      - key: GROQ_API_KEY
+        sync: false

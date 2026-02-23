@@ -1,0 +1,40 @@
+# Sistema de Minería de Reglas Ganadoras
+
+Se ha creado un sistema automatizado que analiza datos históricos para encontrar patrones de apuestas con ROI real >= 20%.
+
+## Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| [mine_winning_rules.py](file:///c:/Users/Usuario/Desktop/Version_Util_Render/scripts/mine_winning_rules.py) | Script de minería de reglas |
+| [apply_mined_rules.py](file:///c:/Users/Usuario/Desktop/Version_Util_Render/scripts/apply_mined_rules.py) | Aplicador de reglas para Precacheo |
+| [mined_rules.json](file:///c:/Users/Usuario/Desktop/Version_Util_Render/data/mined_rules.json) | 200 reglas generadas |
+
+## Configuración
+
+- **ROI mínimo**: 20% (calculado con cuotas 1.85)
+- **Muestras mínimas**: 30 partidos
+- **Total reglas**: 200
+
+## Top 10 Reglas Generadas
+
+| # | Regla | ROI | Win Rate | n |
+|---|-------|-----|----------|---|
+| 1 | [L] H2H-Gen-Push Mov-Est↑ Mov-Gen↑ | 67.3% | 85% | 40 |
+| 2 | [L] Mov-Est↑ +Fav DA++ | 66.2% | 86.5% | 96 |
+| 3 | [L] H2H-Gen-X Mov-Est↑ +Fav | 65.4% | 87% | 200 |
+| 4 | [L] H2H-Est-OK H2H-Gen-X Mov-Est↑ | 65.2% | 87% | 69 |
+| 5 | [L] H2H-Est-X Mov-Est↑ +Fav | 65.0% | 87% | 215 |
+
+## Lógica de Handicap
+
+- **AH > 0** (ej: +0.5, +1.5): **LOCAL** es favorito
+- **AH < 0** (ej: -0.5, -1.5): **VISITANTE** es favorito
+
+## Integración en Precacheo
+
+Los picks ahora aparecen automáticamente en la columna **Pick** de la vista Precacheo, mostrando:
+- Nombre de la regla
+- Probabilidad (win rate)
+- ROI histórico
+- Número de muestras

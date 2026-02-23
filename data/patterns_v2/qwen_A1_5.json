@@ -1,0 +1,166 @@
+{
+  "meta": {
+    "system": "Qwen",
+    "version": "9.0",
+    "family": "A1_5",
+    "logic": "exhaustive_search",
+    "total_patterns": 7,
+    "generated_at": "2026-01-09T20:29:36.008938"
+  },
+  "patterns": [
+    {
+      "name": "Qwen A1_5 [TRIANG_Home_Dom+H2H_Over_Line] (ROI=70%/60%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "TRIANG_Home_Dom",
+        "H2H_Over_Line"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.7,
+        "win_rate": 1.0
+      },
+      "test": {
+        "n": 2,
+        "roi": 0.6,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [IND_Market_Home+CTX_Home_Top] (ROI=36%/80%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "IND_Market_Home",
+        "CTX_Home_Top"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.36,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 1,
+        "roi": 0.8,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [IND_Market_Home+home_top5] (ROI=36%/80%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "IND_Market_Home",
+        "home_top5"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.36,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 1,
+        "roi": 0.8,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [CTX_Home_Top+has_indirectas] (ROI=36%/80%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "CTX_Home_Top",
+        "has_indirectas"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.36,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 1,
+        "roi": 0.8,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [home_top5+has_indirectas] (ROI=36%/80%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "home_top5",
+        "has_indirectas"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.36,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 1,
+        "roi": 0.8,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [IND_Strong_DA+H2H_Over_Line] (ROI=43%/60%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "IND_Strong_DA",
+        "H2H_Over_Line"
+      ],
+      "train": {
+        "n": 6,
+        "roi": 0.433,
+        "win_rate": 0.833
+      },
+      "test": {
+        "n": 2,
+        "roi": 0.6,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A1_5 [H2H_Driver_Failed+TRIANG_Away_Weak] (ROI=61%/15%T) Underdog",
+      "target": "HOME",
+      "perspective": "Underdog",
+      "family": "A1_5",
+      "conditions": [
+        "H2H_Driver_Failed",
+        "TRIANG_Away_Weak"
+      ],
+      "train": {
+        "n": 7,
+        "roi": 0.614,
+        "win_rate": 0.857
+      },
+      "test": {
+        "n": 4,
+        "roi": 0.15,
+        "win_rate": 0.75
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    }
+  ]
+}

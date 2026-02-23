@@ -1,0 +1,6197 @@
+[
+  {
+    "id": "OU_PTN_001",
+    "name": "DA_Total<60 + SOT_Total<5 (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_002",
+    "name": "DA_Total<70 + DA_Total<60 + SOT_Total<5 (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_003",
+    "name": "DA_Total<60 + SOT_Total<5 + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_004",
+    "name": "DA_Total<60 + SOT_Total<5 + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_005",
+    "name": "DA_Total<60 + SOT_Total<5 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_006",
+    "name": "DA_Total<70 + DA_Total<60 + SOT_Total<5 + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_007",
+    "name": "DA_Total<70 + DA_Total<60 + SOT_Total<5 + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_008",
+    "name": "DA_Total<70 + DA_Total<60 + SOT_Total<5 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_009",
+    "name": "DA_Total<60 + SOT_Total<5 + Ind_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_010",
+    "name": "DA_Total<60 + SOT_Total<5 + Ind_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_011",
+    "name": "DA_Total<60 + SOT_Total<5 + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 48.33,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_012",
+    "name": "DA_Total>100 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_013",
+    "name": "DA_Total>100 + DA_Total>80 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_014",
+    "name": "DA_Total>100 + SOT_Total<5 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_015",
+    "name": "DA_Total>100 + SOT_Total<4 + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_016",
+    "name": "DA_Total>100 + SOT_Total<4 + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_017",
+    "name": "DA_Total>100 + SOT_Total<4 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 43.06,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_018",
+    "name": "DA_Total<70 + SOT_Total<4 (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_019",
+    "name": "DA_Total<70 + SOT_Total<5 + SOT_Total<4 (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_020",
+    "name": "DA_Total<70 + SOT_Total<4 + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_021",
+    "name": "DA_Total<70 + SOT_Total<4 + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_022",
+    "name": "DA_Total<70 + SOT_Total<4 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_023",
+    "name": "DA_Total<70 + SOT_Total<5 + SOT_Total<4 + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_024",
+    "name": "DA_Total<70 + SOT_Total<5 + SOT_Total<4 + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_025",
+    "name": "DA_Total<70 + SOT_Total<5 + SOT_Total<4 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_026",
+    "name": "DA_Total<70 + SOT_Total<4 + Ind_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_027",
+    "name": "DA_Total<70 + SOT_Total<4 + Ind_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_028",
+    "name": "DA_Total<70 + SOT_Total<4 + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 41.19,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_029",
+    "name": "SOT_Total>8 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_030",
+    "name": "SOT_Total>8 + Ind_Y + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_031",
+    "name": "SOT_Total>8 + Trend_Under + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_032",
+    "name": "SOT_Total>8 + DA_Diff_V>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_033",
+    "name": "SOT_Total>8 + Ind_Y + Trend_Under + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_034",
+    "name": "SOT_Total>8 + Ind_Y + DA_Diff_V>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_035",
+    "name": "SOT_Total>8 + Trend_Under + DA_Diff_V>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 36.96,
+    "samples": 23,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_036",
+    "name": "DA_Total>100 + SOT_Total<5 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_037",
+    "name": "SOT_Total<4 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_038",
+    "name": "SOT_Total<5 + SOT_Total<4 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_039",
+    "name": "SOT_Total<4 + Ind_Y + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_040",
+    "name": "SOT_Total<4 + Col3_Y + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_041",
+    "name": "SOT_Total<4 + Col3_Y + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.43,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_042",
+    "name": "DA_Total<60 + Fav_Local (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_043",
+    "name": "DA_Total<70 + DA_Total<60 + Fav_Local (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_044",
+    "name": "DA_Total<60 + Fav_Local + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_045",
+    "name": "DA_Total<60 + Fav_Local + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_046",
+    "name": "DA_Total<60 + Fav_Local + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_047",
+    "name": "DA_Total<70 + DA_Total<60 + Fav_Local + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_048",
+    "name": "DA_Total<70 + DA_Total<60 + Fav_Local + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_049",
+    "name": "DA_Total<70 + DA_Total<60 + Fav_Local + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_050",
+    "name": "DA_Total<60 + Fav_Local + Ind_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_051",
+    "name": "DA_Total<60 + Fav_Local + Ind_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_052",
+    "name": "DA_Total<60 + Fav_Local + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 36.25,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_053",
+    "name": "Col3_Y + AH_0 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 34.05,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_054",
+    "name": "Fav_Visita + Col3_Y + AH_0 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 34.05,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_055",
+    "name": "Ind_Y + Col3_Y + AH_0 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 34.05,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_056",
+    "name": "Col3_Y + Trend_Under + AH_0 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 34.05,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_057",
+    "name": "Col3_Y + AH_0 + DA_Diff_V>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 34.05,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_058",
+    "name": "DA_Total<60 + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_059",
+    "name": "DA_Total<70 + DA_Total<60 + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_060",
+    "name": "DA_Total<60 + Ind_Y + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_061",
+    "name": "DA_Total<60 + Col3_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_062",
+    "name": "DA_Total<60 + Col3_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_063",
+    "name": "DA_Total<70 + DA_Total<60 + Ind_Y + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_064",
+    "name": "DA_Total<70 + DA_Total<60 + Col3_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_065",
+    "name": "DA_Total<70 + DA_Total<60 + Col3_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_066",
+    "name": "DA_Total<60 + Ind_Y + Col3_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_067",
+    "name": "DA_Total<60 + Ind_Y + Col3_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_068",
+    "name": "DA_Total<60 + Col3_Y + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 33.2,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        60
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_069",
+    "name": "SOT_Total<4 + Fav_Visita + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_070",
+    "name": "DA_Total>80 + SOT_Total<4 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_071",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Visita + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_072",
+    "name": "SOT_Total<4 + Fav_Visita + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_073",
+    "name": "SOT_Total<4 + Fav_Visita + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_074",
+    "name": "SOT_Total<4 + Fav_Visita + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.5,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_075",
+    "name": "DA_Total>80 + SOT_Total>8 + Col3_Y + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 32.22,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_076",
+    "name": "SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_077",
+    "name": "SOT_Total<5 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_078",
+    "name": "SOT_Total<4 + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_079",
+    "name": "SOT_Total<4 + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_080",
+    "name": "SOT_Total<4 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_081",
+    "name": "SOT_Total<5 + SOT_Total<4 + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_082",
+    "name": "SOT_Total<5 + SOT_Total<4 + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_083",
+    "name": "SOT_Total<5 + SOT_Total<4 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_084",
+    "name": "SOT_Total<4 + Ind_Y + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_085",
+    "name": "SOT_Total<4 + Ind_Y + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_086",
+    "name": "SOT_Total<4 + Trend_Under + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.81,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_087",
+    "name": "Col3_Y + DA_Diff_V>20 + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 30.75,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_088",
+    "name": "Ind_Y + Col3_Y + DA_Diff_V>20 + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 30.75,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_089",
+    "name": "Col3_Y + Trend_Under + DA_Diff_V>20 + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 30.75,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_090",
+    "name": "Col3_Y + DA_Diff_V>20 + DA_Ratio_V>2 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 30.75,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_091",
+    "name": "SOT_Total<5 + AH_0 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.0,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_092",
+    "name": "SOT_Total<5 + Fav_Visita + AH_0 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.0,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_093",
+    "name": "SOT_Total<5 + Ind_Y + AH_0 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.0,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_094",
+    "name": "SOT_Total<5 + Trend_Under + AH_0 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.0,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_095",
+    "name": "SOT_Total<5 + AH_0 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 30.0,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_096",
+    "name": "SOT_Total>8 + Fav_Visita + DA_Diff_H>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.44,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_097",
+    "name": "SOT_Total>8 + Fav_Visita + Ind_Y + DA_Diff_H>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.44,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_098",
+    "name": "SOT_Total>8 + Fav_Visita + Trend_Under + DA_Diff_H>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.44,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_099",
+    "name": "SOT_Total>8 + Fav_Visita + DA_Diff_H>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 29.44,
+    "samples": 18,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_100",
+    "name": "DA_Total>80 + SOT_Total>8 + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.0,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_101",
+    "name": "DA_Total>80 + SOT_Total>8 + Ind_Y + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.0,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_102",
+    "name": "DA_Total>80 + SOT_Total>8 + Trend_Under + DA_Diff_V>20 (OVER)",
+    "pick": "OVER",
+    "roi": 29.0,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_103",
+    "name": "DA_Total>80 + SOT_Total>8 + DA_Diff_V>20 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 29.0,
+    "samples": 20,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_104",
+    "name": "SOT_Total<4 + Fav_Local + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.85,
+    "samples": 39,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_105",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Local + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.85,
+    "samples": 39,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_106",
+    "name": "SOT_Total<4 + Fav_Local + Ind_Y + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.85,
+    "samples": 39,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_107",
+    "name": "SOT_Total<4 + Fav_Local + Col3_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.85,
+    "samples": 39,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_108",
+    "name": "SOT_Total<4 + Fav_Local + Col3_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.85,
+    "samples": 39,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_109",
+    "name": "DA_Total>80 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.27,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_110",
+    "name": "DA_Total>80 + SOT_Total<5 + SOT_Total<4 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.27,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_111",
+    "name": "DA_Total>80 + SOT_Total<4 + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.27,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_112",
+    "name": "DA_Total>80 + SOT_Total<4 + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.27,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_113",
+    "name": "DA_Total>80 + SOT_Total<4 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 28.27,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_114",
+    "name": "DA_Total>80 + SOT_Total>8 + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.95,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_115",
+    "name": "DA_Total>80 + SOT_Total>8 + Fav_Visita + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.95,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_116",
+    "name": "DA_Total>80 + SOT_Total>8 + Ind_Y + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.95,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_117",
+    "name": "DA_Total>80 + SOT_Total>8 + Trend_Under + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.95,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_118",
+    "name": "DA_Total>80 + SOT_Total>8 + AH_0 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.95,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        ">",
+        8
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_119",
+    "name": "DA_Total>80 + Fav_Visita + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.5,
+    "samples": 30,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_120",
+    "name": "DA_Total>80 + Fav_Visita + Ind_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.5,
+    "samples": 30,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_121",
+    "name": "DA_Total>80 + Fav_Visita + Trend_Under + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.5,
+    "samples": 30,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_122",
+    "name": "DA_Total>80 + Fav_Visita + SOT_Diff_V>3 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.5,
+    "samples": 30,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_123",
+    "name": "DA_Total>80 + SOT_Total<5 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 27.22,
+    "samples": 27,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_124",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.88,
+    "samples": 72,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_125",
+    "name": "DA_Total>100 + DA_Total>80 + SOT_Total<5 + Fav_Visita (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.88,
+    "samples": 72,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_126",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.88,
+    "samples": 72,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_127",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.88,
+    "samples": 72,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_128",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.88,
+    "samples": 72,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_129",
+    "name": "DA_Total>80 + SOT_Total<5 + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.51,
+    "samples": 43,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_130",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.51,
+    "samples": 43,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_131",
+    "name": "DA_Total>80 + SOT_Total<5 + Ind_Y + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.51,
+    "samples": 43,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_132",
+    "name": "DA_Total>80 + SOT_Total<5 + Trend_Under + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.51,
+    "samples": 43,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_133",
+    "name": "DA_Total>80 + SOT_Total<5 + AH_0 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.51,
+    "samples": 43,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_134",
+    "name": "SOT_Total<5 + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.29,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_135",
+    "name": "SOT_Total<5 + Ind_Y + Col3_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.29,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_136",
+    "name": "SOT_Total<5 + Col3_Y + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.29,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_137",
+    "name": "SOT_Total<5 + Col3_Y + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 26.29,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_138",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 25.96,
+    "samples": 52,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_139",
+    "name": "DA_Total>80 + Fav_Visita + Col3_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 25.91,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_140",
+    "name": "DA_Total>100 + SOT_Total<4 + Fav_Local + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 25.58,
+    "samples": 26,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_141",
+    "name": "DA_Total>100 + SOT_Total<5 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.82,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_142",
+    "name": "DA_Total>100 + DA_Total>80 + SOT_Total<5 + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.82,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_143",
+    "name": "DA_Total>100 + SOT_Total<5 + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.82,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_144",
+    "name": "DA_Total>100 + SOT_Total<5 + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.82,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_145",
+    "name": "DA_Total>100 + SOT_Total<5 + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.82,
+    "samples": 28,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_146",
+    "name": "SOT_Total<4 + Fav_Local (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_147",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Local (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_148",
+    "name": "SOT_Total<4 + Fav_Local + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_149",
+    "name": "SOT_Total<4 + Fav_Local + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_150",
+    "name": "SOT_Total<4 + Fav_Local + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_151",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Local + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_152",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Local + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_153",
+    "name": "SOT_Total<5 + SOT_Total<4 + Fav_Local + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_154",
+    "name": "SOT_Total<4 + Fav_Local + Ind_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_155",
+    "name": "SOT_Total<4 + Fav_Local + Ind_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_156",
+    "name": "SOT_Total<4 + Fav_Local + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.77,
+    "samples": 66,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_157",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.66,
+    "samples": 87,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_158",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.66,
+    "samples": 87,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_159",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.66,
+    "samples": 87,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_160",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.66,
+    "samples": 87,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_161",
+    "name": "Col3_Y + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_162",
+    "name": "Ind_Y + Col3_Y + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_163",
+    "name": "Col3_Y + Trend_Under + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_164",
+    "name": "Col3_Y + DA_Ratio_V>2 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_165",
+    "name": "Ind_Y + Col3_Y + Trend_Under + DA_Ratio_V>2 (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_166",
+    "name": "Ind_Y + Col3_Y + DA_Ratio_V>2 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_167",
+    "name": "Col3_Y + Trend_Under + DA_Ratio_V>2 + Trend_Low_Under (OVER)",
+    "pick": "OVER",
+    "roi": 24.52,
+    "samples": 21,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_ratio_v",
+        ">",
+        2
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_168",
+    "name": "DA_Total>100 + Fav_Visita + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.09,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_169",
+    "name": "DA_Total>100 + DA_Total>80 + Fav_Visita + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.09,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_170",
+    "name": "DA_Total>100 + Fav_Visita + Ind_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.09,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_171",
+    "name": "DA_Total>100 + Fav_Visita + Trend_Under + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.09,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_172",
+    "name": "DA_Total>100 + Fav_Visita + SOT_Diff_V>3 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.09,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_173",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 24.03,
+    "samples": 62,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_174",
+    "name": "DA_Total>80 + SOT_Total<4 + Fav_Local + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.71,
+    "samples": 31,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_175",
+    "name": "DA_Total<70 + SOT_Total<5 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_176",
+    "name": "DA_Total<70 + SOT_Total<5 + Ind_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_177",
+    "name": "DA_Total<70 + SOT_Total<5 + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_178",
+    "name": "DA_Total<70 + SOT_Total<5 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_179",
+    "name": "DA_Total<70 + SOT_Total<5 + Ind_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_180",
+    "name": "DA_Total<70 + SOT_Total<5 + Ind_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_181",
+    "name": "DA_Total<70 + SOT_Total<5 + Trend_Under + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.62,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        "<",
+        70
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_182",
+    "name": "DA_Total>100 + Col3_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.45,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_183",
+    "name": "DA_Total>100 + DA_Total>80 + Col3_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.45,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_184",
+    "name": "DA_Total>100 + Ind_Y + Col3_Y + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.45,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_185",
+    "name": "DA_Total>100 + Col3_Y + Trend_Under + SOT_Diff_V>3 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.45,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_186",
+    "name": "DA_Total>100 + Col3_Y + SOT_Diff_V>3 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.45,
+    "samples": 29,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "sot_diff_v",
+        ">",
+        3
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_187",
+    "name": "DA_Total>100 + SOT_Total<5 + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_188",
+    "name": "DA_Total>100 + DA_Total>80 + SOT_Total<5 + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_189",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_190",
+    "name": "DA_Total>100 + SOT_Total<5 + Ind_Y + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_191",
+    "name": "DA_Total>100 + SOT_Total<5 + Trend_Under + AH_0 (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_192",
+    "name": "DA_Total>100 + SOT_Total<5 + AH_0 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 23.16,
+    "samples": 38,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "ah_abs",
+        "==",
+        0
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_193",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.89,
+    "samples": 19,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_194",
+    "name": "DA_Total>100 + SOT_Total<4 + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_195",
+    "name": "DA_Total>100 + DA_Total>80 + SOT_Total<4 + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_196",
+    "name": "DA_Total>100 + SOT_Total<5 + SOT_Total<4 + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_197",
+    "name": "DA_Total>100 + SOT_Total<4 + Ind_Y + Col3_Y (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_198",
+    "name": "DA_Total>100 + SOT_Total<4 + Col3_Y + Trend_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_199",
+    "name": "DA_Total>100 + SOT_Total<4 + Col3_Y + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.81,
+    "samples": 57,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        4
+      ],
+      [
+        "col3",
+        "==",
+        1
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_200",
+    "name": "DA_Total>80 + SOT_Total<5 + Fav_Visita + DA_Diff_V>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 22.4,
+    "samples": 25,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        80
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_201",
+    "name": "SOT_Total<5 + Fav_Local + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 21.82,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_202",
+    "name": "DA_Total>100 + SOT_Total<5 + Fav_Visita + DA_Diff_V>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 21.82,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "da_total",
+        ">",
+        100
+      ],
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        false
+      ],
+      [
+        "da_diff_v",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_203",
+    "name": "SOT_Total<5 + Fav_Local + Ind_Y + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 21.82,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "ind",
+        "==",
+        1
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_204",
+    "name": "SOT_Total<5 + Fav_Local + Trend_Under + DA_Diff_H>20 (UNDER)",
+    "pick": "UNDER",
+    "roi": 21.82,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "trend",
+        "<",
+        3.5
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ]
+    ]
+  },
+  {
+    "id": "OU_PTN_205",
+    "name": "SOT_Total<5 + Fav_Local + DA_Diff_H>20 + Trend_Low_Under (UNDER)",
+    "pick": "UNDER",
+    "roi": 21.82,
+    "samples": 22,
+    "type": "OU",
+    "is_new": true,
+    "algorithm": "ADVANCED_MINED",
+    "conditions": [
+      [
+        "sot_total",
+        "<",
+        5
+      ],
+      [
+        "fav_is_local",
+        "==",
+        true
+      ],
+      [
+        "da_diff_h",
+        ">",
+        20
+      ],
+      [
+        "trend",
+        "<",
+        2.5
+      ]
+    ]
+  }
+]

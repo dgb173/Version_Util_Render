@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Scraping - Antigravity</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .league-header {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+
+        .match-item:hover {
+            background-color: #f1f3f5;
+        }
+
+        .sticky-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">Antigravity Sports</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Inicio</a>
+                <a class="nav-link" href="/explorador">Explorador</a>
+                <a class="nav-link active" href="/scraper">Scraper Manager</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5" style="padding-bottom: 80px;">
+        <h2 class="mb-4">Gestor de Scraping de Ligas</h2>
+
+        <!-- Section 1: Scrape New League -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud-download"></i> Importar Liga</h5>
+            </div>
+            <div class="card-body">
+                <form id="scrapeForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="seasonInput" class="form-label">Temporada</label>
+                        <input type="text" class="form-control" id="seasonInput" placeholder="2025" value="2025"
+                            required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="leagueIdsInput" class="form-label">IDs de Ligas (separados por coma)</label>
+                        <input type="text" class="form-control" id="leagueIdsInput" placeholder="4, 36, 8" required>
+                        <div class="form-text">Ejemplo: 4 (Brasil), 36 (Premier), etc.</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="leagueAhFilter" class="form-label">Filtrar por AH (Opcional)</label>
+                        <input type="text" class="form-control" id="leagueAhFilter" placeholder="Ej: 0.5, -0.5, 0.75">
+                        <small class="text-muted">Solo extraerá partidos con estos AH.</small>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Extraer IDs</button>
+                    </div>
+                </form>
+                <div id="scrapeResult" class="mt-3 alert" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Section 2: Pending Matches -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Partidos Pendientes de Cacheo</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_matches %}
+                {% for season, leagues in pending_matches.items() %}
+                <div class="mb-4">
+                    <h4 class="text-primary border-bottom pb-2">Temporada {{ season }}</h4>
+                    {% for league_id, matches in leagues.items() %}
+                    <div class="league-block mb-3">
+                        <div class="league-header">
+                            <strong>Liga ID: {{ league_id }} <span class="badge bg-secondary">{{ matches|length }}
+                                    partidos</span></strong>
+                            <div class="form-check">
+                                <input class="form-check-input select-all-league" type="checkbox"
+                                    data-season="{{ season }}" data-league="{{ league_id }}">
+                                <label class="form-check-label">Seleccionar Todo</label>
+                            </div>
+                        </div>
+                        <div class="match-list">
+                            {% for match in matches %}
+                            {% set match_id = match.id if match is mapping else match %}
+                            {% set match_ah = match.ah if match is mapping else 'N/A' %}
+                            <div class="match-item" data-ah="{{ match_ah }}">
+                                <div class="form-check">
+                                    <input class="form-check-input match-checkbox" type="checkbox"
+                                        value="{{ match_id }}" data-season="{{ season }}" data-league="{{ league_id }}">
+                                    <label class="form-check-label">
+                                        {{ match_id }}
+                                        {% if match_ah != 'N/A' %}
+                                        <span class="badge bg-info text-dark ms-1">{{ match_ah }}</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="alert alert-info">No hay partidos pendientes. Importa una liga para comenzar.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="sticky-bottom-bar">
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <span id="selectedCount">0</span> partidos seleccionados
+            </div>
+
+            <!-- Handicap Filter -->
+            <div class="input-group input-group-sm" style="width: 200px;">
+                <span class="input-group-text"><i class="bi bi-funnel"></i> AH</span>
+                <select id="ahFilter" class="form-select">
+                    <option value="all">Todos</option>
+                    <option value="0">0</option>
+                    <option value="0.5">0.5 (incl. .25/.75)</option>
+                    <option value="1">1</option>
+                    <option value="1.5">1.5 (incl. .25/.75)</option>
+                    <option value="2">2</option>
+                    <option value="2.5">2.5 (incl. .25/.75)</option>
+                    <option value="-0.25">-0.25</option>
+                    <option value="-0.5">-0.5 (incl. .25/.75)</option>
+                    <option value="-1">-1</option>
+                    <option value="-1.5">-1.5 (incl. .25/.75)</option>
+                    <option value="-2">-2</option>
+                    <option value="-2.5">-2.5 (incl. .25/.75)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Speed Selector -->
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <span class="input-group-text"><i class="bi bi-speedometer2"></i> Velocidad</span>
+                <select id="speedSelector" class="form-select">
+                    <option value="1">Normal (1)</option>
+                    <option value="5" selected>Rápido (5)</option>
+                    <option value="10">Turbo (10)</option>
+                    <option value="20">Max (20)</option>
+                </select>
+            </div>
+
+            <button id="btnCacheSelected" class="btn btn-success" disabled>
+                <i class="bi bi-save"></i> Cachear Seleccionados
+            </button>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <h4 class="mt-3" id="loadingText">Procesando...</h4>
+        <div class="progress mt-2" style="width: 300px;">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                style="width: 0%"></div>
+        </div>
+        <div id="progressStatus" class="mt-1 text-muted"></div>
+        <button id="btnStopScraping" class="btn btn-danger mt-3" style="display: none;">
+            <i class="bi bi-stop-circle"></i> Detener
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Scrape Form
+            document.getElementById('scrapeForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const season = document.getElementById('seasonInput').value;
+                const leagueIds = document.getElementById('leagueIdsInput').value;
+                const ahFilter = document.getElementById('leagueAhFilter').value;
+                const resultDiv = document.getElementById('scrapeResult');
+
+                showLoading("Extrayendo IDs de las ligas...");
+
+                try {
+                    const response = await fetch('/api/scrape_league', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            season: season,
+                            league_ids: leagueIds,
+                            ah_filter: ahFilter
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    resultDiv.style.display = 'block';
+                    if (response.ok) {
+                        resultDiv.className = 'alert alert-success';
+                        resultDiv.textContent = data.message;
+                        setTimeout(() => location.reload(), 2000);
+                    } else {
+                        resultDiv.className = 'alert alert-danger';
+                        resultDiv.textContent = data.error || 'Error desconocido';
+                        hideLoading();
+                    }
+                } catch (error) {
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'alert alert-danger';
+                    resultDiv.textContent = 'Error de red: ' + error.message;
+                    hideLoading();
+                }
+            });
+
+            // Checkbox Logic
+            const checkboxes = document.querySelectorAll('.match-checkbox');
+            const selectAlls = document.querySelectorAll('.select-all-league');
+            const btnCache = document.getElementById('btnCacheSelected');
+            const countSpan = document.getElementById('selectedCount');
+            const ahFilter = document.getElementById('ahFilter');
+
+            function updateSelection() {
+                // Only count visible checkboxes
+                const selected = Array.from(document.querySelectorAll('.match-checkbox:checked')).filter(cb => {
+                    return cb.closest('.match-item').style.display !== 'none';
+                }).length;
+
+                countSpan.textContent = selected;
+                btnCache.disabled = selected === 0;
+            }
+
+            checkboxes.forEach(cb => cb.addEventListener('change', updateSelection));
+
+            selectAlls.forEach(sa => {
+                sa.addEventListener('change', function () {
+                    const season = this.dataset.season;
+                    const league = this.dataset.league;
+                    // Only select visible ones
+                    const targets = document.querySelectorAll(`.match-item:not([style*="display: none"]) .match-checkbox[data-season="${season}"][data-league="${league}"]`);
+                    targets.forEach(cb => cb.checked = this.checked);
+                    updateSelection();
+                });
+            });
+
+            // Helper to normalize AH values (matches backend logic)
+            // 0.25, 0.5, 0.75 -> 0.5
+            // 1.25, 1.5, 1.75 -> 1.5
+            // Integers stay integers
+            function normalizeAH(value) {
+                if (!value || value === 'N/A') return null;
+                let floatVal = parseFloat(value);
+                if (isNaN(floatVal)) return null;
+
+                const absVal = Math.abs(floatVal);
+                const base = Math.floor(absVal);
+                const frac = absVal - base;
+
+                let bucket;
+                // Tolerance for float comparison
+                const close = (a, b) => Math.abs(a - b) < 0.01;
+
+                if (close(frac, 0.0)) {
+                    bucket = base;
+                } else {
+                    // 0.25, 0.5, 0.75 all go to 0.5 bucket (base + 0.5)
+                    bucket = base + 0.5;
+                }
+
+                return floatVal < 0 ? -bucket : bucket;
+            }
+
+            // AH Filter Logic
+            ahFilter.addEventListener('change', function () {
+                const val = this.value;
+                const items = document.querySelectorAll('.match-item');
+
+                items.forEach(item => {
+                    const itemAh = item.dataset.ah;
+
+                    if (val === 'all') {
+                        item.style.display = 'inline-block';
+                    } else {
+                        const normItem = normalizeAH(itemAh);
+                        const normFilter = parseFloat(val); // Filter values are already normalized (0, 0.5, 1...)
+
+                        if (normItem !== null && normItem === normFilter) {
+                            item.style.display = 'inline-block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
+                updateSelection();
+            });
+
+            // Cache Button Logic
+            btnCache.addEventListener('click', async function () {
+                // Get only VISIBLE and CHECKED items
+                const selected = Array.from(document.querySelectorAll('.match-checkbox:checked'))
+                    .filter(cb => cb.closest('.match-item').style.display !== 'none')
+                    .map(cb => ({
+                        match_id: cb.value,
+                        season: cb.dataset.season,
+                        league_id: cb.dataset.league
+                    }));
+
+                if (selected.length === 0) return;
+
+                const concurrency = document.getElementById('speedSelector').value;
+
+                if (!confirm(`¿Estás seguro de que quieres cachear ${selected.length} partidos con ${concurrency} hilos?`)) return;
+
+                showLoading(`Iniciando proceso para ${selected.length} partidos...`);
+                // We don't need progress bar elements anymore for this part as it runs externally
+
+                try {
+                    const response = await fetch('/api/cache_matches', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matches: selected,
+                            concurrency: concurrency
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'started') {
+                        alert(data.message);
+                        location.reload();
+                    } else if (data.error) {
+                        alert("Error: " + data.error);
+                        hideLoading();
+                    } else {
+                        // Fallback for unexpected response
+                        alert("Respuesta inesperada del servidor.");
+                        hideLoading();
+                    }
+
+                } catch (e) {
+                    console.error("Network error:", e);
+                    alert("Error de comunicación con el servidor.");
+                    hideLoading();
+                }
+            });
+
+            // Stop Button Logic
+            document.getElementById('btnStopScraping').addEventListener('click', async function () {
+                if (!confirm('¿Seguro que quieres detener el proceso? Se interrumpirán las descargas en curso.')) return;
+
+                try {
+                    const response = await fetch('/api/stop_scraping', {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+                    location.reload(); // Reload to reset state
+                } catch (e) {
+                    alert('Error al intentar detener: ' + e.message);
+                }
+            });
+
+            function showLoading(text) {
+                document.getElementById('loadingText').textContent = text;
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,3174 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grandes Ligas ⚽</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Collapsed Sidebar */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .nav-link {
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+
+        .nav-link i {
+            width: 25px;
+        }
+
+        /* Excel-like Table Styles */
+        .excel-table {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        .excel-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+            color: #495057;
+            text-align: center;
+        }
+
+        .excel-table td {
+            padding: 6px 8px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+
+        .excel-table tbody tr:hover {
+            background-color: #e8f0fe;
+        }
+
+        /* Filter Inputs in Header */
+        .header-filter {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+
+        /* Specific Column Styles */
+        .col-ah {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+            background-color: #e8f5e9;
+        }
+
+        .col-res {
+            width: 80px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .col-team {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .col-prev {
+            font-size: 0.85rem;
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .status-pending {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        .status-scraped {
+            color: #17a2b8;
+            font-weight: 600;
+        }
+
+        /* H2H Col3 - Fondo rosa para distinguirla */
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
+
+        /* Stats Styles */
+        .text-home {
+            color: #0d6efd !important;
+        }
+
+        .text-away {
+            color: #dc3545 !important;
+        }
+
+        .bg-home {
+            background-color: #0d6efd !important;
+        }
+
+        .bg-away {
+            background-color: #dc3545 !important;
+        }
+
+        .stat-row {
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h4 class="mb-4 text-primary"><i class="fa-solid fa-futbol me-2"></i>Analizador</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
+            <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+            <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+            <a class="nav-link active" href="/grandes_ligas"><i class="fa-solid fa-trophy"></i> Grandes Ligas</a>
+            <a class="nav-link" href="/ligas_favoritas"><i class="fa-solid fa-star"></i> Ligas Favoritas</a>
+            <a class="nav-link" href="/scraper"><i class="fa-solid fa-cloud-download-alt"></i> Scraper</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h4 class="mb-0"><i class="fa-solid fa-trophy me-2"></i>Grandes Ligas</h4>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm active" id="btn-proximos"
+                        onclick="setViewMode('proximos')">
+                        <i class="fa-solid fa-hourglass-start me-1"></i> Próximos
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" id="btn-pendientes"
+                        onclick="setViewMode('pendientes')">
+                        <i class="fa-solid fa-exclamation-triangle me-1"></i> Resultados Pendientes
+                    </button>
+                </div>
+                <span class="badge bg-info" id="current-time-badge">Hora España: --:--</span>
+                <div class="form-check ms-3">
+                    <input class="form-check-input" type="checkbox" id="filter-only-with-history"
+                        onchange="triggerSearch()">
+                    <label class="form-check-label small" for="filter-only-with-history">
+                        Solo con historial
+                    </label>
+                </div>
+                <div class="form-check ms-2">
+                    <input class="form-check-input" type="checkbox" id="filter-only-with-rankings"
+                        onchange="triggerSearch()">
+                    <label class="form-check-label small" for="filter-only-with-rankings">
+                        Solo con clasificación
+                    </label>
+                </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <div id="scraping-status" class="d-none"></div>
+                <span id="scrape-progress-badge" class="badge bg-info d-none">0/0</span>
+                <button class="btn btn-success btn-sm" onclick="scrapeResultsPending()"
+                    title="Scrapear solo resultados de partidos +2h sin score">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Buscar Resultados (+2h)
+                </button>
+                <button class="btn btn-info btn-sm" onclick="scrapeProgressively()"
+                    title="Scrapear partidos en segundo plano y ver resultados mientras carga">
+                    <i class="fa-solid fa-sync me-1"></i> Scrapear y Actualizar
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="scrapeAllPending()">
+                    <i class="fa-solid fa-cloud-download-alt me-1"></i> Scrapear Pendientes
+                </button>
+                <button class="btn btn-warning btn-sm" onclick="finalizeAllWithResults()">
+                    <i class="fa-solid fa-check-double me-1"></i> Finalizar Todos
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="applyFiltersVisually()">
+                    <i class="fa-solid fa-filter me-1"></i> Aplicar Filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Top Pagination Controls -->
+        <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none mb-2">
+            <ul class="pagination pagination-sm justify-content-end mb-0" id="pagination-lista-top">
+                <!-- Javascript populates this -->
+            </ul>
+        </nav>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm excel-table" id="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Fecha</th>
+                        <th>Local</th>
+                        <th>Visitante</th>
+                        <th style="width: 80px;">
+                            HA
+                            <select class="header-filter" id="filter-handicap">
+                                <option value="">Todos</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.25">0.25</option>
+                                <option value="0.5">0.5</option>
+                                <option value="0.75">0.75</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.25">1.25</option>
+                                <option value="1.5">1.5</option>
+                                <option value="1.75">1.75</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.25">2.25</option>
+                                <option value="2.5">2.5+</option>
+                                <option value="-0.25">-0.25</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-0.75">-0.75</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.25">-1.25</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-1.75">-1.75</option>
+                                <option value="-2.0">-2.0</option>
+                                <option value="-2.25">-2.25</option>
+                                <option value="-2.5">-2.5+</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-ou" style="width: 100%;">
+                                <option value="">O/U</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3.0">3.0</option>
+                                <option value="3.5">3.5</option>
+                                <option value="4.0">4+</option>
+                            </select>
+                        </th>
+                        <th style="width: 80px;">FT</th>
+                        <th>
+                            Prev Home
+                            <select class="header-filter mt-1" id="filter-prev-home-ah" style="width: 100%;">
+                                <option value="">AH</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.25">0.25</option>
+                                <option value="0.5">0.5</option>
+                                <option value="0.75">0.75</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.25">1.25</option>
+                                <option value="1.5">1.5</option>
+                                <option value="1.75">1.75</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.25">2.25</option>
+                                <option value="2.5">2.5+</option>
+                                <option value="-0.25">-0.25</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-0.75">-0.75</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.25">-1.25</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-1.75">-1.75</option>
+                                <option value="-2.0">-2.0</option>
+                                <option value="-2.25">-2.25</option>
+                                <option value="-2.5">-2.5+</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
+                        <th>
+                            Prev Away
+                            <select class="header-filter mt-1" id="filter-prev-away-ah" style="width: 100%;">
+                                <option value="">AH</option>
+                                <option value="0.0">0.0</option>
+                                <option value="0.25">0.25</option>
+                                <option value="0.5">0.5</option>
+                                <option value="0.75">0.75</option>
+                                <option value="1.0">1.0</option>
+                                <option value="1.25">1.25</option>
+                                <option value="1.5">1.5</option>
+                                <option value="1.75">1.75</option>
+                                <option value="2.0">2.0</option>
+                                <option value="2.25">2.25</option>
+                                <option value="2.5">2.5+</option>
+                                <option value="-0.25">-0.25</option>
+                                <option value="-0.5">-0.5</option>
+                                <option value="-0.75">-0.75</option>
+                                <option value="-1.0">-1.0</option>
+                                <option value="-1.25">-1.25</option>
+                                <option value="-1.5">-1.5</option>
+                                <option value="-1.75">-1.75</option>
+                                <option value="-2.0">-2.0</option>
+                                <option value="-2.25">-2.25</option>
+                                <option value="-2.5">-2.5+</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
+                                <option value="">Res...</option>
+                                <option value="WIN">Win</option>
+                                <option value="DRAW">Draw</option>
+                                <option value="LOSS">Loss</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H Estadio
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-stadium-res" style="width: 100%;">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
+                            </select>
+                        </th>
+                        <th style="width: 100px;">
+                            H2H General
+                            <select class="header-filter mt-1" id="filter-h2h-general-mov" style="width: 100%;">
+                                <option value="">Mov...</option>
+                                <option value="UP">Subió</option>
+                                <option value="DOWN">Bajó</option>
+                                <option value="SAME">Igual</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-general-res" style="width: 100%;">
+                                <option value="">Cover...</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
+                            </select>
+                        </th>
+                        <th style="width: 120px;">
+                            H2H Col3
+                            <select class="header-filter mt-1" id="filter-h2h-col3-mirror" style="width: 100%;">
+                                <option value="">Espejo...</option>
+                                <option value="directa">Directa</option>
+                                <option value="inversa">Inversa</option>
+                            </select>
+                            <select class="header-filter mt-1" id="filter-h2h-col3-cover" style="width: 100%;">
+                                <option value="">Cover HA...</option>
+                                <option value="MEJORA">MEJORA</option>
+                                <option value="IGUALA">IGUALA</option>
+                                <option value="EMPEORA">EMPEORA</option>
+                            </select>
+                        </th>
+                        <th>Ind. Local</th>
+                        <th>Ind. Visitante</th>
+                        <th style="width: 100px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Results will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <nav aria-label="Page navigation" id="pagination-nav" class="d-none mt-3">
+            <ul class="pagination justify-content-center" id="pagination-lista">
+                <!-- Javascript populates this -->
+            </ul>
+        </nav>
+
+
+        <div id="loading-overlay" class="d-none">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div id="loading-text" class="mt-2">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let upcomingMatches = [];
+        let precacheoData = {};
+        let currentViewMode = 'proximos'; // 'proximos' o 'pendientes'
+
+        // Pagination State
+        let currentPage = 1;
+        const itemsPerPage = 300; // User requested limit 300 (approx 200-300)
+        let totalFilteredMatches = [];
+
+
+        function showLoading(show, text = 'Cargando...') {
+            document.getElementById('loading-overlay').classList.toggle('d-none', !show);
+            document.getElementById('loading-text').textContent = text;
+        }
+
+        // Obtener hora actual de España
+        function getSpainTime() {
+            const now = new Date();
+            // Convertir a hora de España
+            const spainTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+            return spainTime;
+        }
+
+        function updateCurrentTimeDisplay() {
+            const spainTime = getSpainTime();
+            const hours = spainTime.getHours().toString().padStart(2, '0');
+            const minutes = spainTime.getMinutes().toString().padStart(2, '0');
+            document.getElementById('current-time-badge').textContent = `Hora España: ${hours}:${minutes}`;
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+
+            // Actualizar botones
+            document.getElementById('btn-proximos').classList.toggle('active', mode === 'proximos');
+            document.getElementById('btn-pendientes').classList.toggle('active', mode === 'pendientes');
+
+            // Recargar tabla
+            triggerSearch();
+        }
+
+        // Parsear hora del partido (formato HH:MM)
+        function parseMatchTime(timeStr) {
+            if (!timeStr) return null;
+
+            // El formato típico es "HH:MM" como "05:10", "06:00", etc.
+            const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (!match) return null;
+
+            return {
+                hours: parseInt(match[1]),
+                minutes: parseInt(match[2])
+            };
+        }
+
+        // Comparar si el partido es futuro respecto a la hora actual de España
+        function isMatchUpcoming(match) {
+            const spainTime = getSpainTime();
+
+            // Prefer using full ISO start_time if available
+            if (match.start_time) {
+                const startTime = new Date(match.start_time);
+                return startTime > spainTime;
+            }
+
+            // Fallback to simple time comparison (only works for same-day assumptions)
+            // This was the buggy legacy behavior, but we keep it just in case
+            const matchTimeStr = match.time;
+            const matchTime = parseMatchTime(matchTimeStr);
+            if (!matchTime) return true;
+
+            const currentMinutes = spainTime.getHours() * 60 + spainTime.getMinutes();
+            const matchMinutes = matchTime.hours * 60 + matchTime.minutes;
+
+            return matchMinutes > currentMinutes;
+        }
+
+        // Comparar si el partido ya pasó (es candidato a resultado pendiente)
+        function isMatchPast(match) {
+            return !isMatchUpcoming(match);
+        }
+
+        async function triggerSearch() {
+            const loadingText = currentViewMode === 'proximos'
+                ? 'Cargando partidos próximos...'
+                : 'Cargando resultados pendientes...';
+            showLoading(true, loadingText);
+
+            try {
+                // Load upcoming matches from Grandes Ligas API
+                const res = await fetch('/api/grandes_ligas');
+                const data = await res.json();
+                upcomingMatches = data.matches || [];
+
+                // Load precacheo data
+                const precRes = await fetch('/api/precacheo_list');
+                const precData = await precRes.json();
+                precacheoData = {};
+                (precData.matches || []).forEach(m => {
+                    precacheoData[m.match_id] = m;
+                });
+
+                // Filtrar por modo de vista PRIMERO
+                let matchesToShow = upcomingMatches;
+
+                if (currentViewMode === 'proximos') {
+                    // Solo partidos con hora > hora actual España
+                    matchesToShow = upcomingMatches.filter(m => {
+                        return isMatchUpcoming(m);
+                    });
+                } else if (currentViewMode === 'pendientes') {
+                    // Partidos ya pasados SIN resultado final
+                    matchesToShow = upcomingMatches.filter(m => {
+                        if (!isMatchPast(m)) return false; // Solo los pasados
+
+                        // Verificar si tiene resultado final
+                        const pc = precacheoData[m.id];
+                        if (!pc) return true; // No scrapeado = pendiente
+
+                        // Si tiene score válido, ya tiene resultado
+                        const score = pc.score || pc.final_score || '';
+                        if (score && score !== '??' && score !== '?:?' && score.includes(':')) {
+                            // Verificar que no sea 0:0 con partido en progreso (sin finalizar)
+                            return false; // Ya tiene resultado
+                        }
+                        return true; // Pendiente de resultado
+                    });
+                }
+
+                // NO aplicar filtros adicionales aquí - ahora se hace visualmente con applyFiltersVisually()
+                // Esto preserva las filas de patrones expandidas cuando el usuario filtra
+                // const filteredMatches = applyFilters(matchesToShow);
+
+                // Store globally for pagination (ahora SIN filtros adicionales)
+                totalFilteredMatches = matchesToShow;
+                currentPage = 1; // Reset to page 1 on search
+
+                renderTableWithPagination();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+
+            showLoading(false);
+        }
+
+        function renderTableWithPagination() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = totalFilteredMatches.slice(start, end);
+
+            renderTable(pageItems);
+            renderPaginationControls();
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > Math.ceil(totalFilteredMatches.length / itemsPerPage)) return;
+            currentPage = page;
+            renderTableWithPagination();
+            // Scroll to top of table
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function renderPaginationControls() {
+            const nav = document.getElementById('pagination-nav');
+            const lista = document.getElementById('pagination-lista');
+            const totalPages = Math.ceil(totalFilteredMatches.length / itemsPerPage);
+
+            if (totalPages <= 1) {
+                nav.classList.add('d-none');
+                return;
+            }
+
+            nav.classList.remove('d-none');
+            lista.innerHTML = '';
+
+            // Previous
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Anterior</a>`;
+            lista.appendChild(prevLi);
+
+            // Pages
+            // Simple logic: Show all if few, or range if many? 
+            // Let's show: 1 ... current-1 current current+1 ... last
+            // Or just simplified: Prev [Page X of Y] Next
+
+            // "es decir de 200 i si se supera que pueda navegar por paginas"
+            // Let's do simple Prev, Current, Next for now to avoid complexity with many pages
+
+            const infoLi = document.createElement('li');
+            infoLi.className = 'page-item disabled';
+            infoLi.innerHTML = `<span class="page-link">Página ${currentPage} de ${totalPages} (${totalFilteredMatches.length} partidos)</span>`;
+            lista.appendChild(infoLi);
+
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Siguiente</a>`;
+            lista.appendChild(nextLi);
+        }
+
+        function getAsianResultCategory(teamGoals, oppGoals, ahLine) {
+            if (teamGoals === null || oppGoals === null || ahLine === null || isNaN(ahLine)) return 'UNKNOWN';
+
+            const diff = teamGoals - oppGoals;
+            const line = parseFloat(ahLine);
+
+            // Handle split lines (e.g. 0.25, 0.75) by calculating average result
+            let lines = [];
+            if (Math.abs(line % 0.5) === 0.25) {
+                if (line > 0) {
+                    lines = [line - 0.25, line + 0.25];
+                } else {
+                    lines = [line + 0.25, line - 0.25];
+                }
+            } else {
+                lines = [line];
+            }
+
+            let results = [];
+            for (let l of lines) {
+                const val = diff + l;
+                if (val > 0) results.push(1);
+                else if (val < 0) results.push(-1);
+                else results.push(0);
+            }
+
+            const avgRes = results.reduce((a, b) => a + b, 0) / results.length;
+
+            if (avgRes > 0) return 'HOME_WIN'; // Cover
+            if (avgRes < 0) return 'AWAY_WIN'; // No Cover
+            return 'DRAW'; // Push
+        }
+
+        function calculateWDL(scoreStr, ahRaw, isHomePerspective) {
+            // Corregido: ahRaw=0 es válido, no usar !ahRaw (0 es falsy en JS)
+            if (!scoreStr || ahRaw === undefined || ahRaw === null) return null;
+            try {
+                // Ensure format H:A
+                const parts = scoreStr.replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const hg = parseInt(parts[0]);
+                const ag = parseInt(parts[1]);
+
+                let ah = parseFloat(ahRaw);
+                if (isNaN(ah)) return null;
+
+                // Adjust line for perspective
+                // If isHomePerspective=True, we use AH as is (Home AH)
+                // If isHomePerspective=False (Away Team), we treat them as Away.
+                // Note: Standard Asian Result logic:
+                // Home: asian_result(hg, ag, ah)
+                // Away: asian_result(ag, hg, -ah)
+
+                if (isHomePerspective) {
+                    return getAsianResultCategory(hg, ag, ah);
+                } else {
+                    return getAsianResultCategory(ag, hg, -ah);
+                }
+            } catch (e) {
+                console.error("Error calc WDL", e);
+                return null;
+            }
+        }
+
+        // Calcula el resultado REAL (Win/Draw/Loss) basado en goles, NO en handicap
+        // isHomePerspective: true si evaluamos desde perspectiva del equipo LOCAL del partido previo
+        // Para PREV AWAY: el equipo jugó de visitante, así que isHomePerspective = false
+        function calculateRealWDL(scoreStr, isHomePerspective) {
+            if (!scoreStr) return null;
+            try {
+                const parts = scoreStr.replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const hg = parseInt(parts[0]);
+                const ag = parseInt(parts[1]);
+
+                if (isNaN(hg) || isNaN(ag)) return null;
+
+                // Calcular diferencia desde la perspectiva del equipo
+                let diff;
+                if (isHomePerspective) {
+                    diff = hg - ag; // Equipo jugó de local
+                } else {
+                    diff = ag - hg; // Equipo jugó de visitante
+                }
+
+                // WIN = el equipo ganó, DRAW = empate, LOSS = el equipo perdió
+                if (diff > 0) return 'WIN';
+                if (diff < 0) return 'LOSS';
+                return 'DRAW';
+            } catch (e) {
+                console.error("Error calc RealWDL", e);
+                return null;
+            }
+        }
+
+        function normalizeBucket(ah) {
+            if (ah === null || ah === undefined || ah === '') return null;
+            const val = parseFloat(ah);
+            if (isNaN(val)) return null;
+
+            // If integer (close to), return integer
+            if (Math.abs(val % 1) < 0.01) return val;
+
+            const base = Math.floor(Math.abs(val));
+            const sign = val >= 0 ? 1 : -1;
+            // .25, .5, .75 -> .5
+            return sign * (base + 0.5);
+        }
+
+        function getMovementDirection(movStr) {
+            if (!movStr || movStr === 'N/A' || movStr.trim() === '') return null;
+
+            // Normalizar separadores: soportar tanto -> como → (Unicode)
+            let normalized = movStr.replace(/\s/g, '').replace('→', '->');
+            const parts = normalized.split('->').map(parseFloat); // e.g. ["0.5","0.75"]
+
+            if (parts.length !== 2) return null;
+            if (isNaN(parts[0]) || isNaN(parts[1])) return null;
+
+            // Normalizar a buckets: 0.25, 0.5, 0.75 son equivalentes (bucket 0.5)
+            // -0.25, -0.5, -0.75 son equivalentes (bucket -0.5)
+            const normalizeToBucket = (val) => {
+                if (val === 0) return 0;
+                const absVal = Math.abs(val);
+                const sign = val >= 0 ? 1 : -1;
+
+                // Determinar el bucket base
+                const intPart = Math.floor(absVal);
+                const decPart = absVal - intPart;
+
+                // 0.0 -> 0, 0.25/0.5/0.75 -> 0.5, 1.0 -> 1, 1.25/1.5/1.75 -> 1.5, etc.
+                if (decPart < 0.01) {
+                    // Es un entero (0, 1, 2, etc.)
+                    return sign * intPart;
+                } else {
+                    // Tiene decimal, redondear al .5 más cercano
+                    return sign * (intPart + 0.5);
+                }
+            };
+
+            const bucket1 = normalizeToBucket(parts[0]);
+            const bucket2 = normalizeToBucket(parts[1]);
+
+            if (bucket2 > bucket1) return 'UP';
+            if (bucket2 < bucket1) return 'DOWN';
+            return 'SAME';
+        }
+
+        // Convierte el handicap de perspectiva VISITANTE (como viene de la DB) a perspectiva LOCAL.
+        // En la DB: Negativo = Visitante Favorito, Positivo = Local Favorito.
+        // Para cálculos internos: Negativo = Local Favorito, Positivo = Local Underdog.
+        function getLocalPerspectiveAh(match) {
+            if (match.handicap === undefined || match.handicap === null || match.handicap === '') return null;
+            const ah = parseFloat(match.handicap);
+            if (isNaN(ah)) return null;
+            // Invertir el signo para convertir de perspectiva Visitante a perspectiva Local
+            // -0 es 0 en JS
+            return -ah;
+        }
+
+        // Helper: calcular resultado H2H COVER/PUSH/NO_COVER
+        // COVER = el FAVORITO cubrió el handicap actual
+        // currentAh: handicap perspectiva LOCAL (Negativo=Local Fav, Positivo=Local Underdog)
+        // Helper: calcular resultado H2H COVER/PUSH/NO_COVER
+        function calculateH2HResult(resultStr, currentAh, isInverted = false) {
+            if (!resultStr || !resultStr.includes(':')) return null;
+            if (currentAh === null || currentAh === undefined || isNaN(currentAh)) return null;
+
+            const parts = resultStr.replace('-', ':').split(':');
+            let h = parseInt(parts[0]);
+            let a = parseInt(parts[1]);
+
+            if (isNaN(h) || isNaN(a)) return null;
+
+            // En Nowgoal/Feedback, currentAh > 0 significa Local es Favorito
+            const favIsLocal = currentAh > 0;
+            const absAh = Math.abs(currentAh);
+
+            // Diferencia para el favorito actual
+            let diff;
+            if (isInverted) {
+                // En H2H General, las localías están invertidas respecto al partido actual
+                diff = favIsLocal ? (a - h) : (h - a);
+            } else {
+                // H2H Estadio normal
+                diff = favIsLocal ? (h - a) : (a - h);
+            }
+
+            // El favorito cubrió si su ventaja es estrictamente mayor que el handicap
+            if (diff > absAh) return 'COVER';
+            if (diff < absAh) return 'NO_COVER';
+
+            // Si diff == absAh, es un PUSH
+            return 'PUSH';
+        }
+
+        function applyFilters(matches) {
+            // Team filters removed (inputs deleted)
+            const teamHome = '';
+            const teamAway = '';
+            const handicap = document.getElementById('filter-handicap').value;
+            const ouFilter = document.getElementById('filter-ou').value;
+            const prevHomeAh = document.getElementById('filter-prev-home-ah').value;
+            const prevAwayAh = document.getElementById('filter-prev-away-ah').value;
+
+            // New Result Filters
+            const prevHomeRes = document.getElementById('filter-prev-home-res').value;
+            const prevAwayRes = document.getElementById('filter-prev-away-res').value;
+
+            // New H2H Filters
+            const h2hStadiumMov = document.getElementById('filter-h2h-stadium-mov').value;
+            const h2hStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+            const h2hGeneralMov = document.getElementById('filter-h2h-general-mov').value;
+            const h2hGeneralRes = document.getElementById('filter-h2h-general-res').value;
+
+            // Normalize buckets only once if filters exist
+            const fBucketPrevHome = prevHomeAh ? normalizeBucket(prevHomeAh) : null;
+            const fBucketPrevAway = prevAwayAh ? normalizeBucket(prevAwayAh) : null;
+
+            // Console Debug
+            if (prevHomeAh || prevAwayAh) {
+                console.log("Filtering Debug:", {
+                    prevHomeAh, fBucketPrevHome,
+                    prevAwayAh, fBucketPrevAway
+                });
+            }
+
+            return matches.filter(m => {
+                // Filtro: Solo con historial (Prev Home y Prev Away deben tener datos)
+                const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+                if (onlyWithHistory) {
+                    const pc = precacheoData[m.id];
+                    if (!pc) return false;
+
+                    // Verificar que tenga datos en Prev Home
+                    const hasPrevHome = pc.last_home_match && pc.last_home_match.score;
+                    // Verificar que tenga datos en Prev Away  
+                    const hasPrevAway = pc.last_away_match && pc.last_away_match.score;
+
+                    // Si alguno de los dos no tiene datos, filtrar
+                    if (!hasPrevHome || !hasPrevAway) return false;
+                }
+
+                // Filtro: Solo con clasificación (ambos equipos deben tener ranking)
+                const onlyWithRankings = document.getElementById('filter-only-with-rankings').checked;
+                if (onlyWithRankings) {
+                    const pc = precacheoData[m.id];
+
+                    // Verificar ranking del equipo local
+                    const homeRank = (pc && pc.home_standings && pc.home_standings.ranking && pc.home_standings.ranking !== 'N/A')
+                        ? pc.home_standings.ranking : m.home_rank;
+                    // Verificar ranking del equipo visitante
+                    const awayRank = (pc && pc.away_standings && pc.away_standings.ranking && pc.away_standings.ranking !== 'N/A')
+                        ? pc.away_standings.ranking : m.away_rank;
+
+                    // Si alguno no tiene ranking válido, filtrar
+                    if (!homeRank || !awayRank) return false;
+                }
+
+                // Team filter
+                if (teamHome && !(m.home_team || '').toLowerCase().includes(teamHome)) return false;
+                if (teamAway && !(m.away_team || '').toLowerCase().includes(teamAway)) return false;
+
+                // Handicap filter
+                if (handicap) {
+                    const mAh = parseFloat(m.handicap);
+                    const fAh = parseFloat(handicap);
+                    if (isNaN(mAh)) return false;
+
+                    const absF = Math.abs(fAh);
+
+                    // Logic for 2.5 bucket (range >= 2.25)
+                    if (absF >= 2.49) {
+                        if (fAh > 0) {
+                            if (mAh < 2.24) return false;
+                        } else {
+                            if (mAh > -2.24) return false;
+                        }
+                    }
+                    // Logic for 2.0 bucket (strict 2.0)
+                    else if (absF >= 1.99 && absF <= 2.01) {
+                        if (Math.abs(mAh - fAh) > 0.01) return false;
+                    }
+                    // Logic for .5 buckets (0.5, 1.5) => fuzzy range +/- 0.25
+                    else if (Math.abs(absF % 1 - 0.5) < 0.01) {
+                        if (Math.abs(mAh - fAh) > 0.26) return false;
+                    }
+                    // Default strict match
+                    else {
+                        if (Math.abs(mAh - fAh) > 0.01) return false;
+                    }
+                }
+
+                // O/U (Goals Line) filter
+                if (ouFilter) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.main_match_odds || !pc.main_match_odds.goals_linea) return false;
+
+                    const matchOU = parseFloat(pc.main_match_odds.goals_linea);
+                    const filterOU = parseFloat(ouFilter);
+                    if (isNaN(matchOU)) return false;
+
+                    // Si el filtro es 4.0, coger 4 o superior
+                    if (filterOU >= 4.0) {
+                        if (matchOU < 4.0) return false;
+                    } else {
+                        // Para otros valores, fuzzy match (+/- 0.26)
+                        if (Math.abs(matchOU - filterOU) > 0.26) return false;
+                    }
+                }
+
+                // Prev Home Attributes
+                if (prevHomeAh || prevHomeRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.last_home_match) return false;
+
+                    if (fBucketPrevHome !== null) {
+                        const pAh = parseFloat(pc.last_home_match.handicap_line_raw);
+                        const pBucket = normalizeBucket(pAh);
+
+                        // console.log(`Match ${m.home_team}: PrevHomeRaw=${pc.last_home_match.handicap_line_raw} pAh=${pAh} pBucket=${pBucket} Filter=${fBucketPrevHome}`);
+
+                        if (pBucket === null) return false;
+
+                        if (Math.abs(fBucketPrevHome) >= 2.5) {
+                            if (fBucketPrevHome > 0) {
+                                if (pBucket < 2.5) return false;
+                            } else {
+                                if (pBucket > -2.5) return false;
+                            }
+                        } else {
+                            if (pBucket !== fBucketPrevHome) return false;
+                        }
+                    }
+
+                    if (prevHomeRes) {
+                        // Cambiado: Usar cover de handicap ACTUAL con heurística de signo
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        // Calculate coverage: Local perspective
+                        const cover = calculateWDL(pc.last_home_match.score, currentAh, true);
+
+                        let res = null;
+                        if (cover === 'HOME_WIN') res = 'WIN';
+                        else if (cover === 'AWAY_WIN') res = 'LOSS';
+                        else if (cover === 'DRAW') res = 'DRAW';
+
+                        if (res !== prevHomeRes) return false;
+                    }
+                }
+
+                if (prevAwayAh || prevAwayRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.last_away_match) return false;
+
+                    if (fBucketPrevAway !== null) {
+                        const pAh = parseFloat(pc.last_away_match.handicap_line_raw);
+                        const pBucket = normalizeBucket(pAh);
+
+                        // console.log(`Match ${m.away_team}: PrevAwayRaw=${pc.last_away_match.handicap_line_raw} pAh=${pAh} pBucket=${pBucket} Filter=${fBucketPrevAway}`);
+
+                        if (pBucket === null) return false;
+
+                        if (Math.abs(fBucketPrevAway) >= 2.5) {
+                            if (fBucketPrevAway > 0) {
+                                if (pBucket < 2.5) return false;
+                            } else {
+                                if (pBucket > -2.5) return false;
+                            }
+                        } else {
+                            if (pBucket !== fBucketPrevAway) return false;
+                        }
+                    }
+
+                    if (prevAwayRes) {
+                        // Cambiado: Usar cover de handicap ACTUAL con heurística (Visitante)
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        // Calculate coverage: Away perspective
+                        // Pasamos currentAh (Handicap Local corregido) y false (Perspective Away).
+                        const cover = calculateWDL(pc.last_away_match.score, currentAh, false);
+
+                        let res = null;
+                        // En calculateWDL, HOME_WIN significa "El sujeto (Away) ganó/cubrió"
+                        if (cover === 'HOME_WIN') res = 'WIN';
+                        else if (cover === 'AWAY_WIN') res = 'LOSS';
+                        else if (cover === 'DRAW') res = 'DRAW';
+
+                        if (res !== prevAwayRes) return false;
+                    }
+                }
+
+                // H2H Stadium Filters
+                if (h2hStadiumMov || h2hStadiumRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.stadium) return false;
+                    const st = pc.market_analysis_data.stadium;
+
+                    if (h2hStadiumMov) {
+                        const dir = getMovementDirection(st.movement);
+                        if (dir !== h2hStadiumMov) return false;
+                    }
+                    if (h2hStadiumRes) {
+                        // Usar el handicap del partido ACTUAL corregido por heurística
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        const wdl = calculateH2HResult(st.result, currentAh);
+                        if (wdl !== h2hStadiumRes) return false;
+                    }
+                }
+
+                // H2H General Filters
+                if (h2hGeneralMov || h2hGeneralRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) return false;
+                    const gen = pc.market_analysis_data.general;
+
+                    if (h2hGeneralMov) {
+                        const dir = getMovementDirection(gen.movement);
+                        if (dir !== h2hGeneralMov) return false;
+                    }
+                    if (h2hGeneralRes) {
+                        // Usar el handicap del partido                    if (h2hGeneralRes) {
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        const wdl = calculateH2HResult(gen.result, currentAh, true);
+                        if (wdl !== h2hGeneralRes) return false;
+                    }
+                }
+
+                return true;
+            });
+        }
+
+
+        // Función de filtrado VISUAL: oculta/muestra filas SIN re-renderizar
+        // Esto preserva las filas de patrones expandidas
+        function applyFiltersVisually() {
+            const tbody = document.getElementById('table-body');
+            const rows = tbody.querySelectorAll('tr[data-match-id]');
+
+            // Leer valores de filtros
+            const handicap = document.getElementById('filter-handicap').value;
+            const ouFilter = document.getElementById('filter-ou').value;
+            const prevHomeAh = document.getElementById('filter-prev-home-ah').value;
+            const prevAwayAh = document.getElementById('filter-prev-away-ah').value;
+            const prevHomeRes = document.getElementById('filter-prev-home-res').value;
+            const prevAwayRes = document.getElementById('filter-prev-away-res').value;
+            const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+            const onlyWithRankings = document.getElementById('filter-only-with-rankings').checked;
+
+            // Filtro H2H Col3: Espejo (Directa/Inversa) y Cover
+            const h2hCol3Mirror = document.getElementById('filter-h2h-col3-mirror').value;
+            const h2hCol3Cover = document.getElementById('filter-h2h-col3-cover').value;
+
+            // Filtros H2H Estadio y General
+            const h2hStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+            const h2hGeneralRes = document.getElementById('filter-h2h-general-res').value;
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                let show = true;
+                const matchId = row.getAttribute('data-match-id');
+
+                // Filtro: Solo con historial
+                if (onlyWithHistory && row.getAttribute('data-has-history') !== '1') {
+                    show = false;
+                }
+
+                // Filtro: Solo con clasificación
+                if (show && onlyWithRankings && row.getAttribute('data-has-rankings') !== '1') {
+                    show = false;
+                }
+
+                // Filtro: Excluir partidos juveniles (excepto Italia U20/U21 e Inglaterra U21/U23)
+                if (show) {
+                    const m = totalFilteredMatches.find(x => x.id == matchId);
+                    if (m) {
+                        const homeTeam = (m.home_team || '').toLowerCase();
+                        const awayTeam = (m.away_team || '').toLowerCase();
+                        const league = (m.league || '').toLowerCase();
+
+                        // Ligas juveniles permitidas
+                        const allowedJuvenile = league.includes('italy') || league.includes('italia') ||
+                            league.includes('england') || league.includes('ingla') ||
+                            league.includes('serie c') || league.includes('premier league 2');
+
+                        if (!allowedJuvenile) {
+                            const excludePatterns = ['u19', 'u21', 'u20', 'u18', 'u17', 'u23', 'sub-19', 'sub-21', 'sub-20', 'sub-18', 'sub 19', 'sub 21'];
+                            for (const pattern of excludePatterns) {
+                                if (homeTeam.includes(pattern) || awayTeam.includes(pattern) || league.includes(pattern)) {
+                                    show = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Filtro: H2H Col3 Espejo (Directa/Inversa)
+                // Leer el valor desde el atributo data de la fila
+                if (show && h2hCol3Mirror) {
+                    const rowMirrorType = row.getAttribute('data-h2h-col3-mirror');
+                    if (!rowMirrorType || rowMirrorType !== h2hCol3Mirror) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H Col3 Cover - Ahora usa MEJORA/IGUALA/EMPEORA
+                // Leer el valor de performance desde el atributo data de la fila
+                if (show && h2hCol3Cover) {
+                    const rowPerformance = row.getAttribute('data-h2h-col3-performance');
+                    if (!rowPerformance || rowPerformance !== h2hCol3Cover) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H Estadio Res
+                if (show && h2hStadiumRes) {
+                    if (row.getAttribute('data-h2h-stadium-res') !== h2hStadiumRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H General Res
+                if (show && h2hGeneralRes) {
+                    if (row.getAttribute('data-h2h-general-res') !== h2hGeneralRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Handicap
+                if (show && handicap) {
+                    const rowAh = parseFloat(row.getAttribute('data-handicap'));
+                    const fAh = parseFloat(handicap);
+                    if (isNaN(rowAh)) {
+                        show = false;
+                    } else {
+                        const absF = Math.abs(fAh);
+                        if (absF >= 2.49) {
+                            if (fAh > 0) { if (rowAh < 2.24) show = false; }
+                            else { if (rowAh > -2.24) show = false; }
+                        } else if (absF >= 1.99 && absF <= 2.01) {
+                            if (Math.abs(rowAh - fAh) > 0.01) show = false;
+                        } else if (Math.abs(absF % 1 - 0.5) < 0.01) {
+                            if (Math.abs(rowAh - fAh) > 0.26) show = false;
+                        } else {
+                            if (Math.abs(rowAh - fAh) > 0.01) show = false;
+                        }
+                    }
+                }
+
+                // Filtro: Prev Home AH
+                if (show && prevHomeAh) {
+                    const rowPrevHomeAh = parseFloat(row.getAttribute('data-prev-home-ah'));
+                    if (isNaN(rowPrevHomeAh)) {
+                        show = false;
+                    } else {
+                        const fBucket = normalizeBucket(parseFloat(prevHomeAh));
+                        const pBucket = normalizeBucket(rowPrevHomeAh);
+                        if (Math.abs(fBucket) >= 2.5) {
+                            if (fBucket > 0) { if (pBucket < 2.5) show = false; }
+                            else { if (pBucket > -2.5) show = false; }
+                        } else if (pBucket !== fBucket) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: Prev Home Res
+                if (show && prevHomeRes) {
+                    if (row.getAttribute('data-prev-home-wdl') !== prevHomeRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Prev Away AH
+                if (show && prevAwayAh) {
+                    const rowPrevAwayAh = parseFloat(row.getAttribute('data-prev-away-ah'));
+                    if (isNaN(rowPrevAwayAh)) {
+                        show = false;
+                    } else {
+                        const fBucket = normalizeBucket(parseFloat(prevAwayAh));
+                        const pBucket = normalizeBucket(rowPrevAwayAh);
+                        if (Math.abs(fBucket) >= 2.5) {
+                            if (fBucket > 0) { if (pBucket < 2.5) show = false; }
+                            else { if (pBucket > -2.5) show = false; }
+                        } else if (pBucket !== fBucket) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: Prev Away Res
+                if (show && prevAwayRes) {
+                    if (row.getAttribute('data-prev-away-wdl') !== prevAwayRes) {
+                        show = false;
+                    }
+                }
+
+                // Mostrar/ocultar fila principal
+                row.style.display = show ? '' : 'none';
+
+                // También ocultar filas relacionadas (stats, patterns)
+                const statsRow = row.nextElementSibling;
+                if (statsRow && !statsRow.hasAttribute('data-match-id')) {
+                    statsRow.style.display = show ? '' : 'none';
+                }
+
+                // Ocultar fila de patrones si existe
+                const patternsRow = document.getElementById(`patterns-row-${matchId}`);
+                if (patternsRow) {
+                    patternsRow.style.display = show ? '' : 'none';
+                }
+
+                if (show) visibleCount++;
+            });
+
+            console.log(`Filtros visuales aplicados: ${visibleCount} filas visibles`);
+
+            // Si no hay filas visibles, mostrar mensaje
+            if (visibleCount === 0) {
+                const noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `<td colspan="13" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
+                const existing = document.getElementById('no-results-row');
+                if (existing) existing.remove();
+                tbody.appendChild(noResultsRow);
+            } else {
+                const existing = document.getElementById('no-results-row');
+                if (existing) existing.remove();
+            }
+        }
+
+
+        function renderTable(matches) {
+            // Helper para validar valores (definido al inicio para evitar errores de inicialización)
+            const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (!matches || matches.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="text-center py-4">No hay partidos próximos</td></tr>`;
+                return;
+            }
+
+            const formatAh = (val) => val !== null && val !== undefined ? val : '-';
+
+            matches.forEach(m => {
+                const tr = document.createElement('tr');
+                const matchId = m.id;
+                const pc = precacheoData[matchId];
+
+                const home = m.home_team || '-';
+                const away = m.away_team || '-';
+                // Corregir bug: handicap 0 es falsy, usar check explícito
+                const ah = (m.handicap !== undefined && m.handicap !== null && m.handicap !== '') ? m.handicap : '-';
+                const league = (pc && pc.league_name && pc.league_name !== 'N/A') ? pc.league_name : (m.league || '');
+
+                const hRankVal = (pc && pc.home_standings && pc.home_standings.ranking && pc.home_standings.ranking !== 'N/A') ? pc.home_standings.ranking : (m.home_rank || '');
+                const homeRank = hRankVal ? `[${hRankVal}]` : '';
+
+                const aRankVal = (pc && pc.away_standings && pc.away_standings.ranking && pc.away_standings.ranking !== 'N/A') ? pc.away_standings.ranking : (m.away_rank || '');
+                const awayRank = aRankVal ? `[${aRankVal}]` : '';
+
+                // Stats formatting helper
+                const fmtStats = (s, type) => {
+                    if (!s) return null;
+                    const p = type === 'total' ? 'total' : 'specific';
+                    const v = s[`${p}_v`];
+                    const e = s[`${p}_e`];
+                    const d = s[`${p}_d`];
+                    if (v === '' || v === undefined || v === 'N/A') return null;
+                    return `${v}-${e}-${d}`;
+                };
+
+                let homeStatsHtml = '';
+                if (pc && pc.home_standings) {
+                    const g = fmtStats(pc.home_standings, 'total');
+                    const s = fmtStats(pc.home_standings, 'specific');
+                    if (g || s) {
+                        homeStatsHtml = `
+                            <div class="mt-1 text-muted" style="font-size: 0.7rem; line-height: 1.1;">
+                                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>L: ${s}</div>` : ''}
+                            </div>`;
+                    }
+                }
+
+                let awayStatsHtml = '';
+                if (pc && pc.away_standings) {
+                    const g = fmtStats(pc.away_standings, 'total');
+                    const s = fmtStats(pc.away_standings, 'specific');
+                    if (g || s) {
+                        awayStatsHtml = `
+                            <div class="mt-1 text-muted" style="font-size: 0.7rem; line-height: 1.1;">
+                                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>V: ${s}</div>` : ''}
+                            </div>`;
+                    }
+                }
+
+                // Format Date/Time
+                let fechaDisplay = m.time || '-';
+                if (m.start_time) {
+                    const d = new Date(m.start_time);
+                    const now = getSpainTime();
+
+                    const isToday = d.getDate() === now.getDate() &&
+                        d.getMonth() === now.getMonth() &&
+                        d.getFullYear() === now.getFullYear();
+
+                    const isTomorrow = new Date(now.getTime() + 86400000).getDate() === d.getDate() &&
+                        d.getMonth() === new Date(now.getTime() + 86400000).getMonth();
+
+                    const hours = d.getHours().toString().padStart(2, '0');
+                    const minutes = d.getMinutes().toString().padStart(2, '0');
+
+                    if (isToday) {
+                        fechaDisplay = `${hours}:${minutes}`;
+                    } else if (isTomorrow) {
+                        fechaDisplay = `Mañana ${hours}:${minutes}`;
+                    } else {
+                        const day = d.getDate().toString().padStart(2, '0');
+                        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+                        fechaDisplay = `${day}/${month} ${hours}:${minutes}`;
+                    }
+                }
+                const fecha = fechaDisplay;
+
+                // Check if scraped
+                const isScraped = !!pc;
+
+                // Check if has valid result (can be finalized)
+                let hasValidResult = false;
+                if (pc) {
+                    const score = pc.score || pc.final_score || '';
+                    hasValidResult = score && score !== '??' && score !== '?:?' && score.includes(':');
+                }
+
+                // FT (Score)
+                let ftHtml = '<span class="text-muted">-</span>';
+                if (pc && pc.score && pc.score !== '??') {
+                    ftHtml = `<span class="fw-bold text-success">${pc.score}</span>`;
+                } else if (pc && pc.final_score && pc.final_score !== '??') {
+                    ftHtml = `<span class="fw-bold text-success">${pc.final_score}</span>`;
+                } else {
+                    ftHtml = '<span class="text-muted">?:?</span>';
+                }
+
+                // Obtener el AH del partido actual en perspectiva LOCAL (invertido de la DB)
+                // Perspectiva Local: Negativo = Local Favorito, Positivo = Local Underdog
+                const currentAh = getLocalPerspectiveAh(m);
+                const localEsFavorito = !isNaN(currentAh) && currentAh < 0;
+
+                // Prev Home
+                let prevHomeHtml = '<span class="text-muted">-</span>';
+                let prevHomeStats = null; // Para el botón global de stats
+                if (pc && pc.last_home_match && pc.last_home_match.score) {
+                    const lhm = pc.last_home_match;
+                    const ahVal = formatAh(lhm.handicap_line_raw);
+
+                    // Calc WDL - Usar el AH del partido ACTUAL para simular cover
+                    let wdlClass = 'text-dark';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        const coverResult = calculateWDL(lhm.score, currentAh, true);
+                        wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    } else {
+                        const realWdl = calculateRealWDL(lhm.score, true);
+                        wdlClass = realWdl === 'WIN' ? 'text-success' : (realWdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    }
+
+                    // Nombres completos y fecha
+                    const lhmHomeName = lhm.home_team || '';
+                    const lhmAwayName = lhm.away_team || '';
+                    const lhmDate = lhm.date || '';
+
+                    // Guardar stats para el botón global
+                    if (lhm.stats_rows && Array.isArray(lhm.stats_rows) && lhm.stats_rows.length > 0) {
+                        prevHomeStats = {
+                            title: 'Prev Home',
+                            date: lhmDate,
+                            stats: lhm.stats_rows,
+                            match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score }
+                        };
+                    }
+
+                    prevHomeHtml = `
+                        <div class="d-flex flex-column">
+                            ${lhmDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lhmDate}</div>` : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${ahVal}</span>
+                                <span class="fw-bold ${wdlClass}">${lhm.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Prev Away
+                let prevAwayHtml = '<span class="text-muted">-</span>';
+                let prevAwayStats = null; // Para el botón global de stats
+                if (pc && pc.last_away_match && (isValidValue(pc.last_away_match.score) || isValidValue(pc.last_away_match.ah))) {
+                    const lam = pc.last_away_match;
+                    const ahVal = formatAh(lam.handicap_line_raw);
+
+
+                    // Calc WDL - Usar el AH del partido ACTUAL (invertido para away)
+                    let wdlClass = 'text-dark';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        // calculateWDL con false YA invierte el handicap (usa -ah).
+                        // Pasamos el handicap DEL LOCAL (currentAh).
+                        const coverResult = calculateWDL(lam.score, currentAh, false);
+                        wdlClass = coverResult === 'HOME_WIN' ? 'text-success' : (coverResult === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    } else {
+                        const realWdl = calculateRealWDL(lam.score, false);
+                        wdlClass = realWdl === 'WIN' ? 'text-success' : (realWdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                    }
+
+                    // Nombres completos y fecha
+                    const lamHomeName = lam.home_team || '';
+                    const lamAwayName = lam.away_team || '';
+                    const lamDate = lam.date || '';
+
+                    // Guardar stats para el botón global
+                    if (lam.stats_rows && Array.isArray(lam.stats_rows) && lam.stats_rows.length > 0) {
+                        prevAwayStats = {
+                            title: 'Prev Away',
+                            date: lamDate,
+                            stats: lam.stats_rows,
+                            match: { home: lamHomeName, away: lamAwayName, score: lam.score }
+                        };
+                    }
+
+                    prevAwayHtml = `
+                        <div class="d-flex flex-column">
+                            ${lamDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lamDate}</div>` : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${ahVal}</span>
+                                <span class="fw-bold ${wdlClass}">${lam.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // H2H Estadio
+                let h2hStadiumHtml = '<span class="text-muted">-</span>';
+                let h2hStadiumRes = '';
+                if (pc && pc.market_analysis_data && pc.market_analysis_data.stadium) {
+                    const st = pc.market_analysis_data.stadium;
+                    const res = calculateH2HResult(st.result, currentAh);
+                    h2hStadiumRes = res;
+                    const color = res === 'COVER' ? 'text-success' : (res === 'NO_COVER' ? 'text-danger' : 'text-primary');
+                    h2hStadiumHtml = `
+                        <div class="d-flex flex-column text-center">
+                            ${st.date ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
+                            <div class="text-muted small fw-bold">${st.movement || '-'}</div>
+                            <div class="fw-bold ${color}" style="font-size: 0.75rem;">${st.result}</div>
+                        </div>
+                    `;
+                }
+
+                // H2H General
+                let h2hGeneralHtml = '<span class="text-muted">-</span>';
+                let h2hGeneralRes = '';
+                if (pc && pc.market_analysis_data && pc.market_analysis_data.general) {
+                    const gen = pc.market_analysis_data.general;
+                    const res = calculateH2HResult(gen.result, currentAh, true);
+                    h2hGeneralRes = res;
+                    const color = res === 'COVER' ? 'text-success' : (res === 'NO_COVER' ? 'text-danger' : 'text-primary');
+                    h2hGeneralHtml = `
+                        <div class="d-flex flex-column text-center">
+                             ${gen.date ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
+                            <div class="text-muted small fw-bold">${gen.movement || '-'}</div>
+                            <div class="fw-bold ${color}" style="font-size: 0.75rem;">${gen.result}</div>
+                        </div>
+                    `;
+                }
+
+                // --- H2H Col3 Comparator: MEJORA / IGUALA / EMPEORA ---
+                // REGLAS CORRECTAS:
+                // 1. Favorito: HA <= 0 → VISITANTE, HA > 0 → LOCAL
+                // 2. WDL del favorito: De Prev Home (si LOCAL) o Prev Away (si VISITANTE)
+                // 3. Equipo espejo: El rival del otro equipo
+                // 4. WDL del espejo: Desde H2H Col3 para ese equipo
+                // 5. Comparación: L=0, D=1, W=2
+
+                const getWDLRank = (scoreStr, isHome) => {
+                    if (!scoreStr || scoreStr === '?:?' || scoreStr === '?-?' || scoreStr === '??') return null;
+                    const parts = scoreStr.replace('-', ':').split(':');
+                    if (parts.length !== 2) return null;
+                    const gh = parseInt(parts[0]);
+                    const ga = parseInt(parts[1]);
+                    if (isNaN(gh) || isNaN(ga)) return null;
+
+                    const teamGoals = isHome ? gh : ga;
+                    const oppGoals = isHome ? ga : gh;
+
+                    if (teamGoals > oppGoals) return 2; // W
+                    if (teamGoals === oppGoals) return 1; // D
+                    return 0; // L
+                };
+
+                const currentAhRaw = parseFloat(m.handicap);
+                const favIsVisitor = currentAhRaw <= 0;
+                const favIsLocal = currentAhRaw > 0;
+
+                let performanceStatus = 'N/A';
+                let favWDL = null;
+                let mirrorWDL = null;
+                let mirrorTeamName = null;
+
+                const homeTeamName = (m.home_team || '').toLowerCase().trim();
+                const awayTeamName = (m.away_team || '').toLowerCase().trim();
+
+                // 1. Obtener WDL del favorito desde Prev Home o Prev Away
+                // NOTA: En precacheo los datos se llaman last_home_match y last_away_match
+                if (pc && pc.last_home_match && pc.last_home_match.score && favIsLocal) {
+                    // Favorito es LOCAL actual → usar last_home_match (partido previo del Local)
+                    const prevHomeTeam = (pc.last_home_match.home_team || '').toLowerCase().trim();
+                    // ¿El local actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevHomeTeam.includes(homeTeamName) || homeTeamName.includes(prevHomeTeam);
+                    favWDL = getWDLRank(pc.last_home_match.score, favPlayedHome);
+                    // El equipo espejo es el rival del VISITANTE actual (de last_away_match)
+                    if (pc.last_away_match) {
+                        const prevAwayHome = (pc.last_away_match.home_team || '').toLowerCase().trim();
+                        const prevAwayAway = (pc.last_away_match.away_team || '').toLowerCase().trim();
+                        // El rival es el equipo que NO es el visitante actual
+                        const isVisitorHomeInPrev = prevAwayHome.includes(awayTeamName) || awayTeamName.includes(prevAwayHome);
+                        mirrorTeamName = isVisitorHomeInPrev ? prevAwayAway : prevAwayHome;
+                    }
+                } else if (pc && pc.last_away_match && pc.last_away_match.score && favIsVisitor) {
+                    // Favorito es VISITANTE actual → usar last_away_match (partido previo del Visitante)
+                    const prevAwayHome = (pc.last_away_match.home_team || '').toLowerCase().trim();
+                    const prevAwayAway = (pc.last_away_match.away_team || '').toLowerCase().trim();
+                    // ¿El visitante actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevAwayHome.includes(awayTeamName) || awayTeamName.includes(prevAwayHome);
+                    favWDL = getWDLRank(pc.last_away_match.score, favPlayedHome);
+                    // El equipo espejo es el rival del LOCAL actual (de last_home_match)
+                    if (pc.last_home_match) {
+                        const prevHomeHome = (pc.last_home_match.home_team || '').toLowerCase().trim();
+                        const prevHomeAway = (pc.last_home_match.away_team || '').toLowerCase().trim();
+                        // El rival es el equipo que NO es el local actual
+                        const isLocalHomeInPrev = prevHomeHome.includes(homeTeamName) || homeTeamName.includes(prevHomeHome);
+                        mirrorTeamName = isLocalHomeInPrev ? prevHomeAway : prevHomeHome;
+                    }
+                }
+
+                // 2. Obtener WDL del equipo espejo desde H2H Col3
+                let h2hCol3Html = '';
+                let mirrorCompType = ''; // 'directa' o 'inversa'
+                if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
+                    const col3 = pc.h2h_col3;
+                    const mirrorScore = (!isNaN(parseInt(col3.goles_home)) && !isNaN(parseInt(col3.goles_away)))
+                        ? `${col3.goles_home}:${col3.goles_away}` : null;
+                    const h2hHome = (col3.h2h_home_team_name || '').toLowerCase().trim();
+                    const h2hAway = (col3.h2h_away_team_name || '').toLowerCase().trim();
+
+                    // Calcular si es comparación directa o inversa
+                    // DIRECTA: Localías coinciden (mirror HOME en H2H, fav es LOCAL actual)
+                    // INVERSA: Localías NO coinciden (mirror HOME en H2H, fav es VISITANTE actual)
+                    // Para HA negativo (fav es visitante), las etiquetas se invierten
+                    if (mirrorTeamName) {
+                        const mirrorIsHomeInH2H = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAwayInH2H = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        // Determinar tipo base
+                        let baseType = '';
+                        if (mirrorIsHomeInH2H) {
+                            baseType = 'directa'; // Mirror está de local
+                        } else if (mirrorIsAwayInH2H) {
+                            baseType = 'inversa'; // Mirror está de visitante
+                        }
+
+                        // Para HA negativo (favorito visitante), invertir la etiqueta
+                        if (favIsVisitor && baseType) {
+                            mirrorCompType = baseType === 'directa' ? 'inversa' : 'directa';
+                        } else {
+                            mirrorCompType = baseType;
+                        }
+                    }
+
+                    // Solo calcular comparación si tenemos mirrorTeamName
+                    if (mirrorScore && mirrorTeamName) {
+                        const mirrorIsHome = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAway = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        if (mirrorIsHome) {
+                            mirrorWDL = getWDLRank(mirrorScore, true);
+                        } else if (mirrorIsAway) {
+                            mirrorWDL = getWDLRank(mirrorScore, false);
+                        }
+                    }
+
+                    // 3. Comparar
+                    if (favWDL !== null && mirrorWDL !== null) {
+                        if (favWDL > mirrorWDL) performanceStatus = 'MEJORA';
+                        else if (favWDL === mirrorWDL) performanceStatus = 'IGUALA';
+                        else performanceStatus = 'EMPEORA';
+                    }
+
+                    // SIEMPRE renderizar si hay datos de H2H Col3
+                    const mirrorAhRaw = (col3.handicap !== undefined && col3.handicap !== 'undefined') ? col3.handicap : null;
+                    if (mirrorAhRaw !== null || mirrorScore) {
+                        const homeTeam = (col3.h2h_home_team_name && col3.h2h_home_team_name !== 'undefined') ? col3.h2h_home_team_name : '';
+                        const awayTeam = (col3.h2h_away_team_name && col3.h2h_away_team_name !== 'undefined') ? col3.h2h_away_team_name : '';
+                        const date = col3.date ? col3.date : '';
+
+                        let statusColor = 'text-muted';
+                        if (performanceStatus === 'MEJORA') statusColor = 'text-success';
+                        else if (performanceStatus === 'EMPEORA') statusColor = 'text-danger';
+                        else if (performanceStatus === 'IGUALA') statusColor = 'text-primary';
+
+                        // Mostrar tipo de comparación (directa/inversa)
+                        const mirrorTypeLabel = mirrorCompType === 'directa'
+                            ? '<span class="badge bg-info" style="font-size: 0.55rem;">Directa</span>'
+                            : mirrorCompType === 'inversa'
+                                ? '<span class="badge bg-warning text-dark" style="font-size: 0.55rem;">Inversa</span>'
+                                : '';
+
+                        h2hCol3Html = `
+                            <div class="d-flex flex-column">
+                                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">
+                                    ${performanceStatus} ${mirrorTypeLabel}
+                                </div>
+                                ${date ? `<div class="text-muted" style="font-size: 0.55rem;">${date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${mirrorAhRaw || '-'}</span>
+                                    <span class="fw-bold">${mirrorScore || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // Ind. Comparisons - Helper para validar undefined
+                // (isValidValue moved to top of renderTable)
+
+                let indLeftHtml = '';
+                let indLeftHasData = false;
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.left) {
+                    const l = pc.comparativas_indirectas.left;
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+                    const homeTeam = isValidValue(l.home_team) ? l.home_team : '';
+                    const awayTeam = isValidValue(l.away_team) ? l.away_team : '';
+                    const localia = isValidValue(l.localia) ? l.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indLeftHasData = true;
+                        const cov = l.cover_status === 'CUBIERTO' ? 'text-success' : (l.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
+                        indLeftHtml = `
+                            <div class="d-flex flex-column">
+                                ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${localia}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                let indRightHtml = '';
+                let indRightHasData = false;
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.right) {
+                    const r = pc.comparativas_indirectas.right;
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+                    const homeTeam = isValidValue(r.home_team) ? r.home_team : '';
+                    const awayTeam = isValidValue(r.away_team) ? r.away_team : '';
+                    const localia = isValidValue(r.localia) ? r.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indRightHasData = true;
+                        const cov = r.cover_status === 'CUBIERTO' ? 'text-success' : (r.cover_status === 'NO CUBIERTO' ? 'text-danger' : 'text-dark');
+                        indRightHtml = `
+                            <div class="d-flex flex-column">
+                                ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="small text-muted" style="font-size: 0.65rem;">Loc: ${localia}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // Determinar si H2H Col3 tiene datos
+                let h2hCol3HasData = h2hCol3Html !== '';
+
+                // Preparar botón global de Stats
+                let allStatsData = [];
+                if (prevHomeStats) allStatsData.push(prevHomeStats);
+                if (prevAwayStats) allStatsData.push(prevAwayStats);
+
+                // H2H Col3 Stats
+                if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
+                    const col3 = pc.h2h_col3;
+                    const h2hDate = col3.date || '';
+                    const h2hHome = (col3.h2h_home_team_name && col3.h2h_home_team_name !== 'undefined') ? col3.h2h_home_team_name : '';
+                    const h2hAway = (col3.h2h_away_team_name && col3.h2h_away_team_name !== 'undefined') ? col3.h2h_away_team_name : '';
+                    const h2hScore = (col3.goles_home !== undefined && col3.goles_away !== undefined) ? `${col3.goles_home}:${col3.goles_away}` : '';
+                    const h2hAh = (col3.handicap !== undefined && col3.handicap !== 'undefined') ? col3.handicap : '';
+
+                    const h2hStats = {
+                        title: 'H2H Rivales (Col3)',
+                        date: h2hDate,
+                        stats: col3.stats_rows || [], // Si existe
+                        match: { home: h2hHome, away: h2hAway, score: h2hScore },
+                        ah: h2hAh
+                    };
+                    allStatsData.push(h2hStats);
+                }
+
+                let globalStatsBtn = '';
+                let globalStatsId = '';
+                let globalStatsHtmlContent = '';
+
+                // Helper para parsear valores y calcular porcentajes
+                const calculateStats = (homeStr, awayStr) => {
+                    const parseVal = (str) => {
+                        if (!str) return 0;
+                        const match = str.toString().match(/(\d+(\.\d+)?)/);
+                        return match ? parseFloat(match[0]) : 0;
+                    };
+                    const h = parseVal(homeStr);
+                    const a = parseVal(awayStr);
+                    let total = h + a;
+                    if (total === 0) total = 1;
+                    const hPct = (h / total) * 100;
+                    const aPct = (a / total) * 100;
+                    return { h, a, hPct, aPct };
+                };
+
+                const createStatsHtml = (statsData) => {
+                    if (!statsData || statsData.length === 0) return '';
+                    return statsData.map(stat => {
+                        // Parse numeric values for comparison
+                        const parseVal = (str) => {
+                            if (!str) return 0;
+                            const match = str.toString().match(/(\d+(\.\d+)?)/);
+                            return match ? parseFloat(match[0]) : 0;
+                        };
+                        const hVal = parseVal(stat.home);
+                        const aVal = parseVal(stat.away);
+
+                        // Dynamic colors: Green = higher, Red = lower, Dark = equal
+                        let hClass = 'text-dark';
+                        let aClass = 'text-dark';
+                        if (hVal > aVal) {
+                            hClass = 'text-success';
+                            aClass = 'text-danger';
+                        } else if (hVal < aVal) {
+                            hClass = 'text-danger';
+                            aClass = 'text-success';
+                        }
+
+                        return `
+                        <div class="row align-items-center mb-1 stat-row" style="margin-bottom: 2px !important; border-bottom: 1px solid #f0f0f0;">
+                            <div class="col-3 text-start fw-bold ${hClass}" style="font-size: 0.75rem;">${stat.home}</div>
+                            <div class="col-6 text-center">
+                                <span class="text-muted fw-bold stat-label" style="font-size: 0.65rem;">${stat.label}</span>
+                            </div>
+                            <div class="col-3 text-end fw-bold ${aClass}" style="font-size: 0.75rem;">${stat.away}</div>
+                        </div>
+                        `;
+                    }).join('');
+                };
+
+                if (allStatsData.length > 0) {
+                    globalStatsId = `global-stats-${matchId}`;
+                    globalStatsBtn = `
+                        <button class="btn btn-outline-success btn-sm p-0 d-flex align-items-center justify-content-center" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#${globalStatsId}" 
+                            style="width: 22px; height: 22px; border-radius: 50%;"
+                            title="Ver Estadísticas">
+                            <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
+                        </button>
+                    `;
+
+                    allStatsData.forEach(statsObj => {
+                        const title = (statsObj.title || '').replace(/"/g, '&quot;');
+                        const date = statsObj.date ? `<span class="text-muted ms-1 small">(${statsObj.date})</span>` : '';
+
+                        let titleClass = "text-dark";
+                        if (title.toLowerCase().includes("home") || title.toLowerCase().includes("local")) titleClass = "text-success";
+                        if (title.toLowerCase().includes("away") || title.toLowerCase().includes("visitante") || title.toLowerCase().includes("visita") || title.toLowerCase().includes("fuera")) titleClass = "text-danger";
+                        if (title.toLowerCase().includes("h2h") || title.toLowerCase().includes("col3")) titleClass = "text-warning";
+
+                        const statsRows = createStatsHtml(statsObj.stats);
+
+                        const matchInfo = statsObj.match ? `
+                        <div class="d-flex justify-content-between align-items-center mb-1 px-1 border-bottom pb-1" style="font-size: 0.7rem;">
+                            <span class="fw-bold text-success text-truncate" style="max-width: 40%;" title="${statsObj.match.home}">${statsObj.match.home}</span>
+                            <span class="fw-bold mx-1 text-dark bg-light px-1 rounded">${statsObj.match.score}</span>
+                            <span class="fw-bold text-danger text-truncate" style="max-width: 40%; text-align: right;" title="${statsObj.match.away}">${statsObj.match.away}</span>
+                        </div>
+                        ` : '';
+
+                        globalStatsHtmlContent += `
+                            <div class="col-md-4 mb-2">
+                                <div class="card border h-100 shadow-sm">
+                                    <div class="card-header bg-light py-1 border-bottom">
+                                        <span class="fw-bold ${titleClass} small text-uppercase">${title}</span> 
+                                        ${date}
+                                    </div>
+                                    <div class="card-body py-1 px-1">
+                                       ${matchInfo}
+                                       ${statsObj.ah ? `<div class="small text-muted mb-1" style="font-size: 0.65rem;">AH: <span class="fw-bold">${statsObj.ah}</span></div>` : ''}
+                                       ${statsRows ? `<div class="small text-muted mb-1" style="font-size: 0.65rem;">Estadísticas</div>` : ''}
+                                       ${statsRows} 
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    tr.setAttribute('data-has-stats', 'true');
+                    tr.setAttribute('data-stats-id', globalStatsId);
+                }
+
+                // Asignar atributos de datos para filtrado visual
+                tr.dataset.matchId = matchId;
+                tr.dataset.handicap = ah;
+                tr.dataset.hasHistory = (pc && pc.last_home_match && pc.last_away_match) ? '1' : '0';
+                tr.dataset.hasRankings = (homeRank || awayRank) ? '1' : '0';
+                tr.dataset.prevHomeAh = (pc && pc.last_home_match) ? pc.last_home_match.handicap_line_raw : '';
+                tr.dataset.prevAwayAh = (pc && pc.last_away_match) ? pc.last_away_match.handicap_line_raw : '';
+                tr.dataset.prevHomeWdl = (pc && pc.last_home_match) ? calculateRealWDL(pc.last_home_match.score, true) : '';
+                tr.dataset.prevAwayWdl = (pc && pc.last_away_match) ? calculateRealWDL(pc.last_away_match.score, false) : '';
+                tr.dataset.h2hStadiumRes = h2hStadiumRes;
+                tr.dataset.h2hGeneralRes = h2hGeneralRes;
+                tr.dataset.h2h_col3_mirror = mirrorCompType;
+                tr.dataset.h2h_col3_performance = performanceStatus;
+
+                tr.innerHTML = `
+                    <td class="text-center">
+                        <span class="badge bg-secondary">${fecha}</span>
+                        ${league ? `<div class="mt-1 small text-muted text-truncate" style="font-size: 0.65rem; max-width: 90px;" title="${league}">${league}</div>` : ''}
+                    </td>
+                    <td class="col-team text-primary small" style="font-size: 0.8rem;">
+                        <div>${home}</div>
+                        ${homeRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${homeRank}</div>` : ''}
+                        ${homeStatsHtml}
+                    </td>
+                    <td class="col-team text-danger small" style="font-size: 0.8rem;">
+                        <div>${away}</div>
+                        ${awayRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${awayRank}</div>` : ''}
+                        ${awayStatsHtml}
+                    </td>
+                    <td class="col-ah">
+                        ${formatAh(ah)}
+                        ${pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${pc.main_match_odds.goals_linea}</div>` : ''}
+                    </td>
+                    <td class="text-center col-res">${ftHtml}</td>
+                    <td class="col-prev">${prevHomeHtml}</td>
+                    <td class="col-prev">${prevAwayHtml}</td>
+                    <td class="col-prev text-center">${h2hStadiumHtml}</td>
+                    <td class="col-prev text-center">${h2hGeneralHtml}</td>
+                    <td class="col-prev col-h2h-col3 text-center">${h2hCol3Html}</td>
+                    <td class="col-prev ${!indLeftHasData ? 'cell-no-data' : ''}">${indLeftHtml}</td>
+                    <td class="col-prev ${!indRightHasData ? 'cell-no-data' : ''}">${indRightHtml}</td>
+                    <td class="text-center">
+                        ${globalStatsBtn}
+                        ${!isScraped
+                        ? `<button class="btn btn-sm btn-primary" onclick="scrapeMatch('${matchId}')" title="Scrapear">
+                                <i class="fas fa-download"></i>
+                               </button>`
+                        : `<button class="btn btn-sm btn-outline-info" onclick="scrapeMatch('${matchId}')" title="Re-scrapear">
+                                <i class="fas fa-sync"></i>
+                               </button>`
+                    }
+                        ${hasValidResult
+                        ? `<button class="btn btn-sm btn-success" onclick="finalizeMatch('${matchId}')" title="Finalizar y mover al Explorador">
+                                <i class="fas fa-check"></i>
+                               </button>`
+                        : ''}
+                        <a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Estudio">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        ${isScraped ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
+                            <i class="fas fa-robot"></i>
+                        </button>` : ''}
+                    </td>
+                `;
+                tr.setAttribute('data-match-id', matchId);
+
+                // Data-attributes para filtrado visual (evitar re-render)
+                tr.setAttribute('data-handicap', m.handicap !== undefined && m.handicap !== null ? m.handicap : '');
+
+                // Prev Home WDL y AH
+                let prevHomeWdlAttr = '';
+                let prevHomeAhAttr = '';
+                if (pc && pc.last_home_match && pc.last_home_match.score) {
+                    prevHomeAhAttr = pc.last_home_match.handicap_line_raw || '';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        const coverResult = calculateWDL(pc.last_home_match.score, currentAh, true);
+                        prevHomeWdlAttr = coverResult === 'HOME_WIN' ? 'WIN' : (coverResult === 'AWAY_WIN' ? 'LOSS' : 'DRAW');
+                    } else {
+                        const realWdl = calculateRealWDL(pc.last_home_match.score, true);
+                        prevHomeWdlAttr = realWdl || '';
+                    }
+                }
+                tr.setAttribute('data-prev-home-wdl', prevHomeWdlAttr);
+                tr.setAttribute('data-prev-home-ah', prevHomeAhAttr);
+
+                // Prev Away WDL y AH
+                let prevAwayWdlAttr = '';
+                let prevAwayAhAttr = '';
+                if (pc && pc.last_away_match && pc.last_away_match.score) {
+                    prevAwayAhAttr = pc.last_away_match.handicap_line_raw || '';
+                    if (!isNaN(currentAh) && currentAh !== 0) {
+                        const coverResult = calculateWDL(pc.last_away_match.score, currentAh, false);
+                        prevAwayWdlAttr = coverResult === 'HOME_WIN' ? 'WIN' : (coverResult === 'AWAY_WIN' ? 'LOSS' : 'DRAW');
+                    } else {
+                        const realWdl = calculateRealWDL(pc.last_away_match.score, false);
+                        prevAwayWdlAttr = realWdl || '';
+                    }
+                }
+                tr.setAttribute('data-prev-away-wdl', prevAwayWdlAttr);
+                tr.setAttribute('data-prev-away-ah', prevAwayAhAttr);
+
+                // Has History (ambos previos) y Has Rankings
+                const hasHistory = !!(pc && pc.last_home_match && pc.last_home_match.score && pc.last_away_match && pc.last_away_match.score);
+                const hasRankings = !!(hRankVal && aRankVal);
+                tr.setAttribute('data-has-history', hasHistory ? '1' : '0');
+                tr.setAttribute('data-has-rankings', hasRankings ? '1' : '0');
+
+                // H2H Col3 data-attributes para filtrado
+                tr.setAttribute('data-h2h-col3-performance', performanceStatus);
+                tr.setAttribute('data-h2h-col3-mirror', mirrorCompType);
+
+                tbody.appendChild(tr);
+
+                // Añadir fila de collapse para stats globales
+                if (globalStatsId && globalStatsHtmlContent) {
+                    const collapseTr = document.createElement('tr');
+                    collapseTr.innerHTML = `
+                        <td colspan="13" class="p-0">
+                            <div class="collapse" id="${globalStatsId}">
+                                <div class="p-2" style="background: #f8f9fa; border-top: 1px solid #dee2e6;">
+                                    <div class="row">
+                                        ${globalStatsHtmlContent}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(collapseTr);
+                }
+            });
+        }
+
+        // Background scraping - doesn't block UI
+        let scrapingInProgress = false;
+        let scrapingQueue = [];
+        let scrapingCurrent = 0;
+        let scrapingTotal = 0;
+
+        function updateScrapingStatus() {
+            const statusDiv = document.getElementById('scraping-status');
+            if (scrapingInProgress) {
+                statusDiv.innerHTML = `<span class="badge bg-warning text-dark">
+                    <i class="fas fa-spinner fa-spin me-1"></i>
+                    Scrapeando ${scrapingCurrent}/${scrapingTotal}
+                </span>`;
+                statusDiv.classList.remove('d-none');
+            } else {
+                statusDiv.classList.add('d-none');
+            }
+        }
+
+        function scrapeMatch(matchId) {
+            // Fire and forget - don't await, don't block
+            fetch('/api/precacheo_scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error scraping:', data.error);
+                    } else {
+                        // Update just this row's status
+                        precacheoData[matchId] = data.match;
+                        // Refresh the table
+                        const filteredMatches = applyFilters(upcomingMatches);
+                        renderTable(filteredMatches);
+                    }
+                })
+                .catch(err => console.error('Error scraping:', err));
+
+            // Immediately change button to show it's being scraped
+            const btn = document.querySelector(`button[onclick="scrapeMatch('${matchId}')"]`);
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+        }
+
+        // AI Prediction - Show team selection, then get prediction from Gemini API
+        async function getAIPrediction(matchId, btnElement) {
+            // Toggle: if row already exists, close it
+            const existingRow = document.getElementById(`ai-row-${matchId}`);
+            if (existingRow) {
+                existingRow.remove();
+                btnElement.classList.remove('active');
+                return;
+            }
+
+            // Get match data to show team names
+            const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
+            if (!matchRow) return;
+
+            // Get team names from DOM (Source of Truth) or precacheo data
+            const tds = matchRow.querySelectorAll('td');
+            let matchData = precacheoData[matchId];
+            let homeTeam = tds[1]?.textContent?.trim() || matchData?.home_team || 'Local';
+            let awayTeam = tds[2]?.textContent?.trim() || matchData?.away_team || 'Visitante';
+
+            // Escape team names for safe HTML insertion
+            const escapeHtml = (str) => str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+            const safeHome = escapeHtml(homeTeam);
+            const safeAway = escapeHtml(awayTeam);
+
+            // Create selection row
+            const expandRow = document.createElement('tr');
+            expandRow.id = `ai-row-${matchId}`;
+            expandRow.className = 'ai-expand-row';
+
+            expandRow.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                            <i class="fas fa-robot text-primary" style="font-size: 1.5rem;"></i>
+                            <strong class="text-primary" style="font-size: 1.1rem;">¿Quién gana?</strong>
+                        </div>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-lg btn-primary ai-team-btn" data-match="${matchId}" data-winner="home" data-home="${safeHome}" data-away="${safeAway}">
+                                <i class="fas fa-home me-2"></i>${homeTeam}
+                            </button>
+                            <button class="btn btn-lg btn-danger ai-team-btn" data-match="${matchId}" data-winner="away" data-home="${safeHome}" data-away="${safeAway}">
+                                <i class="fas fa-plane me-2"></i>${awayTeam}
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            // Add click handlers
+            expandRow.querySelectorAll('.ai-team-btn').forEach(btn => {
+                btn.onclick = function () {
+                    generateAIPrediction(
+                        this.dataset.match,
+                        this.dataset.winner,
+                        this.dataset.home,
+                        this.dataset.away,
+                        this.closest('tr')
+                    );
+                };
+            });
+
+            // Insert after match row
+            matchRow.insertAdjacentElement('afterend', expandRow);
+            btnElement.classList.add('active');
+        }
+
+        // Generate AI prediction after team selection
+        async function generateAIPrediction(matchId, winner, homeTeam, awayTeam, rowElement) {
+            // Show loading
+            rowElement.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+                        <div class="mt-2 text-muted">Generando predicción para <strong>${winner === 'home' ? homeTeam : awayTeam}</strong>...</div>
+                    </div>
+                </td>
+            `;
+
+            try {
+                const res = await fetch('/api/ai_prediction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        winner: winner,
+                        home_team: homeTeam,
+                        away_team: awayTeam
+                    })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    rowElement.innerHTML = `
+                        <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                            <div class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
+                            </div>
+                        </td>
+                    `;
+                    return;
+                }
+
+                const predictionId = `ai-prediction-text-${matchId}`;
+                const winnerBadge = winner === 'home'
+                    ? `<span class="badge bg-primary"><i class="fas fa-home me-1"></i>${homeTeam} GANA</span>`
+                    : `<span class="badge bg-danger"><i class="fas fa-plane me-1"></i>${awayTeam} GANA</span>`;
+
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <i class="fas fa-robot text-primary" style="font-size: 1.2rem;"></i>
+                                    <strong class="text-primary">AI Prediction</strong>
+                                    ${winnerBadge}
+                                    <span class="badge bg-success">AH: ${data.handicap}</span>
+                                </div>
+                                <div id="${predictionId}" class="p-3 bg-white rounded border shadow-sm" style="font-size: 0.95rem; line-height: 1.7; max-width: 900px;">
+                                    ${data.prediction}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-3" onclick="copyAIPrediction('${predictionId}')" title="Copiar texto">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+            } catch (err) {
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                        <div class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error de red: ${err.message}
+                        </div>
+                    </td>
+                `;
+            }
+        }
+
+        // Copy AI prediction text to clipboard
+        function copyAIPrediction(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const text = element.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const btn = element.closest('td').querySelector('.btn-outline-secondary');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline-secondary');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 1500);
+                }
+            }).catch(err => {
+                alert('Error al copiar: ' + err.message);
+            });
+        }
+
+        // Buscar patrones similares en histórico
+        async function searchPatterns(matchId, btnElement) {
+            const getTeamRealWdl = (scoreStr, isHomeTeam) => {
+                if (!scoreStr) return null;
+                const normalizedScore = String(scoreStr).replace('-', ':');
+                const parts = normalizedScore.split(':');
+                if (parts.length !== 2) return null;
+                const h = parseInt(parts[0], 10);
+                const a = parseInt(parts[1], 10);
+                if (isNaN(h) || isNaN(a)) return null;
+                const diff = isHomeTeam ? (h - a) : (a - h);
+                if (diff > 0) return 'HOME_WIN';
+                if (diff < 0) return 'AWAY_WIN';
+                return 'DRAW';
+            };
+
+            const parseMovement = (movementStr) => {
+                if (!movementStr || movementStr === 'N/A' || typeof movementStr !== 'string') {
+                    return { start: null, end: null };
+                }
+                const normalized = movementStr.replace(/,/g, '.').replace(/\s+/g, '').replace('→', '->');
+                const parts = normalized.split('->');
+                if (parts.length !== 2) return { start: null, end: null };
+                const start = parseFloat(parts[0]);
+                const end = parseFloat(parts[1]);
+                if (isNaN(start) || isNaN(end)) return { start: null, end: null };
+                return { start, end };
+            };
+
+            const toExplorerBucketValue = (raw) => {
+                const bucket = normalizeBucket(raw);
+                if (bucket === null || bucket === undefined || isNaN(bucket)) return '';
+                if (bucket >= 2.5) return '2.5';
+                if (bucket <= -2.5) return '-2.5';
+                return String(bucket);
+            };
+
+            const pc = precacheoData ? precacheoData[matchId] : null;
+            const marketData = ((pc || {}).market_analysis_data || {});
+            const generalData = marketData.general || {};
+            const stadiumData = marketData.stadium || {};
+
+            const sources = [];
+            if (generalData.movement && generalData.movement !== 'N/A') {
+                sources.push({
+                    key: 'general',
+                    prefix: 'h2h_general',
+                    movement: generalData.movement,
+                    score: generalData.result || generalData.score || null,
+                    inverted: true
+                });
+            }
+            if (stadiumData.movement && stadiumData.movement !== 'N/A') {
+                sources.push({
+                    key: 'stadium',
+                    prefix: 'h2h_stadium',
+                    movement: stadiumData.movement,
+                    score: stadiumData.result || stadiumData.score || null,
+                    inverted: false
+                });
+            }
+            const selectedSource = sources.length > 0 ? sources[0] : null;
+
+            let currentAh = NaN;
+            const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
+            if (currentAhRaw !== null && currentAhRaw !== undefined && currentAhRaw !== '') {
+                currentAh = parseFloat(String(currentAhRaw).replace(',', '.'));
+            }
+
+            const params = new URLSearchParams();
+            params.set('auto_search', '1');
+            params.set('source_match_id', String(matchId));
+
+            if (selectedSource) {
+                params.set('fav_source', selectedSource.key);
+                const mov = parseMovement(selectedSource.movement);
+
+                if (isNaN(currentAh) && mov.end !== null) {
+                    currentAh = mov.end;
+                }
+
+                if (mov.start !== null && mov.end !== null) {
+                    // Do not lock H2H start/end from auto preset; it over-filters and often returns 0 rows.
+                    const direction = selectedSource.key === 'general'
+                        ? (() => {
+                            const absStart = Math.abs(mov.start);
+                            const absEnd = Math.abs(mov.end);
+                            return Math.abs(absStart - absEnd) < 0.01 ? 'SAME' : (absEnd > absStart ? 'UP' : 'DOWN');
+                        })()
+                        : (Math.abs(mov.end - mov.start) < 0.01 ? 'SAME' : (mov.end > mov.start ? 'UP' : 'DOWN'));
+                    params.set(`${selectedSource.prefix}_mov`, direction);
+
+                    if (!isNaN(currentAh) && selectedSource.score && selectedSource.score !== '?:?' && selectedSource.score !== '??') {
+                        const coverage = calculateH2HResult(selectedSource.score, currentAh, selectedSource.inverted);
+                        if (coverage) {
+                            params.set(`${selectedSource.prefix}_res`, coverage);
+                        }
+                    }
+                }
+            }
+
+            if (!isNaN(currentAh)) {
+                params.set('fav_ah_exact', String(currentAh));
+                params.set('fav_side', currentAh > 0 ? 'HOME' : 'AWAY');
+
+                // Extra strict layer: previous match of the current favorite (AH + result).
+                const favIsHome = currentAh > 0;
+                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
+                const favPrevAhRaw = favPrev.handicap_line_raw ?? favPrev.ah ?? favPrev.handicap ?? (((favPrev || {}).main_match_odds || {}).ah_linea);
+                const favPrevAh = (favPrevAhRaw !== null && favPrevAhRaw !== undefined && favPrevAhRaw !== '')
+                    ? parseFloat(String(favPrevAhRaw).replace(',', '.'))
+                    : NaN;
+                const favPrevWdl = getTeamRealWdl(favPrev.score || '', favIsHome);
+
+                if (favIsHome) {
+                    if (!isNaN(favPrevAh)) params.set('prev_home_ah', String(favPrevAh));
+                    if (favPrevWdl) params.set('prev_home_res', favPrevWdl);
+                } else {
+                    if (!isNaN(favPrevAh)) params.set('prev_away_ah', String(favPrevAh));
+                    if (favPrevWdl) params.set('prev_away_res', favPrevWdl);
+                }
+                if (favPrevWdl) params.set('prev_res_mode', 'real');
+            }
+
+            window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
+            return;
+
+            // Toggle: si ya existe la fila expandible, ocultarla
+            const existingRow = document.getElementById(`patterns-row-${matchId}`);
+            if (existingRow) {
+                existingRow.remove();
+                btnElement.classList.remove('active');
+                return;
+            }
+
+            // Mostrar spinner
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const res = await fetch('/api/precacheo_pattern_search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: matchId })
+                });
+                const data = await res.json();
+
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                // Crear fila expandible
+                const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
+                if (!matchRow) return;
+
+                const expandRow = document.createElement('tr');
+                expandRow.id = `patterns-row-${matchId}`;
+                expandRow.className = 'patterns-expand-row';
+
+                const info = data.match_info || {};
+                const results = data.results || [];
+
+                let resultsHtml = '';
+                if (results.length === 0) {
+                    resultsHtml = '<div class="text-muted text-center py-2">No se encontraron patrones similares</div>';
+                } else {
+                    const covered = results.filter(r => r.covered === 'COVER').length;
+                    const notCovered = results.filter(r => r.covered === 'NO_COVER').length;
+
+                    // Filtrar automáticamente según WDL del partido previo del favorito
+                    // WDL = Win/Draw/Loss del resultado real (no del cover de handicap)
+                    const prevFavWdl = info.prev_fav_wdl; // 'WIN', 'DRAW', 'LOSS', or null
+                    const prevFavCovered = info.prev_fav_covered; // Para mostrar info
+                    let filteredResults = results;
+
+                    if (prevFavWdl) {
+                        filteredResults = results.filter(r => {
+                            const patAH = parseFloat(r.ah);
+                            let targetPrev = null;
+                            let teamWasHome = false;
+
+                            // Determinar cuál es el previo del favorito del patrón
+                            // Perspectiva: Positivo = Local Favorito, Negativo = Visitante Favorito
+                            if (patAH > 0) {
+                                targetPrev = r.prev_home; // Local es favorito, jugó de LOCAL en su previo
+                                teamWasHome = true;
+                            } else if (patAH < 0) {
+                                targetPrev = r.prev_away; // Visitante es favorito, jugó de VISITANTE en su previo
+                                teamWasHome = false;
+                            } else {
+                                // AH = 0: No hay favorito claro, EXCLUIR de resultados cuando filtramos por WDL
+                                return false;
+                            }
+
+                            if (!targetPrev || !targetPrev.score) return false;
+
+                            // Parsear el score - formato "home:away" del partido previo
+                            const scoreParts = targetPrev.score.split(':');
+                            if (scoreParts.length !== 2) return false;
+
+                            const homeGoals = parseInt(scoreParts[0]);
+                            const awayGoals = parseInt(scoreParts[1]);
+
+                            if (isNaN(homeGoals) || isNaN(awayGoals)) return false;
+
+                            // Calcular WDL desde la perspectiva del equipo rastreado
+                            let patternWdl = null;
+                            if (teamWasHome) {
+                                // El equipo jugó de LOCAL: sus goles son homeGoals
+                                if (homeGoals > awayGoals) patternWdl = 'WIN';
+                                else if (homeGoals < awayGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
+                            } else {
+                                // El equipo jugó de VISITANTE: sus goles son awayGoals
+                                if (awayGoals > homeGoals) patternWdl = 'WIN';
+                                else if (awayGoals < homeGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
+                            }
+
+                            // Solo mostrar patrones donde el WDL coincide
+                            return patternWdl === prevFavWdl;
+                        });
+                    }
+
+                    const filteredCovered = filteredResults.filter(r => r.covered === 'COVER').length;
+                    const filteredNotCovered = filteredResults.filter(r => r.covered === 'NO_COVER').length;
+
+                    // Mostrar info de WDL en español
+                    const wdlText = prevFavWdl === 'WIN' ? 'GANÓ' : (prevFavWdl === 'DRAW' ? 'EMPATÓ' : (prevFavWdl === 'LOSS' ? 'PERDIÓ' : ''));
+                    const wdlClass = prevFavWdl === 'WIN' ? 'text-success' : (prevFavWdl === 'DRAW' ? 'text-warning' : 'text-danger');
+
+                    resultsHtml = `
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small">
+                                    <strong>Patrones:</strong> ${data.total_found} 
+                                    | <strong>AH:</strong> ${info.ah_actual} 
+                                    | <strong>Fav:</strong> ${info.favorito}
+                                    ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
+                                    ${prevFavWdl ? `| <strong class="${wdlClass}">Fav ${wdlText}</strong>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered mb-0" style="font-size: 0.68rem;" id="patterns-table-${matchId}">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Local</th>
+                                    <th>Visitante</th>
+                                    <th>AH</th>
+                                    <th>FT</th>
+                                    <th>Cover</th>
+                                    <th>Prev Home
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-ah" style="font-size:0.55rem;width:55px;">
+                                                <option value="">AH</option>
+                                                <option value="0">0.0</option>
+                                                <option value="0.25">0.25</option>
+                                                <option value="0.5">0.5</option>
+                                                <option value="0.75">0.75</option>
+                                                <option value="1">1.0</option>
+                                                <option value="1.25">1.25</option>
+                                                <option value="1.5">1.5</option>
+                                                <option value="1.75">1.75</option>
+                                                <option value="2">2.0</option>
+                                                <option value="2.25">2.25</option>
+                                                <option value="2.5">2.5+</option>
+                                                <option value="-0.25">-0.25</option>
+                                                <option value="-0.5">-0.5</option>
+                                                <option value="-0.75">-0.75</option>
+                                                <option value="-1">-1.0</option>
+                                                <option value="-1.25">-1.25</option>
+                                                <option value="-1.5">-1.5</option>
+                                                <option value="-1.75">-1.75</option>
+                                                <option value="-2">-2.0</option>
+                                                <option value="-2.25">-2.25</option>
+                                                <option value="-2.5">-2.5+</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-res" style="font-size:0.55rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th>Prev Away
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-ah" style="font-size:0.55rem;width:55px;">
+                                                <option value="">AH</option>
+                                                <option value="0">0.0</option>
+                                                <option value="0.25">0.25</option>
+                                                <option value="0.5">0.5</option>
+                                                <option value="0.75">0.75</option>
+                                                <option value="1">1.0</option>
+                                                <option value="1.25">1.25</option>
+                                                <option value="1.5">1.5</option>
+                                                <option value="1.75">1.75</option>
+                                                <option value="2">2.0</option>
+                                                <option value="2.25">2.25</option>
+                                                <option value="2.5">2.5+</option>
+                                                <option value="-0.25">-0.25</option>
+                                                <option value="-0.5">-0.5</option>
+                                                <option value="-0.75">-0.75</option>
+                                                <option value="-1">-1.0</option>
+                                                <option value="-1.25">-1.25</option>
+                                                <option value="-1.5">-1.5</option>
+                                                <option value="-1.75">-1.75</option>
+                                                <option value="-2">-2.0</option>
+                                                <option value="-2.25">-2.25</option>
+                                                <option value="-2.5">-2.5+</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-res" style="font-size:0.55rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#e3f2fd;">H2H Estadio</th>
+                                    <th style="background:#e3f2fd;">H2H General</th>
+                                    <th style="background:#ffe4ec;">H2H Col3</th>
+                                    <th style="background:#fff3e0;">Ind. Local</th>
+                                    <th style="background:#fff3e0;">Ind. Visitante</th>
+                                    <th style="background:#d4edda;">
+                                        <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.6rem;" onclick="applyPatternFilters('${matchId}')">
+                                            <i class="fa-solid fa-filter"></i> Aplicar
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredResults.map(r => {
+                        // Función para calcular WDL REAL basado en goles
+                        const calcRealWdl = (score, isHome) => {
+                            if (!score) return null;
+                            const parts = (score || '').replace(' ', '').replace('-', ':').split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            const diff = isHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
+
+                        const realWdlClass = (wdl) => wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                        const realWdlLetter = (wdl) => wdl === 'WIN' ? 'W' : (wdl === 'LOSS' ? 'L' : 'D');
+
+                        // Calcular WDL real para Prev Home (equipo jugó de LOCAL)
+                        const prevHomeRealWdl = r.prev_home ? calcRealWdl(r.prev_home.score, true) : null;
+                        const prevHomeHtml = r.prev_home ?
+                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${realWdlClass(prevHomeRealWdl)}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        // Calcular WDL real para Prev Away (equipo jugó de VISITANTE)
+                        const prevAwayRealWdl = r.prev_away ? calcRealWdl(r.prev_away.score, false) : null;
+                        const prevAwayHtml = r.prev_away ?
+                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${realWdlClass(prevAwayRealWdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        // Helper para obtener clase de color basado en WDL simulado (cover del favorito)
+                        // HOME_WIN = el favorito cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
+                        const simWdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+
+                        const h2hStadiumHtml = r.h2h_stadium && r.h2h_stadium.movement && r.h2h_stadium.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_stadium.movement}</div><div class="${simWdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        const h2hGeneralHtml = r.h2h_general && r.h2h_general.movement && r.h2h_general.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_general.movement}</div><div class="${simWdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        const h2hCol3Html = r.h2h_col3 ?
+                            `<div><span class="fw-bold">${r.h2h_col3.ah || '-'}</span> ${r.h2h_col3.score || '-'}</div><div style="font-size:0.5rem;"><span class="text-primary">${r.h2h_col3.home_team || ''}</span> vs <span class="text-danger">${r.h2h_col3.away_team || ''}</span></div>` :
+                            '<span class="text-muted">-</span>';
+
+                        // Helper para calcular WDL real de comparativas indirectas
+                        const calcIndWdl = (ind) => {
+                            if (!ind || !ind.score) return null;
+                            const score = (ind.score || '').replace(' : ', ':').replace('-', ':');
+                            const parts = score.split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            // Comparativa indirecta: el equipo analizado jugó de local o visitante según 'localia'
+                            const wasHome = (ind.localia || '').toLowerCase().includes('loc') || (ind.localia || '').toLowerCase().includes('home');
+                            const diff = wasHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
+
+                        // Ind. Local - con colores y datos completos
+                        const indLocalWdl = calcIndWdl(r.ind_local);
+                        const indLocalAh = r.ind_local ? (r.ind_local.ah || r.ind_local.ah_line || r.ind_local.handicap || '-') : '-';
+                        const indLocalHtml = r.ind_local && (r.ind_local.score || indLocalAh !== '-') ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${indLocalAh}</span>
+                                <span class="fw-bold ${realWdlClass(indLocalWdl)}">${r.ind_local.score || r.ind_local.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_local.home_team || r.ind_local.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_local.home_team || ''} vs ${r.ind_local.away_team || ''}</div>` : ''}
+                            ${r.ind_local.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_local.localia}</div>` : ''}` :
+                            '';
+
+                        // Ind. Visitante - con colores y datos completos
+                        const indVisitanteWdl = calcIndWdl(r.ind_visitante);
+                        const indVisitanteAh = r.ind_visitante ? (r.ind_visitante.ah || r.ind_visitante.ah_line || r.ind_visitante.handicap || '-') : '-';
+                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || indVisitanteAh !== '-') ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${indVisitanteAh}</span>
+                                <span class="fw-bold ${realWdlClass(indVisitanteWdl)}">${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_visitante.home_team || r.ind_visitante.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_visitante.home_team || ''} vs ${r.ind_visitante.away_team || ''}</div>` : ''}
+                            ${r.ind_visitante.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_visitante.localia}</div>` : ''}` :
+                            '';
+
+                        const prevHomeWdl = r.prev_home ? realWdlLetter(prevHomeRealWdl) : '';
+                        const prevAwayWdl = r.prev_away ? realWdlLetter(prevAwayRealWdl) : '';
+                        const prevHomeAh = r.prev_home && r.prev_home.ah != null ? Math.abs(parseFloat(r.prev_home.ah)) : '';
+                        const prevAwayAh = r.prev_away && r.prev_away.ah != null ? Math.abs(parseFloat(r.prev_away.ah)) : '';
+
+                        // Determinar si hay datos en las columnas ind para el fondo
+                        const hasIndLocal = r.ind_local && (r.ind_local.score || r.ind_local.ah);
+                        const hasIndVisitante = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah);
+                        const hasH2hCol3 = r.h2h_col3 && (r.h2h_col3.score || r.h2h_col3.ah);
+
+                        return `
+                                    <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}">
+                                        <td><a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none" title="Abrir análisis">${r.date || '-'} 🔗</a></td>
+                                        <td class="text-primary" style="font-size:0.65rem;">${r.home || '-'}</td>
+                                        <td class="text-danger" style="font-size:0.65rem;">${r.away || '-'}</td>
+                                        <td class="fw-bold text-center" style="background:#e8f5e9;">${r.ah || '-'}${r.ou ? `<div style="font-size:0.5rem;color:#888;">${r.ou}</div>` : ''}</td>
+                                        <td class="fw-bold text-center">${r.score || '-'}</td>
+                                        <td class="${r.covered === 'COVER' ? 'bg-success text-white' : (r.covered === 'NO_COVER' ? 'bg-danger text-white' : 'text-muted')} fw-bold text-center">
+                                            ${r.covered === 'COVER' ? '✓' : (r.covered === 'NO_COVER' ? '✗' : '-')}
+                                        </td>
+                                        <td>${prevHomeHtml}</td>
+                                        <td>${prevAwayHtml}</td>
+                                        <td style="background:#e3f2fd;">${h2hStadiumHtml}</td>
+                                        <td style="background:#e3f2fd;">${h2hGeneralHtml}</td>
+                                        <td style="background:${hasH2hCol3 ? '#ffe4ec' : '#ffcdd2'};">${h2hCol3Html || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndLocal ? '#fff3e0' : '#ffcdd2'};">${indLocalHtml || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndVisitante ? '#fff3e0' : '#ffcdd2'};">${indVisitanteHtml || '<span class="text-muted">-</span>'}</td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 small">
+                            <span class="text-muted">Mostrando ${filteredResults.length} de ${data.total_found}</span>
+                            <span><strong class="text-success">✓ ${filteredCovered}</strong> cubiertos | <strong class="text-danger">✗ ${filteredNotCovered}</strong> no cubiertos | Ratio: <strong>${filteredCovered > 0 ? ((filteredCovered / (filteredCovered + filteredNotCovered)) * 100).toFixed(0) : 0}%</strong></span>
+                        </div>
+                    `;
+                }
+
+                expandRow.innerHTML = `
+                    <td colspan="20" style="background: #f8f9fa; border-left: 3px solid #ffc107; padding: 10px;">
+                        ${resultsHtml}
+                    </td>
+                `;
+
+                // Insertar después de la fila del partido
+                matchRow.insertAdjacentElement('afterend', expandRow);
+                btnElement.classList.add('active');
+
+            } catch (err) {
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+                alert('Error de red: ' + err.message);
+            }
+        }
+
+        // Filtrar filas de la tabla de patrones por cover status
+        function filterPatterns(matchId, filterType) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cover = row.getAttribute('data-cover');
+                if (filterType === 'all') {
+                    row.style.display = '';
+                } else if (filterType === 'cover') {
+                    row.style.display = cover === 'COVER' ? '' : 'none';
+                } else if (filterType === 'nocover') {
+                    row.style.display = cover === 'NO_COVER' ? '' : 'none';
+                }
+            });
+
+            // Update button states
+            const btnGroup = table.closest('td').querySelector('.btn-group');
+            if (btnGroup) {
+                btnGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                if (filterType === 'all') btnGroup.querySelector('.btn-outline-secondary').classList.add('active');
+                else if (filterType === 'cover') btnGroup.querySelector('.btn-outline-success').classList.add('active');
+                else if (filterType === 'nocover') btnGroup.querySelector('.btn-outline-danger').classList.add('active');
+            }
+        }
+
+        // Aplicar todos los filtros de patrones a la vez (botón "Aplicar")
+        function applyPatternFilters(matchId) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const container = table.closest('td');
+
+            // Leer valores de los 4 filtros
+            const prevHomeAhFilter = container.querySelector('.pattern-filter-prev-home-ah')?.value || '';
+            const prevHomeResFilter = container.querySelector('.pattern-filter-prev-home-res')?.value || '';
+            const prevAwayAhFilter = container.querySelector('.pattern-filter-prev-away-ah')?.value || '';
+            const prevAwayResFilter = container.querySelector('.pattern-filter-prev-away-res')?.value || '';
+
+            // Función para comprobar rango de AH
+            function matchesAhRange(ahVal, filterVal) {
+                if (!filterVal) return true;
+                const f = parseFloat(filterVal);
+                const v = parseFloat(ahVal);
+                if (isNaN(v)) return false;
+
+                if (f < 0) {
+                    if (f <= -2.5) return v <= -2.5;
+                    return Math.abs(v - f) <= 0.26;
+                }
+
+                if (f >= 2.5) return v >= 2.5;
+                if (f === 0) return Math.abs(v) <= 0.01;
+                return Math.abs(v - f) <= 0.26;
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const prevHomeWdl = row.getAttribute('data-prev-home') || '';
+                const prevAwayWdl = row.getAttribute('data-prev-away') || '';
+                const prevHomeAh = row.getAttribute('data-prev-home-ah') || '';
+                const prevAwayAh = row.getAttribute('data-prev-away-ah') || '';
+
+                let show = true;
+
+                if (prevHomeAhFilter && !matchesAhRange(prevHomeAh, prevHomeAhFilter)) show = false;
+                if (prevHomeResFilter && prevHomeWdl !== prevHomeResFilter) show = false;
+                if (prevAwayAhFilter && !matchesAhRange(prevAwayAh, prevAwayAhFilter)) show = false;
+                if (prevAwayResFilter && prevAwayWdl !== prevAwayResFilter) show = false;
+
+                row.style.display = show ? '' : 'none';
+                if (show) visibleCount++;
+            });
+
+            console.log(`Filtros aplicados: ${visibleCount} filas visibles de ${rows.length}`);
+        }
+
+        // Filtrar filas por columna (Prev Home/Away W/D/L y AH)
+        function filterPatternsCol(matchId, colName, filterValue) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                // Si hay filtro de cover activo, respetarlo
+                const coverFilter = table.closest('td').querySelector('.btn-group .active');
+                const activeCoverFilter = coverFilter ? coverFilter.textContent.includes('Cubiertos') ? (coverFilter.textContent.includes('No') ? 'nocover' : 'cover') : 'all' : 'all';
+
+                let showByCover = true;
+                if (activeCoverFilter === 'cover') showByCover = row.getAttribute('data-cover') === 'COVER';
+                else if (activeCoverFilter === 'nocover') showByCover = row.getAttribute('data-cover') === 'NO_COVER';
+
+                // Filtros de W/D/L
+                const prevHomeWdl = row.getAttribute('data-prev-home');
+                const prevAwayWdl = row.getAttribute('data-prev-away');
+
+                // Filtros de AH
+                const prevHomeAh = parseFloat(row.getAttribute('data-prev-home-ah')) || 0;
+                const prevAwayAh = parseFloat(row.getAttribute('data-prev-away-ah')) || 0;
+
+                // Obtener valores de todos los filtros activos
+                const container = table.closest('td');
+                const selects = container.querySelectorAll('select');
+                let prevHomeWdlFilter = '', prevAwayWdlFilter = '', prevHomeAhFilter = '', prevAwayAhFilter = '';
+                selects.forEach(sel => {
+                    const onChange = sel.getAttribute('onchange') || '';
+                    if (onChange.includes('prev-home-ah')) prevHomeAhFilter = sel.value;
+                    else if (onChange.includes('prev-away-ah')) prevAwayAhFilter = sel.value;
+                    else if (onChange.includes("prev-home'")) prevHomeWdlFilter = sel.value;
+                    else if (onChange.includes("prev-away'")) prevAwayWdlFilter = sel.value;
+                });
+
+                // Función para comprobar rango de AH
+                function matchesAhRange(ahVal, filterVal) {
+                    if (!filterVal) return true;
+                    const f = parseFloat(filterVal);
+                    if (f === 0.5) return ahVal >= 0.25 && ahVal <= 0.75;
+                    if (f === 1) return ahVal >= 0.75 && ahVal <= 1.25;
+                    if (f === 1.5) return ahVal >= 1.25 && ahVal <= 1.75;
+                    if (f === 2) return ahVal >= 1.75;
+                    return true;
+                }
+
+                let showByCol = true;
+
+                // Aplicar filtro actual
+                if (colName === 'prev-home' && filterValue) {
+                    showByCol = showByCol && prevHomeWdl === filterValue;
+                } else if (colName === 'prev-away' && filterValue) {
+                    showByCol = showByCol && prevAwayWdl === filterValue;
+                } else if (colName === 'prev-home-ah' && filterValue) {
+                    showByCol = showByCol && matchesAhRange(prevHomeAh, filterValue);
+                } else if (colName === 'prev-away-ah' && filterValue) {
+                    showByCol = showByCol && matchesAhRange(prevAwayAh, filterValue);
+                }
+
+                // También respetar otros filtros activos
+                if (colName !== 'prev-home' && prevHomeWdlFilter) {
+                    showByCol = showByCol && prevHomeWdl === prevHomeWdlFilter;
+                }
+                if (colName !== 'prev-away' && prevAwayWdlFilter) {
+                    showByCol = showByCol && prevAwayWdl === prevAwayWdlFilter;
+                }
+                if (colName !== 'prev-home-ah' && prevHomeAhFilter) {
+                    showByCol = showByCol && matchesAhRange(prevHomeAh, prevHomeAhFilter);
+                }
+                if (colName !== 'prev-away-ah' && prevAwayAhFilter) {
+                    showByCol = showByCol && matchesAhRange(prevAwayAh, prevAwayAhFilter);
+                }
+
+                row.style.display = (showByCover && showByCol) ? '' : 'none';
+            });
+        }
+
+        async function scrapeResultsPending() {
+            if (!confirm('¿Buscar resultados finales de partidos que empezaron hace +2 horas?\nSe actualizarán los que encuentren resultado.')) return;
+
+            try {
+                const res = await fetch('/api/scrape_pending_results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert(data.message + '\n\nRevisa la consola del servidor para ver el progreso.');
+                    // Refrescar después de un delay
+                    setTimeout(() => triggerSearch(), 5000);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            }
+        }
+
+        async function scrapeAllPending() {
+            const handicap = document.getElementById('filter-handicap').value;
+            // Note: Pre-Cacheo page filtering logic might not have goal line filter input, 
+            // but if it does, we should capture it. 
+            // Looking at the view_file, there is no explicit goal line filter INPUT in precacheo list header, 
+            // only AH filter. So we pass handicap.
+
+            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH = ${handicap || 'Todos'}?\nSe usarán 8 workers y se guardará el progreso.`)) return;
+
+            try {
+                const res = await fetch('/api/precacheo_scrape_background', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        handicap: handicap
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error de red al iniciar scraping: ' + err.message);
+            }
+        }
+
+        // Finalizar un partido individual (mover al Explorador)
+        async function finalizeMatch(matchId) {
+            const btn = document.querySelector(`button[onclick = "finalizeMatch('${matchId}')"]`);
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+
+            try {
+                const res = await fetch(`/ api / precacheo_finalize / ${matchId} `, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Eliminar de precacheoData local
+                    delete precacheoData[matchId];
+                    // Refrescar tabla
+                    triggerSearch();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo finalizar'));
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-check"></i>';
+                        btn.disabled = false;
+                    }
+                }
+            } catch (err) {
+                console.error('Error finalizando:', err);
+                alert('Error de red al finalizar: ' + err.message);
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // Finalizar todos los partidos que tienen resultado
+        // Finalizar todos los partidos que tienen resultado
+        async function finalizeAllWithResults() {
+            // Buscar todos los partidos con resultado válido
+            const matchesWithResults = [];
+            for (const [matchId, pc] of Object.entries(precacheoData)) {
+                // Ensure robust check for score
+                const score = pc.score || pc.final_score || '';
+                if (score && score !== '??' && score !== '?:?' && score.includes(':')) {
+                    matchesWithResults.push(matchId);
+                }
+            }
+
+            if (matchesWithResults.length === 0) {
+                alert('No hay partidos con resultado para finalizar.');
+                return;
+            }
+
+            if (!confirm(`¿Finalizar ${matchesWithResults.length} partidos y moverlos al Explorador ? `)) return;
+
+            showLoading(true, `Finalizando ${matchesWithResults.length} partidos...`);
+
+            try {
+                // Batch Request
+                const res = await fetch('/api/precacheo_finalize_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchesWithResults })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    const failures = data.failed_count || 0;
+                    const success = data.success_count || 0;
+
+                    if (failures > 0) {
+                        alert(`Finalizados ${success}. Fallaron ${failures}. Revisa la consola para más detalles.`);
+                        console.error("Batch failures:", data.errors);
+                    } else {
+                        // Success completely
+                        // Optional: simpler alert or just refresh
+                        // alert(`Proceso completado.${ success } partidos movidos.`);
+                    }
+                    // Refresh data
+                    await triggerSearch();
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Event listeners for filters - solo Enter dispara búsqueda
+        document.querySelectorAll('.header-filter').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    triggerSearch();
+                }
+            });
+            // Removed: automatic triggerSearch on SELECT change
+        });
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            // Si es móvil (ancho menor a 768px, asumimos lógica móvil)
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            updateCurrentTimeDisplay();
+            // Actualizar hora cada minuto
+            setInterval(updateCurrentTimeDisplay, 60000);
+            triggerSearch(); // Cargar lista inicial al abrir la página
+        });
+
+        // Scraping progresivo: scrapea en segundo plano y actualiza la tabla
+        let isScrapingProgressively = false;
+
+        async function scrapeProgressively() {
+            if (isScrapingProgressively) {
+                alert('Ya hay un scraping en progreso. Espera a que termine.');
+                return;
+            }
+
+            // Obtener partidos sin datos de precacheo
+            const pendingMatches = upcomingMatches.filter(m => !precacheoData[m.id]);
+
+            if (pendingMatches.length === 0) {
+                alert('✅ Todos los partidos ya tienen datos de precacheo.');
+                return;
+            }
+
+            if (!confirm(`¿Scrapear ${pendingMatches.length} partidos en segundo plano?\n\nLa tabla se actualizará cada 3 partidos.`)) {
+                return;
+            }
+
+            isScrapingProgressively = true;
+            const progressBadge = document.getElementById('scrape-progress-badge');
+            progressBadge.classList.remove('d-none');
+
+            const total = pendingMatches.length;
+            let completed = 0;
+            let errors = 0;
+            const batchSize = 3; // Scrapear de 3 en 3
+            const refreshInterval = 3; // Refrescar tabla cada 3 completados
+
+            try {
+                // Procesar en lotes
+                for (let i = 0; i < pendingMatches.length; i += batchSize) {
+                    const batch = pendingMatches.slice(i, i + batchSize);
+                    const matchIds = batch.map(m => m.id);
+
+                    // Scrapear lote
+                    try {
+                        const res = await fetch('/api/grandes_ligas_scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ match_ids: matchIds, workers: batchSize })
+                        });
+                        const data = await res.json();
+
+                        if (data.error) {
+                            errors += batch.length;
+                        } else {
+                            completed += data.scraped || 0;
+                            errors += data.errors || 0;
+                        }
+                    } catch (err) {
+                        errors += batch.length;
+                        console.error('Error en lote:', err);
+                    }
+
+                    // Actualizar badge de progreso
+                    progressBadge.textContent = `${completed + errors}/${total}`;
+                    progressBadge.className = errors > 0
+                        ? 'badge bg-warning'
+                        : 'badge bg-info';
+
+                    // Refrescar tabla periódicamente
+                    if ((completed + errors) % refreshInterval === 0 || i + batchSize >= pendingMatches.length) {
+                        // Refrescar datos de precacheo sin recargar toda la página
+                        try {
+                            const precRes = await fetch('/api/precacheo_list');
+                            const precData = await precRes.json();
+                            precacheoData = {};
+                            (precData.matches || []).forEach(m => {
+                                precacheoData[m.match_id] = m;
+                            });
+                            renderTableWithPagination();
+                        } catch (err) {
+                            console.error('Error refrescando precacheo:', err);
+                        }
+                    }
+                }
+
+                // Finalizado
+                progressBadge.textContent = `✅ ${completed}/${total}`;
+                progressBadge.className = 'badge bg-success';
+
+                // Ocultar badge después de 5 segundos
+                setTimeout(() => {
+                    progressBadge.classList.add('d-none');
+                }, 5000);
+
+                // Refrescar tabla final
+                await triggerSearch();
+
+            } catch (err) {
+                alert('Error general: ' + err.message);
+                progressBadge.classList.add('d-none');
+            } finally {
+                isScrapingProgressively = false;
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

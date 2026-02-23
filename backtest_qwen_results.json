@@ -1,0 +1,77 @@
+{
+  "total_bets": 4,
+  "wins": 2,
+  "losses": 2,
+  "pushes": 2,
+  "win_rate": 50.0,
+  "roi": -20.0,
+  "total_profit": -0.8,
+  "picks": [
+    {
+      "match": "Everton vs Liverpool",
+      "ah": -1.0,
+      "pick": "AWAY",
+      "perspective": "",
+      "expected_roi": "50%",
+      "score": "2:2",
+      "outcome": "L",
+      "profit": -1.0,
+      "result": "LOSS"
+    },
+    {
+      "match": "Southampton vs Newcastle United",
+      "ah": -1.25,
+      "pick": "HOME",
+      "perspective": "",
+      "expected_roi": "61%",
+      "score": "1:3",
+      "outcome": "L",
+      "profit": -1.0,
+      "result": "LOSS"
+    },
+    {
+      "match": "Burnley vs Liverpool",
+      "ah": -1.25,
+      "pick": "HOME",
+      "perspective": "",
+      "expected_roi": "70%",
+      "score": "0:1",
+      "outcome": "HW",
+      "profit": 0.4,
+      "result": "WIN"
+    },
+    {
+      "match": "Sunderland A.F.C vs Arsenal",
+      "ah": -1.25,
+      "pick": "HOME",
+      "perspective": "",
+      "expected_roi": "70%",
+      "score": "2:2",
+      "outcome": "W",
+      "profit": 0.8,
+      "result": "WIN"
+    },
+    {
+      "match": "Fulham vs Manchester City",
+      "ah": -1.0,
+      "pick": "HOME",
+      "perspective": "",
+      "expected_roi": "80%",
+      "score": "4:5",
+      "outcome": "P",
+      "profit": 0.0,
+      "result": "PUSH"
+    },
+    {
+      "match": "Nottingham Forest vs Manchester City",
+      "ah": -1.0,
+      "pick": "HOME",
+      "perspective": "",
+      "expected_roi": "80%",
+      "score": "1:2",
+      "outcome": "P",
+      "profit": 0.0,
+      "result": "PUSH"
+    }
+  ]
+}

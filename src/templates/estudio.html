@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App de Análisis de Datos y Herramientas ⚽</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 480px;
+            --card-bg: #ffffff;
+            --card-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        body {
+            background: linear-gradient(180deg, #f7f9fc 0%, #eef2f7 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1f2a37;
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: block;
+            /* Remove flex to allow full-width content */
+            padding: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            background: var(--card-bg);
+            z-index: 1050;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Desktop Styles (Default - Side Drawer) */
+        .sidebar {
+            top: 0;
+            left: 0;
+            width: 480px;
+            height: 100vh;
+            transform: translateX(-100%);
+            /* Hidden to the left */
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        /* Fix: Push content when sidebar is active on desktop to avoid overlap */
+        @media (min-width: 992px) {
+            body.sidebar-open .content {
+                margin-left: 480px;
+            }
+        }
+
+        /* Base Sidebar (Hidden on mobile by default, overridden by media query above for desktop) */
+        .sidebar {
+            top: 0;
+            left: 0;
+            width: 480px;
+            height: 100vh;
+            transform: translateX(-100%);
+            /* Default hidden for small screens if not overridden */
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1055;
+        }
+
+        .content {
+            width: 100%;
+            padding: 1.5rem;
+            padding-bottom: 80px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .mobile-menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: #0d6efd;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+            z-index: 1060;
+            font-size: 1.4rem;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .mobile-menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1040;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Mobile Styles (Bottom Sheet) */
+        @media (max-width: 992px) {
+            .sidebar {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 70vh;
+                transform: translateY(100%);
+                /* Hidden to the bottom */
+                border-radius: 24px 24px 0 0;
+                padding-top: 2.5rem;
+                box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.active {
+                transform: translateY(0);
+            }
+
+            .sidebar::before {
+                content: '';
+                position: absolute;
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40px;
+                height: 5px;
+                background-color: #cbd5e1;
+                border-radius: 10px;
+                pointer-events: none;
+            }
+
+            .content {
+                padding: 1rem;
+                padding-bottom: 80px;
+            }
+
+            #analysis-panel-wrapper {
+                border-radius: 0;
+                box-shadow: none;
+                min-height: 100vh;
+            }
+        }
+
+        .sidebar-table-wrapper {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="layout">
+        <aside class="sidebar">
+            <button type="button" class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Cerrar menú">
+                <span class="me-1" style="font-size: 0.9rem; vertical-align: middle;">Ocultar</span> <i
+                    class="fa-solid fa-xmark" style="vertical-align: middle;"></i>
+            </button>
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h5 class="mb-0">Herramientas disponibles</h5>
+                    <span class="badge bg-primary">Live</span>
+                </div>
+                <div class="tool-option">
+                    <span class="status-dot entreno"></span>
+                    <input type="radio" id="tool-entreno" name="tool-mode" value="entreno" checked>
+                    <label for="tool-entreno" class="mb-0">Entreno</label>
+                </div>
+                <div class="tool-option">
+                    <span class="status-dot analisis"></span>
+                    <input type="radio" id="tool-analisis" name="tool-mode" value="analisis">
+                    <label for="tool-analisis" class="mb-0">Análisis</label>
+                </div>
+                <div class="mt-3 pt-2 border-top">
+                    <a href="/explorador" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fa-solid fa-compass me-1"></i> Ir al Explorador
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h5 class="mb-0">Configuración del Partido (OF)</h5>
+                </div>
+                <form id="match-search-form" class="d-flex flex-column gap-3">
+                    <div>
+                        <label for="match-id-input" class="form-label fw-semibold">ID Partido Principal</label>
+                        <input type="text" class="form-control" id="match-id-input" placeholder="Ej: 2898733"
+                            value="{{ selected_match_id }}">
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">Analizar Partido (OF)</button>
+                </form>
+                <div class="analysis-status mt-3" id="analysis-status" data-state="idle">
+                    Listo para analizar un nuevo encuentro.
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h6 class="mb-0">Próximos partidos</h6>
+                    <span class="badge bg-success">{{ upcoming_matches|length }}</span>
+                </div>
+                <div class="px-3 pb-2">
+                    <form action="/estudio" method="get" class="d-flex flex-column gap-2">
+                        {% if selected_match_id %}
+                        <input type="hidden" name="match_id" value="{{ selected_match_id }}">
+                        {% endif %}
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="text" class="form-control form-control-sm" name="handicap"
+                                    placeholder="AH (ej: -0.5)" value="{{ current_handicap or '' }}">
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="form-control form-control-sm" name="ou"
+                                    placeholder="O/U (ej: 2.5)" value="{{ current_ou or '' }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">Aplicar Filtros</button>
+                    </form>
+                </div>
+                <div class="sidebar-table-wrapper">
+                    <table class="table table-sm align-middle sidebar-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Partido</th>
+                                <th>AH</th>
+                                <th>O/U</th>
+                                <th class="text-center">Análisis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in upcoming_matches %}
+                            <tr data-match-id="{{ match.id }}"
+                                class="{% if match.id == selected_match_id %}active{% endif %}">
+                                <td class="text-nowrap">{{ match.time }}</td>
+                                <td>
+                                    <span class="team-name">{{ match.home_team }}</span>
+                                    <small class="text-muted">vs</small>
+                                    <span class="team-name">{{ match.away_team }}</span>
+                                </td>
+                                <td><span class="odds-badge handicap-badge">{{ match.handicap or '-' }}</span></td>
+                                <td><span class="odds-badge goal-badge">{{ match.goal_line or match.goalLine or '-'
+                                        }}</span></td>
+                                <td class="text-center">
+                                    <button type="button" class="icon-button sidebar-analyze-btn"
+                                        data-match-id="{{ match.id }}" title="Ver análisis en el panel">
+                                        <i class="fa-solid fa-chart-simple"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No hay partidos próximos
+                                    disponibles.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <h6 class="mb-0">Partidos terminados</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary">{{ finished_matches|length }}</span>
+                        <a href="/todos_resultados" class="btn btn-xs btn-outline-secondary py-0"
+                            style="font-size: 0.7rem;" title="Ver todos">Ver todos</a>
+                        <button id="btn-cache-all" class="btn btn-xs btn-outline-success py-0"
+                            style="font-size: 0.7rem;" title="Cachear todos en CSV (Background)">
+                            <i class="fa-solid fa-database"></i> Cachear
+                        </button>
+                    </div>
+                </div>
+                <div class="sidebar-table-wrapper">
+                    <table class="table table-sm align-middle sidebar-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Partido</th>
+                                <th>Res.</th>
+                                <th>AH</th>
+                                <th>O/U</th>
+                                <th class="text-center">Análisis</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in finished_matches %}
+                            <tr data-match-id="{{ match.id }}"
+                                class="{% if match.id == selected_match_id %}active{% endif %}">
+                                <td class="text-nowrap">{{ match.time }}</td>
+                                <td>
+                                    <span class="team-name">{{ match.home_team }}</span>
+                                    <small class="text-muted">vs</small>
+                                    <span class="team-name">{{ match.away_team }}</span>
+                                </td>
+                                <td class="text-center"><span class="badge bg-dark">{{ match.score or '-' }}</span></td>
+                                <td><span class="odds-badge handicap-badge">{{ match.handicap or '-' }}</span></td>
+                                <td><span class="odds-badge goal-badge">{{ match.goal_line or match.goalLine or '-'
+                                        }}</span></td>
+                                <td class="text-center">
+                                    <button type="button" class="icon-button sidebar-analyze-btn"
+                                        data-match-id="{{ match.id }}" title="Ver análisis en el panel">
+                                        <i class="fa-solid fa-chart-simple"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Todavía no se han registrado
+                                    partidos terminados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content" style="position: relative;">
+
+            <div id="analysis-panel-wrapper" data-current-match="{{ selected_match_id }}">
+                {% include 'partials/analysis_panel.html' %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Patrones -->
+    <div class="modal fade" id="patternModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Patrones Similares: <span id="patternModalTitle" class="fw-bold"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="patternModalBody">
+                    <!-- Results will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const TOOL_KEY = 'analysis-tool-mode';
+            const toolRadios = document.querySelectorAll('input[name="tool-mode"]');
+            const panelWrapper = document.getElementById('analysis-panel-wrapper');
+            const matchForm = document.getElementById('match-search-form');
+            const matchInput = document.getElementById('match-id-input');
+            const statusBox = document.getElementById('analysis-status');
+            const sidebarRows = document.querySelectorAll('.sidebar-table tbody tr[data-match-id]');
+            const sidebarButtons = document.querySelectorAll('.sidebar-analyze-btn');
+
+            // Mobile Menu Logic
+            const mobileToggle = document.getElementById('mobile-menu-toggle');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const sidebar = document.querySelector('.sidebar');
+
+            const toggleSidebar = () => {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                const icon = mobileToggle.querySelector('i');
+                if (sidebar.classList.contains('active')) {
+                    icon.classList.replace('fa-bars', 'fa-xmark');
+                } else {
+                    icon.classList.replace('fa-xmark', 'fa-bars');
+                }
+            };
+
+            const closeSidebar = () => {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                mobileToggle.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+            };
+
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeSidebar);
+            }
+
+
+
+            let activeMatchId = panelWrapper.dataset.currentMatch || '';
+            let currentController = null;
+
+            const savedTool = localStorage.getItem(TOOL_KEY);
+            if (savedTool) {
+                const radio = document.querySelector(`input[name="tool-mode"][value="${savedTool}"]`);
+                if (radio) radio.checked = true;
+            }
+            toolRadios.forEach(radio => {
+                radio.addEventListener('change', () => localStorage.setItem(TOOL_KEY, radio.value));
+            });
+
+            const normalizeMatchId = (value) => {
+                if (!value) return '';
+                const digits = value.toString().match(/\d+/g);
+                return digits ? digits.join('') : '';
+            };
+
+            const updateStatus = (message, state = 'idle') => {
+                statusBox.textContent = message;
+                statusBox.dataset.state = state;
+            };
+
+            const highlightRow = (matchId) => {
+                sidebarRows.forEach(row => {
+                    if (row.dataset.matchId === matchId) {
+                        row.classList.add('active');
+                    } else {
+                        row.classList.remove('active');
+                    }
+                });
+            };
+
+            const loadMatch = async (matchId, options = {}) => {
+                const cleanId = normalizeMatchId(matchId);
+                if (!cleanId) {
+                    updateStatus('Introduce un ID de partido válido.', 'error');
+                    return;
+                }
+                if (!options.force && cleanId === activeMatchId) {
+                    updateStatus('Ese partido ya está en pantalla.', 'idle');
+                    return;
+                }
+
+                if (currentController) currentController.abort();
+                currentController = new AbortController();
+                activeMatchId = cleanId;
+                highlightRow(cleanId);
+                updateStatus('Analizando partido...', 'loading');
+                panelWrapper.innerHTML = `<div class="panel-loading">Analizando ID ${cleanId}...</div>`;
+
+                try {
+                    const url = `/api/estudio_panel/${cleanId}${options.force ? '?refresh=true' : ''}`;
+                    const response = await fetch(url, { signal: currentController.signal });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok || payload.error) {
+                        throw new Error(payload.error || 'No se pudo cargar el análisis.');
+                    }
+                    panelWrapper.innerHTML = payload.html;
+                    panelWrapper.dataset.currentMatch = cleanId;
+                    matchInput.value = cleanId;
+                    const elapsed = payload.meta?.elapsed ? Number(payload.meta.elapsed).toFixed(2) : '0.0';
+                    updateStatus(`Análisis completado en ${elapsed} segundos.`, 'success');
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, '', `/estudio/${cleanId}`);
+                    }
+                    attachAnalysisEvents();
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        updateStatus('Análisis cancelado.', 'warning');
+                    } else {
+                        console.error(error);
+                        panelWrapper.innerHTML = '<div class="panel-loading error">Error al cargar el análisis.</div>';
+                        updateStatus(error.message || 'Error al analizar el partido.', 'error');
+                    }
+                }
+            };
+
+            matchForm.addEventListener('submit', event => {
+                event.preventDefault();
+                loadMatch(matchInput.value);
+            });
+
+            sidebarButtons.forEach(button => {
+                button.addEventListener('click', event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    loadMatch(button.dataset.matchId);
+                });
+            });
+
+            sidebarRows.forEach(row => {
+                row.addEventListener('click', () => {
+                    const matchId = row.dataset.matchId;
+                    if (matchId) {
+                        window.location.href = `/estudio?id=${matchId}`;
+                    }
+                });
+            });
+
+            // Handler para botón de Cachear Todos
+            const btnCacheAll = document.getElementById('btn-cache-all');
+            if (btnCacheAll) {
+                btnCacheAll.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (!confirm('¿Estás seguro de iniciar el cacheo masivo de partidos finalizados? Esto se ejecutará en segundo plano.')) {
+                        return;
+                    }
+
+                    // Deshabilitar botón temporalmente
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Iniciando...';
+
+                    fetch('/api/cache_all_finished_background', {
+                        method: 'POST'
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Proceso iniciado: ' + data.message);
+                            } else {
+                                alert('Error al iniciar: ' + (data.error || 'Desconocido'));
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Error de red al intentar iniciar el cacheo.');
+                        })
+                        .finally(() => {
+                            // Restaurar botón
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+                        });
+                });
+            }
+
+            // Handler para Cacheo por Rangos
+            const btnRangeCache = document.getElementById('btn-start-range-cache');
+            if (btnRangeCache) {
+                btnRangeCache.addEventListener('click', function () {
+                    const input = document.getElementById('rangeInput');
+                    const ranges = input.value.trim();
+
+                    if (!ranges) {
+                        alert('Por favor ingresa al menos un rango o ID.');
+                        return;
+                    }
+
+                    if (!confirm(`¿Iniciar cacheo para: "${ranges}"? Esto correrá en segundo plano.`)) return;
+
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Iniciando...';
+
+                    fetch('/api/cache_ranges_background', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ranges: ranges })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                alert('Proceso iniciado. Revisa la terminal para ver el progreso.');
+                                input.value = ''; // Limpiar
+                            } else {
+                                alert('Error: ' + data.error);
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Error de red.');
+                        })
+                        .finally(() => {
+                            this.disabled = false;
+                            this.innerHTML = originalText;
+                        });
+                });
+            }
+
+            const formatCoverStatus = (status) => {
+                if (!status) return '';
+                if (status === 'CUBIERTO') return '<span class="text-success fw-bold">CUBIERTO</span>';
+                if (status === 'NO CUBIERTO') return '<span class="text-danger fw-bold">NO CUBIERTO</span>';
+                if (status === 'NULO' || status === 'PUSH') return '<span class="text-muted">PUSH</span>';
+                return `<span class="text-muted">${status}</span>`;
+            };
+
+            const renderCoverLine = (status) => {
+                const formatted = formatCoverStatus(status);
+                return formatted ? `<p class="mb-1"><strong>Estado:</strong> ${formatted}</p>` : '';
+            };
+
+            const renderStatsTable = (rows) => {
+                if (!rows || !rows.length) return '';
+                const mapped = rows.map(r => `
+                    <tr>
+                        <td class="text-start fw-semibold">${r.home ?? ''}</td>
+                        <td class="text-center text-muted">${r.label ?? ''}</td>
+                        <td class="text-end fw-semibold">${r.away ?? ''}</td>
+                    </tr>`).join('');
+                return `<table class="table table-sm stat-table mb-0"><tbody>${mapped}</tbody></table>`;
+            };
+
+            const formatDisplayTime = (data) => {
+                if (data.time) return data.time;
+                if (data.time_obj) {
+                    const parsed = new Date(data.time_obj);
+                    if (!Number.isNaN(parsed.getTime())) {
+                        return parsed.toLocaleString('es-ES', { hour12: false });
+                    }
+                }
+                return '-';
+            };
+
+            const renderQuickPreview = (data) => {
+                const displayTime = formatDisplayTime(data);
+                const scoreHtml = data.score ? `<p class="mb-1"><strong>Resultado:</strong> ${data.score}</p>` : '';
+                const handicap = data.handicap ? `<span class="odds-badge handicap-badge me-2">AH ${data.handicap}</span>` : '';
+                const goalLineValue = data.goal_line || data.goal_line_alt || data.goal_line_decimal;
+                const goalLine = goalLineValue ? `<span class="odds-badge goal-badge">O/U ${goalLineValue}</span>` : '';
+                const competition = data.competition ? `<p class="mb-1 text-muted"><small>${data.competition}</small></p>` : '';
+                const statusLabel = data.section === 'finished_matches' ? 'Partido finalizado' : 'Próximo partido';
+
+                return `
+                    <div class="quick-preview">
+                        <p class="mb-1 text-uppercase text-muted"><small>${statusLabel}</small></p>
+                        <h5 class="mb-2"><span class="home-color">${data.home_team || '-'}</span> vs <span class="away-color">${data.away_team || '-'}</span></h5>
+                        ${competition}
+                        <p class="mb-1"><strong>Hora:</strong> ${displayTime}</p>
+                        ${scoreHtml}
+                        <div class="mb-2">${handicap}${goalLine}</div>
+                        <p class="text-muted mb-2"><small>Pulsa "Ver análisis avanzado" para cargar comparativas y métricas detalladas.</small></p>
+                        <button type="button" class="btn btn-outline-primary btn-sm load-advanced-btn" data-match-id="${data.id}">
+                            Ver análisis avanzado
+                        </button>
+                        <div class="advanced-container mt-3"></div>
+                    </div>
+                `;
+            };
+
+            const ensureQuickPreview = (matchId, container) => {
+                const previewContainer = container || document.getElementById('analysis-preview-container');
+                if (!previewContainer) return;
+                const status = previewContainer.getAttribute('data-quick-loaded');
+                if (status === 'true' || status === 'loading') return;
+                previewContainer.setAttribute('data-quick-loaded', 'loading');
+                previewContainer.innerHTML = '<div class="preview-loading">Preparando vista previa rápida...</div>';
+
+                fetch(`/api/preview_basico/${matchId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('No se encontró información rápida para este partido.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        previewContainer.setAttribute('data-quick-loaded', 'true');
+                        previewContainer.innerHTML = renderQuickPreview(data);
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar la vista rápida:', error);
+                        previewContainer.removeAttribute('data-quick-loaded');
+                        previewContainer.innerHTML = `<div class="preview-loading">Error: ${error.message || 'No se pudo cargar la vista previa rápida.'}</div>`;
+                    });
+            };
+
+            const loadAdvancedAnalysis = (matchId, triggerBtn, container) => {
+                const previewContainer = container || document.getElementById('analysis-preview-container');
+                if (!previewContainer) return;
+                const advancedContainer = previewContainer.querySelector('.advanced-container');
+                if (!advancedContainer) return;
+                const status = advancedContainer.getAttribute('data-advanced-loaded');
+                if (status === 'true' || status === 'loading') return;
+
+                advancedContainer.setAttribute('data-advanced-loaded', 'loading');
+                advancedContainer.innerHTML = '<div class="preview-loading">Cargando análisis completo...</div>';
+                if (triggerBtn) {
+                    triggerBtn.disabled = true;
+                    triggerBtn.textContent = 'Cargando...';
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
+                const cacheUrl = `/static/cached_previews/${matchId}.json?ts=${Date.now()}`;
+
+                const fetchAdvanced = () => fetch(`/api/analisis/${matchId}`, { signal: controller.signal });
+
+                const analysisPromise = fetch(cacheUrl, { signal: controller.signal, cache: 'no-store' })
+                    .then(response => {
+                        if (!response.ok) {
+                            if (response.status !== 404) {
+                                console.warn(`Cache de analisis devolvió ${response.status} para ${matchId}`);
+                            }
+                            throw new Error('CACHE_MISS');
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        if (error.name === 'AbortError') {
+                            throw error;
+                        }
+                        return fetchAdvanced()
+                            .then(response => {
+                                if (!response.ok) {
+                                    return response.json()
+                                        .catch(() => ({ error: 'No se pudo obtener el análisis.' }))
+                                        .then(payload => { throw { isApiError: true, payload }; });
+                                }
+                                return response.json();
+                            });
+                    });
+
+                analysisPromise
+                    .then(data => {
+                        clearTimeout(timeoutId);
+                        if (data.error) {
+                            advancedContainer.innerHTML = `<div class="preview-loading">Error: ${data.error}</div>`;
+                            advancedContainer.removeAttribute('data-advanced-loaded');
+                            if (triggerBtn) {
+                                triggerBtn.disabled = false;
+                                triggerBtn.textContent = 'Ver análisis avanzado';
+                            }
+                            return;
+                        }
+                        advancedContainer.setAttribute('data-advanced-loaded', 'true');
+
+                        let finalScoreHtml = '';
+                        if (data.final_score) {
+                            finalScoreHtml = `<div class="text-center mb-3"><h4>Resultado Final: <span class="badge bg-primary">${data.final_score}</span></h4></div>`;
+                        }
+
+                        let rendimientoHtml = '';
+                        const ri = data.recent_indirect_full || {};
+                        if (ri.last_home || ri.last_away || ri.h2h_col3) {
+                            rendimientoHtml += '<div class="row">';
+                            if (ri.last_home) {
+                                const lh = ri.last_home;
+                                rendimientoHtml += `
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100 bg-white">
+                                            <div class="card-header"><h6 class="mb-0"><strong>Último ${data.home_team} (Casa)</strong></h6></div>
+                                            <div class="card-body">
+                                                <p class="text-center fs-3">${lh.score.replace(':', ' - ')}</p>
+                                                <p class="text-center"><span class="home-color">${lh.home}</span> vs <span class="away-color">${lh.away}</span></p>
+                                                <p class="mb-1"><span class="text-muted small">${lh.date || '-'}</span></p>
+                                                <p class="mb-1"><strong>AH:</strong> <span class="ah-value">${lh.ah}</span></p>
+                                                ${renderCoverLine(lh.cover_status)}
+                                                ${renderStatsTable(lh.stats_rows)}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                            if (ri.last_away) {
+                                const la = ri.last_away;
+                                rendimientoHtml += `
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100 bg-white">
+                                            <div class="card-header"><h6 class="mb-0"><strong>Último ${data.away_team} (Visita)</strong></h6></div>
+                                            <div class="card-body">
+                                                <p class="text-center fs-3">${la.score.replace(':', ' - ')}</p>
+                                                <p class="text-center"><span class="home-color">${la.home}</span> vs <span class="away-color">${la.away}</span></p>
+                                                <p class="mb-1"><span class="text-muted small">${la.date || '-'}</span></p>
+                                                <p class="mb-1"><strong>AH:</strong> <span class="ah-value">${la.ah}</span></p>
+                                                ${renderCoverLine(la.cover_status)}
+                                                ${renderStatsTable(la.stats_rows)}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                            if (ri.h2h_col3) {
+                                const h2h = ri.h2h_col3;
+                                rendimientoHtml += `
+                                    <div class="col-md-4 mb-3">
+                                        <div class="card h-100 bg-white">
+                                            <div class="card-header"><h6 class="mb-0"><strong>H2H Referencia</strong></h6></div>
+                                            <div class="card-body">
+                                                <p class="text-center fs-3">${h2h.score}</p>
+                                                <p class="text-center"><span class="home-color">${h2h.home}</span> vs <span class="away-color">${h2h.away}</span></p>
+                                                <p class="mb-1"><strong>AH:</strong> <span class="ah-value">${h2h.ah}</span></p>
+                                                ${renderCoverLine(h2h.cover_status)}
+                                                ${renderStatsTable(h2h.stats_rows)}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                            rendimientoHtml += '</div>';
+                        }
+
+                        const newHtml = data.simplified_html || '';
+                        let comparativasHtml = '';
+                        const ci = data.comparativas_indirectas || {};
+                        if (ci.left || ci.right) {
+                            comparativasHtml += '<div class="row">';
+                            if (ci.left) {
+                                const c1 = ci.left;
+                                comparativasHtml += `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header"><h6 class="mb-0"><span class="home-color">${c1.title_home_name}</span> vs. últ. rival de <span class="away-color">${c1.title_away_name}</span></h6></div>
+                                            <div class="card-body">
+                                                <p class="text-center fs-3">${c1.score.replace(':', ' - ')}</p>
+                                                <p class="text-center"><span class="home-color">${c1.home_team}</span> vs <span class="away-color">${c1.away_team}</span></p>
+                                                <p class="mb-1"><strong>AH:</strong> <span class="ah-value">${c1.ah}</span></p>
+                                                <p class="mb-1"><strong>Localía de '${c1.title_home_name}':</strong> <span class="home-color">${c1.localia}</span></p>
+                                                ${renderCoverLine(c1.cover_status)}
+                                                ${renderStatsTable(c1.stats_rows)}
+                                                ${c1.analysis ? `<p class="mt-2"><strong>Análisis:</strong> ${c1.analysis}</p>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                            if (ci.right) {
+                                const c2 = ci.right;
+                                comparativasHtml += `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-header"><h6 class="mb-0"><span class="away-color">${c2.title_away_name}</span> vs. últ. rival de <span class="home-color">${c2.title_home_name}</span></h6></div>
+                                            <div class="card-body">
+                                                <p class="text-center fs-3">${c2.score.replace(':', ' - ')}</p>
+                                                <p class="text-center"><span class="home-color">${c2.home_team}</span> vs <span class="away-color">${c2.away_team}</span></p>
+                                                <p class="mb-1"><strong>AH:</strong> <span class="ah-value">${c2.ah}</span></p>
+                                                <p class="mb-1"><strong>Localía de '${c2.title_away_name}':</strong> <span class="away-color">${c2.localia}</span></p>
+                                                ${renderCoverLine(c2.cover_status)}
+                                                ${renderStatsTable(c2.stats_rows)}
+                                                ${c2.analysis ? `<p class="mt-2"><strong>Análisis:</strong> ${c2.analysis}</p>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                            }
+                            comparativasHtml += '</div>';
+                        }
+                        const combinedHtml = finalScoreHtml + `
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    ${rendimientoHtml}
+                                </div>
+                                <div class="col-md-4">
+                                    ${newHtml}
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    ${comparativasHtml}
+                                </div>
+                            </div>
+                        `;
+
+                        advancedContainer.innerHTML = combinedHtml;
+                        if (triggerBtn) {
+                            triggerBtn.disabled = true;
+                            triggerBtn.textContent = 'Análisis avanzado cargado';
+                            triggerBtn.classList.add('disabled');
+                        }
+                    })
+                    .catch(error => {
+                        advancedContainer.removeAttribute('data-advanced-loaded');
+                        if (error.name === 'AbortError') {
+                            advancedContainer.innerHTML = '<div class="preview-loading">Tiempo de espera agotado (60s).</div>';
+                        } else if (error.isApiError && error.payload && error.payload.error) {
+                            advancedContainer.innerHTML = `<div class="preview-loading">Error: ${error.payload.error}</div>`;
+                        } else {
+                            console.error('Error:', error);
+                            advancedContainer.innerHTML = '<div class="preview-loading">Error al cargar el análisis.</div>';
+                        }
+                        if (triggerBtn) {
+                            triggerBtn.disabled = false;
+                            triggerBtn.textContent = 'Reintentar análisis avanzado';
+                        }
+                    });
+            };
+
+            // Pattern Search Logic
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.pattern-search-trigger');
+                if (!btn) return;
+
+                const handicap = btn.dataset.handicap;
+                const type = btn.dataset.type; // 'global' or 'team'
+                const team = btn.dataset.team;
+
+                // Get current match data from the panel
+                const panel = document.querySelector('.analysis-panel');
+                if (!panel) return;
+
+                // Extract Previous AH values and Scores from UI
+                let prevHomeAh = null;
+                let prevAwayAh = null;
+                let prevHomeScore = null;
+                let prevAwayScore = null;
+                let prevHomeRival = null;
+                let prevAwayRival = null;
+
+                try {
+                    const immediateCards = panel.querySelectorAll('.immediate-history-row .card');
+                    immediateCards.forEach(card => {
+                        const titleEl = card.querySelector('.card-title');
+                        if (!titleEl) return;
+                        const title = titleEl.textContent;
+                        const scoreEl = card.querySelector('.score-value');
+                        const ahEl = card.querySelector('.ah-value');
+                        const homeTeamEl = card.querySelector('.home-color');
+                        const awayTeamEl = card.querySelector('.away-color');
+
+                        if (title.includes('(Local)') || title.includes('(Home)')) {
+                            // Main team is Home, Rival is Away
+                            if (scoreEl) prevHomeScore = scoreEl.textContent.trim();
+                            if (ahEl) prevHomeAh = ahEl.textContent.trim();
+                            if (awayTeamEl) prevHomeRival = awayTeamEl.textContent.trim();
+                        } else if (title.includes('(Fuera)') || title.includes('(Away)') || title.includes('(Visitante)')) {
+                            // Main team is Away, Rival is Home
+                            if (scoreEl) prevAwayScore = scoreEl.textContent.trim();
+                            if (ahEl) prevAwayAh = ahEl.textContent.trim();
+                            if (homeTeamEl) prevAwayRival = homeTeamEl.textContent.trim();
+                        } else if (title.includes('H2H Rivales') || title.includes('Col3')) {
+                            // H2H Rivales (Col3)
+                            if (scoreEl) prevH2HScore = scoreEl.textContent.trim();
+                            if (ahEl) prevH2HAh = ahEl.textContent.trim();
+                            if (homeTeamEl) prevH2HHome = homeTeamEl.textContent.trim();
+                            if (awayTeamEl) prevH2HAway = awayTeamEl.textContent.trim();
+                        }
+                    });
+
+                    console.log("Extracted Pattern Data:", { prevHomeAh, prevAwayAh, prevHomeScore, prevAwayScore, prevHomeRival, prevAwayRival, prevH2HAh, prevH2HScore });
+                } catch (err) {
+                    console.warn("Could not extract previous AH values", err);
+                }
+
+                // Construct upcoming match object
+                const upcomingMatch = {
+                    ah_open_home: handicap,
+                    home_team: panel.querySelector('.home-color').textContent.trim(),
+                    away_team: panel.querySelector('.away-color').textContent.trim(),
+                    date: new Date().toISOString().split('T')[0], // Use current date as reference
+                    prev_home_ah: prevHomeAh,
+                    prev_away_ah: prevAwayAh,
+                    prev_home_score: prevHomeScore,
+                    prev_away_score: prevAwayScore,
+                    prev_home_rival: prevHomeRival,
+                    prev_away_rival: prevAwayRival,
+                    prev_h2h_ah: typeof prevH2HAh !== 'undefined' ? prevH2HAh : null,
+                    prev_h2h_score: typeof prevH2HScore !== 'undefined' ? prevH2HScore : null,
+                    prev_h2h_home: typeof prevH2HHome !== 'undefined' ? prevH2HHome : null,
+                    prev_h2h_away: typeof prevH2HAway !== 'undefined' ? prevH2HAway : null
+                };
+
+                const modalTitle = document.getElementById('patternModalTitle');
+                const modalBody = document.getElementById('patternModalBody');
+                const modal = new bootstrap.Modal(document.getElementById('patternModal'));
+
+                const updateModalTitle = (mode) => {
+                    let modeText = 'Global';
+                    let infoText = '';
+                    if (mode === 'home_strict') {
+                        modeText = 'Solo Local';
+                        if (upcomingMatch.prev_home_score) {
+                            infoText = ` • Previo: ${upcomingMatch.prev_home_score}`;
+                        }
+                    } else if (mode === 'away_strict') {
+                        modeText = 'Solo Visita';
+                        if (upcomingMatch.prev_away_score) {
+                            infoText = ` • Previo: ${upcomingMatch.prev_away_score}`;
+                        }
+                    }
+                    modalTitle.innerHTML = `<span class="fw-bold">AH ${handicap}</span> <span class="text-muted fw-normal">| ${modeText}${infoText}</span>`;
+                };
+
+                updateModalTitle('global');
+
+                // Initial render with loading and filters
+                const renderModalContent = (isLoading = true, results = null, error = null, currentFilterMode = 'global') => {
+                    // Controls with Filter
+                    let controlsHtml = `
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary filter-btn ${currentFilterMode === 'global' ? 'active' : ''}" data-mode="global">Global</button>
+                                <button type="button" class="btn btn-outline-primary filter-btn ${currentFilterMode === 'home_strict' ? 'active' : ''}" data-mode="home_strict">Solo Local (Prev AH)</button>
+                                <button type="button" class="btn btn-outline-danger filter-btn ${currentFilterMode === 'away_strict' ? 'active' : ''}" data-mode="away_strict">Solo Visita (Prev AH)</button>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <label for="ahFilterSelect" class="me-2 fw-bold text-muted small">Filtrar Prev AH:</label>
+                                <select id="ahFilterSelect" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="all">Todos</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+
+                    if (isLoading) {
+                        modalBody.innerHTML = controlsHtml + '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Buscando patrones...</p></div>';
+                        attachModalListeners();
+                        return;
+                    }
+
+                    if (error) {
+                        modalBody.innerHTML = controlsHtml + `<div class="alert alert-danger">Error: ${error}</div>`;
+                        attachModalListeners();
+                        return;
+                    }
+
+                    if (!results || results.length === 0) {
+                        modalBody.innerHTML = controlsHtml + '<div class="alert alert-info">No se encontraron patrones similares con este filtro.</div>';
+                        attachModalListeners();
+                        return;
+                    }
+
+                    let html = controlsHtml + '<div class="table-responsive" style="max-height: 70vh; overflow-y: auto;"><table class="table table-sm table-hover" style="font-size: 0.85rem;">';
+                    html += '<thead class="table-light" style="position: sticky; top: 0; z-index: 10;"><tr><th>Prev Home</th><th>Prev Away</th><th>H2H Rivales (Col3)</th><th>Partido</th><th>AH Real</th><th>Res</th><th>Eval (H/A)</th><th>Acción</th></tr></thead><tbody>';
+
+                    // --- CURRENT MATCH ROW (STICKY) ---
+                    // We render this as the first row of tbody, but make it sticky below the header
+                    const formatAhDisplay = (val) => {
+                        if (val === undefined || val === null) return '-';
+                        return val;
+                    };
+
+                    html += `
+                        <tr class="table-info border-bottom border-primary" style="position: sticky; top: 33px; z-index: 9; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                            <td>
+                                <small class="text-muted fw-bold">ACTUAL</small><br>
+                                ${upcomingMatch.prev_home_rival ? `<small>vs ${upcomingMatch.prev_home_rival} (${upcomingMatch.prev_home_score})</small><br>` : ''}
+                                <span class="badge bg-primary text-white">AH ${formatAhDisplay(upcomingMatch.prev_home_ah)}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted fw-bold">ACTUAL</small><br>
+                                ${upcomingMatch.prev_away_rival ? `<small>vs ${upcomingMatch.prev_away_rival} (${upcomingMatch.prev_away_score})</small><br>` : ''}
+                                <span class="badge bg-primary text-white">AH ${formatAhDisplay(upcomingMatch.prev_away_ah)}</span>
+                            </td>
+                            <td class="text-center align-middle small">
+                                ${upcomingMatch.prev_h2h_ah ? `
+                                    <small class="d-block mb-1">
+                                        <span class="home-color fw-bold">${upcomingMatch.prev_h2h_home}</span> 
+                                        <span class="badge bg-light text-dark border mx-1">${upcomingMatch.prev_h2h_score}</span> 
+                                        <span class="away-color fw-bold">${upcomingMatch.prev_h2h_away}</span>
+                                    </small>
+                                    <span class="badge bg-primary text-white">AH ${formatAhDisplay(upcomingMatch.prev_h2h_ah)}</span>
+                                ` : '<em class="text-muted">(Comparar con columnas)</em>'}
+                            </td>
+                            <td>
+                                <span class="home-color fw-bold">${upcomingMatch.home_team}</span> vs <span class="away-color fw-bold">${upcomingMatch.away_team}</span>
+                                <div class="small text-primary fw-bold">PARTIDO ACTUAL</div>
+                            </td>
+                            <td>${formatAhDisplay(upcomingMatch.ah_open_home)}</td>
+                            <td class="fw-bold">?:?</td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <span class="badge bg-secondary">?</span>
+                                    <span class="badge bg-secondary">?</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark">En Estudio</span>
+                            </td>
+                        </tr>
+                    `;
+                    // ----------------------------------
+
+                    // Collect unique AH values for the filter
+                    const uniqueAHs = new Set();
+
+                    results.forEach(item => {
+                        const c = item.candidate;
+                        const evalHome = item.evaluation.home;
+                        const evalAway = item.evaluation.away;
+                        const simScore = item.similarity_score || 1;
+
+                        // Colorize evaluation (Text based)
+                        const getEvalColorClass = (status) => {
+                            if (status === 'COVER') return 'text-dark'; // Success Black (as requested)
+                            if (status === 'NO_COVER') return 'text-danger'; // Failure Red
+                            return 'text-warning'; // Push/Unknown
+                        };
+
+                        const evalHomeClass = getEvalColorClass(item.evaluation.home);
+                        const evalAwayClass = getEvalColorClass(item.evaluation.away);
+
+                        // Extract AH values for filter and data attributes
+                        const ahHome = item.prev_home ? item.prev_home.ah : '';
+                        const ahAway = item.prev_away ? item.prev_away.ah : '';
+
+                        if (ahHome) uniqueAHs.add(ahHome);
+                        if (ahAway) uniqueAHs.add(ahAway);
+
+                        // Similarity Badge
+                        let simBadge = '';
+                        if (simScore >= 5) simBadge = '<span class="badge bg-warning text-dark ms-1">🔥 EXACTO</span>';
+                        else if (simScore >= 3) simBadge = '<span class="badge bg-info text-dark ms-1">✨ SIMILAR</span>';
+
+                        // Helper for WDL class
+                        const getWdlClass = (wdl) => {
+                            if (wdl === 'W') return 'text-success';
+                            if (wdl === 'L') return 'text-danger';
+                            return 'text-warning';
+                        };
+
+                        html += `<tr class="pattern-row border-bottom" data-ah-home="${ahHome}" data-ah-away="${ahAway}" style="vertical-align: middle;">
+                            <td class="py-2" style="width: 140px;">
+                                ${item.prev_home ? `
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold small">${formatAhDisplay(item.prev_home.ah)}</span>
+                                        <span class="${getWdlClass(item.prev_home.wdl)} fw-bold">${item.prev_home.score}</span>
+                                    </div>
+                                    <div class="small text-muted text-truncate" style="max-width: 130px;" title="vs ${item.prev_home.rival}">vs ${item.prev_home.rival}</div>
+                                ` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td class="py-2" style="width: 140px;">
+                                ${item.prev_away ? `
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold small">${formatAhDisplay(item.prev_away.ah)}</span>
+                                        <span class="${getWdlClass(item.prev_away.wdl)} fw-bold">${item.prev_away.score}</span>
+                                    </div>
+                                    <div class="small text-muted text-truncate" style="max-width: 130px;" title="vs ${item.prev_away.rival}">vs ${item.prev_away.rival}</div>
+                                ` : '<span class="text-muted">-</span>'}
+                            </td>
+                            <td class="py-2" style="min-width: 180px;">
+                                ${item.h2h_col3 ? `
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold small">${formatAhDisplay(item.h2h_col3.ah)}</span>
+                                        <span class="fw-bold">${item.h2h_col3.score}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-muted small">
+                                        <span class="text-truncate" style="max-width: 150px;">${item.h2h_col3.home_team} vs ${item.h2h_col3.away_team}</span>
+                                    </div>
+                                ` : '<span class="text-muted small">Sin datos H2H</span>'}
+                            </td>
+                            <td class="py-3">
+                                <div class="lh-sm">
+                                    <div class="fw-bold text-primary">${c.home}</div>
+                                    <div class="fw-bold text-danger">${c.away}</div>
+                                    <small class="text-muted">${c.date}</small>
+                                    ${simBadge}
+                                </div>
+                            </td>
+                            <td class="py-3 text-center">
+                                <span class="fs-5 fw-bold text-dark">${formatAhDisplay(c.ah_real)}</span>
+                            </td>
+                            <td class="py-3 text-center">
+                                <span class="fs-4 fw-bold ${evalHomeClass}">${c.score}</span>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex flex-column align-items-center gap-1">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <small class="text-muted" style="width: 30px;">Loc</small>
+                                        <i class="fa-solid fa-circle ${evalHomeClass}"></i>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <small class="text-muted" style="width: 30px;">Vis</small>
+                                        <i class="fa-solid fa-circle ${evalAwayClass}"></i>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 text-end">
+                                <button class="btn btn-xs btn-outline-info preview-match-btn" data-id="${item.match_id}">Ver</button>
+                                <button class="btn btn-xs btn-outline-primary quick-view-btn ms-1" data-id="${item.match_id}">Vista Rápida</button>
+                            </td>
+                        </tr>`;
+                    });
+
+                    html += '</tbody></table></div>';
+                    modalBody.innerHTML = html;
+
+                    // Populate Filter Dropdown
+                    const filterSelect = modalBody.querySelector('#ahFilterSelect');
+                    if (filterSelect) {
+                        const sortedAHs = Array.from(uniqueAHs).sort((a, b) => a - b);
+                        sortedAHs.forEach(ah => {
+                            const option = document.createElement('option');
+                            option.value = ah;
+                            option.textContent = ah;
+                            filterSelect.appendChild(option);
+                        });
+
+                        // Filter Logic
+                        filterSelect.addEventListener('change', (e) => {
+                            const selectedVal = e.target.value;
+                            const rows = modalBody.querySelectorAll('.pattern-row');
+                            rows.forEach(row => {
+                                if (selectedVal === 'all') {
+                                    row.style.display = '';
+                                } else {
+                                    const h = row.dataset.ahHome;
+                                    const a = row.dataset.ahAway;
+                                    // Show if EITHER matches (or maybe strict? User said "filtrar por handicaps". Usually OR is safer to start)
+                                    if (h == selectedVal || a == selectedVal) {
+                                        row.style.display = '';
+                                    } else {
+                                        row.style.display = 'none';
+                                    }
+                                }
+                            });
+                        });
+                    }
+
+                    // Re-attach listeners for new buttons
+                    attachModalListeners();
+                };
+
+                const performSearch = (mode) => {
+                    updateModalTitle(mode);
+                    renderModalContent(true, null, null, mode); // Pass the current mode for button active state
+                    fetch('/api/pattern_search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ upcoming_match: upcomingMatch, filter_mode: mode })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            renderModalContent(false, data.results, data.error, mode);
+                            // Update active button state handled in renderModalContent now
+                        })
+                        .catch(err => {
+                            renderModalContent(false, null, err.message);
+                        });
+                };
+
+                const attachModalListeners = () => {
+                    // Filter buttons
+                    const filterBtns = modalBody.querySelectorAll('.filter-btn');
+                    filterBtns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            performSearch(btn.dataset.mode);
+                        });
+                    });
+
+                    // Preview buttons
+                    const previewBtns = modalBody.querySelectorAll('.preview-match-btn');
+                    previewBtns.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const matchId = e.target.dataset.id;
+                            // Close modal? Or open in new tab? Or show in main panel?
+                            // User said "vista previa rápida en la misma pagina".
+                            // Let's try to trigger the main panel update if possible, or open a new small window.
+                            // For now, let's open the existing analysis panel in a new tab or just redirect.
+                            // Better: Use the existing 'ver-analisis' logic if we can.
+                            window.open(`/estudio/${matchId}`, '_blank');
+                        });
+                    });
+                };
+
+                modal.show();
+                performSearch('global'); // Initial search
+            });
+
+            const attachAnalysisEvents = () => {
+                document.querySelectorAll('.analysis-preview-trigger').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const targetId = btn.dataset.previewTarget;
+                        const container = document.getElementById(targetId);
+                        if (!container) return;
+                        if (container.hasAttribute('hidden')) {
+                            container.removeAttribute('hidden');
+                            ensureQuickPreview(btn.dataset.matchId, container);
+                        } else {
+                            container.setAttribute('hidden', '');
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.refresh-analysis').forEach(btn => {
+                    btn.addEventListener('click', () => loadMatch(btn.dataset.matchId, { force: true }));
+                });
+            };
+
+            document.addEventListener('click', event => {
+                const advancedBtn = event.target.closest('.load-advanced-btn');
+                if (advancedBtn) {
+                    const previewContainer = advancedBtn.closest('.quick-preview')?.parentElement;
+                    loadAdvancedAnalysis(advancedBtn.dataset.matchId, advancedBtn, previewContainer);
+                }
+            });
+
+            attachAnalysisEvents();
+            highlightRow(activeMatchId);
+        });
+    </script>
+    <!-- Quick View Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Vista Rápida de Análisis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="quickViewModalBody">
+                    <!-- Content loaded via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openQuickView(matchId) {
+            const modalEl = document.getElementById('quickViewModal');
+            const modalBody = document.getElementById('quickViewModalBody');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Cargando análisis rápido...</p></div>';
+
+            fetch(`/api/quick_view/${matchId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                        return;
+                    }
+                    renderQuickView(data, modalBody);
+                })
+                .catch(err => {
+                    modalBody.innerHTML = `<div class="alert alert-danger">Error al cargar: ${err.message}</div>`;
+                });
+        }
+
+        function renderQuickView(data, container) {
+            const ma = data.market_analysis_data || {};
+            const maStadium = ma.stadium || {};
+            const maGeneral = ma.general || {};
+
+            // Helper for evaluation badge
+            const getEvalBadge = (status) => {
+                if (!status) return '<span class="badge bg-secondary">N/A</span>';
+                if (status === 'CUBIERTO') return '<span class="badge bg-success">CUBIERTO ✅</span>';
+                if (status === 'NO CUBIERTO') return '<span class="badge bg-danger">NO CUBIERTO ❌</span>';
+                return `<span class="badge bg-warning text-dark">${status}</span>`;
+            };
+
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0 text-primary">${data.home_name} vs ${data.away_name}</h4>
+                    <h4 class="mb-0 fw-bold bg-light px-3 py-1 rounded border">${data.final_score || '?-?'}</h4>
+                </div>
+
+                <!-- Market Analysis Section (Simplified) -->
+                <div class="card mb-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">📊 Análisis de Mercado Simplificado</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 border-end">
+                                <h6 class="text-muted mb-3">🏟️ En Este Estadio</h6>
+                                <div class="mb-3">
+                                    <span class="d-block text-muted small">Movimiento de Cuota</span>
+                                    <span class="fs-5 fw-bold text-dark">${maStadium.movement || 'N/A'}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="d-block text-muted small">Resultado Previo</span>
+                                    <span class="display-6 fw-bold text-primary">${maStadium.result || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span class="d-block text-muted small">Evaluación</span>
+                                    ${getEvalBadge(maStadium.evaluation)}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">✈️ H2H General</h6>
+                                <div class="mb-3">
+                                    <span class="d-block text-muted small">Movimiento de Cuota</span>
+                                    <span class="fs-5 fw-bold text-dark">${maGeneral.movement || 'N/A'}</span>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="d-block text-muted small">Resultado Previo</span>
+                                    <span class="display-6 fw-bold text-primary">${maGeneral.result || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <span class="d-block text-muted small">Evaluación</span>
+                                    ${getEvalBadge(maGeneral.evaluation)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Immediate History Section -->
+                <h5 class="mb-3 border-bottom pb-2">Historial Inmediato</h5>
+                <div class="row mb-4">
+                    ${renderMatchCard(data.last_home_match, "Último " + data.home_name + " (Local)")}
+                    ${renderMatchCard(data.last_away_match, "Último " + data.away_name + " (Fuera)")}
+                    ${renderMatchCard(data.h2h_col3, "H2H Rivales (Col3)")} <!-- Assuming h2h_col3 is passed in data, need to check app.py -->
+                </div>
+
+                <!-- Indirect Comparisons Section -->
+                 ${data.comparativas_indirectas ? `
+                <h5 class="mb-3 border-bottom pb-2">Comparativas Indirectas</h5>
+                <div class="row">
+                    ${renderComparisonCard(data.comparativas_indirectas.left, data.home_name, "vs. últ. rival de " + data.away_name)}
+                    ${renderComparisonCard(data.comparativas_indirectas.right, data.away_name, "vs. últ. rival de " + data.home_name)}
+                </div>
+                ` : ''}
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderMatchCard(match, title) {
+            if (!match) return '<div class="col-md-4"><div class="card h-100"><div class="card-body text-center text-muted">Sin datos</div></div></div>';
+
+            // Format AH using the same helper logic if needed, or just raw
+            const ah = match.handicap_line_raw || match.ah || '-';
+
+            return `
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-light py-2">
+                            <small class="fw-bold text-muted">${title}</small>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold text-primary">${match.home_team || match.home}</span>
+                                <span class="fw-bold fs-5">${match.score}</span>
+                                <span class="fw-bold text-danger">${match.away_team || match.away}</span>
+                            </div>
+                            <div class="small text-muted mb-2">${match.date}</div>
+                            <div class="mb-2"><strong>AH:</strong> ${ah}</div>
+                            
+                            <!-- Mini Stats if available -->
+                            ${match.stats_rows ? renderMiniStats(match.stats_rows) : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderComparisonCard(comp, teamName, subtitle) {
+            if (!comp) return '';
+            return `
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-light py-2">
+                            <strong class="text-primary">${teamName}</strong> <small class="text-muted">${subtitle}</small>
+                        </div>
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>${comp.home_team} vs ${comp.away_team}</span>
+                                <span class="fw-bold">${comp.score}</span>
+                            </div>
+                            <div class="mb-2"><strong>AH:</strong> ${comp.ah}</div>
+                            <div class="mb-2"><strong>Localía de '${teamName}':</strong> ${comp.localia}</div>
+                            ${comp.stats_rows ? renderMiniStats(comp.stats_rows) : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMiniStats(stats, allowedStats = null) {
+            if (!stats || stats.length === 0) return '';
+            // Show only key stats: Shots, Shots on Goal, Attacks, Dangerous Attacks
+            // If allowedStats is provided, use it. Otherwise default to the standard set.
+            const keyStats = allowedStats || ['Tiros', 'Tiros a Puerta'];
+            let html = '<div class="mt-2 pt-2 border-top"><small class="d-block text-muted mb-1">Estadísticas</small><table class="table table-borderless table-sm mb-0" style="font-size: 0.75rem;">';
+            stats.forEach(row => {
+                if (keyStats.includes(row.label)) {
+                    html += `<tr><td>${row.home}</td><td class="text-center text-muted">${row.label}</td><td class="text-end">${row.away}</td></tr>`;
+                }
+            });
+            html += '</table></div>';
+            return html;
+        }
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        // Initialize state
+        if (sidebar.classList.contains('active')) {
+            document.body.classList.add('sidebar-open');
+        }
+
+        if (mobileMenuToggle) mobileMenuToggle.addEventListener('click', toggleSidebar);
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+        if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', toggleSidebar);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "system": "Qwen",
+    "version": "9.0",
+    "family": "A2_0_plus",
+    "logic": "exhaustive_search",
+    "total_patterns": 5,
+    "generated_at": "2026-01-09T20:29:36.765356"
+  },
+  "patterns": [
+    {
+      "name": "Qwen A2_0_plus [PREV_Dom_SOT+H2H_Over_Line] (ROI=50%/80%T) Favorito",
+      "target": "AWAY",
+      "perspective": "Favorito",
+      "family": "A2_0_plus",
+      "conditions": [
+        "PREV_Dom_SOT",
+        "H2H_Over_Line"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.5,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 1,
+        "roi": 0.8,
+        "win_rate": 1.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A2_0_plus [H2H_Driver_Covered+CTX_Home_Top] (ROI=60%/0%T) Favorito",
+      "target": "AWAY",
+      "perspective": "Favorito",
+      "family": "A2_0_plus",
+      "conditions": [
+        "H2H_Driver_Covered",
+        "CTX_Home_Top"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.6,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 0,
+        "roi": 0.0,
+        "win_rate": 0.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A2_0_plus [H2H_Driver_Covered+home_top5] (ROI=60%/0%T) Favorito",
+      "target": "AWAY",
+      "perspective": "Favorito",
+      "family": "A2_0_plus",
+      "conditions": [
+        "H2H_Driver_Covered",
+        "home_top5"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.6,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 0,
+        "roi": 0.0,
+        "win_rate": 0.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A2_0_plus [TRIANG_Away_Weak+PREV_Dom_DA] (ROI=44%/0%T) Favorito",
+      "target": "AWAY",
+      "perspective": "Favorito",
+      "family": "A2_0_plus",
+      "conditions": [
+        "TRIANG_Away_Weak",
+        "PREV_Dom_DA"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.44,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 0,
+        "roi": 0.0,
+        "win_rate": 0.0
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen A2_0_plus [EXP_Reliable+has_h2h] (ROI=36%/6%T) Favorito",
+      "target": "AWAY",
+      "perspective": "Favorito",
+      "family": "A2_0_plus",
+      "conditions": [
+        "EXP_Reliable",
+        "has_h2h"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.36,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 6,
+        "roi": 0.067,
+        "win_rate": 0.5
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    }
+  ]
+}

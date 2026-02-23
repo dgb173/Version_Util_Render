@@ -1,0 +1,50 @@
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.cache/
+*.cache
+
+# Local SQL storage
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/.sql_bootstrap.lock
+data/data_others.json
+
+# Runtime history cache
+studied_matches/
+
+# Jobs temp files
+jobs/
+
+# User dropbox for bulk imports
+incoming_matches/

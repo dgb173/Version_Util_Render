@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "system": "Qwen",
+    "version": "9.0",
+    "family": "H2_0_plus",
+    "logic": "exhaustive_search",
+    "total_patterns": 4,
+    "generated_at": "2026-01-09T20:30:36.799062"
+  },
+  "patterns": [
+    {
+      "name": "Qwen H2_0_plus [IND_Market_Home+PREV_Solid] (ROI=44%/25%T) Underdog",
+      "target": "AWAY",
+      "perspective": "Underdog",
+      "family": "H2_0_plus",
+      "conditions": [
+        "IND_Market_Home",
+        "PREV_Solid"
+      ],
+      "train": {
+        "n": 5,
+        "roi": 0.44,
+        "win_rate": 0.8
+      },
+      "test": {
+        "n": 4,
+        "roi": 0.25,
+        "win_rate": 0.75
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen H2_0_plus [TRIANG_Home_Dom+IND_Market_Home] (ROI=35%/25%T) Underdog",
+      "target": "AWAY",
+      "perspective": "Underdog",
+      "family": "H2_0_plus",
+      "conditions": [
+        "TRIANG_Home_Dom",
+        "IND_Market_Home"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.35,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 4,
+        "roi": 0.25,
+        "win_rate": 0.75
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen H2_0_plus [TRIANG_Away_Weak+IND_Market_Home] (ROI=35%/25%T) Underdog",
+      "target": "AWAY",
+      "perspective": "Underdog",
+      "family": "H2_0_plus",
+      "conditions": [
+        "TRIANG_Away_Weak",
+        "IND_Market_Home"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.35,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 4,
+        "roi": 0.25,
+        "win_rate": 0.75
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    },
+    {
+      "name": "Qwen H2_0_plus [IND_Market_Home+PREV_Dom_DA] (ROI=35%/25%T) Underdog",
+      "target": "AWAY",
+      "perspective": "Underdog",
+      "family": "H2_0_plus",
+      "conditions": [
+        "IND_Market_Home",
+        "PREV_Dom_DA"
+      ],
+      "train": {
+        "n": 4,
+        "roi": 0.35,
+        "win_rate": 0.75
+      },
+      "test": {
+        "n": 4,
+        "roi": 0.25,
+        "win_rate": 0.75
+      },
+      "algorithm": "QWEN_ML",
+      "market": "AH"
+    }
+  ]
+}

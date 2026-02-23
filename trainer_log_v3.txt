@@ -1,0 +1,25 @@
+DEBUG: Script iniciando...
+============================================================
+­ƒÜÇ MASSIVE PATTERN TRAINER - Sistema de Reglas AH/OU
+============================================================
+
+­ƒôé Usando datos de: training_data_1465.json
+
+========================================
+­ƒôè FASE 1: Extracci├│n de Features
+========================================
+­ƒôè Procesando 307 partidos...
+Ô£à Features extra├¡das: 285 partidos v├ílidos
+   Columnas: 45
+
+========================================
+­ƒöº FASE 2: Generaci├│n de Reglas
+========================================
+­ƒöº Generando reglas con 12 features...
+   Generadas 17330 reglas candidatas
+­ƒôØ Total reglas candidatas: 17330
+
+========================================
+­ƒÄ» FASE 3: Filtrado de Calidad
+========================================
+   Filtrando con min_samples=20, min_accuracy=0.75...

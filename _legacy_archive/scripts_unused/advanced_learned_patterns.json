@@ -1,0 +1,2256 @@
+{
+  "generated": "2025-12-23T20:19:41.698333",
+  "total_patterns": 183,
+  "min_accuracy": 0.74,
+  "min_samples": 12,
+  "patterns": [
+    {
+      "features": [
+        "momentum_local",
+        "ph_goleo",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.929,
+      "samples": 28,
+      "wins": 26,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_mejor_rank",
+        "ind_alineadas_visita",
+        "pa_perdio_visita"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.917,
+      "samples": 12,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_encajo",
+        "momentum_local",
+        "ind_alineadas_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.889,
+      "samples": 18,
+      "wins": 16,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "ph_goleo",
+        "ah_0",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.88,
+      "samples": 25,
+      "wins": 22,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "pa_goleo",
+        "h_mejor_rank",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.88,
+      "samples": 25,
+      "wins": 22,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "ind_alineadas_visita",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.867,
+      "samples": 30,
+      "wins": 26,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "a_bottom",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.864,
+      "samples": 44,
+      "wins": 38,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "ind_visita_goleo",
+        "ph_gano_local",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.861,
+      "samples": 36,
+      "wins": 31,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "datos_frescos",
+        "ph_porteria_0",
+        "pa_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.857,
+      "samples": 14,
+      "wins": 12,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "ind_alineadas_visita",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.846,
+      "samples": 13,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "h_top5",
+        "h2h_under",
+        "pa_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.846,
+      "samples": 13,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "pa_encajo",
+        "pa_empato",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.846,
+      "samples": 13,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_fresco",
+        "a_mejor_rank",
+        "a_bottom",
+        "ind_local_gano"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.846,
+      "samples": 13,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_fresco",
+        "h_top5",
+        "ph_under",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.841,
+      "samples": 44,
+      "wins": 37,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_empato",
+        "h_mejor_rank",
+        "pa_goleo",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.84,
+      "samples": 25,
+      "wins": 21,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ph_fresco",
+        "ind_visita_goleo",
+        "a_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.839,
+      "samples": 31,
+      "wins": 26,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_porteria_0",
+        "ind_local_perdio",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.833,
+      "samples": 24,
+      "wins": 20,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_gano",
+        "ph_encajo",
+        "momentum_local",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.833,
+      "samples": 18,
+      "wins": 15,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "h_top5",
+        "ph_porteria_0",
+        "ah_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.833,
+      "samples": 12,
+      "wins": 10,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_goleo",
+        "h_mejor_rank",
+        "h_top5",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.831,
+      "samples": 59,
+      "wins": 49,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ha_repetido_cerca",
+        "a_bottom",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.828,
+      "samples": 99,
+      "wins": 82,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.828,
+      "samples": 99,
+      "wins": 82,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ph_gano_local",
+        "ind_alineadas_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.826,
+      "samples": 23,
+      "wins": 19,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "datos_frescos",
+        "pa_fresco",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.826,
+      "samples": 23,
+      "wins": 19,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.826,
+      "samples": 23,
+      "wins": 19,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ind_alineadas_visita",
+        "pa_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.826,
+      "samples": 23,
+      "wins": 19,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_porteria_0",
+        "pa_goleo",
+        "h2h_fresco",
+        "h2h_goleo"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.824,
+      "samples": 17,
+      "wins": 14,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "momentum_local",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.821,
+      "samples": 67,
+      "wins": 55,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.818,
+      "samples": 33,
+      "wins": 27,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "h_mejor_rank",
+        "ind_visita_goleo",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.818,
+      "samples": 22,
+      "wins": 18,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "momentum_local",
+        "ind_local_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.817,
+      "samples": 71,
+      "wins": 58,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "pa_perdio_visita",
+        "momentum_local",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.816,
+      "samples": 87,
+      "wins": 71,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ph_perdio_local",
+        "h_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.816,
+      "samples": 38,
+      "wins": 31,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "ph_porteria_0",
+        "h_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.815,
+      "samples": 65,
+      "wins": 53,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "a_bottom",
+        "pa_encajo",
+        "ind_visita_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.815,
+      "samples": 27,
+      "wins": 22,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_perdio",
+        "momentum_local",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.812,
+      "samples": 96,
+      "wins": 78,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_alineadas_visita",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.812,
+      "samples": 16,
+      "wins": 13,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_gano",
+        "h_top5",
+        "ph_perdio_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.811,
+      "samples": 37,
+      "wins": 30,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ind_local_perdio",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.81,
+      "samples": 21,
+      "wins": 17,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "momentum_local",
+        "pa_encajo",
+        "pa_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.809,
+      "samples": 47,
+      "wins": 38,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "ha_repetido_exacto",
+        "h_top10",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.808,
+      "samples": 52,
+      "wins": 42,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_goleo",
+        "h_mejor_rank",
+        "ind_visita_gano",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.808,
+      "samples": 26,
+      "wins": 21,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "ind_local_goleo",
+        "ph_under",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.806,
+      "samples": 31,
+      "wins": 25,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "h_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.802,
+      "samples": 192,
+      "wins": 154,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_fresco",
+        "pa_goleo",
+        "h_mejor_rank",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.802,
+      "samples": 121,
+      "wins": 97,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "pa_perdio_visita",
+        "ind_visita_goleo",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.8,
+      "samples": 15,
+      "wins": 12,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "h_mejor_rank",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.798,
+      "samples": 84,
+      "wins": 67,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "a_bottom",
+        "pa_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.796,
+      "samples": 93,
+      "wins": 74,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "a_bottom",
+        "pa_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.794,
+      "samples": 170,
+      "wins": 135,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "h_mejor_rank",
+        "a_bottom",
+        "h2h_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.794,
+      "samples": 131,
+      "wins": 104,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "pa_perdio_visita",
+        "ph_gano_local",
+        "h_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.794,
+      "samples": 97,
+      "wins": 77,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "ph_porteria_0",
+        "ind_visita_perdio",
+        "pa_perdio_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.793,
+      "samples": 29,
+      "wins": 23,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "ind_visita_gano",
+        "h_mejor_rank",
+        "ah_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.792,
+      "samples": 168,
+      "wins": 133,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_local_gano",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.791,
+      "samples": 91,
+      "wins": 72,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_perdio_visita",
+        "h2h_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.79,
+      "samples": 352,
+      "wins": 278,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_fresco",
+        "pa_empato",
+        "h_mejor_rank",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.789,
+      "samples": 95,
+      "wins": 75,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "h_mejor_rank",
+        "a_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.789,
+      "samples": 76,
+      "wins": 60,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_under",
+        "ind_visita_goleo",
+        "pa_under",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.789,
+      "samples": 19,
+      "wins": 15,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_gano_visita",
+        "ph_empato",
+        "pa_porteria_0",
+        "pa_goleo"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.789,
+      "samples": 19,
+      "wins": 15,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.787,
+      "samples": 94,
+      "wins": 74,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_alineadas_local",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.787,
+      "samples": 94,
+      "wins": 74,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_perdio",
+        "ph_porteria_0",
+        "pa_under",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.787,
+      "samples": 75,
+      "wins": 59,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_encajo",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 182,
+      "wins": 143,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ah_0",
+        "h_mejor_rank",
+        "ha_repetido_exacto",
+        "ind_alineadas_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 42,
+      "wins": 33,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "datos_frescos",
+        "ha_repetido_exacto",
+        "ind_alineadas_visita",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 42,
+      "wins": 33,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "pa_perdio_visita",
+        "momentum_local",
+        "h2h_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 28,
+      "wins": 22,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "pa_under",
+        "a_bottom",
+        "ph_empato"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 14,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "pa_empato",
+        "h2h_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.786,
+      "samples": 14,
+      "wins": 11,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ph_empato",
+        "ind_visita_perdio",
+        "pa_perdio_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.783,
+      "samples": 60,
+      "wins": 47,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "pa_perdio_visita",
+        "ph_perdio_local",
+        "pa_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.783,
+      "samples": 46,
+      "wins": 36,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_perdio_visita",
+        "ind_local_perdio",
+        "ah_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.782,
+      "samples": 156,
+      "wins": 122,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_under",
+        "ind_local_goleo",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.781,
+      "samples": 73,
+      "wins": 57,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "ind_local_perdio",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.781,
+      "samples": 64,
+      "wins": 50,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "ph_gano_local",
+        "pa_encajo",
+        "h_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.781,
+      "samples": 32,
+      "wins": 25,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "pa_encajo",
+        "ph_goleo",
+        "h2h_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.781,
+      "samples": 32,
+      "wins": 25,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_perdio",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.779,
+      "samples": 389,
+      "wins": 303,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.779,
+      "samples": 68,
+      "wins": 53,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "momentum_local",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.779,
+      "samples": 68,
+      "wins": 53,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ha_repetido_cerca",
+        "ind_alineadas_local",
+        "pa_perdio_visita",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.779,
+      "samples": 68,
+      "wins": 53,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "ind_alineadas_local",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.779,
+      "samples": 68,
+      "wins": 53,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ph_porteria_0",
+        "ind_local_gano",
+        "ha_repetido_cerca"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.778,
+      "samples": 162,
+      "wins": 126,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_encajo",
+        "h_top5",
+        "ind_local_goleo",
+        "datos_frescos"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.778,
+      "samples": 63,
+      "wins": 49,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "pa_encajo",
+        "ah_0",
+        "ind_local_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.778,
+      "samples": 63,
+      "wins": 49,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_alineadas_local",
+        "ind_visita_perdio",
+        "ph_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.778,
+      "samples": 45,
+      "wins": 35,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ah_0",
+        "ph_under",
+        "h_mejor_rank",
+        "ind_alineadas_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.778,
+      "samples": 45,
+      "wins": 35,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_gano",
+        "h_bottom",
+        "a_mejor_rank",
+        "ind_local_goleo"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.778,
+      "samples": 18,
+      "wins": 14,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "a_bottom",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.776,
+      "samples": 85,
+      "wins": 66,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "h_mejor_rank",
+        "ph_goleo",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.776,
+      "samples": 76,
+      "wins": 59,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_gano_local",
+        "ind_visita_gano",
+        "h_mejor_rank",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.775,
+      "samples": 102,
+      "wins": 79,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ind_visita_perdio",
+        "h2h_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.774,
+      "samples": 155,
+      "wins": 120,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "ind_local_perdio",
+        "h_top5",
+        "a_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.773,
+      "samples": 22,
+      "wins": 17,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.772,
+      "samples": 281,
+      "wins": 217,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_fresco",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.772,
+      "samples": 281,
+      "wins": 217,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "h_mejor_rank",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.772,
+      "samples": 281,
+      "wins": 217,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ph_porteria_0",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.771,
+      "samples": 153,
+      "wins": 118,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "h_top10",
+        "datos_frescos",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.771,
+      "samples": 131,
+      "wins": 101,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_perdio",
+        "h_mejor_rank",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.77,
+      "samples": 113,
+      "wins": 87,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "ph_fresco",
+        "pa_under",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.77,
+      "samples": 74,
+      "wins": 57,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "h_top5",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.769,
+      "samples": 78,
+      "wins": 60,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_visita",
+        "h_mejor_rank",
+        "a_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.769,
+      "samples": 26,
+      "wins": 20,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_mejor_rank",
+        "h2h_goleo",
+        "ph_gano_local",
+        "ph_encajo"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.769,
+      "samples": 13,
+      "wins": 10,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "h_mejor_rank",
+        "ind_local_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.768,
+      "samples": 211,
+      "wins": 162,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "pa_goleo",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.767,
+      "samples": 120,
+      "wins": 92,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "pa_goleo",
+        "ah_0",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.766,
+      "samples": 295,
+      "wins": 226,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_gano_visita",
+        "h_top10",
+        "h_top5",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.766,
+      "samples": 77,
+      "wins": 59,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_under",
+        "ind_local_perdio",
+        "ind_alineadas_visita",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.765,
+      "samples": 17,
+      "wins": 13,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "h_top5",
+        "ph_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.765,
+      "samples": 17,
+      "wins": 13,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.764,
+      "samples": 296,
+      "wins": 226,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "ha_repetido_cerca",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.764,
+      "samples": 296,
+      "wins": 226,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "a_bottom",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.764,
+      "samples": 296,
+      "wins": 226,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ha_repetido_exacto",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.764,
+      "samples": 296,
+      "wins": 226,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 291,
+      "wins": 222,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ah_0",
+        "ind_local_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 291,
+      "wins": 222,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 169,
+      "wins": 129,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_visita_goleo",
+        "ah_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 169,
+      "wins": 129,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_local_perdio",
+        "ha_repetido_cerca",
+        "ph_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 97,
+      "wins": 74,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_perdio",
+        "h2h_fresco",
+        "momentum_local",
+        "h_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.763,
+      "samples": 93,
+      "wins": 71,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "pa_fresco",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.762,
+      "samples": 143,
+      "wins": 109,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_porteria_0",
+        "ph_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.762,
+      "samples": 143,
+      "wins": 109,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "h_bottom",
+        "ind_local_gano",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.762,
+      "samples": 42,
+      "wins": 32,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "pa_gano_visita",
+        "h_mejor_rank",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.762,
+      "samples": 21,
+      "wins": 16,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "ph_porteria_0",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.76,
+      "samples": 387,
+      "wins": 294,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "ph_porteria_0",
+        "pa_fresco",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.76,
+      "samples": 387,
+      "wins": 294,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ph_goleo",
+        "pa_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.76,
+      "samples": 217,
+      "wins": 165,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ph_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.76,
+      "samples": 217,
+      "wins": 165,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "ph_gano_local",
+        "a_bottom"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.76,
+      "samples": 25,
+      "wins": 19,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 557,
+      "wins": 422,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_fresco",
+        "pa_perdio_visita",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 557,
+      "wins": 422,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_encajo",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 541,
+      "wins": 410,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ha_repetido_cerca",
+        "ah_0",
+        "pa_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 541,
+      "wins": 410,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "datos_frescos",
+        "ind_local_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 240,
+      "wins": 182,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ah_0",
+        "ind_local_goleo",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 240,
+      "wins": 182,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_goleo",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 240,
+      "wins": 182,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 124,
+      "wins": 94,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "ph_fresco",
+        "momentum_local",
+        "h_top10"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.758,
+      "samples": 120,
+      "wins": 91,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "h_top5",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.757,
+      "samples": 416,
+      "wins": 315,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ha_repetido_cerca",
+        "ind_alineadas_visita",
+        "a_mejor_rank",
+        "h2h_fresco"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.757,
+      "samples": 37,
+      "wins": 28,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_visita",
+        "h2h_fresco",
+        "ha_repetido_exacto",
+        "a_mejor_rank"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.757,
+      "samples": 37,
+      "wins": 28,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.755,
+      "samples": 642,
+      "wins": 485,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_porteria_0",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.755,
+      "samples": 428,
+      "wins": 323,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_porteria_0",
+        "pa_fresco",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.755,
+      "samples": 428,
+      "wins": 323,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 195,
+      "wins": 147,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ph_perdio_local",
+        "pa_perdio_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 134,
+      "wins": 101,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "ind_visita_gano",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 134,
+      "wins": 101,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_local_goleo",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 69,
+      "wins": 52,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_encajo",
+        "h_bottom",
+        "ph_under",
+        "pa_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 57,
+      "wins": 43,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "h_mejor_rank",
+        "ind_visita_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.754,
+      "samples": 57,
+      "wins": 43,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ha_repetido_cerca",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.753,
+      "samples": 401,
+      "wins": 302,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_local_gano",
+        "ph_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.753,
+      "samples": 401,
+      "wins": 302,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.753,
+      "samples": 401,
+      "wins": 302,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_gano_local",
+        "ph_goleo",
+        "pa_encajo",
+        "ind_local_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.753,
+      "samples": 81,
+      "wins": 61,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top5",
+        "h2h_under",
+        "ind_local_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.752,
+      "samples": 109,
+      "wins": 82,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h2h_under",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.751,
+      "samples": 710,
+      "wins": 533,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_mejor_rank",
+        "h2h_under",
+        "pa_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.751,
+      "samples": 710,
+      "wins": 533,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ph_under",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 100,
+      "wins": 75,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_fresco",
+        "ind_visita_goleo",
+        "h_top5",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 88,
+      "wins": 66,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_gano",
+        "ph_fresco",
+        "ind_local_gano",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 80,
+      "wins": 60,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_goleo",
+        "pa_gano_visita",
+        "h2h_fresco",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 52,
+      "wins": 39,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_alineadas_local",
+        "h2h_fresco",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 28,
+      "wins": 21,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_mejor_rank",
+        "ah_0",
+        "pa_porteria_0",
+        "pa_goleo"
+      ],
+      "target": "VISITA",
+      "accuracy": 0.75,
+      "samples": 28,
+      "wins": 21,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_empato",
+        "ind_alineadas_local",
+        "pa_empato",
+        "ha_repetido_cerca"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.75,
+      "samples": 12,
+      "wins": 9,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h2h_fresco",
+        "h_mejor_rank",
+        "pa_perdio_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.749,
+      "samples": 419,
+      "wins": 314,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ha_repetido_cerca",
+        "h_mejor_rank",
+        "ind_visita_gano"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.748,
+      "samples": 298,
+      "wins": 223,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_gano",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.748,
+      "samples": 298,
+      "wins": 223,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ind_visita_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.748,
+      "samples": 238,
+      "wins": 178,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_goleo",
+        "ha_repetido_exacto",
+        "momentum_local",
+        "h2h_fresco"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.748,
+      "samples": 143,
+      "wins": 107,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "pa_perdio_visita",
+        "pa_encajo",
+        "ph_empato",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.748,
+      "samples": 115,
+      "wins": 86,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.747,
+      "samples": 190,
+      "wins": 142,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "datos_frescos",
+        "h_top5",
+        "ind_local_perdio"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.747,
+      "samples": 190,
+      "wins": 142,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "a_bottom",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.746,
+      "samples": 319,
+      "wins": 238,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_goleo",
+        "h_mejor_rank",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.745,
+      "samples": 212,
+      "wins": 158,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.745,
+      "samples": 204,
+      "wins": 152,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ha_repetido_cerca",
+        "momentum_local",
+        "ah_0",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.745,
+      "samples": 204,
+      "wins": 152,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_gano_local",
+        "momentum_local",
+        "h_top5"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.745,
+      "samples": 204,
+      "wins": 152,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_gano_local",
+        "h_mejor_rank"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.744,
+      "samples": 620,
+      "wins": 461,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h_top10",
+        "momentum_visita",
+        "h_mejor_rank",
+        "ah_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.744,
+      "samples": 39,
+      "wins": 29,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_perdio",
+        "pa_gano_visita",
+        "h_mejor_rank",
+        "h2h_under"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.743,
+      "samples": 35,
+      "wins": 26,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_visita_goleo",
+        "ha_repetido_cerca",
+        "pa_encajo",
+        "ph_gano_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.742,
+      "samples": 93,
+      "wins": 69,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "h2h_under",
+        "h_top5",
+        "ph_fresco",
+        "pa_perdio_visita"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.741,
+      "samples": 216,
+      "wins": 160,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "ph_encajo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.741,
+      "samples": 54,
+      "wins": 40,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ph_encajo",
+        "pa_fresco",
+        "momentum_local"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.741,
+      "samples": 54,
+      "wins": 40,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "ind_local_gano",
+        "h2h_goleo",
+        "h_bottom",
+        "ph_porteria_0"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.741,
+      "samples": 27,
+      "wins": 20,
+      "ah_group": "AH_0"
+    },
+    {
+      "features": [
+        "momentum_local",
+        "pa_goleo"
+      ],
+      "target": "LOCAL",
+      "accuracy": 0.74,
+      "samples": 227,
+      "wins": 168,
+      "ah_group": "AH_0"
+    }
+  ]
+}
