@@ -56,6 +56,33 @@ MANAGED_BUCKETS = [
     "data_pending_results.json",
 ]
 
+
+def _parse_bootstrap_only_buckets(raw: str) -> Tuple[str, ...]:
+    if not raw:
+        return tuple()
+
+    selected: List[str] = []
+    allowed = set(MANAGED_BUCKETS)
+
+    for token in str(raw).replace(";", ",").split(","):
+        name = token.strip()
+        if not name:
+            continue
+        if not name.endswith(".json"):
+            name = f"{name}.json"
+        if name not in allowed:
+            LOGGER.warning("Ignoring unknown SQL bootstrap bucket: %s", name)
+            continue
+        if name not in selected:
+            selected.append(name)
+
+    return tuple(selected)
+
+
+SQL_BOOTSTRAP_ONLY_BUCKETS = _parse_bootstrap_only_buckets(
+    os.getenv("SQL_BOOTSTRAP_ONLY_BUCKETS", "")
+)
+
 MATCH_STATE_BY_BUCKET = {
     "data_precacheo.json": "precacheo",
     "data_pending_results.json": "pending_results",
@@ -515,17 +542,24 @@ def _load_json_file(path: Path):
         return None
 
 
-def _import_legacy_matches(conn: sqlite3.Connection, data_dir: Path) -> int:
+def _import_legacy_matches(
+    conn: sqlite3.Connection,
+    data_dir: Path,
+    buckets: Optional[Sequence[str]] = None,
+) -> int:
     imported = 0
 
     # Historical first, then pending, then precacheo (highest precedence)
     ordered_files: List[str] = []
+    requested_buckets = [b for b in (buckets or MANAGED_BUCKETS) if b in MANAGED_BUCKETS]
 
-    for bucket in MANAGED_BUCKETS:
+    for bucket in requested_buckets:
         if bucket not in ("data_pending_results.json", "data_precacheo.json"):
             ordered_files.append(bucket)
-    ordered_files.append("data_pending_results.json")
-    ordered_files.append("data_precacheo.json")
+    if "data_pending_results.json" in requested_buckets:
+        ordered_files.append("data_pending_results.json")
+    if "data_precacheo.json" in requested_buckets:
+        ordered_files.append("data_precacheo.json")
 
     for bucket in ordered_files:
         path = data_dir / bucket
@@ -643,7 +677,16 @@ def ensure_bootstrap(force_import: bool = False) -> None:
                         )
                     else:
                         if not SQL_BOOTSTRAP_HISTORY_ONLY:
-                            imported_matches = _import_legacy_matches(conn, DATA_DIR)
+                            if SQL_BOOTSTRAP_ONLY_BUCKETS:
+                                LOGGER.info(
+                                    "SQL bootstrap importing selected buckets: %s",
+                                    ", ".join(SQL_BOOTSTRAP_ONLY_BUCKETS),
+                                )
+                            imported_matches = _import_legacy_matches(
+                                conn,
+                                DATA_DIR,
+                                buckets=SQL_BOOTSTRAP_ONLY_BUCKETS or None,
+                            )
                         pending_count, cached_count = _import_legacy_history(conn, HISTORY_FILE)
 
                     _set_kv(conn, "legacy_json_bootstrap_v1", "done")

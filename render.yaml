@@ -16,7 +16,9 @@ services:
       - key: DATA_LEGACY_SYNC
         value: "0"
       - key: SQL_BOOTSTRAP_MODE
-        value: "none"
+        value: "partial"
+      - key: SQL_BOOTSTRAP_ONLY_BUCKETS
+        value: "data_precacheo.json,data_pending_results.json"
       - key: APP_SQLITE_PATH
         value: "/tmp/app_data.db"
       - key: APP_SQLITE_BOOTSTRAP_LOCK
