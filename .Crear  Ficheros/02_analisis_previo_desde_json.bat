@@ -96,13 +96,14 @@ if %errorlevel% NEQ 0 (
 )
 
 set "STAGED_ANY=0"
+set "FILES_FOR_COMMIT="
 if exist "data\data_precacheo.json" (
-    git add "data\data_precacheo.json" >NUL 2>&1
     set "STAGED_ANY=1"
+    set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_precacheo.json"
 )
 if exist "data\data_pending_results.json" (
-    git add "data\data_pending_results.json" >NUL 2>&1
     set "STAGED_ANY=1"
+    set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_pending_results.json"
 )
 
 if "%STAGED_ANY%"=="0" (
@@ -110,7 +111,8 @@ if "%STAGED_ANY%"=="0" (
     goto :START_LOCAL_APP
 )
 
-git diff --cached --quiet --exit-code
+git add %FILES_FOR_COMMIT% >NUL 2>&1
+git diff --cached --quiet --exit-code -- %FILES_FOR_COMMIT%
 if %errorlevel% EQU 0 (
     echo No hay cambios de pre-cacheo para subir.
     goto :START_LOCAL_APP
@@ -119,7 +121,7 @@ if %errorlevel% EQU 0 (
 for /f %%T in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set "SYNC_TS=%%T"
 if "%SYNC_TS%"=="" set "SYNC_TS=manual"
 
-git commit -m "chore: sync precacheo %SYNC_TS%" >NUL 2>&1
+git commit -m "chore: sync precacheo %SYNC_TS%" -- %FILES_FOR_COMMIT% >NUL 2>&1
 if %errorlevel% NEQ 0 (
     echo ADVERTENCIA: No se pudo crear el commit de pre-cacheo. Se omite push.
     goto :START_LOCAL_APP
