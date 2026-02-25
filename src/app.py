@@ -1000,6 +1000,180 @@ def _render_matches_dashboard(page_mode='upcoming', page_title='Partidos'):
         error=error_msg,
     )
 
+
+def _parse_clock_hhmm(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    match = re.search(r'(\d{1,2}):(\d{2})', text)
+    if not match:
+        return None
+    hour = int(match.group(1))
+    minute = int(match.group(2))
+    if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+        return None
+    return hour, minute
+
+
+def _parse_precache_date_parts(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+
+    # Handle full ISO-like strings first.
+    iso_candidate = text
+    if iso_candidate.endswith('Z'):
+        iso_candidate = iso_candidate[:-1] + '+00:00'
+    try:
+        parsed_iso = datetime.datetime.fromisoformat(iso_candidate)
+        return parsed_iso.year, parsed_iso.month, parsed_iso.day
+    except Exception:
+        pass
+
+    # Date-only formats: yyyy-mm-dd or yyyy/mm/dd
+    iso_date_match = re.match(r'^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$', text)
+    if iso_date_match:
+        year = int(iso_date_match.group(1))
+        month = int(iso_date_match.group(2))
+        day = int(iso_date_match.group(3))
+        return year, month, day
+
+    # Ambiguous formats: mm/dd/yyyy or dd/mm/yyyy (default to mm/dd when ambiguous).
+    short_match = re.match(r'^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$', text)
+    if not short_match:
+        return None
+
+    first = int(short_match.group(1))
+    second = int(short_match.group(2))
+    year_raw = short_match.group(3)
+    year = int(year_raw)
+    if len(year_raw) == 2:
+        year += 2000 if year < 70 else 1900
+
+    if first > 12 and second <= 12:
+        day = first
+        month = second
+    elif second > 12 and first <= 12:
+        month = first
+        day = second
+    else:
+        month = first
+        day = second
+
+    return year, month, day
+
+
+def _parse_precache_match_datetime_utc(match):
+    if not isinstance(match, dict):
+        return None
+
+    parsed_start = _parse_start_time_to_utc(match.get('start_time'))
+    if isinstance(parsed_start, datetime.datetime):
+        return parsed_start
+
+    date_parts = _parse_precache_date_parts(match.get('match_date') or match.get('date'))
+    if not date_parts:
+        return None
+
+    clock = _parse_clock_hhmm(match.get('time')) or (0, 0)
+    year, month, day = date_parts
+    hour, minute = clock
+    try:
+        dt_spain = datetime.datetime(year, month, day, hour, minute, tzinfo=SPAIN_TZ)
+    except Exception:
+        return None
+    return dt_spain.astimezone(UTC_TZ).replace(tzinfo=None)
+
+
+def _build_upcoming_matches_from_precache(limit=None, handicap_filter=None, goal_line_filter=None):
+    fetch_limit = 4000
+    if isinstance(limit, int) and limit > 0:
+        fetch_limit = min(max(limit * 6, 1200), 12000)
+
+    precache_rows = sql_store.fetch_matches(bucket=data_manager.PRECACHEO_BUCKET, limit=fetch_limit)
+    if not precache_rows:
+        return []
+
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    handicap_predicate = _build_handicap_filter_predicate(handicap_filter)
+    goal_predicate = _build_goal_line_filter_predicate(goal_line_filter)
+
+    output = []
+    seen_ids = set()
+    for row in precache_rows:
+        if not isinstance(row, dict):
+            continue
+
+        raw_id = row.get('match_id') or row.get('id')
+        if raw_id in (None, ''):
+            continue
+        mid = str(raw_id)
+        if mid in seen_ids:
+            continue
+        seen_ids.add(mid)
+
+        odds = row.get('main_match_odds') if isinstance(row.get('main_match_odds'), dict) else {}
+        ah_line = row.get('handicap')
+        if ah_line in (None, ''):
+            ah_line = odds.get('ah_linea')
+        ou_line = row.get('goal_line')
+        if ou_line in (None, ''):
+            ou_line = odds.get('goals_linea')
+
+        if handicap_predicate and not handicap_predicate(ah_line or ''):
+            continue
+        if goal_predicate and not goal_predicate(ou_line or ''):
+            continue
+
+        parsed_utc = _parse_precache_match_datetime_utc(row)
+        if isinstance(parsed_utc, datetime.datetime) and parsed_utc < now_utc:
+            continue
+
+        item = {
+            'id': mid,
+            'match_id': mid,
+            'home_team': row.get('home_team') or row.get('home_name') or '',
+            'away_team': row.get('away_team') or row.get('away_name') or '',
+            'league': row.get('league') or row.get('league_name') or '',
+            'handicap': ah_line,
+            'goal_line': ou_line,
+            'time': row.get('time') or '',
+            'match_date': row.get('match_date') or row.get('date') or '',
+            'date': row.get('date') or row.get('match_date') or '',
+            '_sort_time': parsed_utc,
+        }
+
+        if isinstance(parsed_utc, datetime.datetime):
+            spain_time = parsed_utc.replace(tzinfo=UTC_TZ).astimezone(SPAIN_TZ)
+            item['start_time'] = spain_time.isoformat()
+            item['time'] = spain_time.strftime('%H:%M')
+            if not item.get('match_date'):
+                item['match_date'] = spain_time.strftime('%m/%d/%Y')
+            if not item.get('date'):
+                item['date'] = item['match_date']
+        else:
+            item['start_time'] = row.get('start_time')
+
+        output.append(item)
+
+    with_time = [m for m in output if isinstance(m.get('_sort_time'), datetime.datetime)]
+    without_time = [m for m in output if not isinstance(m.get('_sort_time'), datetime.datetime)]
+    with_time.sort(key=lambda m: (m['_sort_time'], str(m.get('id', ''))))
+    without_time.sort(key=lambda m: str(m.get('id', '')))
+    combined = with_time + without_time
+
+    for m in combined:
+        m.pop('_sort_time', None)
+
+    if isinstance(limit, int) and limit > 0:
+        combined = combined[:limit]
+    return combined
+
+
 @app.route('/')
 def index():
     return redirect(url_for('precacheo'))
@@ -1046,7 +1220,14 @@ def api_matches():
                 )
             ) or []
             if not matches:
-                print("[api/matches] Direct scrape empty, trying grandes ligas fallback...")
+                print("[api/matches] Direct scrape empty, trying precache fallback...")
+                matches = _build_upcoming_matches_from_precache(
+                    limit=limit,
+                    handicap_filter=handicap_filter,
+                    goal_line_filter=ou_filter,
+                )
+            if not matches:
+                print("[api/matches] Precache fallback empty, trying grandes ligas fallback...")
                 matches = _fetch_grandes_ligas_upcoming_matches(limit=limit)
 
         return jsonify({'matches': matches})
@@ -4940,4 +5121,3 @@ if __name__ == '__main__':
     # use_reloader=False para evitar que werkzeug detecte cambios en site-packages (plotly, etc.)
     # Threaded para mejor respuesta en desarrollo
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True, use_reloader=False)
-
