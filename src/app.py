@@ -175,12 +175,18 @@ _DATA_FILE_CANDIDATES = [
     Path(__file__).resolve().parent.parent / 'data.json',
 ]
 _data_file_lock = threading.Lock()
+_precache_legacy_lock = threading.Lock()
 _empty_snapshot_refresh_lock = threading.Lock()
 _last_empty_snapshot_refresh_ts = 0.0
 _EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS = max(
     30,
     int(os.getenv('EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS', '300'))
 )
+_PRECACHEO_FILE_CANDIDATES = [
+    Path(__file__).resolve().parent.parent / 'data' / data_manager.PRECACHEO_BUCKET,
+    Path(__file__).resolve().parent / 'data' / data_manager.PRECACHEO_BUCKET,
+]
+_precacheo_legacy_cache = None
 
 
 def _normalize_main_page_cache(data):
@@ -233,6 +239,34 @@ def save_data_snapshot(data):
     """Guarda snapshot de partidos (upcoming/finished) en SQL."""
     with _data_file_lock:
         sql_store.set_json_state(MAIN_PAGE_CACHE_KEY, _normalize_main_page_cache(data))
+
+
+def _load_precacheo_legacy_rows(limit=None):
+    global _precacheo_legacy_cache
+
+    with _precache_legacy_lock:
+        if _precacheo_legacy_cache is None:
+            loaded = []
+            for candidate in _PRECACHEO_FILE_CANDIDATES:
+                if not candidate.exists():
+                    continue
+                try:
+                    with candidate.open('r', encoding='utf-8') as fh:
+                        payload = json.load(fh)
+                    if isinstance(payload, list):
+                        loaded = [item for item in payload if isinstance(item, dict)]
+                        print(f"Legacy precache loaded from {candidate} ({len(loaded)} rows)")
+                        break
+                except Exception as exc:
+                    print(f"Warning loading legacy precache file ({candidate}): {exc}")
+                    continue
+            _precacheo_legacy_cache = loaded
+
+        rows = _precacheo_legacy_cache or []
+
+    if isinstance(limit, int) and limit > 0:
+        return rows[:limit]
+    return rows
 
 
 def _snapshot_has_matches(snapshot):
@@ -1095,6 +1129,8 @@ def _build_upcoming_matches_from_precache(limit=None, handicap_filter=None, goal
         fetch_limit = min(max(limit * 6, 1200), 12000)
 
     precache_rows = sql_store.fetch_matches(bucket=data_manager.PRECACHEO_BUCKET, limit=fetch_limit)
+    if not precache_rows:
+        precache_rows = _load_precacheo_legacy_rows(limit=fetch_limit)
     if not precache_rows:
         return []
 
@@ -4033,6 +4069,9 @@ def api_precacheo_list():
             matches = sql_store.fetch_matches(bucket=data_manager.PRECACHEO_BUCKET, limit=limit)
         else:
             matches = data_manager.load_precacheo_matches()
+
+        if not matches:
+            matches = _load_precacheo_legacy_rows(limit=limit)
 
         # Fallback: if precache storage is empty, expose upcoming list as lightweight rows.
         # This prevents the Pre-Cacheo table from rendering completely empty after cold boots.
