@@ -804,6 +804,73 @@ def fetch_matches(
     return output
 
 
+def fetch_matches_by_ids(
+    match_ids: Sequence[str],
+    bucket: Optional[str] = None,
+    state: Optional[str] = None,
+    limit: Optional[int] = None,
+    prefer_explorer_payload: bool = False,
+) -> List[Dict]:
+    """
+    Fetch matches restricted to the provided match IDs and preserve input order.
+    Useful when UI needs rows aligned with a visible matches list.
+    """
+    ensure_bootstrap()
+
+    ordered_ids: List[str] = []
+    seen: set[str] = set()
+    for raw in match_ids or []:
+        mid = str(raw).strip()
+        if not mid or mid in seen:
+            continue
+        seen.add(mid)
+        ordered_ids.append(mid)
+
+    if not ordered_ids:
+        return []
+
+    if isinstance(limit, int) and limit > 0:
+        ordered_ids = ordered_ids[:limit]
+
+    payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
+    rows_by_id: Dict[str, Dict] = {}
+
+    with _connect() as conn:
+        chunk_size = 400
+        for start in range(0, len(ordered_ids), chunk_size):
+            chunk = ordered_ids[start:start + chunk_size]
+            if not chunk:
+                continue
+
+            placeholders = ", ".join(["?"] * len(chunk))
+            query = f"SELECT match_id, {payload_expr} AS payload_json FROM matches WHERE match_id IN ({placeholders})"
+            params: List[str] = list(chunk)
+
+            if bucket:
+                query += " AND bucket = ?"
+                params.append(bucket)
+            if state:
+                query += " AND state = ?"
+                params.append(state)
+
+            rows = conn.execute(query, params).fetchall()
+            for row in rows:
+                try:
+                    payload = json.loads(row["payload_json"])
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(payload, dict):
+                    rows_by_id[str(row["match_id"])] = payload
+
+    output: List[Dict] = []
+    for mid in ordered_ids:
+        payload = rows_by_id.get(mid)
+        if payload is not None:
+            output.append(payload)
+
+    return output
+
+
 def fetch_all_matches() -> List[Dict]:
     return fetch_matches(bucket=None, state=None)
 

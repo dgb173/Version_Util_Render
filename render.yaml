@@ -33,5 +33,27 @@ services:
         sync: false
       - key: EXPLORER_CACHE_TTL_SECONDS
         value: "60"
+      - key: PRECACHEO_LIST_DEFAULT_LIMIT
+        value: "700"
+      - key: PRECACHEO_LIST_MAX_LIMIT
+        value: "1500"
+      - key: RENDER_LITE_MODE
+        value: "1"
+      - key: APP_PRECACHEO_ONLY
+        value: "1"
+      - key: PRECACHEO_UI_ITEMS_PER_PAGE
+        value: "120"
+      - key: PRECACHEO_PICKS_CLIENT_MAX
+        value: "60"
+      - key: PRECACHEO_PICKS_BATCH_MAX
+        value: "80"
+      - key: PRECACHEO_ACTIONS_MODE
+        value: "ai_stats_only"
+      - key: PRECACHEO_PICKS_V2_RELOAD_SECONDS
+        value: "1800"
+      - key: PRECACHEO_ENABLE_QWEN
+        value: "0"
+      - key: PRECACHEO_ENABLE_HEAVY_ACTIONS
+        value: "0"
       - key: GROQ_API_KEY
         sync: false

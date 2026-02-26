@@ -187,6 +187,56 @@ _PRECACHEO_FILE_CANDIDATES = [
     Path(__file__).resolve().parent / 'data' / data_manager.PRECACHEO_BUCKET,
 ]
 _precacheo_legacy_cache = None
+_picks_runtime_lock = threading.Lock()
+_cached_specialist_validator = None
+_cached_specialist_validator_failed = False
+_cached_v2_loader = None
+_cached_v2_loader_loaded_at = 0.0
+_cached_v2_loader_failed = False
+
+
+def _env_flag(name, default=False):
+    raw = os.getenv(name)
+    if raw is None:
+        return bool(default)
+    return str(raw).strip().lower() not in {'', '0', 'false', 'no', 'off'}
+
+
+def _env_int(name, default):
+    raw = os.getenv(name, str(default))
+    try:
+        return int(raw)
+    except Exception:
+        return int(default)
+
+
+def _is_app_precacheo_only():
+    return _env_flag('APP_PRECACHEO_ONLY', default=False)
+
+
+@app.before_request
+def _enforce_precacheo_only_mode():
+    """
+    Render-only deployment option: expose only /precacheo UI.
+    API/static routes remain available.
+    """
+    if not _is_app_precacheo_only():
+        return None
+
+    path = request.path or '/'
+    if path == '/':
+        return None
+
+    allowed_prefixes = (
+        '/precacheo',
+        '/api/',
+        '/static/',
+        '/favicon.ico',
+    )
+    if any(path.startswith(prefix) for prefix in allowed_prefixes):
+        return None
+
+    return redirect(url_for('precacheo'))
 
 
 def _normalize_main_page_cache(data):
@@ -1208,6 +1258,66 @@ def _build_upcoming_matches_from_precache(limit=None, handicap_filter=None, goal
     if isinstance(limit, int) and limit > 0:
         combined = combined[:limit]
     return combined
+
+
+def _get_cached_upcoming_match_ids(limit=2000):
+    """
+    Returns upcoming match IDs from the cached main snapshot.
+    This lets precache list prioritize rows that the table is actually rendering.
+    """
+    try:
+        snapshot = load_data_from_file()
+    except Exception:
+        return []
+
+    if not isinstance(snapshot, dict):
+        return []
+
+    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    ids = []
+    seen = set()
+
+    for entry in snapshot.get('upcoming_matches', []) or []:
+        if not isinstance(entry, dict):
+            continue
+        raw_id = entry.get('id') or entry.get('match_id')
+        if raw_id in (None, ''):
+            continue
+
+        parsed_time = _parse_time_obj(entry.get('time_obj'))
+        if parsed_time is None:
+            parsed_time = _parse_start_time_to_utc(entry.get('start_time'))
+        if isinstance(parsed_time, datetime.datetime) and parsed_time < now_utc:
+            continue
+
+        mid = str(raw_id)
+        if mid in seen:
+            continue
+        seen.add(mid)
+        ids.append(mid)
+        if isinstance(limit, int) and limit > 0 and len(ids) >= limit:
+            break
+
+    return ids
+
+
+def _compact_precacheo_match_for_list(match):
+    """
+    Trim heavyweight HTML blobs from precache rows for list APIs.
+    They are not used by pre-cache table rendering and can trigger OOM in small instances.
+    """
+    if not isinstance(match, dict):
+        return {}
+
+    compact = {}
+    for key, value in match.items():
+        key_l = str(key).lower()
+        if key_l in {'historical_matches_html', 'market_analysis_html'}:
+            continue
+        if isinstance(value, str) and 'html' in key_l and len(value) > 500:
+            continue
+        compact[key] = value
+    return compact
 
 
 @app.route('/')
@@ -4035,10 +4145,46 @@ def api_delete_match():
         return jsonify({'error': str(e)}), 500
 
 # --- PRE-CACHEO ROUTES ---
+def _get_precacheo_view_config():
+    lite_mode = _env_flag('RENDER_LITE_MODE', default=False)
+
+    default_items = 120 if lite_mode else 300
+    items_per_page = _env_int('PRECACHEO_UI_ITEMS_PER_PAGE', default_items)
+    items_per_page = max(30, min(items_per_page, 500))
+
+    default_client_batch = 60 if lite_mode else 180
+    picks_client_max = _env_int('PRECACHEO_PICKS_CLIENT_MAX', default_client_batch)
+    picks_client_max = max(10, min(picks_client_max, 400))
+
+    enable_qwen = _env_flag('PRECACHEO_ENABLE_QWEN', default=not lite_mode)
+    enable_heavy_actions = _env_flag('PRECACHEO_ENABLE_HEAVY_ACTIONS', default=not lite_mode)
+    actions_mode = str(os.getenv('PRECACHEO_ACTIONS_MODE', '')).strip().lower()
+    if actions_mode not in {'full', 'minimal', 'ai_stats_only'}:
+        actions_mode = 'full' if enable_heavy_actions else 'minimal'
+
+    return {
+        'lite_mode': lite_mode,
+        'items_per_page': items_per_page,
+        'picks_client_max': picks_client_max,
+        'enable_qwen': enable_qwen,
+        'enable_heavy_actions': enable_heavy_actions,
+        'actions_mode': actions_mode,
+    }
+
+
 @app.route('/precacheo')
 def precacheo():
     """Muestra la vista de Pre-Cacheo para partidos próximos."""
-    return render_template('precacheo.html')
+    cfg = _get_precacheo_view_config()
+    return render_template(
+        'precacheo.html',
+        precacheo_lite_mode=cfg['lite_mode'],
+        precacheo_items_per_page=cfg['items_per_page'],
+        precacheo_picks_client_max=cfg['picks_client_max'],
+        precacheo_enable_qwen=cfg['enable_qwen'],
+        precacheo_enable_heavy_actions=cfg['enable_heavy_actions'],
+        precacheo_actions_mode=cfg['actions_mode'],
+    )
 
 @app.route('/api/precacheo_list')
 def api_precacheo_list():
@@ -4046,6 +4192,18 @@ def api_precacheo_list():
     Los picks se solicitan bajo demanda via /api/precacheo_picks_batch.
     """
     try:
+        try:
+            default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '700'))
+        except Exception:
+            default_limit = 700
+        default_limit = max(100, default_limit)
+
+        try:
+            max_limit = int(os.getenv('PRECACHEO_LIST_MAX_LIMIT', '2000'))
+        except Exception:
+            max_limit = 2000
+        max_limit = max(default_limit, max_limit)
+
         limit = None
         limit_arg = request.args.get('limit')
         if limit_arg not in (None, ''):
@@ -4065,8 +4223,48 @@ def api_precacheo_list():
             if env_limit > 0:
                 limit = env_limit
 
+        if limit is None:
+            limit = default_limit
+        limit = max(1, min(int(limit), max_limit))
+
         if limit is not None:
-            matches = sql_store.fetch_matches(bucket=data_manager.PRECACHEO_BUCKET, limit=limit)
+            matches = []
+
+            # Prioritize rows that are currently visible in /api/matches so table joins work under limits.
+            preferred_ids = _get_cached_upcoming_match_ids(limit=max(limit * 3, 1200))
+            if preferred_ids:
+                matches = sql_store.fetch_matches_by_ids(
+                    preferred_ids,
+                    bucket=data_manager.PRECACHEO_BUCKET,
+                    limit=limit,
+                )
+
+            # Fill remaining slots with latest rows to keep behavior stable for other consumers.
+            if len(matches) < limit:
+                seen_ids = {
+                    str(m.get('match_id') or m.get('id'))
+                    for m in matches
+                    if isinstance(m, dict) and (m.get('match_id') or m.get('id')) not in (None, '')
+                }
+                needed = limit - len(matches)
+                refill_limit = max(limit, needed * 3)
+                refill_rows = sql_store.fetch_matches(
+                    bucket=data_manager.PRECACHEO_BUCKET,
+                    limit=refill_limit,
+                )
+                for row in refill_rows:
+                    if not isinstance(row, dict):
+                        continue
+                    raw_id = row.get('match_id') or row.get('id')
+                    if raw_id in (None, ''):
+                        continue
+                    mid = str(raw_id)
+                    if mid in seen_ids:
+                        continue
+                    seen_ids.add(mid)
+                    matches.append(row)
+                    if len(matches) >= limit:
+                        break
         else:
             matches = data_manager.load_precacheo_matches()
 
@@ -4120,6 +4318,12 @@ def api_precacheo_list():
         for m in matches:
             if 'specialist_picks' not in m:
                 m['specialist_picks'] = []
+
+        compact_arg = str(request.args.get('compact', '1')).strip().lower()
+        use_compact = compact_arg not in {'0', 'false', 'no'}
+        if use_compact:
+            matches = [_compact_precacheo_match_for_list(m) for m in matches if isinstance(m, dict)]
+
         return jsonify({'matches': matches})
     except Exception as e:
         print(f"Error loading precacheo: {e}")
@@ -4162,6 +4366,58 @@ def api_finished_matches_list():
         return jsonify({'error': str(e), 'matches': []}), 500
 
 
+def _get_specialist_validator_cached():
+    global _cached_specialist_validator, _cached_specialist_validator_failed
+    if _cached_specialist_validator is not None or _cached_specialist_validator_failed:
+        return _cached_specialist_validator
+
+    with _picks_runtime_lock:
+        if _cached_specialist_validator is not None or _cached_specialist_validator_failed:
+            return _cached_specialist_validator
+        try:
+            from modules.specialist_validator import validator as sv
+            sv.load_rules()
+            _cached_specialist_validator = sv
+        except Exception as exc:
+            _cached_specialist_validator_failed = True
+            print(f"[picks_batch] Specialist validator init error: {exc}")
+
+    return _cached_specialist_validator
+
+
+def _get_v2_loader_cached():
+    global _cached_v2_loader, _cached_v2_loader_loaded_at, _cached_v2_loader_failed
+
+    if not _env_flag('PRECACHEO_PICKS_ENABLE_V2', default=True):
+        return None
+
+    reload_seconds = _env_int('PRECACHEO_PICKS_V2_RELOAD_SECONDS', 1200)
+    now_ts = time.time()
+
+    with _picks_runtime_lock:
+        should_reload = _cached_v2_loader is None
+        if _cached_v2_loader is not None and reload_seconds > 0:
+            should_reload = (now_ts - _cached_v2_loader_loaded_at) >= reload_seconds
+        if _cached_v2_loader_failed and _cached_v2_loader is None:
+            # Retry after cooldown
+            should_reload = (now_ts - _cached_v2_loader_loaded_at) >= max(60, reload_seconds if reload_seconds > 0 else 300)
+
+        if should_reload:
+            try:
+                from scripts.pattern_miner_v2.precacheo_loader import reload_loader, loader
+                reload_loader()
+                _cached_v2_loader = loader
+                _cached_v2_loader_loaded_at = now_ts
+                _cached_v2_loader_failed = False
+            except Exception as exc:
+                _cached_v2_loader = None
+                _cached_v2_loader_loaded_at = now_ts
+                _cached_v2_loader_failed = True
+                print(f"[picks_batch] V2 loader init error: {exc}")
+
+    return _cached_v2_loader
+
+
 @app.route('/api/precacheo_picks_batch', methods=['POST'])
 def api_precacheo_picks_batch():
     """Evalúa picks para un lote de partidos (bajo demanda)."""
@@ -4188,6 +4444,8 @@ def api_precacheo_picks_batch():
             max_ids = int(max_ids_raw) if max_ids_raw else 0
         except Exception:
             max_ids = 0
+        if max_ids <= 0:
+            max_ids = 80 if _env_flag('RENDER_LITE_MODE', default=False) else 200
         if max_ids > 0 and len(normalized_ids) > max_ids:
             normalized_ids = normalized_ids[:max_ids]
 
@@ -4199,22 +4457,9 @@ def api_precacheo_picks_batch():
         
         results = {}
         
-        # Cargar validators UNA sola vez
-        validator = None
-        try:
-            from modules.specialist_validator import validator as sv
-            sv.load_rules()
-            validator = sv
-        except Exception as e:
-            print(f"[picks_batch] Specialist validator error: {e}")
-        
-        v2_loader = None
-        try:
-            from scripts.pattern_miner_v2.precacheo_loader import reload_loader, loader
-            reload_loader()
-            v2_loader = loader
-        except Exception as e:
-            print(f"[picks_batch] V2 loader error: {e}")
+        # Cargar motores con caché para evitar picos de memoria/CPU en cada request.
+        validator = _get_specialist_validator_cached()
+        v2_loader = _get_v2_loader_cached()
         
         # Evaluar solo los partidos solicitados
         for mid in normalized_ids:

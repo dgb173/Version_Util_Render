@@ -1613,9 +1613,13 @@
                 return Math.abs(rowAh - fAh) < 0.01;
             });
         };
+        const PRECACHEO_ENABLE_QWEN = {{ 'true' if precacheo_enable_qwen|default(True) else 'false' }};
+        const PRECACHEO_ENABLE_HEAVY_ACTIONS = {{ 'true' if precacheo_enable_heavy_actions|default(True) else 'false' }};
+        const PRECACHEO_PICKS_CLIENT_MAX = {{ precacheo_picks_client_max|default(180)|int }};
+        const PRECACHEO_ACTIONS_MODE = '{{ precacheo_actions_mode|default("full") }}';
         // Pagination State
         let currentPage = 1;
-        const itemsPerPage = 300; // User requested limit 300 (approx 200-300)
+        const itemsPerPage = {{ precacheo_items_per_page|default(300)|int }};
         let totalFilteredMatches = [];
 
         // Ligas Favoritas - lista de objetos {id, nombre, short, color}
@@ -2459,6 +2463,8 @@
             });
 
             if (matchIds.length === 0) return;
+            const batchLimit = Math.max(10, parseInt(PRECACHEO_PICKS_CLIENT_MAX, 10) || 180);
+            const matchIdsToRequest = matchIds.slice(0, batchLimit);
 
             picksLoadingInProgress = true;
 
@@ -2466,7 +2472,7 @@
                 const res = await fetch('/api/precacheo_picks_batch', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_ids: matchIds })
+                    body: JSON.stringify({ match_ids: matchIdsToRequest })
                 });
 
                 const data = await res.json();
@@ -5661,6 +5667,49 @@
                         </div>
                     </div>`;
 
+                const scrapeBtnHtml = !isScraped
+                    ? `<button class="btn btn-sm btn-primary" onclick="scrapeMatch('${matchId}')" title="Scrapear">
+                            <i class="fas fa-download"></i>
+                       </button>`
+                    : `<button class="btn btn-sm btn-outline-info" onclick="scrapeMatch('${matchId}')" title="Re-scrapear">
+                            <i class="fas fa-sync"></i>
+                       </button>`;
+
+                const finalizeBtnHtml = hasValidResult
+                    ? `<button class="btn btn-sm btn-success" onclick="finalizeMatch('${matchId}')" title="Finalizar y mover al Explorador">
+                            <i class="fas fa-check"></i>
+                       </button>`
+                    : '';
+
+                const viewBtnHtml = `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Estudio">
+                        <i class="fas fa-eye"></i>
+                    </a>`;
+
+                const advancedBtnsHtml = isScraped
+                    ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
+                            <i class="fas fa-search"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
+                            <i class="fas fa-robot"></i>
+                       </button>`
+                    : '';
+
+                const aiBtnHtml = isScraped
+                    ? `<button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
+                            <i class="fas fa-robot"></i>
+                       </button>`
+                    : '';
+
+                let actionButtonsHtml = '';
+                const actionsMode = String(PRECACHEO_ACTIONS_MODE || '').toLowerCase();
+                if (actionsMode === 'ai_stats_only') {
+                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}`;
+                } else if (actionsMode === 'minimal' || !PRECACHEO_ENABLE_HEAVY_ACTIONS) {
+                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}`;
+                } else {
+                    actionButtonsHtml = `${globalStatsBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}`;
+                }
+
 
                 tr.innerHTML = `
                     <td class="text-center">
@@ -5708,31 +5757,7 @@
                     <td class="col-prev ${!indLeftHasData ? 'cell-no-data' : (isDiffIndL ? 'cell-diff-league' : '')}">${indLeftHtml}</td>
                     <td class="col-prev ${!indRightHasData ? 'cell-no-data' : (isDiffIndR ? 'cell-diff-league' : '')}">${indRightHtml}</td>
                     <td class="col-pick pick-cell">${pickHtml}</td>
-                    <td class="text-center">
-                        ${globalStatsBtn}
-                        ${!isScraped
-                        ? `<button class="btn btn-sm btn-primary" onclick="scrapeMatch('${matchId}')" title="Scrapear">
-                                <i class="fas fa-download"></i>
-                               </button>`
-                        : `<button class="btn btn-sm btn-outline-info" onclick="scrapeMatch('${matchId}')" title="Re-scrapear">
-                                <i class="fas fa-sync"></i>
-                               </button>`
-                    }
-                        ${hasValidResult
-                        ? `<button class="btn btn-sm btn-success" onclick="finalizeMatch('${matchId}')" title="Finalizar y mover al Explorador">
-                                <i class="fas fa-check"></i>
-                               </button>`
-                        : ''}
-                        <a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Estudio">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        ${isScraped ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
-                            <i class="fas fa-search"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
-                            <i class="fas fa-robot"></i>
-                        </button>` : ''}
-                    </td>
+                    <td class="text-center">${actionButtonsHtml}</td>
                 `;
                 tr.setAttribute('data-match-id', matchId);
                 // Nuevo sistema: Pick basado en H2H Col3
@@ -6068,18 +6093,21 @@
 
         // Buscar patrones similares en histórico - abre Explorador en una pestaña nueva
         async function searchPatterns(matchId, btnElement) {
-            const getTeamRealWdl = (scoreStr, isHomeTeam) => {
-                if (!scoreStr) return null;
+            const getFavoritePrevAhWdl = (scoreStr, currentAhValue, favIsHome) => {
+                if (!scoreStr || isNaN(currentAhValue)) return null;
                 const normalizedScore = String(scoreStr).replace('-', ':');
                 const parts = normalizedScore.split(':');
                 if (parts.length !== 2) return null;
                 const h = parseInt(parts[0], 10);
                 const a = parseInt(parts[1], 10);
                 if (isNaN(h) || isNaN(a)) return null;
-                const diff = isHomeTeam ? (h - a) : (a - h);
-                if (diff > 0) return 'HOME_WIN';
-                if (diff < 0) return 'AWAY_WIN';
-                return 'DRAW';
+
+                const absAh = Math.abs(parseFloat(currentAhValue));
+                const diff = favIsHome ? (h - a) : (a - h);
+                const finalDiff = diff - absAh;
+                if (finalDiff > 0) return 'HOME_WIN';  // Favorito cubrió
+                if (finalDiff < 0) return 'AWAY_WIN';  // Favorito no cubrió
+                return 'DRAW';                         // Push
             };
 
             const pc = precacheoData ? precacheoData[matchId] : null;
@@ -6153,7 +6181,7 @@
                 const favPrevAh = (favPrevAhRaw !== null && favPrevAhRaw !== undefined && favPrevAhRaw !== '')
                     ? parseFloat(String(favPrevAhRaw).replace(',', '.'))
                     : NaN;
-                const favPrevWdl = getTeamRealWdl(favPrev.score || '', favIsHome);
+                const favPrevWdl = getFavoritePrevAhWdl(favPrev.score || '', currentAh, favIsHome);
 
                 if (favIsHome) {
                     if (!isNaN(favPrevAh)) params.set('prev_home_ah', String(favPrevAh));
@@ -6162,7 +6190,6 @@
                     if (!isNaN(favPrevAh)) params.set('prev_away_ah', String(favPrevAh));
                     if (favPrevWdl) params.set('prev_away_res', favPrevWdl);
                 }
-                if (favPrevWdl) params.set('prev_res_mode', 'real');
             }
 
             window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
@@ -7316,7 +7343,9 @@
         <!-- Tabs -->
         <div class="dahp-tabs">
             <button class="dahp-tab active" data-tab="dahp">📈 DAHP 2.0</button>
+            {% if precacheo_enable_qwen|default(True) %}
             <button class="dahp-tab" data-tab="qwen">🧠 IA Qwen</button>
+            {% endif %}
             <button class="dahp-tab" data-tab="browse">📋 Navegar 100</button>
             <button class="dahp-tab" data-tab="history">📆 Picks Pasados</button>
         </div>
@@ -8253,6 +8282,15 @@
                 const results = await calculateDAHP2Predictions();
                 renderDAHPResults(results);
             } else if (tab === 'qwen') {
+                if (!PRECACHEO_ENABLE_QWEN) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding: 30px; color:#64748b;">
+                            <div style="font-size:2.2rem;">⚙️</div>
+                            <p style="margin-top:10px;">La pestaña IA Qwen está desactivada en este entorno.</p>
+                        </div>
+                    `;
+                    return;
+                }
                 renderQwenTab();
             } else if (tab === 'browse') {
                 renderBrowseTab();
