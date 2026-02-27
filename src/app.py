@@ -182,9 +182,12 @@ _EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS = max(
     30,
     int(os.getenv('EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS', '300'))
 )
+_PRECACHEO_BUCKET_NAME = data_manager.PRECACHEO_BUCKET
 _PRECACHEO_FILE_CANDIDATES = [
-    Path(__file__).resolve().parent.parent / 'data' / data_manager.PRECACHEO_BUCKET,
-    Path(__file__).resolve().parent / 'data' / data_manager.PRECACHEO_BUCKET,
+    Path(__file__).resolve().parent.parent / 'data' / _PRECACHEO_BUCKET_NAME,
+    Path(__file__).resolve().parent / 'data' / _PRECACHEO_BUCKET_NAME,
+    Path(__file__).resolve().parent.parent / 'data' / f'{_PRECACHEO_BUCKET_NAME}.bak',
+    Path(__file__).resolve().parent / 'data' / f'{_PRECACHEO_BUCKET_NAME}.bak',
 ]
 _precacheo_legacy_cache = None
 _picks_runtime_lock = threading.Lock()
@@ -303,8 +306,17 @@ def _load_precacheo_legacy_rows(limit=None):
                 try:
                     with candidate.open('r', encoding='utf-8') as fh:
                         payload = json.load(fh)
+
+                    candidate_rows = []
                     if isinstance(payload, list):
-                        loaded = [item for item in payload if isinstance(item, dict)]
+                        candidate_rows = [item for item in payload if isinstance(item, dict)]
+                    elif isinstance(payload, dict):
+                        rows = payload.get('matches')
+                        if isinstance(rows, list):
+                            candidate_rows = [item for item in rows if isinstance(item, dict)]
+
+                    if candidate_rows:
+                        loaded = candidate_rows
                         print(f"Legacy precache loaded from {candidate} ({len(loaded)} rows)")
                         break
                 except Exception as exc:
@@ -4162,6 +4174,15 @@ def _get_precacheo_view_config():
     if actions_mode not in {'full', 'minimal', 'ai_stats_only'}:
         actions_mode = 'full' if enable_heavy_actions else 'minimal'
 
+    auto_scrape_on_gap = _env_flag('PRECACHEO_AUTO_SCRAPE_ON_GAP', default=lite_mode)
+    default_auto_scrape_batch = 12 if lite_mode else 24
+    auto_scrape_batch_max = _env_int('PRECACHEO_AUTO_SCRAPE_BATCH_MAX', default_auto_scrape_batch)
+    auto_scrape_batch_max = max(1, min(auto_scrape_batch_max, 60))
+
+    default_auto_scrape_concurrency = 1 if lite_mode else 2
+    auto_scrape_concurrency = _env_int('PRECACHEO_AUTO_SCRAPE_CONCURRENCY', default_auto_scrape_concurrency)
+    auto_scrape_concurrency = max(1, min(auto_scrape_concurrency, 4))
+
     return {
         'lite_mode': lite_mode,
         'items_per_page': items_per_page,
@@ -4169,6 +4190,9 @@ def _get_precacheo_view_config():
         'enable_qwen': enable_qwen,
         'enable_heavy_actions': enable_heavy_actions,
         'actions_mode': actions_mode,
+        'auto_scrape_on_gap': auto_scrape_on_gap,
+        'auto_scrape_batch_max': auto_scrape_batch_max,
+        'auto_scrape_concurrency': auto_scrape_concurrency,
     }
 
 
@@ -4184,6 +4208,9 @@ def precacheo():
         precacheo_enable_qwen=cfg['enable_qwen'],
         precacheo_enable_heavy_actions=cfg['enable_heavy_actions'],
         precacheo_actions_mode=cfg['actions_mode'],
+        precacheo_auto_scrape_on_gap=cfg['auto_scrape_on_gap'],
+        precacheo_auto_scrape_batch_max=cfg['auto_scrape_batch_max'],
+        precacheo_auto_scrape_concurrency=cfg['auto_scrape_concurrency'],
     )
 
 @app.route('/api/precacheo_list')
@@ -4311,6 +4338,7 @@ def api_precacheo_list():
                         'goals_linea': ou_line,
                     },
                     'specialist_picks': [],
+                    'precache_placeholder': True,
                 })
             matches = pseudo_rows
 
@@ -4512,17 +4540,24 @@ def api_precacheo_scrape():
         
         match_data['match_id'] = str(match_id)
         match_data['precacheo_date'] = datetime.datetime.now().isoformat()
-        
+
         # Save to precacheo
         data_manager.save_precacheo_match(match_data)
-        
-        return jsonify({'status': 'success', 'match': {
-            'match_id': match_id,
-            'home_name': match_data.get('home_name'),
-            'away_name': match_data.get('away_name'),
-            'handicap': match_data.get('main_match_odds', {}).get('ah_linea'),
-            'score': match_data.get('score')
-        }})
+
+        response_match = _compact_precacheo_match_for_list(match_data)
+        response_id = str(response_match.get('id') or response_match.get('match_id') or match_id)
+        response_match['id'] = response_id
+        response_match['match_id'] = response_id
+        if not response_match.get('home_team'):
+            response_match['home_team'] = match_data.get('home_team') or match_data.get('home_name') or ''
+        if not response_match.get('away_team'):
+            response_match['away_team'] = match_data.get('away_team') or match_data.get('away_name') or ''
+        if not response_match.get('league'):
+            response_match['league'] = match_data.get('league') or match_data.get('league_name') or ''
+        if 'specialist_picks' not in response_match:
+            response_match['specialist_picks'] = []
+
+        return jsonify({'status': 'success', 'match': response_match})
     except Exception as e:
         print(f"Error scraping for precacheo: {e}")
         return jsonify({'error': str(e)}), 500

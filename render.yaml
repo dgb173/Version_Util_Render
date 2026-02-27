@@ -34,7 +34,7 @@ services:
       - key: EXPLORER_CACHE_TTL_SECONDS
         value: "60"
       - key: PRECACHEO_LIST_DEFAULT_LIMIT
-        value: "700"
+        value: "350"
       - key: PRECACHEO_LIST_MAX_LIMIT
         value: "1500"
       - key: RENDER_LITE_MODE
@@ -51,6 +51,12 @@ services:
         value: "ai_stats_only"
       - key: PRECACHEO_PICKS_V2_RELOAD_SECONDS
         value: "1800"
+      - key: PRECACHEO_AUTO_SCRAPE_ON_GAP
+        value: "1"
+      - key: PRECACHEO_AUTO_SCRAPE_BATCH_MAX
+        value: "12"
+      - key: PRECACHEO_AUTO_SCRAPE_CONCURRENCY
+        value: "1"
       - key: PRECACHEO_ENABLE_QWEN
         value: "0"
       - key: PRECACHEO_ENABLE_HEAVY_ACTIONS

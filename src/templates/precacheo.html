@@ -1617,10 +1617,15 @@
         const PRECACHEO_ENABLE_HEAVY_ACTIONS = {{ 'true' if precacheo_enable_heavy_actions|default(True) else 'false' }};
         const PRECACHEO_PICKS_CLIENT_MAX = {{ precacheo_picks_client_max|default(180)|int }};
         const PRECACHEO_ACTIONS_MODE = '{{ precacheo_actions_mode|default("full") }}';
+        const PRECACHEO_AUTO_SCRAPE_ON_GAP = {{ 'true' if precacheo_auto_scrape_on_gap|default(False) else 'false' }};
+        const PRECACHEO_AUTO_SCRAPE_BATCH_MAX = {{ precacheo_auto_scrape_batch_max|default(12)|int }};
+        const PRECACHEO_AUTO_SCRAPE_CONCURRENCY = {{ precacheo_auto_scrape_concurrency|default(1)|int }};
         // Pagination State
         let currentPage = 1;
         const itemsPerPage = {{ precacheo_items_per_page|default(300)|int }};
         let totalFilteredMatches = [];
+        let autoScrapeTriggeredOnce = false;
+        const autoScrapeSeenIds = new Set();
 
         // Ligas Favoritas - lista de objetos {id, nombre, short, color}
         let ligasFavoritas = [];
@@ -2271,6 +2276,108 @@
             return !isMatchUpcoming(match);
         }
 
+        function hasDetailedPrecacheData(row) {
+            if (!row || typeof row !== 'object') return false;
+
+            const hasPrevHome = row.last_home_match && (
+                isValidValue(row.last_home_match.score) ||
+                isValidValue(row.last_home_match.handicap_line_raw)
+            );
+            const hasPrevAway = row.last_away_match && (
+                isValidValue(row.last_away_match.score) ||
+                isValidValue(row.last_away_match.handicap_line_raw)
+            );
+            const hasMarket = row.market_analysis_data && (
+                row.market_analysis_data.stadium ||
+                row.market_analysis_data.general
+            );
+            const hasCol3 = row.h2h_col3 && (
+                row.h2h_col3.status === 'found' ||
+                (isValidValue(row.h2h_col3.goles_home) && isValidValue(row.h2h_col3.goles_away))
+            );
+            const hasIndirect = row.comparativas_indirectas && (
+                row.comparativas_indirectas.left ||
+                row.comparativas_indirectas.right
+            );
+
+            return !!(hasPrevHome || hasPrevAway || hasMarket || hasCol3 || hasIndirect);
+        }
+
+        function mergePrecacheoRow(matchId, responseMatch) {
+            const normalizedId = String((responseMatch && (responseMatch.id || responseMatch.match_id)) || matchId || '');
+            if (!normalizedId) return null;
+
+            const existingRow = precacheoData[normalizedId] || precacheoData[String(matchId)] || {};
+            const merged = {
+                ...existingRow,
+                ...(responseMatch && typeof responseMatch === 'object' ? responseMatch : {})
+            };
+
+            merged.id = normalizedId;
+            merged.match_id = normalizedId;
+            if (!merged.home_team) merged.home_team = merged.home_name || '';
+            if (!merged.away_team) merged.away_team = merged.away_name || '';
+            if (!merged.league) merged.league = merged.league_name || '';
+
+            precacheoData[normalizedId] = merged;
+            if (matchId && String(matchId) !== normalizedId) {
+                delete precacheoData[String(matchId)];
+            }
+            return normalizedId;
+        }
+
+        async function autoScrapeMissingDetails(matchesToShow) {
+            if (!PRECACHEO_AUTO_SCRAPE_ON_GAP || autoScrapeTriggeredOnce) return;
+            if (!Array.isArray(matchesToShow) || matchesToShow.length === 0) return;
+
+            const candidateIds = [];
+            for (const row of matchesToShow) {
+                if (!row || typeof row !== 'object') continue;
+                const rawId = row.id || row.match_id;
+                if (rawId === undefined || rawId === null) continue;
+                const id = String(rawId);
+                if (!id || autoScrapeSeenIds.has(id)) continue;
+
+                const pc = precacheoData[id];
+                if (pc && hasDetailedPrecacheData(pc)) continue;
+
+                autoScrapeSeenIds.add(id);
+                candidateIds.push(id);
+                if (candidateIds.length >= PRECACHEO_AUTO_SCRAPE_BATCH_MAX) break;
+            }
+
+            if (candidateIds.length === 0) return;
+            autoScrapeTriggeredOnce = true;
+            console.log(`[precacheo] auto-scrape warming ${candidateIds.length} matches (concurrency=${PRECACHEO_AUTO_SCRAPE_CONCURRENCY})`);
+
+            let cursor = 0;
+            const workers = Math.max(1, parseInt(PRECACHEO_AUTO_SCRAPE_CONCURRENCY, 10) || 1);
+            const runWorker = async () => {
+                while (cursor < candidateIds.length) {
+                    const idx = cursor++;
+                    const mid = candidateIds[idx];
+                    try {
+                        const res = await fetch('/api/precacheo_scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ match_id: mid })
+                        });
+                        const data = await res.json();
+                        if (!data.error) {
+                            mergePrecacheoRow(mid, data.match);
+                        } else {
+                            console.warn('[precacheo] auto-scrape error for', mid, data.error);
+                        }
+                    } catch (err) {
+                        console.warn('[precacheo] auto-scrape network error for', mid, err);
+                    }
+                }
+            };
+
+            await Promise.all(Array.from({ length: workers }, () => runWorker()));
+            await triggerSearch();
+        }
+
         async function triggerSearch() {
             const loadingText = currentViewMode === 'proximos'
                 ? 'Cargando partidos próximos...'
@@ -2350,6 +2457,7 @@
                 const precacheMatches = Object.values(precacheoData);
                 const upcomingFromPrecache = precacheMatches.filter(m => isMatchUpcoming(m));
                 const pendingFromPrecache = precacheMatches.filter(m => isMatchPast(m) && !hasValidResultScore(m));
+                const hasPlaceholderRows = precacheRows.some(row => row && row.precache_placeholder);
 
                 // Filtrar por modo de vista PRIMERO
                 let matchesToShow = upcomingMatches;
@@ -2395,6 +2503,62 @@
                 // Last-resort fallback: show whatever is available in precacheo.
                 if ((!matchesToShow || matchesToShow.length === 0) && precacheMatches.length > 0) {
                     matchesToShow = [...precacheMatches];
+                }
+
+                // Enriquecer la lista visible con datos de precacheo cuando existan (sin perder fecha/hora del feed principal).
+                matchesToShow = (matchesToShow || []).map(m => {
+                    if (!m || typeof m !== 'object') return m;
+                    const rawId = m.id || m.match_id;
+                    const matchId = (rawId !== undefined && rawId !== null) ? String(rawId) : '';
+                    if (!matchId) return m;
+
+                    const pc = precacheoData[matchId];
+                    if (!pc) {
+                        return {
+                            ...m,
+                            id: matchId,
+                            match_id: matchId
+                        };
+                    }
+
+                    const merged = {
+                        ...pc,
+                        ...m,
+                        id: matchId,
+                        match_id: matchId,
+                    };
+
+                    if (!merged.home_team) merged.home_team = pc.home_team || pc.home_name || '';
+                    if (!merged.away_team) merged.away_team = pc.away_team || pc.away_name || '';
+                    if (!merged.league) merged.league = pc.league || pc.league_name || '';
+                    if (merged.handicap === undefined || merged.handicap === null || merged.handicap === '') {
+                        const ahRaw = pc.main_match_odds && pc.main_match_odds.ah_linea;
+                        const ahParsed = parseFloat(ahRaw);
+                        merged.handicap = isNaN(ahParsed) ? '' : ahParsed;
+                    }
+                    return merged;
+                });
+
+                // Si la lista actual no tiene filas enriquecidas, preferir filas de precacheo con datos reales.
+                const visibleHasDetails = matchesToShow.some(m => {
+                    const id = String((m && (m.id || m.match_id)) || '');
+                    const pc = id ? precacheoData[id] : null;
+                    return hasDetailedPrecacheData(pc);
+                });
+
+                if (!visibleHasDetails) {
+                    const detailedPrecacheRows = (
+                        currentViewMode === 'proximos' ? upcomingFromPrecache : pendingFromPrecache
+                    ).filter(hasDetailedPrecacheData);
+
+                    if (detailedPrecacheRows.length > 0) {
+                        matchesToShow = detailedPrecacheRows;
+                    } else if (hasPlaceholderRows) {
+                        console.warn('[precacheo] precache rows are placeholders (fallback without full analysis data).');
+                    }
+
+                    // Warm up missing rows in background with constrained batch/concurrency.
+                    void autoScrapeMissingDetails(matchesToShow);
                 }
 
                 // Ordenar por fecha/hora de España (también para fallback precacheo)
@@ -5909,11 +6073,10 @@
                     if (data.error) {
                         console.error('Error scraping:', data.error);
                     } else {
-                        // Update just this row's status
-                        precacheoData[matchId] = data.match;
-                        // Refresh the table
-                        const filteredMatches = applyFilters(upcomingMatches);
-                        renderTable(filteredMatches);
+                        mergePrecacheoRow(matchId, data.match);
+
+                        // Keep pagination/sorting/filter behavior consistent with initial load.
+                        renderTableWithPagination();
                     }
                 })
                 .catch(err => console.error('Error scraping:', err));
