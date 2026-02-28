@@ -81,7 +81,15 @@ if not "%RUN_EXIT%"=="0" (
 echo.
 echo Analisis previo finalizado correctamente.
 echo.
-echo Sincronizando archivos de pre-cacheo hacia GitHub/Render...
+echo Exportando snapshot SQL de pre-cacheo a JSON...
+"%PYTHON_CMD%" "scripts\export_precacheo_json.py"
+if %errorlevel% NEQ 0 (
+    echo ADVERTENCIA: No se pudo exportar data_precacheo.json desde SQL. Se omite push.
+    goto :START_LOCAL_APP
+)
+
+echo.
+echo Sincronizando data_precacheo.json hacia GitHub/Render...
 
 git rev-parse --is-inside-work-tree >NUL 2>&1
 if %errorlevel% NEQ 0 (
@@ -95,26 +103,22 @@ if %errorlevel% NEQ 0 (
     goto :START_LOCAL_APP
 )
 
-set "STAGED_ANY=0"
-set "FILES_FOR_COMMIT="
-if exist "data\data_precacheo.json" (
-    set "STAGED_ANY=1"
-    set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_precacheo.json"
-)
-if exist "data\data_pending_results.json" (
-    set "STAGED_ANY=1"
-    set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_pending_results.json"
+if not exist "data\data_precacheo.json" (
+    echo ADVERTENCIA: No se encontro data\data_precacheo.json para sincronizar.
+    goto :START_LOCAL_APP
 )
 
-if "%STAGED_ANY%"=="0" (
-    echo ADVERTENCIA: No se encontraron archivos de pre-cacheo para sincronizar.
-    goto :START_LOCAL_APP
+set "FILES_FOR_COMMIT=data\data_precacheo.json"
+if /I "%PRECACHEO_PUSH_INCLUDE_PENDING%"=="1" (
+    if exist "data\data_pending_results.json" (
+        set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_pending_results.json"
+    )
 )
 
 git add %FILES_FOR_COMMIT% >NUL 2>&1
 git diff --cached --quiet --exit-code -- %FILES_FOR_COMMIT%
 if %errorlevel% EQU 0 (
-    echo No hay cambios de pre-cacheo para subir.
+    echo No hay cambios en %FILES_FOR_COMMIT% para subir.
     goto :START_LOCAL_APP
 )
 
