@@ -11,8 +11,6 @@ services:
         value: "3.11.10"
       - key: PYTHONUNBUFFERED
         value: "1"
-      - key: APP_SQLITE_PATH
-        value: "/tmp/app_data.db"
       - key: PRECACHEO_UI_ITEMS_PER_PAGE
         value: "100"
       - key: PRECACHEO_UI_MAX_PER_PAGE

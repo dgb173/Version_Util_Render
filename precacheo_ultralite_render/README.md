@@ -36,6 +36,7 @@ Start:
 ### Variables utiles
 
 - `APP_SQLITE_PATH=/tmp/app_data.db`
+  Solo si usas `LIBSQL_URL` o quieres leer una replica/localizacion distinta.
 - `LIBSQL_URL=...`
 - `LIBSQL_AUTH_TOKEN=...`
 - `PRECACHEO_UI_ITEMS_PER_PAGE=100`
