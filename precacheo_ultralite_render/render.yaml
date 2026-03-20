@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: nowgoal-precacheo-ultralite
+    runtime: python
+    plan: free
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT --timeout 120 wsgi:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.10"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: APP_SQLITE_PATH
+        value: "/tmp/app_data.db"
+      - key: PRECACHEO_UI_ITEMS_PER_PAGE
+        value: "100"
+      - key: PRECACHEO_UI_MAX_PER_PAGE
+        value: "250"
+      - key: LIBSQL_URL
+        sync: false
+      - key: LIBSQL_AUTH_TOKEN
+        sync: false
