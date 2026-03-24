@@ -122,6 +122,19 @@ if %errorlevel% NEQ 0 (
 )
 
 git add data.json data\data.json
+set "PRECACHEO_SIZE=0"
+if exist "data\data_precacheo.json" (
+    for %%I in ("data\data_precacheo.json") do set "PRECACHEO_SIZE=%%~zI"
+)
+
+if %PRECACHEO_SIZE% GTR 0 (
+    if %PRECACHEO_SIZE% LEQ 95000000 (
+        git add data\data_precacheo.json
+        echo data_precacheo.json incluido en el commit automatico.
+    ) else (
+        echo data_precacheo.json omitido por tamano elevado (%PRECACHEO_SIZE% bytes).
+    )
+)
 git diff --cached --quiet
 if %errorlevel% EQU 0 (
     echo No hay cambios de datos para commitear.
