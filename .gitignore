@@ -35,6 +35,8 @@ Thumbs.db
 
 # Local SQL storage
 data/*.db
+data/*.db-wal
+data/*.db-shm
 data/*.sqlite
 data/*.sqlite3
 data/.sql_bootstrap.lock
