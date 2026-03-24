@@ -30,6 +30,8 @@ exit /b 1
 
 :FOUND_PYTHON
 echo Usando interprete: %PYTHON_CMD%
+set "PRECACHEO_PENDING_MAX_AGE_DAYS=1"
+echo Politica activa: limpiar resultados pendientes con mas de 1 dia en cada generar data.
 echo.
 echo [1/2] Ejecutando generar data (snapshot SQL)...
 "%PYTHON_CMD%" "scripts\run_scraper.py"

@@ -177,10 +177,20 @@ _DATA_FILE_CANDIDATES = [
 _data_file_lock = threading.Lock()
 _precache_legacy_lock = threading.Lock()
 _empty_snapshot_refresh_lock = threading.Lock()
+_precacheo_cleanup_lock = threading.Lock()
 _last_empty_snapshot_refresh_ts = 0.0
+_last_precacheo_cleanup_ts = 0.0
 _EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS = max(
     30,
     int(os.getenv('EMPTY_SNAPSHOT_REFRESH_COOLDOWN_SECONDS', '300'))
+)
+_PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS = max(
+    30,
+    int(os.getenv('PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS', '300'))
+)
+_PRECACHEO_PENDING_MAX_AGE_DAYS = max(
+    0,
+    int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '1'))
 )
 _PRECACHEO_BUCKET_NAME = data_manager.PRECACHEO_BUCKET
 _PRECACHEO_FILE_CANDIDATES = [
@@ -387,6 +397,36 @@ async def _refresh_main_page_snapshot_if_empty():
             )
     except Exception as exc:
         print(f"Snapshot auto-refresh falló: {exc}")
+
+
+def _maybe_cleanup_precacheo_stale(force=False):
+    """Limpia precacheo viejo para evitar crecimiento descontrolado del cache."""
+    global _last_precacheo_cleanup_ts
+
+    now_ts = time.time()
+    with _precacheo_cleanup_lock:
+        if (
+            not force
+            and _last_precacheo_cleanup_ts > 0
+            and (now_ts - _last_precacheo_cleanup_ts) < _PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS
+        ):
+            return 0
+        _last_precacheo_cleanup_ts = now_ts
+
+    try:
+        removed = data_manager.clean_old_precacheo_matches(
+            days_threshold=1,
+            pending_days_threshold=_PRECACHEO_PENDING_MAX_AGE_DAYS,
+        )
+        if removed > 0:
+            print(
+                f"🧹 Precacheo cleanup: {removed} eliminados "
+                f"(pendientes>{_PRECACHEO_PENDING_MAX_AGE_DAYS}d)."
+            )
+        return removed
+    except Exception as exc:
+        print(f"⚠️ Error en precacheo cleanup: {exc}")
+        return 0
 
 
 def _parse_time_obj(value):
@@ -2993,12 +3033,7 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
     print(f"Iniciando PRE-CACHEO Background ({filter_desc})...")
     
     # Limpieza automática de partidos antiguos (configurable por env vars)
-    try:
-        removed = data_manager.clean_old_precacheo_matches()
-        if removed > 0:
-            print(f"🧹 Se han eliminado {removed} partidos antiguos del precacheo.")
-    except Exception as e:
-        print(f"⚠️ Error al limpiar precacheo: {e}")
+    _maybe_cleanup_precacheo_stale(force=True)
 
     try:
         # 1. Obtener TODOS los partidos del día (sin filtro min_time para incluir los que ya empezaron)
@@ -4322,6 +4357,8 @@ def api_precacheo_list():
     Los picks se solicitan bajo demanda via /api/precacheo_picks_batch.
     """
     try:
+        _maybe_cleanup_precacheo_stale(force=False)
+
         try:
             default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '700'))
         except Exception:

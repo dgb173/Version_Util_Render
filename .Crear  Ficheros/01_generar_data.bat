@@ -39,6 +39,8 @@ exit /b 1
 
 :FOUND_PYTHON
 echo Usando interprete: %PYTHON_CMD%
+set "PRECACHEO_PENDING_MAX_AGE_DAYS=1"
+echo Politica activa: limpiar resultados pendientes con mas de 1 dia en cada generar data.
 
 echo Ejecutando scraper principal para actualizar snapshot SQL...
 echo.
@@ -99,4 +101,52 @@ if not "%STEP2_EXIT%"=="0" (
 
 echo.
 echo Flujo completo finalizado con exito (Step 1 + Step 2).
+
+echo.
+echo [3/3] Sincronizando repositorio con los datos actuales...
+if /I "%AUTO_GIT_SYNC%"=="0" (
+    echo AUTO_GIT_SYNC=0 detectado. Se omite la sincronizacion git.
+    goto :END
+)
+
+where git >NUL 2>&1
+if %errorlevel% NEQ 0 (
+    echo Git no esta disponible en PATH. Se omite la sincronizacion.
+    goto :END
+)
+
+git rev-parse --is-inside-work-tree >NUL 2>&1
+if %errorlevel% NEQ 0 (
+    echo Esta carpeta no es un repositorio git. Se omite la sincronizacion.
+    goto :END
+)
+
+git add data.json data\data.json data\data_precacheo.json
+git diff --cached --quiet
+if %errorlevel% EQU 0 (
+    echo No hay cambios de datos para commitear.
+    goto :END
+)
+
+set "SYNC_STAMP=%DATE%_%TIME%"
+set "SYNC_STAMP=%SYNC_STAMP:/=-%"
+set "SYNC_STAMP=%SYNC_STAMP::=-%"
+set "SYNC_STAMP=%SYNC_STAMP:,=-%"
+set "SYNC_STAMP=%SYNC_STAMP: =0%"
+
+git commit -m "chore: sync data %SYNC_STAMP%"
+if %errorlevel% NEQ 0 (
+    echo No se pudo crear el commit automatico.
+    goto :END
+)
+
+git push origin HEAD:main
+if %errorlevel% NEQ 0 (
+    echo El push automatico ha fallado. Revisa credenciales/conexion.
+    goto :END
+)
+
+echo Sincronizacion git completada correctamente.
+
+:END
 pause

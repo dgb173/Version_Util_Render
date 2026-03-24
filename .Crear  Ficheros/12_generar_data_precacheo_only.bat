@@ -3,12 +3,12 @@ setlocal
 cd /d "%~dp0.."
 
 echo ========================================================
-echo GENERAR DATA (PRECACHEO_ONLY_RENDER)
+echo GENERAR DATA (MODO PRECACHEO)
 echo ========================================================
 echo.
 
-if not exist "precacheo_only_render\scripts\run_scraper.py" (
-    echo ERROR: No existe precacheo_only_render\scripts\run_scraper.py
+if not exist "scripts\run_scraper.py" (
+    echo ERROR: No existe scripts\run_scraper.py
     pause
     exit /b 1
 )
@@ -36,10 +36,12 @@ exit /b 1
 
 :FOUND_PYTHON
 echo Usando interprete: %PYTHON_CMD%
+set "PRECACHEO_PENDING_MAX_AGE_DAYS=1"
+echo Politica activa: limpiar resultados pendientes con mas de 1 dia en cada generar data.
 
 echo.
-echo [1/2] Ejecutando run_scraper.py (precacheo_only_render)...
-"%PYTHON_CMD%" "precacheo_only_render\scripts\run_scraper.py"
+echo [1/2] Ejecutando run_scraper.py (core)...
+"%PYTHON_CMD%" "scripts\run_scraper.py"
 if %errorlevel% NEQ 0 (
     echo.
     echo ERROR: Fallo run_scraper.py
@@ -49,7 +51,7 @@ if %errorlevel% NEQ 0 (
 
 echo.
 echo [2/2] Exportando snapshot a JSON...
-"%PYTHON_CMD%" "precacheo_only_render\scripts\export_snapshot_to_json.py"
+"%PYTHON_CMD%" "scripts\export_snapshot_to_json.py"
 if %errorlevel% NEQ 0 (
     echo.
     echo ERROR: No se pudo exportar snapshot.
@@ -58,6 +60,6 @@ if %errorlevel% NEQ 0 (
 )
 
 echo.
-echo Proceso finalizado correctamente (precacheo_only_render).
+echo Proceso finalizado correctamente.
 pause
 exit /b 0

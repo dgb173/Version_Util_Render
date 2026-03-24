@@ -702,15 +702,22 @@ def explore_matches(datajson, filters=None):
         if not score_str or target_ah is None:
             return None
         try:
-            parts = score_str.split(':')
+            parts = score_str.replace(' - ', ':').replace('-', ':').split(':')
             hg, ag = int(parts[0]), int(parts[1])
-            magnitude = abs(target_ah)
-            ah_to_test = -magnitude if is_home_team else magnitude
+            home_ah = safe_float_ah(target_ah)
+            if home_ah is None:
+                return None
+
+            # Proyecto /explorador:
+            # - AH > 0 => local favorito
+            # - El equipo local se evalúa con -AH
+            # - El equipo visitante se evalúa con +AH
+            team_ah = -home_ah if is_home_team else home_ah
 
             if is_home_team:
-                res = asian_result(hg, ag, ah_to_test)
+                res = asian_result(hg, ag, team_ah)
             else:
-                res = asian_result(ag, hg, ah_to_test)
+                res = asian_result(ag, hg, team_ah)
 
             cat = res['category']
             if cat in ('COVER', 'HALF_COVER'):
@@ -1343,11 +1350,8 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_home_wdl:
             if not prev_home_data: continue
-            prev_home_real = get_team_real_wdl(
-                prev_home_data.get('score'),
-                infer_team_is_home(prev_home_data, home_team_norm, default_is_home=True)
-            )
-            if prev_home_real != target_prev_home_wdl: continue
+            prev_home_sim = get_simulated_wdl(prev_home_data.get('score'), hist_ah, True)
+            if prev_home_sim != target_prev_home_wdl: continue
         if target_prev_home_real_wdl:
             if not prev_home_data: continue
             prev_home_real = get_team_real_wdl(
@@ -1373,11 +1377,8 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_away_wdl:
             if not prev_away_data: continue
-            prev_away_real = get_team_real_wdl(
-                prev_away_data.get('score'),
-                infer_team_is_home(prev_away_data, away_team_norm, default_is_home=False)
-            )
-            if prev_away_real != target_prev_away_wdl: continue
+            prev_away_sim = get_simulated_wdl(prev_away_data.get('score'), hist_ah, False)
+            if prev_away_sim != target_prev_away_wdl: continue
         if target_prev_away_real_wdl:
             if not prev_away_data: continue
             prev_away_real = get_team_real_wdl(
@@ -1495,4 +1496,3 @@ def explore_matches(datajson, filters=None):
         count += 1
         
     return results
-

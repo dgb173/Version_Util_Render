@@ -57,6 +57,10 @@ services:
         value: "12"
       - key: PRECACHEO_AUTO_SCRAPE_CONCURRENCY
         value: "1"
+      - key: PRECACHEO_PENDING_MAX_AGE_DAYS
+        value: "1"
+      - key: PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS
+        value: "300"
       - key: PRECACHEO_ENABLE_QWEN
         value: "0"
       - key: PRECACHEO_ENABLE_HEAVY_ACTIONS

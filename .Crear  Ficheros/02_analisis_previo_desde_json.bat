@@ -89,57 +89,6 @@ if %errorlevel% NEQ 0 (
 )
 
 echo.
-echo Sincronizando data_precacheo.json hacia GitHub/Render...
-
-git rev-parse --is-inside-work-tree >NUL 2>&1
-if %errorlevel% NEQ 0 (
-    echo ADVERTENCIA: No se detecto un repositorio git. Se omite push.
-    goto :START_LOCAL_APP
-)
-
-git remote get-url origin >NUL 2>&1
-if %errorlevel% NEQ 0 (
-    echo ADVERTENCIA: No existe remoto origin. Se omite push.
-    goto :START_LOCAL_APP
-)
-
-if not exist "data\data_precacheo.json" (
-    echo ADVERTENCIA: No se encontro data\data_precacheo.json para sincronizar.
-    goto :START_LOCAL_APP
-)
-
-set "FILES_FOR_COMMIT=data\data_precacheo.json"
-if /I "%PRECACHEO_PUSH_INCLUDE_PENDING%"=="1" (
-    if exist "data\data_pending_results.json" (
-        set "FILES_FOR_COMMIT=%FILES_FOR_COMMIT% data\data_pending_results.json"
-    )
-)
-
-git add %FILES_FOR_COMMIT% >NUL 2>&1
-git diff --cached --quiet --exit-code -- %FILES_FOR_COMMIT%
-if %errorlevel% EQU 0 (
-    echo No hay cambios en %FILES_FOR_COMMIT% para subir.
-    goto :START_LOCAL_APP
-)
-
-for /f %%T in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set "SYNC_TS=%%T"
-if "%SYNC_TS%"=="" set "SYNC_TS=manual"
-
-git commit -m "chore: sync precacheo %SYNC_TS%" -- %FILES_FOR_COMMIT% >NUL 2>&1
-if %errorlevel% NEQ 0 (
-    echo ADVERTENCIA: No se pudo crear el commit de pre-cacheo. Se omite push.
-    goto :START_LOCAL_APP
-)
-
-echo Push a origin/main para actualizar Render...
-git push origin main
-if %errorlevel% NEQ 0 (
-    echo ADVERTENCIA: Fallo el push. Render no se actualizo.
-) else (
-    echo Push completado. Render iniciara deploy automatico.
-)
-
-:START_LOCAL_APP
 echo Iniciando app local automaticamente...
 call "%~dp008_run_local.bat"
 exit /b %ERRORLEVEL%

@@ -231,27 +231,42 @@ def remove_from_precacheo(match_id):
     return True
 
 
-def clean_old_precacheo_matches(days_threshold=1):
+def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=1):
     """
     Removes old pre-cacheo matches.
     1. With result: remove if older than (today - days_threshold).
-    2. Without result: keep up to 3 days.
+    2. Without result: keep up to pending_days_threshold days.
     """
     with _precacheo_lock:
         data = load_precacheo_matches()
         if not data:
             return 0
 
-        initial_len = len(data)
+        try:
+            days_threshold = max(0, int(days_threshold))
+        except Exception:
+            days_threshold = 1
+        try:
+            pending_days_threshold = max(0, int(pending_days_threshold))
+        except Exception:
+            pending_days_threshold = 1
+
         now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         threshold_date = now - datetime.timedelta(days=days_threshold)
-        pending_threshold_date = now - datetime.timedelta(days=3)
+        pending_threshold_date = now - datetime.timedelta(days=pending_days_threshold)
 
         def parse_date(date_str):
             if not date_str or date_str == 'N/A':
                 return None
-            formats = ['%m/%d/%Y', '%Y-%m-%d', '%d/%m/%Y']
-            date_part = str(date_str).split(' ')[0]
+            raw = str(date_str).strip()
+            if 'T' in raw:
+                try:
+                    iso_dt = datetime.datetime.fromisoformat(raw.replace('Z', '+00:00'))
+                    return iso_dt.replace(tzinfo=None)
+                except Exception:
+                    pass
+            formats = ['%m/%d/%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']
+            date_part = raw.split(' ')[0]
             for fmt in formats:
                 try:
                     return datetime.datetime.strptime(date_part, fmt)
@@ -259,9 +274,9 @@ def clean_old_precacheo_matches(days_threshold=1):
                     continue
             return None
 
-        to_remove: List[str] = []
+        to_remove: Set[str] = set()
         for match in data:
-            m_date_str = match.get('match_date')
+            m_date_str = match.get('match_date') or match.get('date') or match.get('precacheo_date')
             m_date = parse_date(m_date_str)
 
             if m_date is None:
@@ -269,13 +284,16 @@ def clean_old_precacheo_matches(days_threshold=1):
 
             score = match.get('score') or match.get('final_score')
             has_result = bool(score) and not _is_pending_score(str(score)) and ':' in str(score)
+            match_id = match.get('match_id') or match.get('id')
+            if match_id in (None, ''):
+                continue
 
             if has_result:
                 if m_date < threshold_date:
-                    to_remove.append(str(match.get('match_id')))
+                    to_remove.add(str(match_id))
             else:
                 if m_date < pending_threshold_date:
-                    to_remove.append(str(match.get('match_id')))
+                    to_remove.add(str(match_id))
 
         removed_count = 0
         for mid in to_remove:

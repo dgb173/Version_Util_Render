@@ -211,9 +211,6 @@
             <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
             <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
             <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
-            <a class="nav-link active" href="/grandes_ligas"><i class="fa-solid fa-trophy"></i> Grandes Ligas</a>
-            <a class="nav-link" href="/ligas_favoritas"><i class="fa-solid fa-star"></i> Ligas Favoritas</a>
-            <a class="nav-link" href="/scraper"><i class="fa-solid fa-cloud-download-alt"></i> Scraper</a>
         </nav>
     </div>
 
@@ -2255,18 +2252,21 @@
 
         // Buscar patrones similares en histórico
         async function searchPatterns(matchId, btnElement) {
-            const getTeamRealWdl = (scoreStr, isHomeTeam) => {
-                if (!scoreStr) return null;
+            const getFavoritePrevAhWdl = (scoreStr, currentAhValue, favIsHome) => {
+                if (!scoreStr || isNaN(currentAhValue)) return null;
                 const normalizedScore = String(scoreStr).replace('-', ':');
                 const parts = normalizedScore.split(':');
                 if (parts.length !== 2) return null;
                 const h = parseInt(parts[0], 10);
                 const a = parseInt(parts[1], 10);
                 if (isNaN(h) || isNaN(a)) return null;
-                const diff = isHomeTeam ? (h - a) : (a - h);
-                if (diff > 0) return 'HOME_WIN';
-                if (diff < 0) return 'AWAY_WIN';
-                return 'DRAW';
+
+                const absAh = Math.abs(parseFloat(currentAhValue));
+                const diff = favIsHome ? (h - a) : (a - h);
+                const finalDiff = diff - absAh;
+                if (finalDiff > 0) return 'HOME_WIN';  // Favorito cubrió
+                if (finalDiff < 0) return 'AWAY_WIN';  // Favorito no cubrió
+                return 'DRAW';                         // Push
             };
 
             const parseMovement = (movementStr) => {
@@ -2365,7 +2365,7 @@
                 const favPrevAh = (favPrevAhRaw !== null && favPrevAhRaw !== undefined && favPrevAhRaw !== '')
                     ? parseFloat(String(favPrevAhRaw).replace(',', '.'))
                     : NaN;
-                const favPrevWdl = getTeamRealWdl(favPrev.score || '', favIsHome);
+                const favPrevWdl = getFavoritePrevAhWdl(favPrev.score || '', currentAh, favIsHome);
 
                 if (favIsHome) {
                     if (!isNaN(favPrevAh)) params.set('prev_home_ah', String(favPrevAh));
@@ -2374,7 +2374,6 @@
                     if (!isNaN(favPrevAh)) params.set('prev_away_ah', String(favPrevAh));
                     if (favPrevWdl) params.set('prev_away_res', favPrevWdl);
                 }
-                if (favPrevWdl) params.set('prev_res_mode', 'real');
             }
 
             window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
