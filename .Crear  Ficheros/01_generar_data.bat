@@ -121,7 +121,7 @@ if %errorlevel% NEQ 0 (
     goto :END
 )
 
-git add data.json data\data.json data\data_precacheo.json
+git add data.json data\data.json
 git diff --cached --quiet
 if %errorlevel% EQU 0 (
     echo No hay cambios de datos para commitear.
