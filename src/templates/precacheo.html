@@ -1631,6 +1631,41 @@
         let autoScrapeTriggeredOnce = false;
         const autoScrapeSeenIds = new Set();
 
+        async function cleanupLegacyPrecacheCaches() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    const unregisterTasks = registrations
+                        .filter(reg => {
+                            const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
+                            return scriptUrl.includes('/precacheo-sw.js');
+                        })
+                        .map(reg => reg.unregister());
+                    if (unregisterTasks.length > 0) {
+                        await Promise.allSettled(unregisterTasks);
+                        console.log('[precacheo] Legacy service worker removido.');
+                    }
+                } catch (err) {
+                    console.warn('[precacheo] No se pudo limpiar service worker legacy:', err);
+                }
+            }
+
+            if ('caches' in window) {
+                try {
+                    const keys = await caches.keys();
+                    const deleteTasks = keys
+                        .filter(key => key.startsWith('precacheo-'))
+                        .map(key => caches.delete(key));
+                    if (deleteTasks.length > 0) {
+                        await Promise.allSettled(deleteTasks);
+                        console.log('[precacheo] Cache legacy limpiada.');
+                    }
+                } catch (err) {
+                    console.warn('[precacheo] No se pudo limpiar cache legacy:', err);
+                }
+            }
+        }
+
         // Ligas Favoritas - lista de objetos {id, nombre, short, color}
         let ligasFavoritas = [];
         // Ligas Ocultas - ligas que no quiero ver nunca
@@ -7192,7 +7227,8 @@
             }
 
             try {
-                const res = await fetch(`/ api / precacheo_finalize / ${matchId} `, {
+                const safeMatchId = encodeURIComponent(String(matchId || '').trim());
+                const res = await fetch(`/api/precacheo_finalize/${safeMatchId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -7313,6 +7349,7 @@
             updateCurrentTimeDisplay();
             // Actualizar hora cada minuto
             setInterval(updateCurrentTimeDisplay, 60000);
+            await cleanupLegacyPrecacheCaches();
             // Cargar ligas favoritas primero
             await loadLigasFavoritas();
             triggerSearch(); // Cargar lista inicial al abrir la página

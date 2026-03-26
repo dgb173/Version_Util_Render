@@ -82,6 +82,7 @@ echo --------------------------------------------------------
 
 echo.
 echo Lanzando automaticamente Step 2: Analisis previo desde JSON...
+set "SKIP_AUTO_RUN_LOCAL=1"
 if "%~1"=="" (
     call "%~dp002_analisis_previo_desde_json.bat"
 ) else (
@@ -89,6 +90,7 @@ if "%~1"=="" (
 )
 
 set "STEP2_EXIT=%ERRORLEVEL%"
+set "SKIP_AUTO_RUN_LOCAL="
 if not "%STEP2_EXIT%"=="0" (
     echo.
     echo ***********************************************************
@@ -101,6 +103,19 @@ if not "%STEP2_EXIT%"=="0" (
 
 echo.
 echo Flujo completo finalizado con exito (Step 1 + Step 2).
+
+echo.
+echo Exportando JSON de pre-cacheo (incluye pending_results)...
+"%PYTHON_CMD%" "scripts\export_precacheo_json.py" --include-pending
+IF %errorlevel% NEQ 0 (
+    echo.
+    echo ***********************************************************
+    echo *  ERROR: No se pudieron exportar los JSON de pre-cacheo. *
+    echo ***********************************************************
+    echo.
+    pause
+    exit /b %errorlevel%
+)
 
 echo.
 echo [3/3] Sincronizando repositorio con los datos actuales...
@@ -122,17 +137,31 @@ if %errorlevel% NEQ 0 (
 )
 
 git add data.json data\data.json
+set "MAX_JSON_BYTES=99000000"
 set "PRECACHEO_SIZE=0"
 if exist "data\data_precacheo.json" (
     for %%I in ("data\data_precacheo.json") do set "PRECACHEO_SIZE=%%~zI"
 )
 
 if %PRECACHEO_SIZE% GTR 0 (
-    if %PRECACHEO_SIZE% LEQ 95000000 (
+    if %PRECACHEO_SIZE% LEQ %MAX_JSON_BYTES% (
         git add data\data_precacheo.json
         echo data_precacheo.json incluido en el commit automatico.
     ) else (
         echo data_precacheo.json omitido por tamano elevado (%PRECACHEO_SIZE% bytes).
+    )
+)
+set "PENDING_SIZE=0"
+if exist "data\data_pending_results.json" (
+    for %%I in ("data\data_pending_results.json") do set "PENDING_SIZE=%%~zI"
+)
+
+if %PENDING_SIZE% GTR 0 (
+    if %PENDING_SIZE% LEQ %MAX_JSON_BYTES% (
+        git add data\data_pending_results.json
+        echo data_pending_results.json incluido en el commit automatico.
+    ) else (
+        echo data_pending_results.json omitido por tamano elevado (%PENDING_SIZE% bytes).
     )
 )
 git diff --cached --quiet

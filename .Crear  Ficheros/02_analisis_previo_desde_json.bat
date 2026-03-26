@@ -82,10 +82,17 @@ echo.
 echo Analisis previo finalizado correctamente.
 echo.
 echo Exportando snapshot SQL de pre-cacheo a JSON...
-"%PYTHON_CMD%" "scripts\export_precacheo_json.py"
+"%PYTHON_CMD%" "scripts\export_precacheo_json.py" --include-pending
 if %errorlevel% NEQ 0 (
-    echo ADVERTENCIA: No se pudo exportar data_precacheo.json desde SQL. Se omite push.
+    echo ADVERTENCIA: No se pudieron exportar los JSON de pre-cacheo desde SQL.
     goto :START_LOCAL_APP
+)
+
+:START_LOCAL_APP
+if /I "%SKIP_AUTO_RUN_LOCAL%"=="1" (
+    echo.
+    echo SKIP_AUTO_RUN_LOCAL=1 detectado. Se omite el arranque local automatico.
+    exit /b 0
 )
 
 echo.
