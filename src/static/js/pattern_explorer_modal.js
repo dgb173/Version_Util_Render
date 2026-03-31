@@ -41,12 +41,20 @@
             { value: '2', label: '+2.0' },
             { value: '2.5', label: '+2.5+' }
         ],
+        ouOptions: [
+            { value: '2.0', label: '2.0' },
+            { value: '2.5', label: '2.5' },
+            { value: '3.0', label: '3.0' },
+            { value: '3.5', label: '3.5' },
+            { value: '4+', label: '4+' }
+        ],
         selectors: {
             overlay: 'explorer-modal-overlay',
             loading: 'explorer-modal-loading',
             tableContainer: 'explorer-modal-table-container',
             tbody: 'explorer-modal-tbody',
             matchInfo: 'explorer-modal-match-info',
+            ouContainer: 'modal-filter-ou-container',
             filters: {
                 ah: 'modal-filter-ah',
                 ou: 'modal-filter-ou',
@@ -283,6 +291,38 @@
                 }
 
                 return Math.abs(rowAh - fAh) < 0.01;
+            });
+        },
+
+        getOuFilterValues() {
+            const ms = ModalState.multiSelectInstances.ou;
+            if (ms) return ms.getValues();
+
+            const raw = document.getElementById(CONFIG.selectors.filters.ou)?.value || '';
+            return raw
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+        },
+
+        syncOuFilterInput() {
+            const input = document.getElementById(CONFIG.selectors.filters.ou);
+            if (!input) return;
+            input.value = this.getOuFilterValues().join(',');
+        },
+
+        checkOuMatch(rowOuStr, selectedValues) {
+            if (!selectedValues || selectedValues.length === 0) return true;
+
+            const rowOu = parseFloat(rowOuStr);
+            if (isNaN(rowOu)) return false;
+
+            return selectedValues.some(valStr => {
+                const filterOu = parseFloat(String(valStr).replace('+', ''));
+                if (isNaN(filterOu)) return false;
+
+                if (filterOu >= 4.0) return rowOu >= 4.0;
+                return Math.abs(rowOu - filterOu) <= 0.26;
             });
         },
 
@@ -824,14 +864,10 @@
             }
 
             // Filtro O/U - usar candidate.ou_line
-            const ouFilter = document.getElementById(CONFIG.selectors.filters.ou)?.value;
-            if (ouFilter) {
-                const filterOU = parseFloat(ouFilter);
+            const ouValues = Utils.getOuFilterValues();
+            if (ouValues.length > 0) {
                 results = results.filter(r => {
-                    const ouLine = parseFloat(r.candidate?.ou_line);
-                    if (isNaN(ouLine)) return false;
-                    if (filterOU >= 4.0) return ouLine >= 4.0;
-                    else return Math.abs(ouLine - filterOU) <= 0.26;
+                    return Utils.checkOuMatch(r.candidate?.ou_line, ouValues);
                 });
             }
 
@@ -1079,6 +1115,7 @@
                     if (ms.renderOptions) ms.renderOptions();
                 }
             });
+            Utils.syncOuFilterInput();
 
             // Limpiar selects normales
             Object.values(CONFIG.selectors.filters).forEach(selector => {
@@ -1112,8 +1149,21 @@
                 return null;
             };
 
+            const createOuMS = () => {
+                const containerId = CONFIG.selectors.ouContainer;
+                const container = document.getElementById(containerId);
+                if (container && !ModalState.multiSelectInstances.ou) {
+                    return new MultiSelect(containerId, CONFIG.ouOptions, 'O/U', () => {
+                        Utils.syncOuFilterInput();
+                        Filters.applyAllFilters();
+                    });
+                }
+                return null;
+            };
+
             ModalState.multiSelectInstances = {
                 ah: createMS(CONFIG.selectors.filters.ah, 'AH...'),
+                ou: createOuMS(),
                 prevHomeAh: createMS(CONFIG.selectors.filters.prevHomeAh, 'AH...'),
                 prevAwayAh: createMS(CONFIG.selectors.filters.prevAwayAh, 'AH...'),
                 h2hStadiumStartAh: createMS(CONFIG.selectors.filters.h2hStadiumStartAh, 'Ini...'),
@@ -1125,6 +1175,7 @@
                 indVisitanteAh: createMS(CONFIG.selectors.filters.indVisitanteAh, 'AH...')
             };
 
+            Utils.syncOuFilterInput();
 
             ModalState.isInitialized = true;
         }

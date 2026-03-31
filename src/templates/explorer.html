@@ -454,14 +454,10 @@
                             <div class="multiselect-container mt-1" id="container-filter-handicap">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-ou" style="width: 100%;">
-                                <option value="">O/U</option>
-                                <option value="2.0">2.0</option>
-                                <option value="2.5">2.5</option>
-                                <option value="3.0">3.0</option>
-                                <option value="3.5">3.5</option>
-                                <option value="4.0">4+</option>
-                            </select>
+                            <div class="multiselect-container mt-1" id="container-filter-ou">
+                                <!-- JS will populate this -->
+                            </div>
+                            <input type="hidden" id="filter-ou" value="">
                         </th>
                         <th style="width: 80px;">
                             FT
@@ -817,7 +813,7 @@
         }
 
         // MultiSelect Instances
-        let msHandicap, msPrevHomeAh, msPrevAwayAh, msH2hCol3Ah, msIndLocalAh, msIndVisitanteAh;
+        let msHandicap, msOu, msPrevHomeAh, msPrevAwayAh, msH2hCol3Ah, msIndLocalAh, msIndVisitanteAh;
 
         // Helper for MultiSelect AH matching - Uses buckets:
         // 0 = exactly 0
@@ -874,6 +870,37 @@
 
                 // Fallback: exact match with tolerance
                 return Math.abs(rowAh - fAh) < 0.01;
+            });
+        };
+
+        const getOuFilterValues = () => {
+            if (msOu) return msOu.getValues();
+
+            const raw = document.getElementById('filter-ou')?.value || '';
+            return raw
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+        };
+
+        const syncOuFilterInput = () => {
+            const input = document.getElementById('filter-ou');
+            if (!input) return;
+            input.value = getOuFilterValues().join(',');
+        };
+
+        const checkOuMatch = (rowOuStr, selectedValues) => {
+            if (!selectedValues || selectedValues.length === 0) return true;
+
+            const rowOu = parseFloat(rowOuStr);
+            if (isNaN(rowOu)) return false;
+
+            return selectedValues.some(valStr => {
+                const filterOu = parseFloat(String(valStr).replace('+', ''));
+                if (isNaN(filterOu)) return false;
+
+                if (filterOu >= 4.0) return rowOu >= 4.0;
+                return Math.abs(rowOu - filterOu) <= 0.26;
             });
         };
 
@@ -1021,6 +1048,19 @@
                 return true;
             };
 
+            const applyOuMultiSelectValue = (ms, rawValue) => {
+                if (!ms || rawValue === null || rawValue === undefined || rawValue === '') return false;
+                const normalized = String(rawValue).trim();
+                const value = normalized === '4.0' ? '4+' : normalized;
+                const exists = Array.isArray(ms.options) && ms.options.some(opt => String(opt.value) === value);
+                if (!exists) return false;
+                ms.selectedValues = [value];
+                ms.updateBtnText();
+                if (ms.renderOptions) ms.renderOptions();
+                syncOuFilterInput();
+                return true;
+            };
+
             // Presets for H2H General
             const generalStartRaw = params.get('h2h_general_start');
             const generalEndRaw = params.get('h2h_general_end');
@@ -1092,6 +1132,9 @@
                 return v;
             })();
             hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
+
+            const ouLimitRaw = params.get('ou_limit');
+            hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
             const shouldAutoSearch = params.get('auto_search') === '1';
             if ((hasPreset || Object.keys(explorerPresetStrictFilters).length > 0) && shouldAutoSearch) {
@@ -1214,7 +1257,7 @@
 
                 // NEW: FT Result and O/U Filters
                 cover_result: document.getElementById('filter-cover-result').value || null,
-                ou_limit: document.getElementById('filter-ou').value || null,
+                ou_limit: getSingleOrNull(msOu),
 
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
                 only_with_history: document.getElementById('filter-only-with-history').checked,
@@ -1561,14 +1604,10 @@
             }
 
             // Filtro O/U (client-side)
-            const ouFilter = document.getElementById('filter-ou').value;
-            if (ouFilter) {
-                const filterOU = parseFloat(ouFilter);
+            const ouFilterValues = getOuFilterValues();
+            if (ouFilterValues.length > 0) {
                 filteredResults = filteredResults.filter(item => {
-                    const ouLine = parseFloat(item.candidate.ou_line);
-                    if (isNaN(ouLine)) return false;
-                    if (filterOU >= 4.0) return ouLine >= 4.0;
-                    else return Math.abs(ouLine - filterOU) <= 0.26;
+                    return checkOuMatch(item.candidate.ou_line, ouFilterValues);
                 });
             }
 
@@ -2624,9 +2663,21 @@
                 { value: '-2.5', label: '-2.5-' }
             ];
 
+            const ouOptions = [
+                { value: '2.0', label: '2.0' },
+                { value: '2.5', label: '2.5' },
+                { value: '3.0', label: '3.0' },
+                { value: '3.5', label: '3.5' },
+                { value: '4+', label: '4+' }
+            ];
+
             // Initialize Static MultiSelects
             // Callback is renderTableWithPagination to refresh client-side filtering on change
             msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', renderTableWithPagination);
+            msOu = new MultiSelect('container-filter-ou', ouOptions, 'O/U', () => {
+                syncOuFilterInput();
+                renderTableWithPagination();
+            });
             msPrevHomeAh = new MultiSelect('container-filter-prev-home-ah', ahOptions, 'AH', renderTableWithPagination);
             msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', renderTableWithPagination);
             msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', renderTableWithPagination);
@@ -2634,6 +2685,7 @@
 
             // Init H2H Col3 with same simplified options
             msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', renderTableWithPagination);
+            syncOuFilterInput();
 
             // Si llegamos con parámetros desde "Buscar patrones similares", precargar filtros y lanzar búsqueda.
             applyExplorerUrlPresetFilters();

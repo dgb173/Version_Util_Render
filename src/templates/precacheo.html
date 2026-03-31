@@ -1090,15 +1090,10 @@
                             <div class="multiselect-container mt-1" id="container-filter-handicap">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-ou" style="width: 100%;"
-                                onchange="applyFiltersVisually()">
-                                <option value="">O/U</option>
-                                <option value="2.0">2.0</option>
-                                <option value="2.5">2.5</option>
-                                <option value="3.0">3.0</option>
-                                <option value="3.5">3.5</option>
-                                <option value="4.0">4+</option>
-                            </select>
+                            <div class="multiselect-container mt-1" id="container-filter-ou">
+                                <!-- JS will populate this -->
+                            </div>
+                            <input type="hidden" id="filter-ou" value="">
                         </th>
                         <th style="width: 80px;">FT</th>
                         <th>
@@ -1404,7 +1399,7 @@
         let precacheDateFormatHint = 'MDY';
 
         // MultiSelect Instances
-        let msHandicap, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
+        let msHandicap, msOu, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
 
         // --- Mobile Filters Functions ---
         function toggleMobileFilters() {
@@ -1614,6 +1609,40 @@
 
                 // Fallback: Exact match
                 return Math.abs(rowAh - fAh) < 0.01;
+            });
+        };
+
+        const getOuFilterValues = () => {
+            if (msOu) return msOu.getValues();
+
+            const raw = document.getElementById('filter-ou')?.value || '';
+            return raw
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+        };
+
+        const syncOuFilterInput = () => {
+            const input = document.getElementById('filter-ou');
+            if (!input) return;
+            input.value = getOuFilterValues().join(',');
+        };
+
+        const checkOuMatch = (rowOuStr, selectedValues) => {
+            if (!selectedValues || selectedValues.length === 0) return true;
+
+            const rowOu = parseFloat(rowOuStr);
+            if (isNaN(rowOu)) return false;
+
+            return selectedValues.some(valStr => {
+                const filterOu = parseFloat(String(valStr).replace('+', ''));
+                if (isNaN(filterOu)) return false;
+
+                if (filterOu >= 4.0) {
+                    return rowOu >= 4.0;
+                }
+
+                return Math.abs(rowOu - filterOu) <= 0.26;
             });
         };
         const APP_PRECACHEO_ONLY = {{ 'true' if app_precacheo_only|default(False) else 'false' }};
@@ -4045,7 +4074,7 @@
             const teamHome = '';
             const teamAway = '';
             const handicap = document.getElementById('filter-handicap').value;
-            const ouFilter = document.getElementById('filter-ou').value;
+            const ouFilterValues = getOuFilterValues();
             const prevHomeAh = document.getElementById('filter-prev-home-ah').value;
             const prevAwayAh = document.getElementById('filter-prev-away-ah').value;
 
@@ -4142,21 +4171,10 @@
                 }
 
                 // O/U (Goals Line) filter
-                if (ouFilter) {
+                if (ouFilterValues.length > 0) {
                     const pc = precacheoData[m.id];
                     if (!pc || !pc.main_match_odds || !pc.main_match_odds.goals_linea) return false;
-
-                    const matchOU = parseFloat(pc.main_match_odds.goals_linea);
-                    const filterOU = parseFloat(ouFilter);
-                    if (isNaN(matchOU)) return false;
-
-                    // Si el filtro es 4.0, coger 4 o superior
-                    if (filterOU >= 4.0) {
-                        if (matchOU < 4.0) return false;
-                    } else {
-                        // Para otros valores, fuzzy match (+/- 0.26)
-                        if (Math.abs(matchOU - filterOU) > 0.26) return false;
-                    }
+                    if (!checkOuMatch(pc.main_match_odds.goals_linea, ouFilterValues)) return false;
                 }
 
                 // Prev Home Attributes
@@ -4398,6 +4416,7 @@
 
             // Limpiar MultiSelects
             if (msHandicap) { msHandicap.selectedValues = []; msHandicap.updateBtnText(); msHandicap.renderOptions(); }
+            if (msOu) { msOu.selectedValues = []; msOu.updateBtnText(); msOu.renderOptions(); syncOuFilterInput(); }
             if (msH2hCol3Ah) { msH2hCol3Ah.selectedValues = []; msH2hCol3Ah.updateBtnText(); msH2hCol3Ah.renderOptions(); }
             if (msPrevHomeAh) { msPrevHomeAh.selectedValues = []; msPrevHomeAh.updateBtnText(); msPrevHomeAh.renderOptions(); }
             if (msPrevAwayAh) { msPrevAwayAh.selectedValues = []; msPrevAwayAh.updateBtnText(); msPrevAwayAh.renderOptions(); }
@@ -4415,7 +4434,7 @@
             const rows = tbody.querySelectorAll('tr[data-match-id]');
 
             // Leer valores de filtros
-            const ouFilter = document.getElementById('filter-ou').value;
+            const ouFilterValues = getOuFilterValues();
             const prevHomeRes = document.getElementById('filter-prev-home-res').value;
             const prevAwayRes = document.getElementById('filter-prev-away-res').value;
             const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
@@ -4483,19 +4502,9 @@
                     }
                 }
                 // Filtro: O/U (Over/Under)
-                if (show && ouFilter) {
-                    const rowOu = parseFloat(row.getAttribute('data-ou'));
-                    const filterOu = parseFloat(ouFilter);
-                    if (isNaN(rowOu)) {
+                if (show && ouFilterValues.length > 0) {
+                    if (!checkOuMatch(row.getAttribute('data-ou'), ouFilterValues)) {
                         show = false;
-                    } else {
-                        // Para 4+, mostrar 4 o superior
-                        if (filterOu >= 4.0) {
-                            if (rowOu < 4.0) show = false;
-                        } else {
-                            // Para otros valores, fuzzy match (+/- 0.26)
-                            if (Math.abs(rowOu - filterOu) > 0.26) show = false;
-                        }
                     }
                 }
                 // Filtro: H2H Col3 Espejo (Directa/Inversa)
@@ -4832,7 +4841,7 @@
             let activeFiltersCount = 0;
             if (onlyWithHistory) activeFiltersCount++;
             if (onlyFavorites) activeFiltersCount++;
-            if (ouFilter) activeFiltersCount++;
+            if (msOu && msOu.getValues().length > 0) activeFiltersCount++;
             if (prevHomeRes) activeFiltersCount++;
             if (prevAwayRes) activeFiltersCount++;
             if (h2hCol3Mirror) activeFiltersCount++;
@@ -6087,9 +6096,25 @@
                 { value: '-2.5', label: '-2.5-' }
             ];
 
+            const ouOptions = [
+                { value: '2.0', label: '2.0' },
+                { value: '2.5', label: '2.5' },
+                { value: '3.0', label: '3.0' },
+                { value: '3.5', label: '3.5' },
+                { value: '4+', label: '4+' }
+            ];
+
             if (!msHandicap) {
                 msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', applyFiltersVisually);
             }
+
+            if (!msOu) {
+                msOu = new MultiSelect('container-filter-ou', ouOptions, 'O/U', () => {
+                    syncOuFilterInput();
+                    applyFiltersVisually();
+                });
+            }
+            syncOuFilterInput();
 
             // H2H Col3 uses the same simplified options (no more dynamic)
             msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', applyFiltersVisually);
@@ -9483,15 +9508,8 @@
                                 <th style="width:80px;">
                                     HA
                                     <div id="modal-filter-ah" class="multiselect-container mt-1"></div>
-                                    <select class="form-select form-select-sm mt-1" id="modal-filter-ou"
-                                        style="font-size:0.65rem;">
-                                        <option value="">O/U</option>
-                                        <option value="2.0">2.0</option>
-                                        <option value="2.5">2.5</option>
-                                        <option value="3.0">3.0</option>
-                                        <option value="3.5">3.5</option>
-                                        <option value="4.0">4+</option>
-                                    </select>
+                                    <div id="modal-filter-ou-container" class="multiselect-container mt-1"></div>
+                                    <input type="hidden" id="modal-filter-ou" value="">
                                 </th>
                                 <th style="width:70px;">
                                     FT
