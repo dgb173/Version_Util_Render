@@ -1270,13 +1270,24 @@
                                 </select>
                             </div>
                         </th>
-                        <th style="width: 105px;">
-                            Pick
+                        <th style="width: 118px;">
+                            <div class="d-flex align-items-center justify-content-between gap-1">
+                                <span>Pick</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1"
+                                    id="quick-pick-mode-btn" onclick="toggleQuickPickMode()"
+                                    title="Activar clasificación rápida: AH + previos + H2H + indirectas">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </button>
+                            </div>
                             <select class="header-filter mt-1" id="filter-pick" style="width: 100%;">
                                 <option value="">Todo</option>
                                 <option value="HAS_PICK">Con Pick</option>
                                 <option value="AH">AH</option>
                                 <option value="OU">OU</option>
+                                <option value="QUICK_ANY">⚡ Clasif. rápida</option>
+                                <option value="QUICK_HOME">⚡ Local mejor</option>
+                                <option value="QUICK_AWAY">⚡ Visita mejor</option>
+                                <option value="QUICK_BALANCED">⚡ Equilibrado</option>
                             </select>
                         </th>
                         <th style="width: 100px;">Acciones</th>
@@ -1379,6 +1390,10 @@
                 <option value="HAS_PICK">Con Pick</option>
                 <option value="AH">AH</option>
                 <option value="OU">OU</option>
+                <option value="QUICK_ANY">⚡ Clasif. rápida</option>
+                <option value="QUICK_HOME">⚡ Local mejor</option>
+                <option value="QUICK_AWAY">⚡ Visita mejor</option>
+                <option value="QUICK_BALANCED">⚡ Equilibrado</option>
             </select>
         </div>
 
@@ -1397,6 +1412,8 @@
         let precacheoData = {};
         let currentViewMode = 'proximos'; // 'proximos' o 'pendientes'
         let precacheDateFormatHint = 'MDY';
+        let quickPickModeEnabled = false;
+        let quickPickModeBusy = false;
 
         // MultiSelect Instances
         let msHandicap, msOu, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
@@ -1645,6 +1662,254 @@
                 return Math.abs(rowOu - filterOu) <= 0.26;
             });
         };
+
+        const QUICK_PICK_FILTER_VALUES = new Set(['QUICK_ANY', 'QUICK_HOME', 'QUICK_AWAY', 'QUICK_BALANCED']);
+
+        function isQuickPickFilterValue(value) {
+            return QUICK_PICK_FILTER_VALUES.has(String(value || '').toUpperCase());
+        }
+
+        function updateQuickPickButtonState() {
+            const btn = document.getElementById('quick-pick-mode-btn');
+            if (!btn) return;
+
+            btn.classList.remove('btn-outline-secondary', 'btn-warning', 'btn-success');
+
+            if (quickPickModeBusy) {
+                btn.classList.add('btn-warning');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                btn.title = 'Calculando clasificación rápida...';
+                return;
+            }
+
+            if (quickPickModeEnabled) {
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i>';
+                btn.title = 'Desactivar clasificación rápida';
+                return;
+            }
+
+            btn.classList.add('btn-outline-secondary');
+            btn.innerHTML = '<i class="fa-solid fa-bolt"></i>';
+            btn.title = 'Activar clasificación rápida: AH + previos + H2H + indirectas';
+        }
+
+        function clearQuickPickRowState(row) {
+            if (!row) return;
+            row.removeAttribute('data-quick-pick-ready');
+            row.removeAttribute('data-quick-pick-side');
+            row.removeAttribute('data-quick-pick-tier');
+
+            const badge = row.querySelector('.quick-pick-badge-wrap');
+            if (badge) badge.remove();
+        }
+
+        function buildQuickPickBadgeHtml(quickData) {
+            const subtitle = quickData.reasons.slice(0, 2).join(' · ');
+            return `
+                <div class="quick-pick-badge-wrap mt-1">
+                    <div style="background:${quickData.bg}; border:1px solid ${quickData.border}; border-radius:6px; padding:4px 6px; width:100%;">
+                        <div class="fw-bold ${quickData.color} text-center" style="font-size:0.6rem; line-height:1.15;">
+                            ${quickData.label}
+                        </div>
+                        <div class="text-muted text-center" style="font-size:0.52rem; line-height:1.15;">
+                            ${subtitle || 'AH + previos + H2H + indirectas'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function computeQuickPickClassificationFromRow(row) {
+            if (!row) return { ready: false, side: '', tier: '', label: 'Sin base', reasons: [] };
+
+            const currentAh = parseFloat(row.getAttribute('data-handicap'));
+            const scores = { HOME: 0, AWAY: 0 };
+            const reasons = [];
+            const hasHistory = row.getAttribute('data-has-history') === '1';
+            const favoriteSide = (!isNaN(currentAh) && Math.abs(currentAh) > 0.01)
+                ? (currentAh > 0 ? 'HOME' : 'AWAY')
+                : null;
+            const otherSide = favoriteSide === 'HOME' ? 'AWAY' : (favoriteSide === 'AWAY' ? 'HOME' : null);
+
+            const addScore = (side, weight, reason) => {
+                if (!side || !Number.isFinite(weight) || weight <= 0) return;
+                scores[side] += weight;
+                if (reason) reasons.push(reason);
+            };
+
+            if (favoriteSide) {
+                const absAh = Math.abs(currentAh);
+                const marketWeight = absAh >= 1.5 ? 2.2 : absAh >= 1.0 ? 1.6 : absAh >= 0.5 ? 1.0 : 0.5;
+                addScore(
+                    favoriteSide,
+                    marketWeight,
+                    favoriteSide === 'HOME'
+                        ? `mercado favorece local (${currentAh})`
+                        : `mercado favorece visita (${currentAh})`
+                );
+            }
+
+            const prevHomeWdl = row.getAttribute('data-prev-home-wdl');
+            if (prevHomeWdl === 'WIN') addScore('HOME', 1.25, 'prev home sólido');
+            else if (prevHomeWdl === 'LOSS') addScore('AWAY', 1.25, 'prev home flojo');
+            else if (prevHomeWdl === 'DRAW') addScore('HOME', 0.35, 'prev home empata');
+
+            const prevAwayWdl = row.getAttribute('data-prev-away-wdl');
+            if (prevAwayWdl === 'WIN') addScore('AWAY', 1.25, 'prev away sólido');
+            else if (prevAwayWdl === 'LOSS') addScore('HOME', 1.25, 'prev away flojo');
+            else if (prevAwayWdl === 'DRAW') addScore('AWAY', 0.35, 'prev away empata');
+
+            const h2hCol3Perf = row.getAttribute('data-h2h-col3-performance');
+            if (favoriteSide && h2hCol3Perf === 'MEJORA') addScore(favoriteSide, 1.5, 'H2H Col3 mejora');
+            else if (favoriteSide && h2hCol3Perf === 'EMPEORA' && otherSide) addScore(otherSide, 1.5, 'H2H Col3 empeora');
+            else if (favoriteSide && h2hCol3Perf === 'IGUALA') addScore(favoriteSide, 0.6, 'H2H Col3 iguala');
+
+            const h2hStadiumRes = row.getAttribute('data-h2h-stadium-res');
+            if (favoriteSide && h2hStadiumRes === 'COVER') addScore(favoriteSide, 0.8, 'H2H estadio cubre');
+            else if (favoriteSide && h2hStadiumRes === 'NO_COVER' && otherSide) addScore(otherSide, 0.8, 'H2H estadio no cubre');
+
+            const h2hGeneralRes = row.getAttribute('data-h2h-general-res');
+            if (favoriteSide && h2hGeneralRes === 'COVER') addScore(favoriteSide, 0.9, 'H2H general cubre');
+            else if (favoriteSide && h2hGeneralRes === 'NO_COVER' && otherSide) addScore(otherSide, 0.9, 'H2H general no cubre');
+
+            const indLocalRes = row.getAttribute('data-ind-local-res');
+            if (indLocalRes === 'COVER') addScore('HOME', 0.9, 'ind local cubre');
+            else if (indLocalRes === 'NO_COVER') addScore('AWAY', 0.9, 'ind local no cubre');
+
+            const indVisitanteRes = row.getAttribute('data-ind-visitante-res');
+            if (indVisitanteRes === 'COVER') addScore('AWAY', 0.9, 'ind visita cubre');
+            else if (indVisitanteRes === 'NO_COVER') addScore('HOME', 0.9, 'ind visita no cubre');
+
+            const diff = scores.HOME - scores.AWAY;
+            const evidenceCount = reasons.length;
+
+            if (!hasHistory && evidenceCount < 2) {
+                return { ready: false, side: '', tier: '', label: 'Sin base', reasons: [] };
+            }
+
+            if (diff >= 2.4) {
+                return {
+                    ready: true,
+                    side: 'HOME',
+                    tier: 'STRONG',
+                    label: '⚡ Local mejor',
+                    reasons,
+                    color: 'text-primary',
+                    bg: '#e3f2fd',
+                    border: '#1e88e5'
+                };
+            }
+
+            if (diff >= 1.0) {
+                return {
+                    ready: true,
+                    side: 'HOME',
+                    tier: 'LEAN',
+                    label: '⚡ Lean local',
+                    reasons,
+                    color: 'text-primary',
+                    bg: '#eef6ff',
+                    border: '#64b5f6'
+                };
+            }
+
+            if (diff <= -2.4) {
+                return {
+                    ready: true,
+                    side: 'AWAY',
+                    tier: 'STRONG',
+                    label: '⚡ Visita mejor',
+                    reasons,
+                    color: 'text-danger',
+                    bg: '#ffebee',
+                    border: '#ef5350'
+                };
+            }
+
+            if (diff <= -1.0) {
+                return {
+                    ready: true,
+                    side: 'AWAY',
+                    tier: 'LEAN',
+                    label: '⚡ Lean visita',
+                    reasons,
+                    color: 'text-danger',
+                    bg: '#fff1f2',
+                    border: '#e57373'
+                };
+            }
+
+            return {
+                ready: true,
+                side: 'BALANCED',
+                tier: 'BALANCED',
+                label: '⚡ Equilibrado',
+                reasons,
+                color: 'text-secondary',
+                bg: '#f5f5f5',
+                border: '#bdbdbd'
+            };
+        }
+
+        function applyQuickPickClassificationToRenderedRows(shouldReapplyFilters = true) {
+            const rows = document.querySelectorAll('#table-body tr[data-match-id]');
+
+            rows.forEach(row => {
+                clearQuickPickRowState(row);
+
+                const quickData = computeQuickPickClassificationFromRow(row);
+                row.setAttribute('data-quick-pick-ready', quickData.ready ? '1' : '0');
+                row.setAttribute('data-quick-pick-side', quickData.side || '');
+                row.setAttribute('data-quick-pick-tier', quickData.tier || '');
+
+                if (!quickData.ready) return;
+
+                const pickCell = row.querySelector('.pick-cell');
+                if (pickCell) {
+                    pickCell.insertAdjacentHTML('beforeend', buildQuickPickBadgeHtml(quickData));
+                }
+            });
+
+            if (shouldReapplyFilters) {
+                applyFiltersVisually();
+            }
+        }
+
+        function disableQuickPickMode() {
+            quickPickModeEnabled = false;
+            quickPickModeBusy = false;
+            document.querySelectorAll('#table-body tr[data-match-id]').forEach(clearQuickPickRowState);
+
+            const pickFilter = document.getElementById('filter-pick');
+            if (pickFilter && isQuickPickFilterValue(pickFilter.value)) {
+                pickFilter.value = '';
+                const mobilePick = document.getElementById('mobile-filter-pick');
+                if (mobilePick) mobilePick.value = '';
+            }
+
+            updateQuickPickButtonState();
+            applyFiltersVisually();
+        }
+
+        function toggleQuickPickMode() {
+            if (quickPickModeBusy) return;
+
+            if (quickPickModeEnabled) {
+                disableQuickPickMode();
+                return;
+            }
+
+            quickPickModeBusy = true;
+            updateQuickPickButtonState();
+
+            window.requestAnimationFrame(() => {
+                quickPickModeEnabled = true;
+                quickPickModeBusy = false;
+                updateQuickPickButtonState();
+                applyQuickPickClassificationToRenderedRows(true);
+            });
+        }
         const APP_PRECACHEO_ONLY = {{ 'true' if app_precacheo_only|default(False) else 'false' }};
         const PRECACHEO_ENABLE_QWEN = {{ 'true' if precacheo_enable_qwen|default(True) else 'false' }};
         const PRECACHEO_ENABLE_HEAVY_ACTIONS = {{ 'true' if precacheo_enable_heavy_actions|default(True) else 'false' }};
@@ -2683,6 +2948,10 @@
             renderTable(pageItems);
             renderPaginationControls();
 
+            if (quickPickModeEnabled) {
+                applyQuickPickClassificationToRenderedRows(false);
+            }
+
             // Aplicar filtros visuales automáticamente (incluye ocultar ligas)
             applyFiltersVisually();
 
@@ -2883,6 +3152,10 @@
                             </div>
                         </div>`;
                 }
+            }
+
+            if (quickPickModeEnabled) {
+                applyQuickPickClassificationToRenderedRows(false);
             }
         }
 
@@ -4449,6 +4722,16 @@
 
             // Strategy Filter
             const strategy = document.getElementById('filter-strategies').value;
+            const filterPick = document.getElementById('filter-pick').value;
+
+            if (isQuickPickFilterValue(filterPick) && !quickPickModeEnabled) {
+                document.getElementById('filter-pick').value = '';
+                const mobilePick = document.getElementById('mobile-filter-pick');
+                if (mobilePick) mobilePick.value = '';
+                alert('Activa primero la clasificación rápida con el botón ⚡ de la columna Pick.');
+                applyFiltersVisually();
+                return;
+            }
 
             let visibleCount = 0;
 
@@ -4757,7 +5040,6 @@
                 }
 
                 // Filtro: Pick (Pronósticos)
-                const filterPick = document.getElementById('filter-pick').value;
                 if (show && filterPick) {
                     if (filterPick === 'HAS_PICK') {
                         if (row.getAttribute('data-has-pick') !== '1') show = false;
@@ -4765,6 +5047,14 @@
                         if (row.getAttribute('data-has-ah-pick') !== '1') show = false;
                     } else if (filterPick === 'OU') {
                         if (row.getAttribute('data-has-ou-pick') !== '1') show = false;
+                    } else if (filterPick === 'QUICK_ANY') {
+                        if (row.getAttribute('data-quick-pick-ready') !== '1') show = false;
+                    } else if (filterPick === 'QUICK_HOME') {
+                        if (row.getAttribute('data-quick-pick-side') !== 'HOME') show = false;
+                    } else if (filterPick === 'QUICK_AWAY') {
+                        if (row.getAttribute('data-quick-pick-side') !== 'AWAY') show = false;
+                    } else if (filterPick === 'QUICK_BALANCED') {
+                        if (row.getAttribute('data-quick-pick-side') !== 'BALANCED') show = false;
                     }
                 }
 
@@ -7371,6 +7661,7 @@
 
         // Load on page load
         document.addEventListener('DOMContentLoaded', async function () {
+            updateQuickPickButtonState();
             updateCurrentTimeDisplay();
             // Actualizar hora cada minuto
             setInterval(updateCurrentTimeDisplay, 60000);
