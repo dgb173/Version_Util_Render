@@ -1,5 +1,7 @@
 @echo off
 setlocal
+chcp 65001 >NUL
+set "PYTHONUTF8=1"
 cd /d "%~dp0.."
 
 echo ========================================================
@@ -58,7 +60,13 @@ echo   - Flush incremental: cada %FLUSH_EVERY% partidos
 echo.
 echo Ejecutando cacheo de terminados...
 
-"%PYTHON_CMD%" -u "recopilacion_data\wrapper_cachear_terminados.py" all all %WORKERS% %FLUSH_EVERY%
+if not exist "scripts\cache_finished_matches.py" (
+    echo ERROR: No existe scripts\cache_finished_matches.py
+    pause
+    exit /b 1
+)
+
+"%PYTHON_CMD%" -u "scripts\cache_finished_matches.py" all all %WORKERS% %FLUSH_EVERY%
 set "RUN_EXIT=%ERRORLEVEL%"
 
 if not "%RUN_EXIT%"=="0" (

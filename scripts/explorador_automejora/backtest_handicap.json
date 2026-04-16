@@ -1,0 +1,79 @@
+{
+  "config": {
+    "max_matches": 500,
+    "min_history": 500,
+    "min_support": 10,
+    "min_similarity": 32.0,
+    "max_similars": 450,
+    "ah_max_gap": 0.25,
+    "ou_max_gap": 0.75,
+    "min_handicap_score": 8.0,
+    "min_stats_blocks": 2,
+    "conversation_strength": 0.65,
+    "conversation_learning_rate": 0.35
+  },
+  "overall": {
+    "tested_matches": 209,
+    "ou_bets": 141,
+    "ou_hits": 70,
+    "ah_bets": 172,
+    "ah_hits": 87,
+    "both_bets": 114,
+    "both_hits": 33,
+    "ou_hit_rate": 49.65,
+    "ah_hit_rate": 50.58,
+    "both_hit_rate": 28.95
+  },
+  "by_handicap": [
+    {
+      "handicap_bucket": "-1.5",
+      "tested": 2,
+      "ou_bets": 2,
+      "ou_hit_rate": 50.0,
+      "ah_bets": 2,
+      "ah_hit_rate": 0.0,
+      "both_bets": 2,
+      "both_hit_rate": 0.0
+    },
+    {
+      "handicap_bucket": "-1",
+      "tested": 1,
+      "ou_bets": 1,
+      "ou_hit_rate": 0.0,
+      "ah_bets": 0,
+      "ah_hit_rate": null,
+      "both_bets": 0,
+      "both_hit_rate": null
+    },
+    {
+      "handicap_bucket": "0.5",
+      "tested": 176,
+      "ou_bets": 118,
+      "ou_hit_rate": 49.15,
+      "ah_bets": 147,
+      "ah_hit_rate": 48.3,
+      "both_bets": 95,
+      "both_hit_rate": 25.26
+    },
+    {
+      "handicap_bucket": "1",
+      "tested": 10,
+      "ou_bets": 5,
+      "ou_hit_rate": 40.0,
+      "ah_bets": 7,
+      "ah_hit_rate": 71.43,
+      "both_bets": 5,
+      "both_hit_rate": 40.0
+    },
+    {
+      "handicap_bucket": "1.5",
+      "tested": 20,
+      "ou_bets": 15,
+      "ou_hit_rate": 60.0,
+      "ah_bets": 16,
+      "ah_hit_rate": 68.75,
+      "both_bets": 12,
+      "both_hit_rate": 58.33
+    }
+  ]
+}

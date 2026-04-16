@@ -1,0 +1,172 @@
+{
+  "match": {
+    "match_id": "2954663",
+    "home": "CD Choloma",
+    "away": "Genesis",
+    "league": "Liga Nacional de Honduras",
+    "kickoff": "3/25/2026 1:30:",
+    "ah_home_line": 0.0,
+    "ah_text": "0",
+    "ou_line": 2.5
+  },
+  "scores": {
+    "home_score": 3.021,
+    "away_score": 1.03,
+    "edge_home_minus_away": 1.991,
+    "draw_risk": 0.62
+  },
+  "pick": {
+    "recommended_bet": "CD Choloma 0",
+    "confidence": "MEDIA",
+    "reason": "Linea en 0 y la suma de residuos favorece al local."
+  },
+  "blocks": [
+    {
+      "block": "h2h_stadium",
+      "side": "HOME",
+      "weight": 2.4,
+      "raw_value": 1.0,
+      "contribution": 2.088,
+      "detail": "Precedente en este estadio reexpresado con la linea actual"
+    },
+    {
+      "block": "ind_left",
+      "side": "HOME",
+      "weight": 1.55,
+      "raw_value": 1.0,
+      "contribution": 1.349,
+      "detail": "CD Choloma vs rival comun Real Espana"
+    },
+    {
+      "block": "ind_right",
+      "side": "AWAY",
+      "weight": 1.55,
+      "raw_value": 0.5,
+      "contribution": 0.903,
+      "detail": "Genesis vs rival comun Juticalpa"
+    },
+    {
+      "block": "prev_home",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": -0.5,
+      "contribution": -0.67,
+      "detail": "CD Choloma previa casa residual=-0.5"
+    },
+    {
+      "block": "prev_away",
+      "side": "AWAY",
+      "weight": 1.15,
+      "raw_value": 0.25,
+      "contribution": 0.37,
+      "detail": "Genesis previa fuera residual=0.25"
+    },
+    {
+      "block": "h2h_general_movement",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": -0.322,
+      "contribution": -0.37,
+      "detail": "Movimiento de linea general hacia local=-0.25"
+    },
+    {
+      "block": "h2h_stadium_movement",
+      "side": "HOME",
+      "weight": 1.0,
+      "raw_value": 0.322,
+      "contribution": 0.322,
+      "detail": "Movimiento de linea estadio hacia local=0.25"
+    },
+    {
+      "block": "prev_away_stats",
+      "side": "AWAY",
+      "weight": 0.55,
+      "raw_value": -0.372,
+      "contribution": -0.204,
+      "detail": "Soporte estadistico del visitante en su previa fuera"
+    },
+    {
+      "block": "prev_home_stats",
+      "side": "HOME",
+      "weight": 0.55,
+      "raw_value": 0.232,
+      "contribution": 0.128,
+      "detail": "Soporte estadistico del local en su previa de casa"
+    },
+    {
+      "block": "ind_left_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": 0.253,
+      "contribution": 0.114,
+      "detail": "Soporte estadistico del local contra rival comun"
+    },
+    {
+      "block": "h2h_stadium_stats",
+      "side": "HOME",
+      "weight": 0.5,
+      "raw_value": 0.15,
+      "contribution": 0.075,
+      "detail": "Soporte estadistico H2H estadio"
+    },
+    {
+      "block": "ind_right_stats",
+      "side": "AWAY",
+      "weight": 0.45,
+      "raw_value": -0.086,
+      "contribution": -0.038,
+      "detail": "Soporte estadistico del visitante contra rival comun"
+    },
+    {
+      "block": "h2h_general_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": -0.031,
+      "contribution": -0.014,
+      "detail": "Soporte estadistico H2H general"
+    },
+    {
+      "block": "h2h_general",
+      "side": "HOME",
+      "weight": 1.9,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "H2H general reexpresado con la linea actual"
+    }
+  ],
+  "diagnostics": {
+    "prev_home": {
+      "margin": 0,
+      "team_line": 0.5,
+      "residual": -0.5
+    },
+    "prev_away": {
+      "margin": -1,
+      "team_line": -1.25,
+      "residual": 0.25
+    },
+    "h2h_stadium": {
+      "margin": 1,
+      "hist_home_line": -0.25,
+      "residual_current": 1.0,
+      "movement_to_home": 0.25
+    },
+    "h2h_general": {
+      "margin": 0,
+      "hist_home_line": 0.25,
+      "residual_current": 0.0,
+      "movement_to_home": -0.25
+    },
+    "ind_left": {
+      "margin": -1,
+      "team_line": -2.0,
+      "residual": 1.0
+    },
+    "ind_right": {
+      "margin": 0,
+      "team_line": -0.5,
+      "residual": 0.5
+    }
+  },
+  "summary_text": "Linea actual 0 | score_home=3.02 score_away=1.03 edge=1.99. DrawRisk=62.0%. Pick=CD Choloma 0."
+}

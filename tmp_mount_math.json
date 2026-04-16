@@ -1,0 +1,172 @@
+{
+  "match": {
+    "match_id": "2960536",
+    "home": "Mount Pleasant FA",
+    "away": "Portmore United",
+    "league": "Jamaica Premier League",
+    "kickoff": "3/24/2026 12:30",
+    "ah_home_line": 0.5,
+    "ah_text": "Home -0.5",
+    "ou_line": 2.0
+  },
+  "scores": {
+    "home_score": -2.564,
+    "away_score": -1.802,
+    "edge_home_minus_away": -0.762,
+    "draw_risk": 0.38
+  },
+  "pick": {
+    "recommended_bet": "Portmore United +0.5",
+    "confidence": "BAJA",
+    "reason": "La linea favorece al local, pero los residuos castigan al favorito."
+  },
+  "blocks": [
+    {
+      "block": "ind_left",
+      "side": "HOME",
+      "weight": 1.55,
+      "raw_value": -1.75,
+      "contribution": -1.521,
+      "detail": "Mount Pleasant FA vs rival comun Treasure Beach"
+    },
+    {
+      "block": "h2h_stadium",
+      "side": "HOME",
+      "weight": 2.4,
+      "raw_value": -0.5,
+      "contribution": -1.399,
+      "detail": "Precedente en este estadio reexpresado con la linea actual"
+    },
+    {
+      "block": "ind_right",
+      "side": "AWAY",
+      "weight": 1.55,
+      "raw_value": -0.75,
+      "contribution": -1.18,
+      "detail": "Portmore United vs rival comun Molynes United"
+    },
+    {
+      "block": "h2h_general",
+      "side": "HOME",
+      "weight": 1.9,
+      "raw_value": -0.5,
+      "contribution": -1.107,
+      "detail": "H2H general reexpresado con la linea actual"
+    },
+    {
+      "block": "prev_home",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": 0.75,
+      "contribution": 0.876,
+      "detail": "Mount Pleasant FA previa casa residual=0.75"
+    },
+    {
+      "block": "prev_away",
+      "side": "AWAY",
+      "weight": 1.15,
+      "raw_value": -0.75,
+      "contribution": -0.876,
+      "detail": "Portmore United previa fuera residual=-0.75"
+    },
+    {
+      "block": "prev_away_stats",
+      "side": "AWAY",
+      "weight": 0.55,
+      "raw_value": 0.462,
+      "contribution": 0.254,
+      "detail": "Soporte estadistico del visitante en su previa fuera"
+    },
+    {
+      "block": "prev_home_stats",
+      "side": "HOME",
+      "weight": 0.55,
+      "raw_value": 0.435,
+      "contribution": 0.239,
+      "detail": "Soporte estadistico del local en su previa de casa"
+    },
+    {
+      "block": "ind_left_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": 0.402,
+      "contribution": 0.181,
+      "detail": "Soporte estadistico del local contra rival comun"
+    },
+    {
+      "block": "h2h_stadium_stats",
+      "side": "HOME",
+      "weight": 0.5,
+      "raw_value": 0.176,
+      "contribution": 0.088,
+      "detail": "Soporte estadistico H2H estadio"
+    },
+    {
+      "block": "h2h_general_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": 0.176,
+      "contribution": 0.079,
+      "detail": "Soporte estadistico H2H general"
+    },
+    {
+      "block": "h2h_stadium_movement",
+      "side": "HOME",
+      "weight": 1.0,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Movimiento de linea estadio hacia local=0"
+    },
+    {
+      "block": "h2h_general_movement",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Movimiento de linea general hacia local=0"
+    },
+    {
+      "block": "ind_right_stats",
+      "side": "AWAY",
+      "weight": 0.45,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Soporte estadistico del visitante contra rival comun"
+    }
+  ],
+  "diagnostics": {
+    "prev_home": {
+      "margin": 2,
+      "team_line": 1.25,
+      "residual": 0.75
+    },
+    "prev_away": {
+      "margin": 0,
+      "team_line": 0.75,
+      "residual": -0.75
+    },
+    "h2h_stadium": {
+      "margin": 0,
+      "hist_home_line": 0.5,
+      "residual_current": -0.5,
+      "movement_to_home": 0.0
+    },
+    "h2h_general": {
+      "margin": 0,
+      "hist_home_line": 0.5,
+      "residual_current": -0.5,
+      "movement_to_home": 0.0
+    },
+    "ind_left": {
+      "margin": 0,
+      "team_line": 1.75,
+      "residual": -1.75
+    },
+    "ind_right": {
+      "margin": 0,
+      "team_line": 0.75,
+      "residual": -0.75
+    }
+  },
+  "summary_text": "Linea actual Home -0.5 | score_home=-2.56 score_away=-1.80 edge=-0.76. DrawRisk=38.0%. Pick=Portmore United +0.5."
+}

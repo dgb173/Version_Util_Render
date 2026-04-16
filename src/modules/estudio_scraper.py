@@ -2,6 +2,7 @@
 
 import time
 import copy
+import os
 import requests
 import re
 import json
@@ -26,7 +27,7 @@ except ImportError:
 
 
 # --- CONFIGURACIÓN GLOBAL ---
-BASE_URL_OF = "https://www.nowgoal.com"
+BASE_URL_OF = os.getenv("NOWGOAL_BASE_URL", "https://www.nowgoal26.com").rstrip("/")
 SELENIUM_TIMEOUT_SECONDS_OF = 10
 PLACEHOLDER_NODATA = "*(No disponible)*"
 REQUEST_TIMEOUT_SECONDS = 10

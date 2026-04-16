@@ -6210,21 +6210,33 @@
                        </button>
                        <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
                             <i class="fas fa-robot"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
+                            <i class="fa-solid fa-brain"></i>
                        </button>`
                     : '';
 
                 const aiBtnHtml = isScraped
                     ? `<button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
                             <i class="fas fa-robot"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
+                            <i class="fa-solid fa-brain"></i>
+                       </button>`
+                    : '';
+
+                const bookieBtnHtml = isScraped
+                    ? `<button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
+                            <i class="fa-solid fa-brain"></i>
                        </button>`
                     : '';
 
                 let actionButtonsHtml = '';
                 const actionsMode = String(PRECACHEO_ACTIONS_MODE || '').toLowerCase();
                 if (actionsMode === 'ai_stats_only') {
-                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}${bookieBtnHtml}`;
                 } else if (actionsMode === 'minimal' || !PRECACHEO_ENABLE_HEAVY_ACTIONS) {
-                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}`;
                 } else {
                     actionButtonsHtml = `${globalStatsBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}`;
                 }
@@ -6464,6 +6476,16 @@
             }
         }
 
+        function formatPredictionHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\r?\n/g, '<br>');
+        }
+
         // AI Prediction - Show team selection, then get prediction from Gemini API
         async function getAIPrediction(matchId, btnElement) {
             // Toggle: if row already exists, close it
@@ -6583,7 +6605,7 @@
                                     <span class="badge bg-success">AH: ${data.handicap}</span>
                                 </div>
                                 <div id="${predictionId}" class="p-3 bg-white rounded border shadow-sm" style="font-size: 0.95rem; line-height: 1.7; max-width: 900px;">
-                                    ${data.prediction}
+                                    ${formatPredictionHtml(data.prediction)}
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-secondary ms-3" onclick="copyAIPrediction('${predictionId}')" title="Copiar texto">
@@ -8739,7 +8761,7 @@
                                 HA: ${data.handicap || 'N/A'}
                             </span>
                         </div>
-                        <div id="${predictionId}" class="browse-prediction-text" style="max-height: 100px; overflow-y: auto;">${data.prediction}</div>
+                        <div id="${predictionId}" class="browse-prediction-text" style="max-height: 100px; overflow-y: auto;">${formatPredictionHtml(data.prediction)}</div>
                         <button class="browse-copy-btn" onclick="copyBrowseText('${predictionId}', this)">
                             📋 Copiar texto
                         </button>
@@ -9191,7 +9213,7 @@
                                 HA: ${data.handicap}
                             </span>
                         </div>
-                        <div id="${predictionId}" class="browse-prediction-text">${data.prediction}</div>
+                        <div id="${predictionId}" class="browse-prediction-text">${formatPredictionHtml(data.prediction)}</div>
                         <button class="browse-copy-btn" onclick="copyBrowseText('${predictionId}', this)">
                             📋 Copiar texto
                         </button>
@@ -9418,7 +9440,7 @@
                                 HA: ${data.handicap}
                             </span>
                         </div>
-                        <div id="${predictionId}" class="browse-prediction-text">${data.prediction}</div>
+                        <div id="${predictionId}" class="browse-prediction-text">${formatPredictionHtml(data.prediction)}</div>
                         <button class="browse-copy-btn" onclick="copyBrowseText('${predictionId}', this)">
                             📋 Copiar texto
                         </button>
@@ -9682,7 +9704,7 @@
                                 HA: ${data.handicap}
                             </span>
                         </div>
-                        <div id="${predictionId}" class="browse-prediction-text">${data.prediction}</div>
+                        <div id="${predictionId}" class="browse-prediction-text">${formatPredictionHtml(data.prediction)}</div>
                         <button class="browse-copy-btn" onclick="copyBrowseText('${predictionId}', this)">
                             📋 Copiar texto
                         </button>
@@ -10084,6 +10106,111 @@
         }
     </style>
 
+    <!-- Modal Mente del Bookie -->
+    <div class="modal fade" id="bookieModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-brain me-2"></i> Mente del Bookie: Análisis de Hándicap</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="bookieModalBody">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Decodificando la lógica del oddsmaker...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    async function decodeBookie(matchId, btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            // Inicializar modal de Bootstrap
+            const modalEl = document.getElementById('bookieModal');
+            const modal = new bootstrap.Modal(modalEl);
+            
+            document.getElementById('bookieModalBody').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Analizando Micro-Universo de Hándicap...</p>
+                </div>
+            `;
+            modal.show();
+
+            const response = await fetch('/api/decode_match', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                const report = data.report;
+                let labelsHtml = report.labels.map(l => `<span class="badge bg-primary me-1">${l}</span>`).join('');
+                let justificationHtml = report.justification.map(j => `<li>${j}</li>`).join('');
+                
+                let confidenceClass = report.confidence === 'Alta' ? 'text-success' : (report.confidence === 'Media' ? 'text-warning' : 'text-muted');
+
+                document.getElementById('bookieModalBody').innerHTML = `
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Universo Detectado: <span class="text-primary">${report.universe}</span></h6>
+                            <span class="badge bg-dark">AH ${report.ah_actual}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                ${labelsHtml}
+                            </div>
+                            <h6 class="fw-bold"><i class="fa-solid fa-scale-balanced me-1"></i> Justificación Lógica:</h6>
+                            <ul class="mb-4">
+                                ${justificationHtml}
+                            </ul>
+                            <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Sugerencia</small>
+                                    <span class="badge bg-success fs-6">${report.recommendation}</span>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block text-uppercase" style="font-size: 0.7rem;">Confianza</small>
+                                    <span class="${confidenceClass} fw-bold">${report.confidence}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-secondary small border-0 bg-opacity-10 mb-0">
+                        <i class="fa-solid fa-info-circle me-1"></i> Este análisis decodifica la <strong>Mente del Oddsmaker</strong> cruzando la carga del hándicap actual contra el soporte histórico de tiros, hándicaps previos y comparativas indirectas (Col3).
+                    </div>
+                `;
+            } else {
+                document.getElementById('bookieModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i> Error: ${data.error || 'No se pudieron obtener datos completos para el análisis.'}
+                        <p class="small mt-2 mb-0">Asegúrate de que el partido ha sido 'scrapeado' y tiene datos de hándicaps previos y estadísticas.</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error in decodeBookie:', error);
+            document.getElementById('bookieModalBody').innerHTML = '<div class="alert alert-danger">Error de conexión con el servidor.</div>';
+        } finally {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
+    }
+    </script>
     <!-- Mobile View Handler Script -->
     <script src="{{ url_for('static', filename='mobile_view_handler.js') }}"></script>
 </body>

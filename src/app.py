@@ -42,6 +42,7 @@ from modules.estudio_scraper import (
 )
 
 from modules.pattern_search import find_similar_patterns, explore_matches
+from modules.bookie_decoder import analyze_match_bookie_logic
 from flask import jsonify # Asegúrate de que jsonify está importado
 
 
@@ -4793,6 +4794,37 @@ def api_precacheo_finalize_batch():
     except Exception as e:
         print(f"Error executing batch finalize: {e}")
         return jsonify({'error': str(e)}), 500
+@app.route('/api/decode_match', methods=['POST'])
+def api_decode_match():
+    """
+    Endpoint para el análisis de 'Mente del Bookie'.
+    Analiza un partido basado en el lenguaje de hándicaps y lógica forense.
+    """
+    try:
+        data = request.json
+        match_id = data.get('match_id')
+        
+        if not match_id:
+            return jsonify({'error': 'Falta match_id'}), 400
+            
+        # Obtener datos completos del partido (usando caché si es posible)
+        match_data = analizar_partido_completo(str(match_id), force_refresh=False)
+        
+        if not match_data or 'error' in match_data:
+            return jsonify({'error': 'No se pudieron obtener datos completos para el análisis.'}), 500
+            
+        # Ejecutar análisis del diccionario
+        report = analyze_match_bookie_logic(match_data)
+        
+        return jsonify({
+            'status': 'success',
+            'match_id': match_id,
+            'report': report
+        })
+    except Exception as e:
+        print(f"Error en decode match: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/scraper')
 def scraper_view():
     pending_matches = history_manager.get_pending_matches()
@@ -4911,11 +4943,136 @@ def api_reanalyze_pending():
 # =============================================
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 
+def _ai_prediction_has_core_context(match_data):
+    """Comprueba si tenemos contexto suficiente para generar una predicción útil."""
+    if not isinstance(match_data, dict) or not match_data:
+        return False
+
+    last_home = match_data.get('last_home_match') or {}
+    last_away = match_data.get('last_away_match') or {}
+    home_rank = (match_data.get('home_standings') or {}).get('ranking') or match_data.get('home_rank')
+    away_rank = (match_data.get('away_standings') or {}).get('ranking') or match_data.get('away_rank')
+    handicap = (
+        match_data.get('handicap')
+        or match_data.get('asian_handicap_raw')
+        or match_data.get('asian_handicap')
+        or (match_data.get('main_match_odds') or {}).get('ah_linea')
+        or (match_data.get('main_match_odds') or {}).get('ah_linea_raw')
+    )
+
+    return bool(
+        last_home.get('score')
+        and last_away.get('score')
+        and home_rank
+        and away_rank
+        and handicap
+    )
+
+
+def _load_ai_prediction_match_data(match_id):
+    """
+    Carga el partido desde precacheo.
+    Si faltan datos clave, intenta scrapearlo al vuelo para no generar texto pobre o inventado.
+    """
+    cached_match = data_manager.get_precacheo_match(str(match_id)) or {}
+    if _ai_prediction_has_core_context(cached_match):
+        return cached_match
+
+    try:
+        refreshed_match = analizar_partido_completo(str(match_id))
+    except Exception as exc:
+        print(f"AI Prediction refresh error for {match_id}: {exc}")
+        return cached_match if isinstance(cached_match, dict) else {}
+
+    if refreshed_match and not refreshed_match.get('error'):
+        refreshed_match['match_id'] = str(match_id)
+        try:
+            data_manager.save_precacheo_match(refreshed_match)
+        except Exception as exc:
+            print(f"AI Prediction cache save warning for {match_id}: {exc}")
+        return refreshed_match
+
+    return cached_match if isinstance(cached_match, dict) else {}
+
+
+def _resolve_ai_prediction_team_name(match_data, frontend_name, home_side=True):
+    if frontend_name:
+        return frontend_name
+
+    if not isinstance(match_data, dict):
+        return 'Home Team' if home_side else 'Away Team'
+
+    if home_side:
+        return match_data.get('home_name') or match_data.get('home_team') or 'Home Team'
+
+    return match_data.get('away_name') or match_data.get('away_team') or 'Away Team'
+
+
+def _resolve_ai_prediction_handicap(match_data):
+    if not isinstance(match_data, dict):
+        return 'N/A'
+
+    main_match_odds = match_data.get('main_match_odds') or {}
+    candidates = [
+        match_data.get('handicap'),
+        match_data.get('asian_handicap_raw'),
+        match_data.get('asian_handicap'),
+        main_match_odds.get('ah_linea'),
+        main_match_odds.get('ah_linea_raw'),
+    ]
+
+    for value in candidates:
+        if value not in (None, '', 'N/A', '-', '?', '??'):
+            return str(value)
+    return 'N/A'
+
+
+def _format_ai_prediction_previous_match(team_name, prev_match):
+    if not isinstance(prev_match, dict) or not prev_match.get('score'):
+        return 'No data'
+
+    prev_home_team = (prev_match.get('home_team') or '').strip()
+    prev_away_team = (prev_match.get('away_team') or '').strip()
+    normalized_team = (team_name or '').strip().lower()
+
+    if normalized_team and prev_home_team.lower() == normalized_team:
+        venue_label = 'home'
+        opponent = prev_away_team or 'unknown opponent'
+    elif normalized_team and prev_away_team.lower() == normalized_team:
+        venue_label = 'away'
+        opponent = prev_home_team or 'unknown opponent'
+    else:
+        venue_label = 'previous'
+        opponent = prev_away_team or prev_home_team or 'unknown opponent'
+
+    ah_value = prev_match.get('handicap_line_raw') or prev_match.get('ah') or 'N/A'
+    match_date = prev_match.get('date') or 'unknown date'
+    score = prev_match.get('score') or 'N/A'
+
+    return (
+        f"{team_name}'s last {venue_label} game was {score} against "
+        f"{opponent} on {match_date} (AH: {ah_value})"
+    )
+
+
+def _extract_ai_prediction_dangerous_attacks(prev_match):
+    if not isinstance(prev_match, dict):
+        return 'No data'
+
+    stats_rows = prev_match.get('stats_rows') or []
+    for stat in stats_rows:
+        label = str(stat.get('label', '')).lower()
+        if 'peligros' in label or 'dangerous' in label:
+            return f"{stat.get('home', 'N/A')} vs {stat.get('away', 'N/A')}"
+
+    return 'No data'
+
+
 @app.route('/api/ai_prediction', methods=['POST'])
 def api_ai_prediction():
     """Generate AI match prediction using Groq API."""
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         match_id = data.get('match_id')
         winner = data.get('winner', 'home')  # 'home' or 'away'
         
@@ -4926,93 +5083,74 @@ def api_ai_prediction():
         if not match_id:
             return jsonify({'error': 'match_id is required'}), 400
         
-        # Get match data from precacheo (single match to avoid loading entire bucket)
-        match_data = data_manager.get_precacheo_match(str(match_id)) or {}
+        if not GROQ_API_KEY:
+            return jsonify({'error': 'GROQ_API_KEY no configurada'}), 500
+        
+        # Get match data from precacheo, refreshing it if the stored context is incomplete.
+        match_data = _load_ai_prediction_match_data(str(match_id))
         
         # Use frontend team names if available, fallback to precacheo data
-        home_team = frontend_home_team or match_data.get('home_team', 'Home Team')
-        away_team = frontend_away_team or match_data.get('away_team', 'Away Team')
-        handicap = match_data.get('asian_handicap_raw') or match_data.get('asian_handicap') or 'N/A'
+        home_team = _resolve_ai_prediction_team_name(match_data, frontend_home_team, home_side=True)
+        away_team = _resolve_ai_prediction_team_name(match_data, frontend_away_team, home_side=False)
+        handicap = _resolve_ai_prediction_handicap(match_data)
         
         # Get prev match info if available
         prev_home = match_data.get('last_home_match', {})
         prev_away = match_data.get('last_away_match', {})
         
-        prev_home_info = ""
-        prev_home_stats = ""
-        if prev_home and prev_home.get('score'):
-            prev_home_info = f"{home_team}'s last home game: {prev_home.get('score', 'N/A')} (AH: {prev_home.get('handicap_line_raw', 'N/A')})"
-            # Extract stats if available
-            stats_rows = prev_home.get('stats_rows', [])
-            for stat in stats_rows:
-                if 'peligros' in stat.get('label', '').lower() or 'dangerous' in stat.get('label', '').lower():
-                    prev_home_stats = f"Dangerous Attacks: {stat.get('home', 'N/A')} vs {stat.get('away', 'N/A')}"
-                    break
-        
-        prev_away_info = ""
-        prev_away_stats = ""
-        if prev_away and prev_away.get('score'):
-            prev_away_info = f"{away_team}'s last away game: {prev_away.get('score', 'N/A')} (AH: {prev_away.get('handicap_line_raw', 'N/A')})"
-            # Extract stats if available
-            stats_rows = prev_away.get('stats_rows', [])
-            for stat in stats_rows:
-                if 'peligros' in stat.get('label', '').lower() or 'dangerous' in stat.get('label', '').lower():
-                    prev_away_stats = f"Dangerous Attacks: {stat.get('home', 'N/A')} vs {stat.get('away', 'N/A')}"
-                    break
+        prev_home_info = _format_ai_prediction_previous_match(home_team, prev_home)
+        prev_away_info = _format_ai_prediction_previous_match(away_team, prev_away)
+        prev_home_stats = _extract_ai_prediction_dangerous_attacks(prev_home)
+        prev_away_stats = _extract_ai_prediction_dangerous_attacks(prev_away)
         
         # Determine winner team name
         winner_team = home_team if winner == 'home' else away_team
-        loser_team = away_team if winner == 'home' else home_team
         
         # Get team rankings
-        home_rank = match_data.get('home_standings', {}).get('ranking', 'N/A')
-        away_rank = match_data.get('away_standings', {}).get('ranking', 'N/A')
+        home_rank = (match_data.get('home_standings') or {}).get('ranking') or match_data.get('home_rank') or 'N/A'
+        away_rank = (match_data.get('away_standings') or {}).get('ranking') or match_data.get('away_rank') or 'N/A'
         
         # Build prompt with specific winner and persona
         import random
         
         # Random starter phrases to avoid repetitive openings
         starters = [
-            "Looking at this one,",
-            "This is an interesting one,",
-            "Right then,",
-            "Checking the stats,",
-            "So we've got",
-            "Listen up,",
-            "This one's clear,",
-            "Here's the deal,",
-            "Let me break this down,",
-            "Mate, this is simple,",
-            "Straight to the point,",
-            "Easy one here,",
-            "Pay attention to this,",
-            "No messing about,",
-            "I love this matchup,",
+            "El ángulo que más me gusta aquí:",
+            "La lectura rápida de este partido:",
+            "Lo que me hace entrar aquí:",
+            "La clave de este cruce está en esto:",
+            "Si me tengo que quedar con un lado, es este:",
+            "La sensación más clara que me deja este partido:",
+            "Hay un detalle muy fuerte en este encuentro:",
+            "La mejor forma de leer este choque es esta:",
         ]
         random_starter = random.choice(starters)
         
-        prompt = f"""{random_starter} I need you to write a football betting tip like a REAL human tipster.
+        prompt = f"""{random_starter}
 
-Match: {home_team} [Rank {home_rank}] vs {away_team} [Rank {away_rank}]
+Escribe un pronóstico futbolístico en ESPAÑOL, con tono humano y natural, como si se lo mandarás a un colega que apuesta.
 
-Home team last result: {prev_home_info if prev_home_info else 'No data'}
-Away team last result: {prev_away_info if prev_away_info else 'No data'}
+Partido: {home_team} [Rank {home_rank}] vs {away_team} [Rank {away_rank}]
+Hándicap asiático actual: {handicap}
 
-YOUR SELECTION: {winner_team} WINS
+Último resultado relevante del local: {prev_home_info}
+Último resultado relevante del visitante: {prev_away_info}
+Ataques peligrosos del local en ese partido: {prev_home_stats}
+Ataques peligrosos del visitante en ese partido: {prev_away_stats}
 
-ABSOLUTE RULES YOU MUST FOLLOW:
-1. MANDATORY: You MUST mention BOTH teams' previous results if available. Say things like "They just beat X", "Coming off a draw against...", "After losing to..."
-2. LENGTH: Between 80 and 150 words. No less, no more.
-3. DO NOT start with "{winner_team}" or "Looking at" or any generic phrase. Start with something UNIQUE each time.
-4. HUMAN TONE: Write like you're texting a betting mate. Use slang, contractions, informal language.
-5. MENTION: The rankings and the previous results.
-6. NO LISTS, NO BULLET POINTS. Just one flowing paragraph.
-7. NO phrases like "In conclusion", "Therefore", "Overall", "To sum up".
-8. BE CONFIDENT but not robotic.
+SELECCIÓN OBLIGATORIA: gana {winner_team}
 
-IMPORTANT: If you don't have previous match data, say "not sure about their last game but..." or similar.
+REGLAS OBLIGATORIAS:
+1. Menciona SIEMPRE los dos últimos resultados y el rival de cada uno si está disponible.
+2. Menciona el ranking de ambos equipos y el hándicap asiático actual.
+3. Usa un único párrafo de entre 80 y 150 palabras.
+4. No empieces con "{winner_team}" ni con una frase genérica repetitiva.
+5. Tono humano, directo y natural. Seguro, pero no robótico.
+6. No hagas listas ni viñetas.
+7. Usa SOLO los datos de arriba. No inventes rivales, marcadores, rankings ni estadísticas.
+8. Si algún dato sale como "No data", dilo de forma natural en vez de inventarlo.
 
-Write the prediction NOW (start differently each time):"""
+Escribe el pronóstico ahora:"""
 
         # Call Groq API
         from groq import Groq

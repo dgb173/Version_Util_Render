@@ -1,0 +1,172 @@
+{
+  "match": {
+    "match_id": "2943058",
+    "home": "Sporting San Jose",
+    "away": "Puntarenas",
+    "league": "Costa Rica Cup",
+    "kickoff": "3/25/2026 2:00:",
+    "ah_home_line": 0.25,
+    "ah_text": "Home -0.25",
+    "ou_line": 2.0
+  },
+  "scores": {
+    "home_score": -4.268,
+    "away_score": -1.109,
+    "edge_home_minus_away": -3.158,
+    "draw_risk": 0.46
+  },
+  "pick": {
+    "recommended_bet": "Puntarenas +0.25",
+    "confidence": "MEDIA",
+    "reason": "La linea favorece al local, pero los residuos castigan al favorito."
+  },
+  "blocks": [
+    {
+      "block": "h2h_stadium",
+      "side": "HOME",
+      "weight": 2.4,
+      "raw_value": -1.25,
+      "contribution": -2.235,
+      "detail": "Precedente en este estadio reexpresado con la linea actual"
+    },
+    {
+      "block": "h2h_general",
+      "side": "HOME",
+      "weight": 1.9,
+      "raw_value": -1.25,
+      "contribution": -1.769,
+      "detail": "H2H general reexpresado con la linea actual"
+    },
+    {
+      "block": "ind_left",
+      "side": "HOME",
+      "weight": 1.55,
+      "raw_value": -2.25,
+      "contribution": -1.542,
+      "detail": "Sporting San Jose vs rival comun Herediano"
+    },
+    {
+      "block": "prev_home",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": 2.75,
+      "contribution": 1.148,
+      "detail": "Sporting San Jose previa casa residual=2.75"
+    },
+    {
+      "block": "ind_right",
+      "side": "AWAY",
+      "weight": 1.55,
+      "raw_value": -0.5,
+      "contribution": -0.903,
+      "detail": "Puntarenas vs rival comun Cartagines Deportiva SA"
+    },
+    {
+      "block": "prev_away",
+      "side": "AWAY",
+      "weight": 1.15,
+      "raw_value": -0.25,
+      "contribution": -0.37,
+      "detail": "Puntarenas previa fuera residual=-0.25"
+    },
+    {
+      "block": "prev_home_stats",
+      "side": "HOME",
+      "weight": 0.55,
+      "raw_value": 0.383,
+      "contribution": 0.21,
+      "detail": "Soporte estadistico del local en su previa de casa"
+    },
+    {
+      "block": "prev_away_stats",
+      "side": "AWAY",
+      "weight": 0.55,
+      "raw_value": 0.17,
+      "contribution": 0.093,
+      "detail": "Soporte estadistico del visitante en su previa fuera"
+    },
+    {
+      "block": "ind_right_stats",
+      "side": "AWAY",
+      "weight": 0.45,
+      "raw_value": 0.156,
+      "contribution": 0.07,
+      "detail": "Soporte estadistico del visitante contra rival comun"
+    },
+    {
+      "block": "h2h_stadium_stats",
+      "side": "HOME",
+      "weight": 0.5,
+      "raw_value": -0.1,
+      "contribution": -0.05,
+      "detail": "Soporte estadistico H2H estadio"
+    },
+    {
+      "block": "h2h_general_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": -0.1,
+      "contribution": -0.045,
+      "detail": "Soporte estadistico H2H general"
+    },
+    {
+      "block": "ind_left_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": 0.033,
+      "contribution": 0.015,
+      "detail": "Soporte estadistico del local contra rival comun"
+    },
+    {
+      "block": "h2h_stadium_movement",
+      "side": "HOME",
+      "weight": 1.0,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Movimiento de linea estadio hacia local=0"
+    },
+    {
+      "block": "h2h_general_movement",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Movimiento de linea general hacia local=0"
+    }
+  ],
+  "diagnostics": {
+    "prev_home": {
+      "margin": 3,
+      "team_line": 0.25,
+      "residual": 2.75
+    },
+    "prev_away": {
+      "margin": -1,
+      "team_line": -0.75,
+      "residual": -0.25
+    },
+    "h2h_stadium": {
+      "margin": -1,
+      "hist_home_line": 0.25,
+      "residual_current": -1.25,
+      "movement_to_home": 0.0
+    },
+    "h2h_general": {
+      "margin": -1,
+      "hist_home_line": 0.25,
+      "residual_current": -1.25,
+      "movement_to_home": 0.0
+    },
+    "ind_left": {
+      "margin": -2,
+      "team_line": 0.25,
+      "residual": -2.25
+    },
+    "ind_right": {
+      "margin": -1,
+      "team_line": -0.5,
+      "residual": -0.5
+    }
+  },
+  "summary_text": "Linea actual Home -0.25 | score_home=-4.27 score_away=-1.11 edge=-3.16. DrawRisk=46.0%. Pick=Puntarenas +0.25."
+}

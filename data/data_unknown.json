@@ -1,5 +1,2319 @@
 [
   {
+    "match_id": "2947078",
+    "home_name": "Besa Kavaje",
+    "away_name": "Lushnja KS",
+    "league_name": "Albania Kategoria e Pare",
+    "final_score": "0:0",
+    "time": "1:00:",
+    "match_date": "4/11/2026",
+    "home_standings": {
+      "name": "Besa Kavaje",
+      "ranking": "6",
+      "total_pj": "29",
+      "total_v": "9",
+      "total_e": "7",
+      "total_d": "13",
+      "total_gf": "37",
+      "total_gc": "39",
+      "specific_pj": "14",
+      "specific_v": "5",
+      "specific_e": "5",
+      "specific_d": "4",
+      "specific_gf": "21",
+      "specific_gc": "16",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Lushnja KS",
+      "ranking": "11",
+      "total_pj": "29",
+      "total_v": "5",
+      "total_e": "10",
+      "total_d": "14",
+      "total_gf": "25",
+      "total_gc": "39",
+      "specific_pj": "15",
+      "specific_v": "1",
+      "specific_e": "6",
+      "specific_d": "8",
+      "specific_gf": "13",
+      "specific_gc": "23",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Besa Kavaje</span>   <span style='font-weight: bold; padding: 0 4px;'>1:1</span>   <span style='color: #f97316; font-weight: bold;'>Lushnja KS</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>0.75</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Lushnja KS</span>   <span style='font-weight: bold; padding: 0 4px;'>0:1</span>   <span style='color: #f97316; font-weight: bold;'>Besa Kavaje</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>0</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>1 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-09-26"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "0:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-14"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "Sin clasificar",
+        "senal": "-",
+        "prioridad": "N/A",
+        "recomendacion_ah": "-",
+        "explicacion": "Combinación no catalogada en matriz asimétrica",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Besa Kavaje)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-22</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Skenderbeu Korca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-14</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">Pogradeci</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Burreli</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-08</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">Skenderbeu Korca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-21</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">KS Iliria Fushe</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-08</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">Burreli</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>634</td>\n                            <td>2025-11-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Lushnja KS)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-21</td>\n                            <td class=\"text-end \">Apolonia Fier</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-18</td>\n                            <td class=\"text-end \">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end \">Skenderbeu Korca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end \">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-15</td>\n                            <td class=\"text-end \">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-25</td>\n                            <td class=\"text-end \">Apolonia Fier</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-20</td>\n                            <td class=\"text-end \">Kastrioti Kruje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-07</td>\n                            <td class=\"text-end \">Luftetari</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-28</td>\n                            <td class=\"text-end \">Skenderbeu Korca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:3</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>634</td>\n                            <td>2025-11-19</td>\n                            <td class=\"text-end \">Apolonia Fier</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 7</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-22",
+      "home_team": "Besa Kavaje",
+      "away_team": "Skenderbeu Korca",
+      "score": "0:1",
+      "handicap_line_raw": "-0.25",
+      "match_id": "2947066",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "16",
+          "away": "11"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "130",
+          "away": "87"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "74",
+          "away": "43"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-03-21",
+      "home_team": "Apolonia Fier",
+      "away_team": "Lushnja KS",
+      "score": "0:0",
+      "handicap_line_raw": "0.25",
+      "match_id": "2947068",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "8"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "5",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "114",
+          "away": "113"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "87",
+          "away": "70"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "0",
+      "goles_away": "1",
+      "handicap": "-1",
+      "match_id": "2947054",
+      "h2h_home_team_name": "Apolonia Fier",
+      "h2h_away_team_name": "Skenderbeu Korca",
+      "date": "2026-03-14",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "1",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "106",
+          "away": "129"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "55",
+          "away": "81"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "2:0",
+        "ah_line": "0.25",
+        "localia": "A",
+        "home_team": "Apolonia Fier",
+        "away_team": "Besa Kavaje",
+        "match_id": "2853665",
+        "date": "2025-12-03",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Apolonia Fier",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "3",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "87",
+            "away": "94"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "57",
+            "away": "73"
+          }
+        ],
+        "title_home_name": "Besa Kavaje",
+        "title_away_name": "Lushnja KS"
+      },
+      "right": {
+        "score": "2:0",
+        "ah_line": "1.75",
+        "localia": "A",
+        "home_team": "Skenderbeu Korca",
+        "away_team": "Lushnja KS",
+        "match_id": "2947050",
+        "date": "2026-03-07",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Skenderbeu Korca",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "9",
+            "away": "4"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "0"
+          },
+          {
+            "label": "Ataques",
+            "home": "94",
+            "away": "94"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "52",
+            "away": "36"
+          }
+        ],
+        "title_home_name": "Besa Kavaje",
+        "title_away_name": "Lushnja KS"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "0.75",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2853610",
+      "date1": "2025-09-26",
+      "ah6": "0",
+      "res6": "0:1",
+      "res6_raw": "0-1",
+      "match6_id": "2853676",
+      "date6": "2025-12-14",
+      "h2h_gen_home": "Lushnja KS",
+      "h2h_gen_away": "Besa Kavaje",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "-1",
+        "match_id": "2947054",
+        "h2h_home_team_name": "Apolonia Fier",
+        "h2h_away_team_name": "Skenderbeu Korca",
+        "date": "2026-03-14",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "12",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "5",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "116",
+          "away": "95"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "79",
+          "away": "43"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "0.75",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2853610",
+      "date1": "2025-09-26",
+      "ah6": "0",
+      "res6": "0:1",
+      "res6_raw": "0-1",
+      "match6_id": "2853676",
+      "date6": "2025-12-14",
+      "h2h_gen_home": "Lushnja KS",
+      "h2h_gen_away": "Besa Kavaje",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "-1",
+        "match_id": "2947054",
+        "h2h_home_team_name": "Apolonia Fier",
+        "h2h_away_team_name": "Skenderbeu Korca",
+        "date": "2026-03-14",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "7",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "0",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "114",
+          "away": "121"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "66",
+          "away": "69"
+        }
+      ]
+    },
+    "execution_time_seconds": 47.28,
+    "cached_at": "2026-04-12 07:18:07"
+  },
+  {
+    "match_id": "2947083",
+    "home_name": "KS Korabi Peshkopi",
+    "away_name": "Apolonia Fier",
+    "league_name": "Albania Kategoria e Pare",
+    "final_score": "0:0",
+    "time": "1:00:",
+    "match_date": "4/11/2026",
+    "home_standings": {
+      "name": "KS Korabi Peshkopi",
+      "ranking": "8",
+      "total_pj": "29",
+      "total_v": "8",
+      "total_e": "8",
+      "total_d": "13",
+      "total_gf": "28",
+      "total_gc": "36",
+      "specific_pj": "14",
+      "specific_v": "6",
+      "specific_e": "4",
+      "specific_d": "4",
+      "specific_gf": "12",
+      "specific_gc": "10",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Apolonia Fier",
+      "ranking": "10",
+      "total_pj": "29",
+      "total_v": "6",
+      "total_e": "8",
+      "total_d": "15",
+      "total_gf": "25",
+      "total_gc": "36",
+      "specific_pj": "15",
+      "specific_v": "3",
+      "specific_e": "3",
+      "specific_d": "9",
+      "specific_gf": "12",
+      "specific_gc": "20",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>0 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Apolonia Fier</span>   <span style='font-weight: bold; padding: 0 4px;'>0:3</span>   <span style='color: #f97316; font-weight: bold;'>KS Korabi Peshkopi</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>0.75</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "2025-09-27"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "0:3",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-13"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "INVERSA (Empate H2H)",
+        "senal": "⚖️",
+        "prioridad": "BAJA",
+        "recomendacion_ah": "-",
+        "explicacion": "El H2H Col3 fue empate. Análisis de patrón inverso requiere más datos.",
+        "etiqueta_inversa": true
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(KS Korabi Peshkopi)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-22</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-14</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">KF Laci</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-28</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Kastrioti Kruje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-07</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Skenderbeu Korca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-24</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">KS Iliria Fushe</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-23</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Burreli</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-07</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">KF Laci</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"\">Kastrioti Kruje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Apolonia Fier)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-04-04</td>\n                            <td class=\"text-end \">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-18</td>\n                            <td class=\"text-end \">Luftetari</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end \">KF Laci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-22</td>\n                            <td class=\"text-end \">Kastrioti Kruje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-14</td>\n                            <td class=\"text-end \">Skenderbeu Korca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-31</td>\n                            <td class=\"text-end \">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-17</td>\n                            <td class=\"text-end \">Burreli</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>634</td>\n                            <td>2026-01-10</td>\n                            <td class=\"text-end \">Egnatia</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-07</td>\n                            <td class=\"text-end \">Kastrioti Kruje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-29</td>\n                            <td class=\"text-end \">Luftetari</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 8</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-22",
+      "home_team": "KS Korabi Peshkopi",
+      "away_team": "Luftetari",
+      "score": "1:0",
+      "handicap_line_raw": "0.5",
+      "match_id": "2947067",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "13",
+          "away": "2"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "0"
+        },
+        {
+          "label": "Ataques",
+          "home": "101",
+          "away": "106"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "70",
+          "away": "65"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-04-04",
+      "home_team": "KS Perparimi Kukesi",
+      "away_team": "Apolonia Fier",
+      "score": "2:0",
+      "handicap_line_raw": "0.25",
+      "match_id": "2947073",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "19",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "93",
+          "away": "79"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "63",
+          "away": "26"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "0",
+      "goles_away": "0",
+      "handicap": "0.5",
+      "match_id": "2947052",
+      "h2h_home_team_name": "KS Perparimi Kukesi",
+      "h2h_away_team_name": "Luftetari",
+      "date": "2026-03-07",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "5",
+          "away": "5"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "101",
+          "away": "97"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "57",
+          "away": "60"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "4:2",
+        "ah_line": "-0.25",
+        "localia": "A",
+        "home_team": "KS Perparimi Kukesi",
+        "away_team": "KS Korabi Peshkopi",
+        "match_id": "2853711",
+        "date": "2026-02-14",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "KS Perparimi Kukesi",
+        "stats_rows": [
+          {
+            "label": "Ataques",
+            "home": "108",
+            "away": "99"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "67",
+            "away": "75"
+          }
+        ],
+        "title_home_name": "KS Korabi Peshkopi",
+        "title_away_name": "Apolonia Fier"
+      },
+      "right": {
+        "score": "2:2",
+        "ah_line": "0",
+        "localia": "A",
+        "home_team": "Luftetari",
+        "away_team": "Apolonia Fier",
+        "match_id": "2947064",
+        "date": "2026-03-18",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Luftetari",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "11",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "10"
+          },
+          {
+            "label": "Ataques",
+            "home": "91",
+            "away": "105"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "60",
+            "away": "59"
+          }
+        ],
+        "title_home_name": "KS Korabi Peshkopi",
+        "title_away_name": "Apolonia Fier"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "2853612",
+      "date1": "2025-09-27",
+      "ah6": "0.75",
+      "res6": "0:3",
+      "res6_raw": "0-3",
+      "match6_id": "2853678",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "Apolonia Fier",
+      "h2h_gen_away": "KS Korabi Peshkopi",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "0",
+        "handicap": "0.5",
+        "match_id": "2947052",
+        "h2h_home_team_name": "KS Perparimi Kukesi",
+        "h2h_away_team_name": "Luftetari",
+        "date": "2026-03-07",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "2853612",
+      "date1": "2025-09-27",
+      "ah6": "0.75",
+      "res6": "0:3",
+      "res6_raw": "0-3",
+      "match6_id": "2853678",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "Apolonia Fier",
+      "h2h_gen_away": "KS Korabi Peshkopi",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "0",
+        "handicap": "0.5",
+        "match_id": "2947052",
+        "h2h_home_team_name": "KS Perparimi Kukesi",
+        "h2h_away_team_name": "Luftetari",
+        "date": "2026-03-07",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "10",
+          "away": "8"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "5",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "92",
+          "away": "71"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "32",
+          "away": "29"
+        }
+      ]
+    },
+    "execution_time_seconds": 47.15,
+    "cached_at": "2026-04-12 07:17:33"
+  },
+  {
+    "match_id": "2947082",
+    "home_name": "KS Iliria Fushe",
+    "away_name": "Luftetari",
+    "league_name": "Albania Kategoria e Pare",
+    "final_score": "1:2",
+    "time": "1:00:",
+    "match_date": "4/11/2026",
+    "home_standings": {
+      "name": "KS Iliria Fushe",
+      "ranking": "4",
+      "total_pj": "29",
+      "total_v": "9",
+      "total_e": "10",
+      "total_d": "10",
+      "total_gf": "26",
+      "total_gc": "31",
+      "specific_pj": "15",
+      "specific_v": "7",
+      "specific_e": "5",
+      "specific_d": "3",
+      "specific_gf": "17",
+      "specific_gc": "13",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Luftetari",
+      "ranking": "12",
+      "total_pj": "29",
+      "total_v": "3",
+      "total_e": "13",
+      "total_d": "13",
+      "total_gf": "28",
+      "total_gc": "41",
+      "specific_pj": "15",
+      "specific_v": "1",
+      "specific_e": "9",
+      "specific_d": "5",
+      "specific_gf": "13",
+      "specific_gc": "18",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>KS Iliria Fushe</span>   <span style='font-weight: bold; padding: 0 4px;'>1:1</span>   <span style='color: #f97316; font-weight: bold;'>Luftetari</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>1</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-13"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-13"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "Sin clasificar",
+        "senal": "-",
+        "prioridad": "N/A",
+        "recomendacion_ah": "-",
+        "explicacion": "Combinación no catalogada en matriz asimétrica",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(KS Iliria Fushe)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-22</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">KF Laci</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-14</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Kastrioti Kruje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-01</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-22</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Besa Kavaje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-15</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-31</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">Apolonia Fier</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-17</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Kastrioti Kruje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-17</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Skenderbeu Korca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-13</td>\n                            <td class=\"text-end fw-bold text-primary\">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Luftetari)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-22</td>\n                            <td class=\"text-end \">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-14</td>\n                            <td class=\"text-end \">Lushnja KS</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end \">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end \">KF Laci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-08</td>\n                            <td class=\"text-end \">Besa Kavaje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-31</td>\n                            <td class=\"text-end \">KF Laci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-17</td>\n                            <td class=\"text-end \">Skenderbeu Korca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-13</td>\n                            <td class=\"text-end \">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end \">Burreli</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end \">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Luftetari</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 0</span> | \n                            <span class=\"text-muted fw-bold\">E: 6</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-22",
+      "home_team": "KS Iliria Fushe",
+      "away_team": "KF Laci",
+      "score": "1:1",
+      "handicap_line_raw": "-0.5",
+      "match_id": "2947070",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "4",
+          "away": "14"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "88",
+          "away": "114"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "35",
+          "away": "61"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-03-22",
+      "home_team": "KS Korabi Peshkopi",
+      "away_team": "Luftetari",
+      "score": "1:0",
+      "handicap_line_raw": "0.5",
+      "match_id": "2947067",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "13",
+          "away": "2"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "0"
+        },
+        {
+          "label": "Ataques",
+          "home": "101",
+          "away": "106"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "70",
+          "away": "65"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "0",
+      "goles_away": "1",
+      "handicap": "-1",
+      "match_id": "2947059",
+      "h2h_home_team_name": "KS Korabi Peshkopi",
+      "h2h_away_team_name": "KF Laci",
+      "date": "2026-03-14",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "3",
+          "away": "18"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "0",
+          "away": "7"
+        },
+        {
+          "label": "Ataques",
+          "home": "77",
+          "away": "108"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "33",
+          "away": "87"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "2:1",
+        "ah_line": "0.25",
+        "localia": "A",
+        "home_team": "KS Korabi Peshkopi",
+        "away_team": "KS Iliria Fushe",
+        "match_id": "2853691",
+        "date": "2026-01-24",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "KS Korabi Peshkopi",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "7",
+            "away": "7"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "112",
+            "away": "149"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "56",
+            "away": "82"
+          }
+        ],
+        "title_home_name": "KS Iliria Fushe",
+        "title_away_name": "Luftetari"
+      },
+      "right": {
+        "score": "2:1",
+        "ah_line": "1.75",
+        "localia": "A",
+        "home_team": "KF Laci",
+        "away_team": "Luftetari",
+        "match_id": "2947037",
+        "date": "2026-02-21",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "KF Laci",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "2",
+            "away": "1"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "1"
+          }
+        ],
+        "title_home_name": "KS Iliria Fushe",
+        "title_away_name": "Luftetari"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "1",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2853675",
+      "date1": "2025-12-13",
+      "ah6": "1",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2853675",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "KS Iliria Fushe",
+      "h2h_gen_away": "Luftetari",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "-1",
+        "match_id": "2947059",
+        "h2h_home_team_name": "KS Korabi Peshkopi",
+        "h2h_away_team_name": "KF Laci",
+        "date": "2026-03-14",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "123",
+          "away": "115"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "86",
+          "away": "53"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "1",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2853675",
+      "date1": "2025-12-13",
+      "ah6": "1",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2853675",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "KS Iliria Fushe",
+      "h2h_gen_away": "Luftetari",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "-1",
+        "match_id": "2947059",
+        "h2h_home_team_name": "KS Korabi Peshkopi",
+        "h2h_away_team_name": "KF Laci",
+        "date": "2026-03-14",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "10"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "123",
+          "away": "115"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "86",
+          "away": "53"
+        }
+      ]
+    },
+    "execution_time_seconds": 47.83,
+    "cached_at": "2026-04-12 07:16:44"
+  },
+  {
+    "match_id": "2947079",
+    "home_name": "Pogradeci",
+    "away_name": "KS Perparimi Kukesi",
+    "league_name": "Albania Kategoria e Pare",
+    "final_score": "5:1",
+    "time": "1:00:",
+    "match_date": "4/11/2026",
+    "home_standings": {
+      "name": "Pogradeci",
+      "ranking": "3",
+      "total_pj": "29",
+      "total_v": "20",
+      "total_e": "6",
+      "total_d": "3",
+      "total_gf": "59",
+      "total_gc": "25",
+      "specific_pj": "15",
+      "specific_v": "11",
+      "specific_e": "2",
+      "specific_d": "2",
+      "specific_gf": "32",
+      "specific_gc": "9",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "KS Perparimi Kukesi",
+      "ranking": "9",
+      "total_pj": "29",
+      "total_v": "7",
+      "total_e": "6",
+      "total_d": "16",
+      "total_gf": "26",
+      "total_gc": "41",
+      "specific_pj": "15",
+      "specific_v": "1",
+      "specific_e": "3",
+      "specific_d": "11",
+      "specific_gf": "8",
+      "specific_gc": "24",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Pogradeci</span>   <span style='font-weight: bold; padding: 0 4px;'>2:0</span>   <span style='color: #f97316; font-weight: bold;'>KS Perparimi Kukesi</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>1.25</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "2:0",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-13"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "2:0",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-12-13"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "Sin datos H2H Col3",
+        "senal": "-",
+        "prioridad": "N/A",
+        "recomendacion_ah": "-",
+        "explicacion": "No hay datos suficientes para análisis de triangulación",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Pogradeci)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-04-04</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:1</td>\n                            <td class=\"\">Kastrioti Kruje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">KS Iliria Fushe</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Lushnja KS</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">Burreli</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-31</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">KS Korabi Peshkopi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-17</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">Besa Kavaje</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-13</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-29</td>\n                            <td class=\"text-end fw-bold text-primary\">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">KS Iliria Fushe</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 8</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 0</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(KS Perparimi Kukesi)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-22</td>\n                            <td class=\"text-end \">Kastrioti Kruje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-14</td>\n                            <td class=\"text-end \">Burreli</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-03-01</td>\n                            <td class=\"text-end \">KS Iliria Fushe</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end \">Skenderbeu Korca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-02-07</td>\n                            <td class=\"text-end \">Kastrioti Kruje</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-24</td>\n                            <td class=\"text-end \">Luftetari</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2026-01-17</td>\n                            <td class=\"text-end \">KF Laci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-13</td>\n                            <td class=\"text-end \">Pogradeci</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-12-03</td>\n                            <td class=\"text-end \">Lushnja KS</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>348</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end \">Apolonia Fier</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">KS Perparimi Kukesi</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 6</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-04-04",
+      "home_team": "Pogradeci",
+      "away_team": "Kastrioti Kruje",
+      "score": "5:1",
+      "handicap_line_raw": "2.5",
+      "match_id": "2947072",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Ataques",
+          "home": "80",
+          "away": "56"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "47",
+          "away": "11"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-03-22",
+      "home_team": "Kastrioti Kruje",
+      "away_team": "KS Perparimi Kukesi",
+      "score": "0:2",
+      "handicap_line_raw": "0.5",
+      "match_id": "2947069",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "17",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "4",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "75",
+          "away": "77"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "47",
+          "away": "44"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "not_found",
+      "resultado": "H2H directo no encontrado para Kastrioti Kruje vs Kastrioti Kruje.",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "5:1",
+        "ah_line": "2.5",
+        "localia": "H",
+        "home_team": "Pogradeci",
+        "away_team": "Kastrioti Kruje",
+        "match_id": "2947072",
+        "date": "2026-04-04",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Kastrioti Kruje",
+        "stats_rows": [
+          {
+            "label": "Ataques",
+            "home": "80",
+            "away": "56"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "47",
+            "away": "11"
+          }
+        ],
+        "title_home_name": "Pogradeci",
+        "title_away_name": "KS Perparimi Kukesi"
+      },
+      "right": {
+        "score": "0:2",
+        "ah_line": "0.5",
+        "localia": "A",
+        "home_team": "Kastrioti Kruje",
+        "away_team": "KS Perparimi Kukesi",
+        "match_id": "2947069",
+        "date": "2026-03-22",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Kastrioti Kruje",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "17",
+            "away": "13"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "75",
+            "away": "77"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "47",
+            "away": "44"
+          }
+        ],
+        "title_home_name": "Pogradeci",
+        "title_away_name": "KS Perparimi Kukesi"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "1.25",
+      "res1": "2:0",
+      "res1_raw": "2-0",
+      "match1_id": "2853674",
+      "date1": "2025-12-13",
+      "ah6": "1.25",
+      "res6": "2:0",
+      "res6_raw": "2-0",
+      "match6_id": "2853674",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "Pogradeci",
+      "h2h_gen_away": "KS Perparimi Kukesi",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Kastrioti Kruje vs Kastrioti Kruje."
+      },
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "1.25",
+      "res1": "2:0",
+      "res1_raw": "2-0",
+      "match1_id": "2853674",
+      "date1": "2025-12-13",
+      "ah6": "1.25",
+      "res6": "2:0",
+      "res6_raw": "2-0",
+      "match6_id": "2853674",
+      "date6": "2025-12-13",
+      "h2h_gen_home": "Pogradeci",
+      "h2h_gen_away": "KS Perparimi Kukesi",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Kastrioti Kruje vs Kastrioti Kruje."
+      },
+      "stats_rows": []
+    },
+    "execution_time_seconds": 44.8,
+    "cached_at": "2026-04-12 07:16:14"
+  },
+  {
+    "match_id": "2963803",
+    "home_name": "NK GOSK Dubrovnik",
+    "away_name": "HNK Sibenik",
+    "league_name": "Croatia 3.Division",
+    "final_score": "2:1",
+    "time": "2:00:",
+    "match_date": "3/21/2026",
+    "home_standings": {
+      "name": "NK GOSK Dubrovnik",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "HNK Sibenik",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>0 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "2012-09-26"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "2012-09-26"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "INVERSA (Empate H2H)",
+        "senal": "⚖️",
+        "prioridad": "BAJA",
+        "recomendacion_ah": "-",
+        "explicacion": "El H2H Col3 fue empate. Análisis de patrón inverso requiere más datos.",
+        "etiqueta_inversa": true
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(NK GOSK Dubrovnik)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2060</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end fw-bold text-primary\">NK GOSK Dubrovnik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">NK Gosk Kastel Gomilica</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>41</td>\n                            <td>2026-01-31</td>\n                            <td class=\"text-end fw-bold text-primary\">NK GOSK Dubrovnik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"\">NK Neretva</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>41</td>\n                            <td>2026-01-24</td>\n                            <td class=\"text-end fw-bold text-primary\">NK GOSK Dubrovnik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">Jadran LP</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2060</td>\n                            <td>2024-03-30</td>\n                            <td class=\"text-end fw-bold text-primary\">NK GOSK Dubrovnik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Zmaj Makarska</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2060</td>\n                            <td>2021-10-27</td>\n                            <td class=\"text-end fw-bold text-primary\">NK GOSK Dubrovnik</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">NK Junak</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 1</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(HNK Sibenik)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2060</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end \">NK Zagora Unesic</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2060</td>\n                            <td>2026-02-28</td>\n                            <td class=\"text-end \">NK Vodice</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2060</td>\n                            <td>2025-10-01</td>\n                            <td class=\"text-end \">NK Neretva</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>62</td>\n                            <td>2025-09-10</td>\n                            <td class=\"text-end \">Varteks Varazdin</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>41</td>\n                            <td>2025-08-02</td>\n                            <td class=\"text-end \">NK Zagora Unesic</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>133</td>\n                            <td>2025-05-16</td>\n                            <td class=\"text-end \">Istra 1961 Pula</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>133</td>\n                            <td>2025-05-02</td>\n                            <td class=\"text-end \">NK Varteks Varazdin</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>133</td>\n                            <td>2025-04-22</td>\n                            <td class=\"text-end \">NK Lokomotiva Zagreb</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>133</td>\n                            <td>2025-04-11</td>\n                            <td class=\"text-end \">Slaven Belupo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">HNK Sibenik</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 5</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-07",
+      "home_team": "NK GOSK Dubrovnik",
+      "away_team": "NK Gosk Kastel Gomilica",
+      "score": "2:1",
+      "handicap_line_raw": "0.25",
+      "match_id": "2957412",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "4",
+          "away": "9"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "5"
+        },
+        {
+          "label": "Ataques",
+          "home": "94",
+          "away": "76"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "46",
+          "away": "38"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-03-07",
+      "home_team": "NK Zagora Unesic",
+      "away_team": "HNK Sibenik",
+      "score": "3:0",
+      "handicap_line_raw": "0.75",
+      "match_id": "2956121",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "19",
+          "away": "5"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "88",
+          "away": "81"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "52",
+          "away": "24"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "0",
+      "goles_away": "0",
+      "handicap": "0",
+      "match_id": "2767141",
+      "h2h_home_team_name": "NK Gosk Kastel Gomilica",
+      "h2h_away_team_name": "NK Zagora Unesic",
+      "date": "2025-04-19",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "78",
+          "away": "80"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "32",
+          "away": "43"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "3:0",
+        "ah_line": "2",
+        "localia": "A",
+        "home_team": "NK Zagora Unesic",
+        "away_team": "NK GOSK Dubrovnik",
+        "match_id": "2564958",
+        "date": "2024-04-06",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "NK Zagora Unesic",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "16",
+            "away": "9"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "8",
+            "away": "2"
+          },
+          {
+            "label": "Ataques",
+            "home": "110",
+            "away": "82"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "52",
+            "away": "30"
+          }
+        ],
+        "title_home_name": "NK GOSK Dubrovnik",
+        "title_away_name": "HNK Sibenik"
+      },
+      "right": {
+        "score": "0:2",
+        "ah_line": "1",
+        "localia": "H",
+        "home_team": "HNK Sibenik",
+        "away_team": "NK Gosk Kastel Gomilica",
+        "match_id": "2902507",
+        "date": "2025-11-23",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "NK Gosk Kastel Gomilica",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "113",
+            "away": "80"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "64",
+            "away": "27"
+          }
+        ],
+        "title_home_name": "NK GOSK Dubrovnik",
+        "title_away_name": "HNK Sibenik"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "789163",
+      "date1": "2012-09-26",
+      "ah6": "-",
+      "res6": "0:0",
+      "res6_raw": "0-0",
+      "match6_id": "789163",
+      "date6": "2012-09-26",
+      "h2h_gen_home": "NK GOSK Dubrovnik",
+      "h2h_gen_away": "HNK Sibenik",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "0",
+        "handicap": "0",
+        "match_id": "2767141",
+        "h2h_home_team_name": "NK Gosk Kastel Gomilica",
+        "h2h_away_team_name": "NK Zagora Unesic",
+        "date": "2025-04-19",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "0:0",
+      "res1_raw": "0-0",
+      "match1_id": "789163",
+      "date1": "2012-09-26",
+      "ah6": "-",
+      "res6": "0:0",
+      "res6_raw": "0-0",
+      "match6_id": "789163",
+      "date6": "2012-09-26",
+      "h2h_gen_home": "NK GOSK Dubrovnik",
+      "h2h_gen_away": "HNK Sibenik",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "0",
+        "handicap": "0",
+        "match_id": "2767141",
+        "h2h_home_team_name": "NK Gosk Kastel Gomilica",
+        "h2h_away_team_name": "NK Zagora Unesic",
+        "date": "2025-04-19",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": []
+    },
+    "execution_time_seconds": 39.57,
+    "cached_at": "2026-03-22 05:28:10"
+  },
+  {
+    "match_id": "2929095",
+    "home_name": "Comerciantes Unidos",
+    "away_name": "Universitario De Deportes",
+    "league_name": "Peru Liga 1",
+    "final_score": "0:0",
+    "time": "6:15:",
+    "match_date": "3/21/2026",
+    "home_standings": {
+      "name": "Comerciantes Unidos",
+      "ranking": "8",
+      "total_pj": "7",
+      "total_v": "3",
+      "total_e": "1",
+      "total_d": "3",
+      "total_gf": "12",
+      "total_gc": "12",
+      "specific_pj": "4",
+      "specific_v": "2",
+      "specific_e": "1",
+      "specific_d": "1",
+      "specific_gf": "6",
+      "specific_gc": "4",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Universitario De Deportes",
+      "ranking": "4",
+      "total_pj": "7",
+      "total_v": "4",
+      "total_e": "2",
+      "total_d": "1",
+      "total_gf": "11",
+      "total_gc": "7",
+      "specific_pj": "3",
+      "specific_v": "0",
+      "specific_e": "2",
+      "specific_d": "1",
+      "specific_gf": "4",
+      "specific_gc": "6",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Comerciantes Unidos</span>   <span style='font-weight: bold; padding: 0 4px;'>1:1</span>   <span style='color: #f97316; font-weight: bold;'>Universitario De Deportes</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>-1.5</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Universitario De Deportes</span>   <span style='font-weight: bold; padding: 0 4px;'>3:1</span>   <span style='color: #f97316; font-weight: bold;'>Comerciantes Unidos</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>2.25</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>4 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-02-09"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "3:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-07-19"
+      },
+      "triangulacion": {
+        "caso": 6,
+        "diagnostico": "CHOQUE DE COJOS",
+        "senal": "🗑️",
+        "prioridad": "SKIP",
+        "recomendacion_ah": "SKIP (NO BET)",
+        "explicacion": "Ambos lo hicieron mal. Partido de azar puro.",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Comerciantes Unidos)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>242</td>\n                            <td>2026-03-07</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"\">UTC Cajamarca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2026-03-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Atletico Grau</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2026-02-15</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Los Chankas</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2026-02-02</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">UCV Moquegua</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>41</td>\n                            <td>2026-01-21</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">UTC Cajamarca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"\">AD Tarma</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-11-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">Sporting Cristal</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-10-18</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Alianza Atletico Sullana</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-10-03</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">UTC Cajamarca</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-09-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Comerciantes Unidos</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">FBC Melgar</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 4</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Universitario De Deportes)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>242</td>\n                            <td>2026-03-08</td>\n                            <td class=\"text-end \">Los Chankas</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end \">Sporting Cristal</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2026-02-08</td>\n                            <td class=\"text-end \">Cusco FC</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-11-22</td>\n                            <td class=\"text-end \">Los Chankas</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-10-26</td>\n                            <td class=\"text-end \">AD Tarma</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-10-24</td>\n                            <td class=\"text-end \">Sporting Cristal</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-10-01</td>\n                            <td class=\"text-end \">Alianza Atletico Sullana</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-09-21</td>\n                            <td class=\"text-end \">UTC Cajamarca</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>242</td>\n                            <td>2025-09-14</td>\n                            <td class=\"text-end \">FBC Melgar</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Universitario De Deportes</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 5</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-07",
+      "home_team": "Comerciantes Unidos",
+      "away_team": "UTC Cajamarca",
+      "score": "1:2",
+      "handicap_line_raw": "0.25",
+      "match_id": "2929076",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "7",
+          "away": "15"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "1",
+          "away": "6"
+        },
+        {
+          "label": "Ataques",
+          "home": "42",
+          "away": "44"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "18",
+          "away": "19"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-03-08",
+      "home_team": "Los Chankas",
+      "away_team": "Universitario De Deportes",
+      "score": "3:1",
+      "handicap_line_raw": "-0.5",
+      "match_id": "2929079",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "13"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "4"
+        },
+        {
+          "label": "Ataques",
+          "home": "61",
+          "away": "126"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "26",
+          "away": "52"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "2",
+      "goles_away": "0",
+      "handicap": "0.25",
+      "match_id": "2873150",
+      "h2h_home_team_name": "UTC Cajamarca",
+      "h2h_away_team_name": "Los Chankas",
+      "date": "2025-09-29",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "16",
+          "away": "5"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "9",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "95",
+          "away": "95"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "39",
+          "away": "29"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "1:1",
+        "ah_line": "0.5",
+        "localia": "H",
+        "home_team": "Comerciantes Unidos",
+        "away_team": "Los Chankas",
+        "match_id": "2929048",
+        "date": "2026-02-15",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Los Chankas",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "10",
+            "away": "7"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "99",
+            "away": "88"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "48",
+            "away": "25"
+          }
+        ],
+        "title_home_name": "Comerciantes Unidos",
+        "title_away_name": "Universitario De Deportes"
+      },
+      "right": {
+        "score": "2:0",
+        "ah_line": "2",
+        "localia": "H",
+        "home_team": "Universitario De Deportes",
+        "away_team": "UTC Cajamarca",
+        "match_id": "2929090",
+        "date": "2026-03-15",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "UTC Cajamarca",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "20",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "6",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "132",
+            "away": "78"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "65",
+            "away": "17"
+          }
+        ],
+        "title_home_name": "Comerciantes Unidos",
+        "title_away_name": "Universitario De Deportes"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-1.5",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2726057",
+      "date1": "2025-02-09",
+      "ah6": "2.25",
+      "res6": "3:1",
+      "res6_raw": "3-1",
+      "match6_id": "2822690",
+      "date6": "2025-07-19",
+      "h2h_gen_home": "Universitario De Deportes",
+      "h2h_gen_away": "Comerciantes Unidos",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "2",
+        "goles_away": "0",
+        "handicap": "0.25",
+        "match_id": "2873150",
+        "h2h_home_team_name": "UTC Cajamarca",
+        "h2h_away_team_name": "Los Chankas",
+        "date": "2025-09-29",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "7",
+          "away": "24"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "2",
+          "away": "10"
+        },
+        {
+          "label": "Ataques",
+          "home": "59",
+          "away": "107"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "28",
+          "away": "49"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "-1.5",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2726057",
+      "date1": "2025-02-09",
+      "ah6": "2.25",
+      "res6": "3:1",
+      "res6_raw": "3-1",
+      "match6_id": "2822690",
+      "date6": "2025-07-19",
+      "h2h_gen_home": "Universitario De Deportes",
+      "h2h_gen_away": "Comerciantes Unidos",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "2",
+        "goles_away": "0",
+        "handicap": "0.25",
+        "match_id": "2873150",
+        "h2h_home_team_name": "UTC Cajamarca",
+        "h2h_away_team_name": "Los Chankas",
+        "date": "2025-09-29",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "14",
+          "away": "2"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "7",
+          "away": "2"
+        }
+      ]
+    },
+    "execution_time_seconds": 58.89,
+    "cached_at": "2026-03-22 05:11:00"
+  },
+  {
+    "match_id": "2964153",
+    "home_name": "America-RJ U20",
+    "away_name": "Cabofriense U20",
+    "league_name": "Brazilian Brazil Copa Rio OPGU20 Cup",
+    "final_score": "3:1",
+    "time": "6:00:",
+    "match_date": "3/21/2026",
+    "home_standings": {
+      "name": "America-RJ U20",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Cabofriense U20",
+      "ranking": "N/A",
+      "total_pj": "",
+      "total_v": "",
+      "total_e": "",
+      "total_d": "",
+      "total_gf": "",
+      "total_gc": "",
+      "specific_pj": "",
+      "specific_v": "",
+      "specific_e": "",
+      "specific_d": "",
+      "specific_gf": "",
+      "specific_gc": "",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>America-RJ U20</span>   <span style='font-weight: bold; padding: 0 4px;'>1:1</span>   <span style='color: #f97316; font-weight: bold;'>Cabofriense U20</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>0.25</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div style='margin-top: 10px;'>  <strong>✈️ Análisis del H2H General Más Reciente</strong>  <p style='margin: 5px 0 0 20px; font-style: italic; font-size: 0.9em;'>    El precedente es el mismo partido analizado arriba.  </p></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-09-26"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "1:1",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2025-09-26"
+      },
+      "triangulacion": {
+        "caso": 6,
+        "diagnostico": "CHOQUE DE COJOS",
+        "senal": "🗑️",
+        "prioridad": "SKIP",
+        "recomendacion_ah": "SKIP (NO BET)",
+        "explicacion": "Ambos lo hicieron mal. Partido de azar puro.",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(America-RJ U20)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>1898</td>\n                            <td>2026-03-18</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Madureira Youth</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2026-03-09</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:2</td>\n                            <td class=\"\">Gremio Sampaio U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2357</td>\n                            <td>2025-11-03</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Perolas Negras Youth</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-10-04</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">Petropolis U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-09-26</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-09-17</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">CEAC'Araruama U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2025-05-23</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Sao Cristovao U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2025-04-11</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Americano RJ U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-03-28</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"\">Boavista (RJ) Youth</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2025-03-22</td>\n                            <td class=\"text-end fw-bold text-primary\">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"\">Vasco da Gama (Youth)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 6</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 2</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Cabofriense U20)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2357</td>\n                            <td>2025-11-22</td>\n                            <td class=\"text-end \">Perolas Negras Youth</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2357</td>\n                            <td>2025-11-08</td>\n                            <td class=\"text-end \">Olaria RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-09-26</td>\n                            <td class=\"text-end \">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2025-09-17</td>\n                            <td class=\"text-end \">Sao Goncalo U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2025-06-07</td>\n                            <td class=\"text-end \">Bangu U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2024-10-26</td>\n                            <td class=\"text-end \">America-RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2024-09-21</td>\n                            <td class=\"text-end \">Artsul U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2024-09-07</td>\n                            <td class=\"text-end \">Serrano RJ U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>1898</td>\n                            <td>2024-08-23</td>\n                            <td class=\"text-end \">Vasco da Gama (Youth)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">5:0</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2153</td>\n                            <td>2023-11-10</td>\n                            <td class=\"text-end \">Artsul U20</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Cabofriense U20</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 2</span> | \n                            <span class=\"text-muted fw-bold\">E: 4</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-03-18",
+      "home_team": "America-RJ U20",
+      "away_team": "Madureira Youth",
+      "score": "3:0",
+      "handicap_line_raw": "-0.25",
+      "match_id": "2962954",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "15",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "8",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "111",
+          "away": "111"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "56",
+          "away": "63"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2025-06-07",
+      "home_team": "Bangu U20",
+      "away_team": "Cabofriense U20",
+      "score": "1:1",
+      "handicap_line_raw": "1.5",
+      "match_id": "2784428",
+      "is_different_league": false,
+      "stats_rows": []
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "3",
+      "goles_away": "1",
+      "handicap": "0.75",
+      "match_id": "2856653",
+      "h2h_home_team_name": "Madureira Youth",
+      "h2h_away_team_name": "Bangu U20",
+      "date": "2025-08-23",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "10",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "5",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "107",
+          "away": "83"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "51",
+          "away": "47"
+        }
+      ]
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "1:1",
+        "ah_line": "0",
+        "localia": "A",
+        "home_team": "Bangu U20",
+        "away_team": "America-RJ U20",
+        "match_id": "2761253",
+        "date": "2025-04-07",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Bangu U20",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "11",
+            "away": "7"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "109",
+            "away": "132"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "61",
+            "away": "65"
+          }
+        ],
+        "title_home_name": "America-RJ U20",
+        "title_away_name": "Cabofriense U20"
+      },
+      "right": {
+        "stats_rows": null,
+        "title_home_name": "America-RJ U20",
+        "title_away_name": "Cabofriense U20",
+        "rival_name": "Madureira Youth"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "0.25",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2882189",
+      "date1": "2025-09-26",
+      "ah6": "0.25",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2882189",
+      "date6": "2025-09-26",
+      "h2h_gen_home": "America-RJ U20",
+      "h2h_gen_away": "Cabofriense U20",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "3",
+        "goles_away": "1",
+        "handicap": "0.75",
+        "match_id": "2856653",
+        "h2h_home_team_name": "Madureira Youth",
+        "h2h_away_team_name": "Bangu U20",
+        "date": "2025-08-23",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "13",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "103",
+          "away": "68"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "55",
+          "away": "24"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "0.25",
+      "res1": "1:1",
+      "res1_raw": "1-1",
+      "match1_id": "2882189",
+      "date1": "2025-09-26",
+      "ah6": "0.25",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2882189",
+      "date6": "2025-09-26",
+      "h2h_gen_home": "America-RJ U20",
+      "h2h_gen_away": "Cabofriense U20",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "3",
+        "goles_away": "1",
+        "handicap": "0.75",
+        "match_id": "2856653",
+        "h2h_home_team_name": "Madureira Youth",
+        "h2h_away_team_name": "Bangu U20",
+        "date": "2025-08-23",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "13",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "6",
+          "away": "3"
+        },
+        {
+          "label": "Ataques",
+          "home": "103",
+          "away": "68"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "55",
+          "away": "24"
+        }
+      ]
+    },
+    "execution_time_seconds": 48.4,
+    "cached_at": "2026-03-22 05:10:53"
+  },
+  {
     "match_id": "2943602",
     "home_name": "Nea Artaki",
     "away_name": "Kentavros Vrilission",

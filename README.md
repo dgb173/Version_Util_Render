@@ -14,6 +14,7 @@ Scripts operativos activos:
 - `scripts/scrape_grandes_ligas.py`
 - `scripts/sync_storage.py` (utilidades import/export/status)
 - `scripts/pattern_miner_v2/*` (motor de picks para precacheo)
+- `scripts/explorador_automejora/*` (lectura de partido + argumentos + autoaprendizaje por feedback)
 
 Scripts legacy/no usados:
 - Movidos a `_legacy_archive/scripts_unused/`
@@ -72,3 +73,21 @@ py scripts/bootstrap_turso.py
 ```
 
 Ese script importa los JSON legacy a SQL y fuerza sync hacia Turso.
+
+## Sistema de lectura automejorable (Explorador)
+
+Consultar uso y comandos en:
+
+- `scripts/explorador_automejora/README.md`
+
+Comando rapido de analisis de partido:
+
+```bash
+py scripts/explorador_automejora/analyze_single_match_deep.py --project-root . --date today --team-query "nombre equipo"
+```
+
+Backtest de rigor por handicap:
+
+```bash
+py scripts/explorador_automejora/backtest_by_handicap.py --project-root . --max-matches 500 --min-history 500
+```

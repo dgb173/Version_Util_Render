@@ -2085,6 +2085,16 @@
             }
         }
 
+        function formatPredictionHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\r?\n/g, '<br>');
+        }
+
         // AI Prediction - Show team selection, then get prediction from Gemini API
         async function getAIPrediction(matchId, btnElement) {
             // Toggle: if row already exists, close it
@@ -2204,7 +2214,7 @@
                                     <span class="badge bg-success">AH: ${data.handicap}</span>
                                 </div>
                                 <div id="${predictionId}" class="p-3 bg-white rounded border shadow-sm" style="font-size: 0.95rem; line-height: 1.7; max-width: 900px;">
-                                    ${data.prediction}
+                                    ${formatPredictionHtml(data.prediction)}
                                 </div>
                             </div>
                             <button class="btn btn-sm btn-outline-secondary ms-3" onclick="copyAIPrediction('${predictionId}')" title="Copiar texto">

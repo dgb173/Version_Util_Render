@@ -1,0 +1,164 @@
+{
+  "match": {
+    "match_id": "2922235",
+    "home": "Fortaleza F.C",
+    "away": "Deportivo Pasto",
+    "league": "Categoria Primera A",
+    "kickoff": "3/25/2026 1:00:",
+    "ah_home_line": 0.25,
+    "ah_text": "Home -0.25",
+    "ou_line": 2.0
+  },
+  "scores": {
+    "home_score": 1.662,
+    "away_score": -1.15,
+    "edge_home_minus_away": 2.812,
+    "draw_risk": 0.6
+  },
+  "pick": {
+    "recommended_bet": "Fortaleza F.C 0",
+    "confidence": "MEDIA",
+    "reason": "Hay sesgo local, pero la linea corta aconseja version conservadora."
+  },
+  "blocks": [
+    {
+      "block": "h2h_stadium",
+      "side": "HOME",
+      "weight": 2.4,
+      "raw_value": 1.75,
+      "contribution": 2.355,
+      "detail": "Precedente en este estadio reexpresado con la linea actual"
+    },
+    {
+      "block": "h2h_general",
+      "side": "HOME",
+      "weight": 1.9,
+      "raw_value": 1.75,
+      "contribution": 1.865,
+      "detail": "H2H general reexpresado con la linea actual"
+    },
+    {
+      "block": "ind_left",
+      "side": "HOME",
+      "weight": 1.55,
+      "raw_value": -1.5,
+      "contribution": -1.494,
+      "detail": "Fortaleza F.C vs rival comun Deportiva Once Caldas"
+    },
+    {
+      "block": "prev_away",
+      "side": "AWAY",
+      "weight": 1.15,
+      "raw_value": -1.5,
+      "contribution": -1.109,
+      "detail": "Deportivo Pasto previa fuera residual=-1.5"
+    },
+    {
+      "block": "h2h_general_movement",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": -0.583,
+      "contribution": -0.67,
+      "detail": "Movimiento de linea general hacia local=-0.5"
+    },
+    {
+      "block": "h2h_stadium_movement",
+      "side": "HOME",
+      "weight": 1.0,
+      "raw_value": -0.583,
+      "contribution": -0.583,
+      "detail": "Movimiento de linea estadio hacia local=-0.5"
+    },
+    {
+      "block": "ind_left_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": -0.446,
+      "contribution": -0.201,
+      "detail": "Soporte estadistico del local contra rival comun"
+    },
+    {
+      "block": "h2h_stadium_stats",
+      "side": "HOME",
+      "weight": 0.5,
+      "raw_value": 0.311,
+      "contribution": 0.155,
+      "detail": "Soporte estadistico H2H estadio"
+    },
+    {
+      "block": "h2h_general_stats",
+      "side": "HOME",
+      "weight": 0.45,
+      "raw_value": 0.311,
+      "contribution": 0.14,
+      "detail": "Soporte estadistico H2H general"
+    },
+    {
+      "block": "prev_home_stats",
+      "side": "HOME",
+      "weight": 0.55,
+      "raw_value": 0.172,
+      "contribution": 0.094,
+      "detail": "Soporte estadistico del local en su previa de casa"
+    },
+    {
+      "block": "prev_away_stats",
+      "side": "AWAY",
+      "weight": 0.55,
+      "raw_value": -0.075,
+      "contribution": -0.041,
+      "detail": "Soporte estadistico del visitante en su previa fuera"
+    },
+    {
+      "block": "prev_home",
+      "side": "HOME",
+      "weight": 1.15,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Fortaleza F.C previa casa residual=0"
+    },
+    {
+      "block": "ind_right_stats",
+      "side": "AWAY",
+      "weight": 0.45,
+      "raw_value": 0.0,
+      "contribution": 0.0,
+      "detail": "Soporte estadistico del visitante contra rival comun"
+    }
+  ],
+  "diagnostics": {
+    "prev_home": {
+      "margin": 1,
+      "team_line": 1.0,
+      "residual": 0.0
+    },
+    "prev_away": {
+      "margin": -2,
+      "team_line": -0.5,
+      "residual": -1.5
+    },
+    "h2h_stadium": {
+      "margin": 2,
+      "hist_home_line": 0.75,
+      "residual_current": 1.75,
+      "movement_to_home": -0.5
+    },
+    "h2h_general": {
+      "margin": 2,
+      "hist_home_line": 0.75,
+      "residual_current": 1.75,
+      "movement_to_home": -0.5
+    },
+    "ind_left": {
+      "margin": -2,
+      "team_line": -0.5,
+      "residual": -1.5
+    },
+    "ind_right": {
+      "margin": null,
+      "team_line": null,
+      "residual": null
+    }
+  },
+  "summary_text": "Linea actual Home -0.25 | score_home=1.66 score_away=-1.15 edge=2.81. DrawRisk=60.0%. Pick=Fortaleza F.C 0."
+}

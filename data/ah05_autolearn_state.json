@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "updated_at": "2026-03-25T04:34:39Z",
+  "global_ah05": {
+    "weighted_samples": 75.61931035275026,
+    "weighted_non_push": 75.61931035275026,
+    "weighted_fav_cover": 33.070181954500725,
+    "weighted_und_cover": 42.54912839824954,
+    "weighted_push": 0.0,
+    "weighted_draw": 21.10413078293608
+  },
+  "contexts": {
+    "fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=LOW|col3_wdl=HOME_WIN": {
+      "weighted_samples": 68.46641204379746,
+      "weighted_non_push": 68.46641204379746,
+      "weighted_fav_cover": 26.21653995533349,
+      "weighted_und_cover": 42.24987208846398,
+      "weighted_push": 0.0,
+      "weighted_draw": 20.31740277105722
+    },
+    "fav_side=HOME|movement_pair=DOWN|DOWN|ou_band=LOW|draw_risk_band=LOW|col3_wdl=DRAW": {
+      "weighted_samples": 12.616283603508974,
+      "weighted_non_push": 12.616283603508974,
+      "weighted_fav_cover": 5.221709865905822,
+      "weighted_und_cover": 7.3945737376031495,
+      "weighted_push": 0.0,
+      "weighted_draw": 3.7576979218714515
+    },
+    "fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=HIGH|col3_wdl=AWAY_WIN": {
+      "weighted_samples": 44.94948827394401,
+      "weighted_non_push": 44.94948827394401,
+      "weighted_fav_cover": 23.678720102928562,
+      "weighted_und_cover": 21.270768171015447,
+      "weighted_push": 0.0,
+      "weighted_draw": 11.098450611964797
+    }
+  },
+  "ingested_targets": {
+    "2026-03-25::2943058::fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=LOW|col3_wdl=HOME_WIN": {
+      "target_match_id": "2943058",
+      "context_key": "fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=LOW|col3_wdl=HOME_WIN",
+      "rows": 40,
+      "added_weight": 68.4664,
+      "at": "2026-03-25T04:00:22Z"
+    },
+    "2026-03-25::2922235::fav_side=HOME|movement_pair=DOWN|DOWN|ou_band=LOW|draw_risk_band=LOW|col3_wdl=DRAW": {
+      "target_match_id": "2922235",
+      "context_key": "fav_side=HOME|movement_pair=DOWN|DOWN|ou_band=LOW|draw_risk_band=LOW|col3_wdl=DRAW",
+      "rows": 7,
+      "added_weight": 12.6163,
+      "at": "2026-03-25T04:27:04Z"
+    },
+    "2026-03-25::2960536::fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=HIGH|col3_wdl=AWAY_WIN": {
+      "target_match_id": "2960536",
+      "context_key": "fav_side=HOME|movement_pair=FLAT|FLAT|ou_band=LOW|draw_risk_band=HIGH|col3_wdl=AWAY_WIN",
+      "rows": 27,
+      "added_weight": 44.9495,
+      "at": "2026-03-25T04:34:39Z"
+    }
+  },
+  "feedback_log": {}
+}

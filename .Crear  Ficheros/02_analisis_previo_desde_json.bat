@@ -54,7 +54,13 @@ if exist "data\data_precacheo.json" (
 set "JOB_FILE=%CD%\temp_matches_job.json"
 echo.
 echo Construyendo JSON de partidos desde snapshot SQL...
-"%PYTHON_CMD%" "scripts\build_job_from_snapshot.py" --db "data\app_data.db" --cache-key "app_main_page_cache_v1" --out "%JOB_FILE%"
+if /I "%FORCE_FULL_PRECACHE%"=="1" (
+    echo Modo completo activado: se reprocesan tambien los ya cacheados.
+    "%PYTHON_CMD%" "scripts\build_job_from_snapshot.py" --db "data\app_data.db" --cache-key "app_main_page_cache_v1" --out "%JOB_FILE%" --include-existing
+) else (
+    echo Modo incremental activado: se saltan partidos ya analizados si el precache sigue siendo reutilizable.
+    "%PYTHON_CMD%" "scripts\build_job_from_snapshot.py" --db "data\app_data.db" --cache-key "app_main_page_cache_v1" --out "%JOB_FILE%"
+)
 set "EXPORT_EXIT=%ERRORLEVEL%"
 
 if not "%EXPORT_EXIT%"=="0" (
