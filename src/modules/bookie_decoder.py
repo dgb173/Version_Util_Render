@@ -1,4 +1,5 @@
 import math
+from datetime import datetime
 
 def parse_line(line_str):
     if line_str is None or line_str == '' or line_str == 'N/A':
@@ -42,7 +43,7 @@ def analyze_match_bookie_logic(match_data):
     
     odds = match_data.get('main_match_odds', {})
     ah_now = parse_line(odds.get('ah_linea', '0'))
-    ou_now = parse_line(odds.get('goals_linea', '2.25'))
+    ou_now = parse_line(odds.get('goals_linea', '2.5'))
 
     is_away_fav = ah_now < 0
     is_home_fav = ah_now > 0
@@ -50,10 +51,13 @@ def analyze_match_bookie_logic(match_data):
 
     prev_h = match_data.get('last_home_match', {})
     prev_a = match_data.get('last_away_match', {})
+    
+    # Análisis de Recencia (Factor Crítico)
+    # Si la goleada es vieja, bajamos el peso.
     st_h = get_detailed_stats(prev_h.get('stats_rows', []), home_name, prev_h.get('home_team'))
     st_a = get_detailed_stats(prev_a.get('stats_rows', []), away_name, prev_a.get('home_team'))
     
-    # Análisis de Col3 Quirúrgico
+    # Col3 Forense
     comp = match_data.get('comparativas_indirectas', {})
     ind_l = comp.get('left', {})
     ind_r = comp.get('right', {})
@@ -65,25 +69,30 @@ def analyze_match_bookie_logic(match_data):
 
     report = {"universe": f"AH {ah_now} | O/U {ou_now}", "labels": [], "justification": [], "recommendation": "Neutral", "confidence": "Baja"}
 
-    # LEY DE DOMINANCIA MINIMALISTA (CASO WATERHOUSE 1-0)
-    # Si la liga es de pocos goles y hay superioridad Col3, ignoramos SOT bajo.
-    if ou_now <= 2.25 and abs(diff_f) >= 1.0:
+    # --- NUEVA REGLA: CEBO DE GOLEADA (CASO ENERGETIK - FAIL) ---
+    if abs(ah_now) >= 2.0:
+        # Si le piden ganar por 3 y no viene de golear en el ultimo, es peligroso.
+        h_prev, a_prev = parse_score(prev_h.get('score', '')) if is_home_fav else parse_score(prev_a.get('score', ''))
+        margen_prev = abs(h_prev - a_prev) if h_prev is not None else 0
+        if margen_prev < 2:
+            report["labels"].append("Cebo de Goleada (Peligro AH Largo)")
+            report["justification"].append(f"La casa de apuestas exige una victoria por 3 o más goles ({ah_now}), pero el favorito no viene de una dinámica de goleada reciente. Es una trampa basada en el historial antiguo del rival. El AH negativo es de altísimo riesgo.")
+            report["recommendation"] = f"Underdog AH +{abs(ah_now)} / Under {ou_now}"; report["confidence"] = "Media"
+            return report
+
+    # LEY DE DOMINANCIA MINIMALISTA (Para hándicaps cortos)
+    if ou_now <= 2.25 and abs(ah_now) <= 0.75 and abs(diff_f) >= 1.0:
         if (is_home_fav and diff_f >= 1.0) or (is_away_fav and diff_f <= -1.0):
             report["labels"].append("Dominancia Minimalista (Efecto 1-0)")
-            report["justification"].append(f"En ligas de baja anotación, el diferencial Col3 de +{abs(diff_f)} es el factor clave. Aunque el volumen de tiros es bajo, {fav_name} es tácticamente muy superior y el rival es inofensivo. Victoria por la mínima altamente probable.")
+            report["justification"].append(f"Superioridad táctica en liga de baja anotación. {fav_name} ganará por la mínima.")
             report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Extrema"
             return report
 
-    # FACTOR GUASTATOYA (DIFERENCIAL CRÍTICO)
+    # DIFERENCIAL DE FUERZA CRÍTICO (FACTOR GUASTATOYA)
     if (is_home_fav and diff_f >= 1.5) or (is_away_fav and diff_f <= -1.5):
         report["labels"].append("Diferencial de Fuerza Crítico")
-        report["justification"].append(f"La Col3 revela una superioridad masiva de +{abs(diff_f)} goles que el hándicap actual ignora. Confianza máxima en la pegada del favorito.")
-        report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Extrema"
-        return report
-
-    # FACTOR SVAY RIENG (LÍNEA ESTANCADA)
-    # (Mantenemos las otras reglas pero con menor prioridad que Col3)
-    # ... [Resto de lógica simplificada para optimizar] ...
+        report["justification"].append(f"Superioridad masiva detectada en Col3 (+{abs(diff_f)}). El hándicap no refleja la realidad.")
+        report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Alta"
 
     if not report["labels"]:
         report["labels"].append("Mercado Equilibrado"); report["recommendation"] = "Neutral"
