@@ -21,135 +21,104 @@ def parse_score(score_str):
         return None, None
 
 def get_detailed_stats(stats_rows, team_name, home_team_in_match):
-    """Extrae métricas quirúrgicas: SOT, DA, y Ratio de Conversión."""
     if not stats_rows:
         return {"sot": 0, "da": 0, "efficiency": 0}
-    
     is_home = (team_name == home_team_in_match)
     sot = 0
     da = 0
-    
     for row in stats_rows:
         label = row.get('label', '').lower()
         h_val = str(row.get('home', '0'))
         a_val = str(row.get('away', '0'))
-        
         val = int(h_val if is_home else a_val) if (h_val.isdigit() or a_val.isdigit()) else 0
-        
         if 'tiros a puerta' in label or 'sot' in label: sot = val
         elif 'ataques peligrosos' in label or 'da' in label: da = val
-            
     efficiency = (sot / da * 100) if da > 0 else 0
     return {"sot": sot, "da": da, "efficiency": efficiency}
 
-def calculate_ive_complex(score_str, ah_line, is_home):
-    """IVE Quirúrgico: Validación de la promesa del hándicap."""
+def calculate_ive_infalible(score_str, ah_line, is_favorite_winner):
+    """
+    IVE Infalible: Calcula cuánto superó un equipo la línea.
+    is_favorite_winner: True si el equipo analizado era el favorito.
+    """
     h, a = parse_score(score_str)
     if h is None: return 0
-    margin = h - a
-    ah = parse_line(ah_line)
-    return (margin + ah) if is_home else ((-margin) - ah)
+    margin = abs(h - a)
+    ah_abs = abs(parse_line(ah_line))
+    
+    # Si ganó el que debía ganar, el IVE es el margen menos lo que le pedían.
+    # Si era -0.5 y ganó 3-0, margin=3, ah=0.5 -> IVE = 2.5
+    # Si empató, margin=0, ah=0.5 -> IVE = -0.5
+    return margin - ah_abs if is_favorite_winner else margin + ah_abs
 
 def analyze_match_bookie_logic(match_data):
-    """
-    MOTOR QUIRÚRGICO DE DECODIFICACIÓN (VERSIÓN INFALIBLE).
-    Basado en el lenguaje de micro-fricción y divergencia de mercados.
-    """
     home_name = match_data.get('home_name', 'Local')
     away_name = match_data.get('away_name', 'Visitante')
     
-    # --- 1. CAPA DE MERCADO ACTUAL ---
+    # --- 1. MERCADO ACTUAL (CONVENCIÓN: MINUS = VISITANTE) ---
     odds = match_data.get('main_match_odds', {})
     ah_now = parse_line(odds.get('ah_linea', '0'))
     ou_now = parse_line(odds.get('goals_linea', '2.5'))
-    if ou_now == 0: ou_now = 2.5
 
-    # --- 2. CAPA FORENSE (MEMORIA DE LARGO PLAZO) ---
+    # Quién es el favorito según tu lenguaje
+    is_away_fav = ah_now < 0
+    is_home_fav = ah_now > 0
+    fav_name = away_name if is_away_fav else (home_name if is_home_fav else "Ninguno")
+
+    # --- 2. DATOS FORENSES ---
     prev_h = match_data.get('last_home_match', {})
     prev_a = match_data.get('last_away_match', {})
     
-    # Stats quirúrgicas
     st_h = get_detailed_stats(prev_h.get('stats_rows', []), home_name, prev_h.get('home_team'))
     st_a = get_detailed_stats(prev_a.get('stats_rows', []), away_name, prev_a.get('home_team'))
     
-    # IVEs (Éxito previo)
-    ive_h = calculate_ive_complex(prev_h.get('score', ''), prev_h.get('handicap_line_raw', '0'), prev_h.get('home_team') == home_name)
-    ive_a = calculate_ive_complex(prev_a.get('score', ''), prev_a.get('handicap_line_raw', '0'), prev_a.get('home_team') == away_name)
+    # IVEs precisos
+    ive_h = calculate_ive_infalible(prev_h.get('score', ''), prev_h.get('handicap_line_raw', '0'), True)
+    ive_a = calculate_ive_infalible(prev_a.get('score', ''), prev_a.get('handicap_line_raw', '0'), True)
     
-    # --- 3. ANÁLISIS DE COL3 (INDIRECTAS DE ALTA PRECISIÓN) ---
+    # --- 3. COL3 (DIFERENCIAL DE FUERZA) ---
     comp = match_data.get('comparativas_indirectas', {})
     ind_l = comp.get('left', {})
     ind_r = comp.get('right', {})
-    
     score_l_h, score_l_r = parse_score(ind_l.get('score', ''))
     score_r_h, score_r_r = parse_score(ind_r.get('score', ''))
-    
-    # Diferencial de fuerza indirecta (Si Local ganó 3-0 y Visitante perdió 0-1 contra el mismo rival)
-    fuerza_ind_h = (score_l_h - score_l_r) if score_l_h is not None else -99
-    fuerza_ind_a = (score_r_r - score_r_h) if score_r_r is not None else -99 # Invertimos porque r es el visitante actual
+    f_ind_h = (score_l_h - score_l_r) if score_l_h is not None else -99
+    f_ind_a = (score_r_r - score_r_h) if score_r_r is not None else -99
 
-    # --- 4. DECODIFICACIÓN DE ANOMALÍAS ---
     report = {
-        "universe": f"AH {ah_now} | O/U {ou_now}",
-        "labels": [],
-        "justification": [],
-        "recommendation": "Neutral",
-        "confidence": "Baja"
+        "universe": f"AH {ah_now} ({'V-Fav' if is_away_fav else 'L-Fav'}) | O/U {ou_now}",
+        "labels": [], "justification": [], "recommendation": "Neutral", "confidence": "Baja"
     }
 
-    # REGLA MAESTRA 1: EL FAVORITO INFRAVALORADO (FACTOR SVAY RIENG)
-    # Si el favorito (sea L o V) viene de un IVE masivo y la línea NO sube o incluso baja.
-    fav_ive = ive_h if ah_now < 0 else (ive_a if ah_now > 0 else max(ive_h, ive_a))
-    prev_fav_ah = parse_line(prev_h.get('handicap_line_raw', '0')) if ah_now < 0 else parse_line(prev_a.get('handicap_line_raw', '0'))
+    # REGLA 1: FACTOR SVAY RIENG (LÍNEA ESTANCADA)
+    fav_prev_ah = parse_line(prev_a.get('handicap_line_raw', '0')) if is_away_fav else parse_line(prev_h.get('handicap_line_raw', '0'))
+    fav_ive = ive_a if is_away_fav else ive_h
     
-    if fav_ive >= 1.5 and abs(ah_now) <= abs(prev_fav_ah):
-        target = home_name if ah_now < 0 else away_name
-        report["labels"].append("Infravaloración por Línea Estancada")
-        report["justification"].append(f"Anomalía Crítica: {target} viene de una goleada/éxito masivo fuera de su línea previa (IVE: {fav_ive:.1f}), pero la casa de apuestas MANTIENE o BAJA su exigencia hoy. Es un cebo de desconfianza; el soporte estructural es muy superior a la cuota.")
-        report["recommendation"] = f"{target} AH {ah_now}"
-        report["confidence"] = "Extrema"
+    if fav_ive >= 1.5 and abs(ah_now) <= abs(fav_prev_ah):
+        report["labels"].append("Infravaloración Crítica (Factor Svay Rieng)")
+        report["justification"].append(f"El favorito ({fav_name}) destrozó su línea previa (IVE: {fav_ive}), pero el bookie mantiene el hándicap en {ah_now}. Es una trampa de desprecio absoluta.")
+        report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Extrema"
 
-    # REGLA MAESTRA 2: DIVERGENCIA CRUZADA (Goles vs Hándicap)
-    if ou_now >= 2.75 and abs(ah_now) <= 0.25:
+    # REGLA 2: FACTOR GUASTATOYA (DIFERENCIAL COL3)
+    diff_f = f_ind_h - f_ind_a
+    if (is_home_fav and diff_f >= 1.5) or (is_away_fav and diff_f <= -1.5):
+        report["labels"].append("Diferencial de Fuerza Crítico")
+        report["justification"].append(f"La Col3 revela una superioridad de +{abs(diff_f)} goles que el hándicap actual no paga. {fav_name} es mucho más fuerte de lo que dice su cuota.")
+        report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Extrema"
+
+    # REGLA 3: PÓLVORA MOJADA (EL CASO SAN ANTONIO)
+    if is_home_fav and ive_h <= 0 and st_h['sot'] >= 10:
+        report["labels"].append("Aviso: Pólvora Mojada")
+        report["justification"].append(f"{home_name} domina y tira (SOT: {st_h['sot']}), pero no concreta (IVE: {ive_h}). El hándicap es peligroso por falta de pegada real.")
+        report["recommendation"] = "Evitar Local o buscar Under"; report["confidence"] = "Media"
+
+    # REGLA 4: DIVERGENCIA OU
+    if ou_now >= 3.0 and abs(ah_now) <= 0.25:
         report["labels"].append("Divergencia de Intercambio")
-        report["justification"].append("Contradicción detectada: La casa espera muchos goles pero no se atreve a dar un favorito claro. Indica un partido roto donde el Over es la salida lógica ante la inseguridad del bookie en el hándicap.")
-        report["recommendation"] = f"Over {ou_now}"
-        report["confidence"] = "Alta"
+        report["justification"].append("La casa espera goleada pero no se moja con el favorito. El Over es más seguro que el hándicap.")
+        report["recommendation"] = f"Over {ou_now}"; report["confidence"] = "Alta"
 
-    # REGLA MAESTRA 3: EL ESCUDO DE COL3 QUIRÚRGICO (FACTOR GUASTATOYA)
-    diff_fuerza = fuerza_ind_h - fuerza_ind_a
-    # Ajustar diferencial según quién es el favorito actual
-    if ah_now < 0 and diff_fuerza >= 1.5: # Local favorito y Col3 le da la razón
-        report["labels"].append("Diferencial de Fuerza Crítico (Factor Guastatoya)")
-        report["justification"].append(f"Análisis quirúrgico: El diferencial de fuerza indirecta es masivo (+{diff_fuerza}). El hándicap de {ah_now} infravalora la pegada real del Local demostrada en Col3.")
-        report["recommendation"] = f"Local AH {ah_now} | Posible Goleada"
-        report["confidence"] = "Extrema"
-    elif ah_now > 0 and diff_fuerza <= -1.5: # Visitante favorito y Col3 le da la razón
-        report["labels"].append("Diferencial de Fuerza Crítico (Visitante)")
-        report["justification"].append(f"Análisis quirúrgico: El Visitante ({away_name}) tiene un diferencial Col3 de +{abs(diff_fuerza)} goles. La línea de {ah_now} es ridículamente corta para su superioridad real.")
-        report["recommendation"] = f"Visitante AH {ah_now}"
-        report["confidence"] = "Extrema"
-
-    # REGLA MAESTRA 4: BURBUJA DE GOLES (Análisis de SOT Total)
-    total_prev_sot = st_h['sot'] + st_a['sot']
-    if ou_now >= 2.5 and total_prev_sot < 6 and ive_h < 0 and ive_a < 0:
-        report["labels"].append("Burbuja de Goles Detectada")
-        report["justification"].append(f"La línea de {ou_now} es un cebo. Ambos equipos promedian apenas {total_prev_sot} tiros a puerta combinados y vienen de fallar sus promesas de gol (IVEs negativos).")
-        report["recommendation"] = f"Under {ou_now}"
-        report["confidence"] = "Alta"
-
-    # REGLA MAESTRA 5: RESISTENCIA DE TITANIO (Underdog en racha de eficiencia)
-    if ah_now >= 0.5 and st_h['efficiency'] > 15 and ive_h > 0.5:
-        report["labels"].append("Resistencia de Titanio")
-        report["justification"].append(f"{home_name} llega como Underdog, pero su ratio de conversión ({st_h['efficiency']:.1f}%) es de equipo de Champions. La casa le regala medio gol de ventaja a un equipo que no perdona.")
-        report["recommendation"] = f"Local AH +{ah_now}"
-        report["confidence"] = "Alta"
-
-    # SÍNTESIS FINAL
     if not report["labels"]:
-        report["labels"].append("Mercado Equilibrado")
-        report["justification"].append("Tras el análisis quirúrgico de tiros, eficiencia, IVE y Col3, no se detectan anomalías de colocación. La casa ha ajustado las cuotas a la perfección estadística.")
-        report["recommendation"] = "Evitar (No hay ventaja)"
-        report["confidence"] = "Baja"
+        report["labels"].append("Mercado Sincero"); report["recommendation"] = "Neutral"
 
     return report
