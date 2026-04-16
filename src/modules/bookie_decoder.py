@@ -97,35 +97,38 @@ def analyze_match_bookie_logic(match_data):
         "confidence": "Baja"
     }
 
-    # REGLA MAESTRA 1: LA TRAMPA DE LA DEGRADACIÓN (Hándicap vs Eficiencia)
-    delta_ah = ah_now - parse_line(prev_h.get('handicap_line_raw', '0'))
-    if delta_ah > 0.4 and st_h['sot'] >= 6 and ive_h >= 0:
-        # El mercado le quita favoritismo (delta > 0), pero el equipo cumplió y tiró mucho.
-        report["labels"].append("Ocultamiento de Valor (Hándicap)")
-        report["justification"].append(f"La casa 'castiga' a {home_name} bajándole el hándicap ({ah_now}), ignorando que en su último partido tuvo una eficiencia brutal ({st_h['efficiency']:.1f}%) y cumplió su misión. El bookie quiere que desconfíes de su superioridad.")
-        report["recommendation"] = f"Local AH {ah_now}"
-        report["confidence"] = "Alta"
+    # REGLA MAESTRA 1: EL FAVORITO INFRAVALORADO (FACTOR SVAY RIENG)
+    # Si el favorito (sea L o V) viene de un IVE masivo y la línea NO sube o incluso baja.
+    fav_ive = ive_h if ah_now < 0 else (ive_a if ah_now > 0 else max(ive_h, ive_a))
+    prev_fav_ah = parse_line(prev_h.get('handicap_line_raw', '0')) if ah_now < 0 else parse_line(prev_a.get('handicap_line_raw', '0'))
+    
+    if fav_ive >= 1.5 and abs(ah_now) <= abs(prev_fav_ah):
+        target = home_name if ah_now < 0 else away_name
+        report["labels"].append("Infravaloración por Línea Estancada")
+        report["justification"].append(f"Anomalía Crítica: {target} viene de una goleada/éxito masivo fuera de su línea previa (IVE: {fav_ive:.1f}), pero la casa de apuestas MANTIENE o BAJA su exigencia hoy. Es un cebo de desconfianza; el soporte estructural es muy superior a la cuota.")
+        report["recommendation"] = f"{target} AH {ah_now}"
+        report["confidence"] = "Extrema"
 
     # REGLA MAESTRA 2: DIVERGENCIA CRUZADA (Goles vs Hándicap)
-    # Si la línea de goles es alta (>2.75) pero el hándicap es corto (<0.5)
     if ou_now >= 2.75 and abs(ah_now) <= 0.25:
         report["labels"].append("Divergencia de Intercambio")
-        report["justification"].append("Contradicción detectada: La casa espera muchos goles pero no se atreve a dar un favorito. Esto indica un partido roto tácticamente donde el Over es la salida lógica ante la inseguridad del bookie en el hándicap.")
+        report["justification"].append("Contradicción detectada: La casa espera muchos goles pero no se atreve a dar un favorito claro. Indica un partido roto donde el Over es la salida lógica ante la inseguridad del bookie en el hándicap.")
         report["recommendation"] = f"Over {ou_now}"
         report["confidence"] = "Alta"
 
     # REGLA MAESTRA 3: EL ESCUDO DE COL3 QUIRÚRGICO (FACTOR GUASTATOYA)
     diff_fuerza = fuerza_ind_h - fuerza_ind_a
-    if diff_fuerza >= 1.5 and ah_now >= -0.5:
+    # Ajustar diferencial según quién es el favorito actual
+    if ah_now < 0 and diff_fuerza >= 1.5: # Local favorito y Col3 le da la razón
         report["labels"].append("Diferencial de Fuerza Crítico (Factor Guastatoya)")
-        report["justification"].append(f"Análisis quirúrgico de éxito: El diferencial de fuerza indirecta es masivo (+{diff_fuerza}). Mientras {home_name} destrozó al rival común, {away_name} fue ineficiente. El hándicap de {ah_now} es un error grave de bulto del bookie basado en la tabla, no en la pegada real.")
+        report["justification"].append(f"Análisis quirúrgico: El diferencial de fuerza indirecta es masivo (+{diff_fuerza}). El hándicap de {ah_now} infravalora la pegada real del Local demostrada en Col3.")
         report["recommendation"] = f"Local AH {ah_now} | Posible Goleada"
-        report["confidence"] = "Extrema (Infalible)"
-    elif diff_fuerza > 0.5 and ah_now >= -0.25:
-        report["labels"].append("Diferencial de Fuerza Oculto")
-        report["justification"].append(f"Análisis Col3 quirúrgico: {home_name} rindió mejor ante el rival común. El diferencial de +{diff_fuerza} goles indirectos no está reflejado en el hándicap actual.")
-        report["recommendation"] = f"Local AH {ah_now}"
-        report["confidence"] = "Alta"
+        report["confidence"] = "Extrema"
+    elif ah_now > 0 and diff_fuerza <= -1.5: # Visitante favorito y Col3 le da la razón
+        report["labels"].append("Diferencial de Fuerza Crítico (Visitante)")
+        report["justification"].append(f"Análisis quirúrgico: El Visitante ({away_name}) tiene un diferencial Col3 de +{abs(diff_fuerza)} goles. La línea de {ah_now} es ridículamente corta para su superioridad real.")
+        report["recommendation"] = f"Visitante AH {ah_now}"
+        report["confidence"] = "Extrema"
 
     # REGLA MAESTRA 4: BURBUJA DE GOLES (Análisis de SOT Total)
     total_prev_sot = st_h['sot'] + st_a['sot']
