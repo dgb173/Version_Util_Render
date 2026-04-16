@@ -20,9 +20,10 @@ def parse_score(score_str):
     except (ValueError, IndexError):
         return None, None
 
-def get_stats_value(stats_rows, team_name, home_team_in_match):
+def get_detailed_stats(stats_rows, team_name, home_team_in_match):
+    """Extrae métricas quirúrgicas: SOT, DA, y Ratio de Conversión."""
     if not stats_rows:
-        return 0, 0
+        return {"sot": 0, "da": 0, "efficiency": 0}
     
     is_home = (team_name == home_team_in_match)
     sot = 0
@@ -33,237 +34,113 @@ def get_stats_value(stats_rows, team_name, home_team_in_match):
         h_val = str(row.get('home', '0'))
         a_val = str(row.get('away', '0'))
         
-        if 'tiros a puerta' in label or 'sot' in label:
-            val = h_val if is_home else a_val
-            sot = int(val) if val.isdigit() else 0
-        elif 'ataques peligrosos' in label or 'da' in label:
-            val = h_val if is_home else a_val
-            da = int(val) if val.isdigit() else 0
-    return sot, da
+        val = int(h_val if is_home else a_val) if (h_val.isdigit() or a_val.isdigit()) else 0
+        
+        if 'tiros a puerta' in label or 'sot' in label: sot = val
+        elif 'ataques peligrosos' in label or 'da' in label: da = val
+            
+    efficiency = (sot / da * 100) if da > 0 else 0
+    return {"sot": sot, "da": da, "efficiency": efficiency}
 
-def get_total_match_stats(stats_rows):
-    """Calcula los tiros a puerta totales (Local + Visitante) en un partido."""
-    if not stats_rows:
-        return 0, 0
-    total_sot = 0
-    total_da = 0
-    for row in stats_rows:
-        label = row.get('label', '').lower()
-        h_val = str(row.get('home', '0'))
-        a_val = str(row.get('away', '0'))
-        if 'tiros a puerta' in label or 'sot' in label:
-            total_sot = (int(h_val) if h_val.isdigit() else 0) + (int(a_val) if a_val.isdigit() else 0)
-        elif 'ataques peligrosos' in label or 'da' in label:
-            total_da = (int(h_val) if h_val.isdigit() else 0) + (int(a_val) if a_val.isdigit() else 0)
-    return total_sot, total_da
-
-def calculate_ive(score_str, ah_line, is_home):
-    """Calcula el Índice de Validación de Exigencia (IVE) para Hándicap"""
+def calculate_ive_complex(score_str, ah_line, is_home):
+    """IVE Quirúrgico: Validación de la promesa del hándicap."""
     h, a = parse_score(score_str)
     if h is None: return 0
-    
     margin = h - a
     ah = parse_line(ah_line)
-    
-    if is_home:
-        return margin + ah 
-    else:
-        return (-margin) - ah 
-
-def calculate_ive_ou(score_str, ou_line):
-    """Calcula el Índice de Validación de Exigencia (IVE) para Over/Under"""
-    h, a = parse_score(score_str)
-    if h is None: return 0
-    total_goals = h + a
-    ou = parse_line(ou_line)
-    return total_goals - ou
+    return (margin + ah) if is_home else ((-margin) - ah)
 
 def analyze_match_bookie_logic(match_data):
     """
-    SISTEMA UNIVERSAL INFALIBLE DE DECODIFICACIÓN DE LA MENTE DEL BOOKIE.
-    Analiza anomalías en Hándicap Asiático y Over/Under.
+    MOTOR QUIRÚRGICO DE DECODIFICACIÓN (VERSIÓN INFALIBLE).
+    Basado en el lenguaje de micro-fricción y divergencia de mercados.
     """
     home_name = match_data.get('home_name', 'Local')
     away_name = match_data.get('away_name', 'Visitante')
     
-    # 1. Datos del Mercado Actual
+    # --- 1. CAPA DE MERCADO ACTUAL ---
     odds = match_data.get('main_match_odds', {})
-    ah_actual = parse_line(odds.get('ah_linea', '0'))
-    ou_actual = parse_line(odds.get('goals_linea', '2.5'))
-    if ou_actual == 0: ou_actual = 2.5 # default de seguridad
-    
-    # 2. Datos Forenses (Partidos Previos)
-    prev_home = match_data.get('last_home_match', {})
-    prev_home_ah = parse_line(prev_home.get('handicap_line_raw', '0'))
-    prev_home_ou = parse_line(prev_home.get('over_under_line_raw', '2.5'))
-    if prev_home_ou == 0: prev_home_ou = 2.5
-    prev_home_score = prev_home.get('score', '')
-    
-    prev_away = match_data.get('last_away_match', {})
-    prev_away_ah = parse_line(prev_away.get('handicap_line_raw', '0'))
-    prev_away_ou = parse_line(prev_away.get('over_under_line_raw', '2.5'))
-    if prev_away_ou == 0: prev_away_ou = 2.5
-    prev_away_score = prev_away.get('score', '')
+    ah_now = parse_line(odds.get('ah_linea', '0'))
+    ou_now = parse_line(odds.get('goals_linea', '2.5'))
+    if ou_now == 0: ou_now = 2.5
 
-    # 3. Soportes Estructurales Individuales
-    ph_sot, ph_da = get_stats_value(prev_home.get('stats_rows', []), home_name, prev_home.get('home_team'))
-    pa_sot, pa_da = get_stats_value(prev_away.get('stats_rows', []), away_name, prev_away.get('home_team'))
+    # --- 2. CAPA FORENSE (MEMORIA DE LARGO PLAZO) ---
+    prev_h = match_data.get('last_home_match', {})
+    prev_a = match_data.get('last_away_match', {})
     
-    # Soportes Estructurales Globales (Para O/U)
-    ph_total_sot, ph_total_da = get_total_match_stats(prev_home.get('stats_rows', []))
-    pa_total_sot, pa_total_da = get_total_match_stats(prev_away.get('stats_rows', []))
+    # Stats quirúrgicas
+    st_h = get_detailed_stats(prev_h.get('stats_rows', []), home_name, prev_h.get('home_team'))
+    st_a = get_detailed_stats(prev_a.get('stats_rows', []), away_name, prev_a.get('home_team'))
     
-    ive_h = calculate_ive(prev_home_score, prev_home_ah, prev_home.get('home_team') == home_name)
-    ive_a = calculate_ive(prev_away_score, prev_away_ah, prev_away.get('home_team') == away_name)
+    # IVEs (Éxito previo)
+    ive_h = calculate_ive_complex(prev_h.get('score', ''), prev_h.get('handicap_line_raw', '0'), prev_h.get('home_team') == home_name)
+    ive_a = calculate_ive_complex(prev_a.get('score', ''), prev_a.get('handicap_line_raw', '0'), prev_a.get('home_team') == away_name)
     
-    ive_ou_h = calculate_ive_ou(prev_home_score, prev_home_ou)
-    ive_ou_a = calculate_ive_ou(prev_away_score, prev_away_ou)
-    
-    # Col3 (Comparativas Indirectas)
+    # --- 3. ANÁLISIS DE COL3 (INDIRECTAS DE ALTA PRECISIÓN) ---
     comp = match_data.get('comparativas_indirectas', {})
     ind_l = comp.get('left', {})
     ind_r = comp.get('right', {})
-    has_ind_l = bool(ind_l.get('score'))
-    has_ind_r = bool(ind_r.get('score'))
+    
+    score_l_h, score_l_r = parse_score(ind_l.get('score', ''))
+    score_r_h, score_r_r = parse_score(ind_r.get('score', ''))
+    
+    # Diferencial de fuerza indirecta (Si Local ganó 3-0 y Visitante perdió 0-1 contra el mismo rival)
+    fuerza_ind_h = (score_l_h - score_l_r) if score_l_h is not None else -99
+    fuerza_ind_a = (score_r_r - score_r_h) if score_r_r is not None else -99 # Invertimos porque r es el visitante actual
 
-    # 4. Deltas de Presión (Salto de Estatus)
-    delta_estatus = ah_actual - prev_home_ah
-    # Media de OU previas
-    prev_ou_avg = (prev_home_ou + prev_away_ou) / 2
-    delta_ou = ou_actual - prev_ou_avg
-
+    # --- 4. DECODIFICACIÓN DE ANOMALÍAS ---
     report = {
-        "universe": "",
-        "ah_actual": ah_actual,
+        "universe": f"AH {ah_now} | O/U {ou_now}",
         "labels": [],
         "justification": [],
         "recommendation": "Neutral",
         "confidence": "Baja"
     }
 
-    # DETERMINACIÓN DEL UNIVERSO
-    if abs(ah_actual) < 0.25:
-        report["universe"] = f"0.0 (Inercia) | O/U: {ou_actual}"
-    elif ah_actual < 0:
-        report["universe"] = f"{ah_actual} (Autoridad) | O/U: {ou_actual}"
-    else:
-        report["universe"] = f"+{ah_actual} (Resistencia) | O/U: {ou_actual}"
+    # REGLA MAESTRA 1: LA TRAMPA DE LA DEGRADACIÓN (Hándicap vs Eficiencia)
+    delta_ah = ah_now - parse_line(prev_h.get('handicap_line_raw', '0'))
+    if delta_ah > 0.4 and st_h['sot'] >= 6 and ive_h >= 0:
+        # El mercado le quita favoritismo (delta > 0), pero el equipo cumplió y tiró mucho.
+        report["labels"].append("Ocultamiento de Valor (Hándicap)")
+        report["justification"].append(f"La casa 'castiga' a {home_name} bajándole el hándicap ({ah_now}), ignorando que en su último partido tuvo una eficiencia brutal ({st_h['efficiency']:.1f}%) y cumplió su misión. El bookie quiere que desconfíes de su superioridad.")
+        report["recommendation"] = f"Local AH {ah_now}"
+        report["confidence"] = "Alta"
 
-    # --- LÓGICA INFALIBLE: HÁNDICAP ---
-    ah_recommendation = None
-    ah_confidence = "Baja"
+    # REGLA MAESTRA 2: DIVERGENCIA CRUZADA (Goles vs Hándicap)
+    # Si la línea de goles es alta (>2.75) pero el hándicap es corto (<0.5)
+    if ou_now >= 2.75 and abs(ah_now) <= 0.25:
+        report["labels"].append("Divergencia de Intercambio")
+        report["justification"].append("Contradicción detectada: La casa espera muchos goles pero no se atreve a dar un favorito. Esto indica un partido roto tácticamente donde el Over es la salida lógica ante la inseguridad del bookie en el hándicap.")
+        report["recommendation"] = f"Over {ou_now}"
+        report["confidence"] = "Alta"
 
-    # REGLA 1: EL SALTO ILÓGICO (Provocación)
-    if ive_h < -0.5 and delta_estatus < -0.25:
-        report["labels"].append("Provocación de Mercado (AH)")
-        report["justification"].append(f"[AH] La casa le SUBE la exigencia a {home_name} (de {prev_home_ah} a {ah_actual}) a pesar de fallar su hándicap previo (IVE: {ive_h}). Trampa para apostar en su contra.")
-        ah_confidence = "Alta"
-        ah_recommendation = "Posible Valor Favorito"
+    # REGLA MAESTRA 3: EL ESCUDO DE COL3 QUIRÚRGICO
+    if fuerza_ind_h > fuerza_ind_a + 1.5 and ah_now >= -0.25:
+        report["labels"].append("Diferencial de Fuerza Oculto")
+        report["justification"].append(f"Análisis Col3 quirúrgico: {home_name} destrozó al rival común mientras que {away_name} sufrió. El diferencial de +{fuerza_ind_h - fuerza_ind_a} goles indirectos no está reflejado en el hándicap de {ah_now}.")
+        report["recommendation"] = f"Local AH {ah_now}"
+        report["confidence"] = "Muy Alta"
 
-    # REGLA 2: EQUILIBRIO FALSO (Disonancia Col3/Tiros)
-    elif abs(ah_actual) < 0.5:
-        if ph_sot > pa_sot + 3 and (has_ind_l and not has_ind_r):
-            report["labels"].append("Equilibrio Falso (AH)")
-            report["justification"].append(f"[AH] El mercado vende igualdad ({ah_actual}), pero el soporte de tiros de {home_name} ({ph_sot}) y su Col3 rompen la balanza a su favor.")
-            ah_confidence = "Alta"
-            ah_recommendation = f"Local AH {ah_actual}"
-        elif pa_sot > ph_sot + 3 and (has_ind_r and not has_ind_l):
-            report["labels"].append("Equilibrio Falso (AH)")
-            report["justification"].append(f"[AH] El mercado vende igualdad ({ah_actual}), pero {away_name} llega con un soporte de fuego ({pa_sot} tiros) ignorado por la línea.")
-            ah_confidence = "Alta"
-            ah_recommendation = f"Visitante AH {ah_actual}"
+    # REGLA MAESTRA 4: BURBUJA DE GOLES (Análisis de SOT Total)
+    total_prev_sot = st_h['sot'] + st_a['sot']
+    if ou_now >= 2.5 and total_prev_sot < 6 and ive_h < 0 and ive_a < 0:
+        report["labels"].append("Burbuja de Goles Detectada")
+        report["justification"].append(f"La línea de {ou_now} es un cebo. Ambos equipos promedian apenas {total_prev_sot} tiros a puerta combinados y vienen de fallar sus promesas de gol (IVEs negativos).")
+        report["recommendation"] = f"Under {ou_now}"
+        report["confidence"] = "Alta"
 
-    # REGLA 3: ESCUDO DE TITANIO (Underdog Protegido)
-    elif ah_actual >= 0.5:
-        if ive_h > 0.5 and ph_sot > 4:
-            report["labels"].append("Escudo de Titanio (AH)")
-            report["justification"].append(f"[AH] {home_name} es 'perro' (+{ah_actual}), pero viene de un IVE alto ({ive_h}) y buen flujo de tiros ({ph_sot}). La línea le da red de seguridad masiva.")
-            ah_confidence = "Alta"
-            ah_recommendation = f"Local AH +{ah_actual}"
+    # REGLA MAESTRA 5: RESISTENCIA DE TITANIO (Underdog en racha de eficiencia)
+    if ah_now >= 0.5 and st_h['efficiency'] > 15 and ive_h > 0.5:
+        report["labels"].append("Resistencia de Titanio")
+        report["justification"].append(f"{home_name} llega como Underdog, pero su ratio de conversión ({st_h['efficiency']:.1f}%) es de equipo de Champions. La casa le regala medio gol de ventaja a un equipo que no perdona.")
+        report["recommendation"] = f"Local AH +{ah_now}"
+        report["confidence"] = "Alta"
 
-    # REGLA 4: IMPOSTOR INFLADO (Favorito de Papel)
-    elif ah_actual <= -0.5:
-        if ph_sot < 3 and pa_sot > 5 and ive_h < 0:
-            report["labels"].append("Impostor Inflado (AH)")
-            report["justification"].append(f"[AH] {home_name} sale de favorito (-{abs(ah_actual)}), pero sus tiros son anémicos ({ph_sot}) vs {away_name} ({pa_sot}). Hándicap de reputación.")
-            ah_confidence = "Media"
-            ah_recommendation = f"Visitante AH +{abs(ah_actual)}"
-
-    # REGLA 5: AJUSTE DE CASTIGO (Amnesia)
-    elif delta_estatus > 0.5 and ive_h > 1.0:
-        report["labels"].append("Ajuste de Castigo (AH)")
-        report["justification"].append(f"[AH] El mercado le QUITA exigencia a {home_name} a pesar de que destrozó su hándicap previo. Buscan que desconfíes de él.")
-        ah_confidence = "Media"
-        ah_recommendation = "Local AH"
-
-    # --- LÓGICA INFALIBLE: OVER/UNDER ---
-    ou_recommendation = None
-    ou_confidence = "Baja"
-    
-    # El umbral base de Tiros a Puerta totales para un Over suele ser 8-10.
-    avg_total_sot = (ph_total_sot + pa_total_sot) / 2
-
-    # REGLA 1 OU: BURBUJA DE GOLES (Over Falso)
-    if delta_ou > 0.25 and ive_ou_h < -0.5 and ive_ou_a < -0.5 and avg_total_sot < 7:
-        report["labels"].append("Burbuja de Goles (O/U)")
-        report["justification"].append(f"[O/U] La casa SUBE la línea a {ou_actual} a pesar de que ambos fallaron sus overs previos (IVEs negativos) y promedian apenas {avg_total_sot} tiros totales. Trampa para apostar a goles.")
-        ou_confidence = "Alta"
-        ou_recommendation = f"Under {ou_actual}"
-
-    # REGLA 2 OU: PRESIÓN CONTENIDA (Under Falso)
-    elif delta_ou < -0.25 and ive_ou_h > 0.5 and ive_ou_a > 0.5 and avg_total_sot > 11:
-        report["labels"].append("Presión Contenida (O/U)")
-        report["justification"].append(f"[O/U] La casa BAJA la línea a {ou_actual} pese a que ambos destrozaron sus overs previos y generan un volumen brutal de tiros ({avg_total_sot} totales). Oportunidad masiva.")
-        ou_confidence = "Alta"
-        ou_recommendation = f"Over {ou_actual}"
-        
-    # REGLA 3 OU: CONVERSIÓN FRUSTRADA (Mucho tiro, poco gol)
-    elif avg_total_sot > 12 and ive_ou_h <= 0 and ive_ou_a <= 0:
-        report["labels"].append("Conversión Frustrada (O/U)")
-        report["justification"].append(f"[O/U] Generan una barbaridad de tiros a puerta ({avg_total_sot} totales) pero sus últimos partidos fueron Under. La regresión estadística empuja al Over.")
-        ou_confidence = "Media"
-        ou_recommendation = f"Over {ou_actual}"
-
-    # REGLA 4 OU: CERO DEFENSA (Muchos ataques permitidos)
-    elif (ph_total_da + pa_total_da) > 200 and ou_actual <= 2.5:
-        report["labels"].append("Caos Táctico (O/U)")
-        report["justification"].append(f"[O/U] Ambos equipos promedian muchísimo daño (Ataques Peligrosos altos). La línea de {ou_actual} es vulnerable ante tanto volumen de llegadas.")
-        ou_confidence = "Media"
-        ou_recommendation = f"Over {ou_actual}"
-
-    # REGLA 5 OU: ESPEJISMO DE GOLES (Pocos tiros, muchos goles previos)
-    elif avg_total_sot < 6 and ive_ou_h > 1.0 and ive_ou_a > 1.0:
-        report["labels"].append("Espejismo de Goles (O/U)")
-        report["justification"].append(f"[O/U] Sus últimos partidos fueron muy Over, pero generaron poquísimos tiros a puerta ({avg_total_sot}). Han tenido una efectividad insostenible. La regresión empuja al Under.")
-        ou_confidence = "Alta"
-        ou_recommendation = f"Under {ou_actual}"
-
-
-    # --- SÍNTESIS FINAL ---
+    # SÍNTESIS FINAL
     if not report["labels"]:
-        report["labels"].append("Mercado Sincero")
-        report["justification"].append("Las líneas de Hándicap y Goles reflejan fielmente el rendimiento y estadísticas previas sin manipulaciones detectadas.")
-        report["recommendation"] = "Neutral (No Apostar)"
+        report["labels"].append("Mercado Equilibrado")
+        report["justification"].append("Tras el análisis quirúrgico de tiros, eficiencia, IVE y Col3, no se detectan anomalías de colocación. La casa ha ajustado las cuotas a la perfección estadística.")
+        report["recommendation"] = "Evitar (No hay ventaja)"
         report["confidence"] = "Baja"
-    else:
-        # Combinar recomendaciones
-        recs = []
-        confs = []
-        if ah_recommendation:
-            recs.append(ah_recommendation)
-            confs.append(ah_confidence)
-        if ou_recommendation:
-            recs.append(ou_recommendation)
-            confs.append(ou_confidence)
-            
-        report["recommendation"] = " | ".join(recs)
-        
-        # Confianza Global
-        if "Alta" in confs:
-            report["confidence"] = "Alta"
-        elif "Media" in confs:
-            report["confidence"] = "Media"
-        else:
-            report["confidence"] = "Baja"
 
     return report
