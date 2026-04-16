@@ -114,12 +114,18 @@ def analyze_match_bookie_logic(match_data):
         report["recommendation"] = f"Over {ou_now}"
         report["confidence"] = "Alta"
 
-    # REGLA MAESTRA 3: EL ESCUDO DE COL3 QUIRÚRGICO
-    if fuerza_ind_h > fuerza_ind_a + 1.5 and ah_now >= -0.25:
+    # REGLA MAESTRA 3: EL ESCUDO DE COL3 QUIRÚRGICO (FACTOR GUASTATOYA)
+    diff_fuerza = fuerza_ind_h - fuerza_ind_a
+    if diff_fuerza >= 1.5 and ah_now >= -0.5:
+        report["labels"].append("Diferencial de Fuerza Crítico (Factor Guastatoya)")
+        report["justification"].append(f"Análisis quirúrgico de éxito: El diferencial de fuerza indirecta es masivo (+{diff_fuerza}). Mientras {home_name} destrozó al rival común, {away_name} fue ineficiente. El hándicap de {ah_now} es un error grave de bulto del bookie basado en la tabla, no en la pegada real.")
+        report["recommendation"] = f"Local AH {ah_now} | Posible Goleada"
+        report["confidence"] = "Extrema (Infalible)"
+    elif diff_fuerza > 0.5 and ah_now >= -0.25:
         report["labels"].append("Diferencial de Fuerza Oculto")
-        report["justification"].append(f"Análisis Col3 quirúrgico: {home_name} destrozó al rival común mientras que {away_name} sufrió. El diferencial de +{fuerza_ind_h - fuerza_ind_a} goles indirectos no está reflejado en el hándicap de {ah_now}.")
+        report["justification"].append(f"Análisis Col3 quirúrgico: {home_name} rindió mejor ante el rival común. El diferencial de +{diff_fuerza} goles indirectos no está reflejado en el hándicap actual.")
         report["recommendation"] = f"Local AH {ah_now}"
-        report["confidence"] = "Muy Alta"
+        report["confidence"] = "Alta"
 
     # REGLA MAESTRA 4: BURBUJA DE GOLES (Análisis de SOT Total)
     total_prev_sot = st_h['sot'] + st_a['sot']
