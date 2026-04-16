@@ -85,7 +85,7 @@ def analyze_match_bookie_logic(match_data):
     # 2. FACTOR SVAY RIENG (LÍNEA ESTANCADA)
     fav_prev_ah = parse_line(prev_a.get('handicap_line_raw', '0')) if is_away_fav else parse_line(prev_h.get('handicap_line_raw', '0'))
     fav_ive = ive_a if is_away_fav else ive_h
-    if fav_ive >= 1.5 and abs(ah_now) <= abs(prev_fav_ah):
+    if fav_ive >= 1.5 and abs(ah_now) <= abs(fav_prev_ah):
         report["labels"].append("Infravaloración (Línea Estancada)")
         report["justification"].append(f"El favorito destrozó su hándicap previo, pero la casa no le sube la exigencia. Es un regalo estructural.")
         report["recommendation"] = f"{fav_name} AH {ah_now}"; report["confidence"] = "Extrema"; return report
