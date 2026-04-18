@@ -79,6 +79,12 @@ class BookieContext:
         self.eff_fav = self.eff_a if self.is_away_fav else self.eff_h
         self.eff_dog = self.eff_h if self.is_away_fav else self.eff_a
         
+        self.rank_fav = self.rank_a if self.is_away_fav else self.rank_h
+        self.rank_dog = self.rank_h if self.is_away_fav else self.rank_a
+
+        h_prev_sc, a_prev_sc = parse_score(prev_a.get('score', '')) if self.is_away_fav else parse_score(prev_h.get('score', ''))
+        self.margin_prev_fav = abs(h_prev_sc - a_prev_sc) if h_prev_sc is not None else 0
+
         # Col3 Indirectas
         comp = match_data.get('comparativas_indirectas', {})
         ind_l = comp.get('left', {})
