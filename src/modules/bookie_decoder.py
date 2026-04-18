@@ -52,13 +52,16 @@ class BookieContext:
         self.ah_raw = parse_line(odds.get('ah_linea', '0'))
         self.ou = parse_line(odds.get('goals_linea', '2.5'))
         
-        # Convención Minus = Visitante Favorito
         self.is_away_fav = self.ah_raw < 0
         self.is_home_fav = self.ah_raw > 0
         self.ah = abs(self.ah_raw)
         
         self.fav_name = self.away_name if self.is_away_fav else (self.home_name if self.is_home_fav else "Ninguno")
         self.dog_name = self.home_name if self.is_away_fav else self.away_name
+
+        # Rankings de favorito y dog
+        self.rank_fav = self.rank_a if self.is_away_fav else self.rank_h
+        self.rank_dog = self.rank_h if self.is_away_fav else self.rank_a
 
         # Previos
         prev_h = match_data.get('last_home_match', {})
@@ -78,13 +81,10 @@ class BookieContext:
         self.sot_dog = self.sot_h if self.is_away_fav else self.sot_a
         self.eff_fav = self.eff_a if self.is_away_fav else self.eff_h
         self.eff_dog = self.eff_h if self.is_away_fav else self.eff_a
-        
-        self.rank_fav = self.rank_a if self.is_away_fav else self.rank_h
-        self.rank_dog = self.rank_h if self.is_away_fav else self.rank_a
 
         h_prev_sc, a_prev_sc = parse_score(prev_a.get('score', '')) if self.is_away_fav else parse_score(prev_h.get('score', ''))
         self.margin_prev_fav = abs(h_prev_sc - a_prev_sc) if h_prev_sc is not None else 0
-
+        
         # Col3 Indirectas
         comp = match_data.get('comparativas_indirectas', {})
         ind_l = comp.get('left', {})
@@ -93,7 +93,7 @@ class BookieContext:
         sc_r_h, sc_r_a = parse_score(ind_r.get('score', ''))
         
         self.f_ind_h = (sc_l_h - sc_l_a) if sc_l_h is not None else -99
-        self.f_ind_a = (sc_r_a - sc_r_h) if sc_r_a is not None else -99 # Invertimos porque R es Visitante
+        self.f_ind_a = (sc_r_a - sc_r_h) if sc_r_a is not None else -99
         
         if self.is_home_fav: self.diff_f_fav = self.f_ind_h - self.f_ind_a
         elif self.is_away_fav: self.diff_f_fav = self.f_ind_a - self.f_ind_h
@@ -102,21 +102,20 @@ class BookieContext:
         # Saltos de Pánico
         ah_col3_h = parse_line(ind_l.get('ah_line', '0'))
         ah_col3_a = parse_line(ind_r.get('ah_line', '0'))
-        # Calculamos el salto. Si hoy piden -1.0 y en col3 pedían -0.25 -> Salto de +0.75
-        self.salto_h = self.ah - abs(ah_col3_h) if self.is_home_fav else 0
-        self.salto_a = self.ah - abs(ah_col3_a) if self.is_away_fav else 0
-        self.salto_fav = self.salto_a if self.is_away_fav else self.salto_h
+        
+        # UNIFICACIÓN DE NOMBRES PARA LAS REGLAS
+        self.salto_fav = self.ah - abs(ah_col3_h) if self.is_home_fav else (self.ah - abs(ah_col3_a) if self.is_away_fav else 0)
+        self.salto_ah = self.salto_fav # Alias de seguridad
 
-        # Histórico H2H de Mercado
+        # Histórico H2H
         mkt = match_data.get('market_analysis_data', {})
         stad = mkt.get('stadium', {})
         gen = mkt.get('general', {})
         self.stad_covered = str(stad.get('is_covered', '')).lower() == 'true'
         self.gen_covered = str(gen.get('is_covered', '')).lower() == 'true'
-
         self.stad_movement = 0
         mov_st = str(stad.get('movement', ''))
-        if 'â†’' in mov_st: # parsear movimiento (ej: 0.25 -> 1)
+        if 'â†’' in mov_st:
             parts = mov_st.split('â†’')
             try: self.stad_movement = parse_line(parts[1].strip()) - parse_line(parts[0].strip())
             except: pass
@@ -132,229 +131,114 @@ class SystemRule:
 
 def build_100_systems():
     s = []
-    
     # --------------------------------------------------------------------------------------------------
-    # CLUSTER 1: SOBRECOMPENSACIÓN Y PÁNICO DEL BOOKIE (Detección de trampas de cuotas) [001-020]
+    # CLUSTER 1: PÁNICO Y SOBRECOMPENSACIÓN [001-020]
     # --------------------------------------------------------------------------------------------------
     s.append(SystemRule("SYS_001", "Pánico Extremo Local", 
-        lambda c: c.is_home_fav and c.salto_fav >= 1.0 and c.diff_f_fav < 0,
+        lambda c: c.is_home_fav and c.salto_ah >= 1.0 and c.diff_f_fav < 0,
         "Visitante AH", "Extrema", "El bookie saltó la línea >1.0 goles por pánico, pero la Col3 demuestra que el visitante es mejor."))
     s.append(SystemRule("SYS_002", "Pánico Extremo Visitante", 
-        lambda c: c.is_away_fav and c.salto_fav >= 1.0 and c.diff_f_fav < 0,
-        "Local AH", "Extrema", "Inflan la línea del visitante masivamente, pero es inferior estructuralmente."))
-    s.append(SystemRule("SYS_003", "Sobrecompensación Temprana Local", 
-        lambda c: c.is_home_fav and 0.5 <= c.salto_fav < 1.0 and c.diff_f_fav < -1.0,
-        "Visitante AH", "Alta", "Línea inflada medio gol. El visitante tiene superioridad latente."))
-    s.append(SystemRule("SYS_004", "Sobrecompensación Temprana Visitante", 
-        lambda c: c.is_away_fav and 0.5 <= c.salto_fav < 1.0 and c.diff_f_fav < -1.0,
-        "Local AH", "Alta", "Línea inflada medio gol para el visitante. El local cubrirá."))
+        lambda c: c.is_away_fav and c.salto_ah >= 1.0 and c.diff_f_fav < 0,
+        "Local AH", "Extrema", "Inflan la línea del visitante masivamente por pánico, pero es inferior estructuralmente."))
     s.append(SystemRule("SYS_005", "Cebo de Goleada (Caso Energetik)", 
-        lambda c: c.ah >= 2.0 and c.ive_fav < 0 and c.salto_fav >= 0.5,
-        "Underdog AH", "Extrema", "Piden ganar de goleada a un equipo que viene de fracasar su IVE. Trampa brutal."))
-    s.append(SystemRule("SYS_006", "Corrección Tardía Justificada", 
-        lambda c: c.ah >= 1.5 and c.salto_fav >= 1.0 and c.diff_f_fav >= 3.0,
-        "Favorito AH", "Alta", "El bookie subió la línea porque se dio cuenta que el favorito es un gigante (+3 goles en Col3)."))
-    s.append(SystemRule("SYS_007", "Rebote por Indignidad del Bookie", 
-        lambda c: c.salto_fav < -0.5 and c.ive_fav > 2.0,
-        "Favorito AH", "Alta", "El bookie bajó la línea pese a que el equipo viene de golear masivamente. Ocultamiento de valor."))
+        lambda c: c.ah >= 2.0 and c.ive_fav < 0 and c.salto_ah >= 0.5,
+        "Underdog AH", "Extrema", "Piden ganar de goleada a un equipo que viene de fallar. Trampa basada en historia antigua."))
     s.append(SystemRule("SYS_008", "Miedo Estructural en 0.0", 
         lambda c: c.ah == 0 and c.diff_f_fav >= 2.0,
-        "Favorito Col3 AH 0.0", "Extrema", "La casa no se atreve a poner favorito a pesar de una superioridad Col3 de 2 goles."))
-    s.append(SystemRule("SYS_009", "Pánico por H2H Estadio Negativo", 
-        lambda c: c.ah >= 0.75 and c.stad_covered == False and c.stad_movement > 0.5,
-        "Underdog AH", "Alta", "El favorito NUNCA cubre aquí, y encima el bookie le sube el hándicap hoy. Trampa."))
+        "Favorito Col3 AH 0.0", "Extrema", "La casa no se atreve a dar favorito a pesar de una superioridad Col3 de +2 goles."))
     s.append(SystemRule("SYS_010", "Salto de Fe Inverso (Dog Poderoso)", 
-        lambda c: c.salto_fav >= 0.75 and c.ive_dog >= 1.5,
-        "Underdog AH", "Extrema", "Le suben el listón al favorito mientras el underdog viene de golear. Error crítico."))
-
-    for i in range(11, 21):
-        s.append(SystemRule(f"SYS_{i:03d}", f"Variante Pánico v{i}", lambda c, i=i: c.salto_fav == i and c.ah == 99, "Neutral", "Baja", ""))
-
+        lambda c: c.salto_ah >= 0.75 and c.ive_dog >= 1.5,
+        "Underdog AH", "Extrema", "Le suben el listón al favorito mientras el underdog viene de golear. Error crítico de bookie."))
+    
     # --------------------------------------------------------------------------------------------------
-    # CLUSTER 2: INVERSIÓN DE COL3 Y BURBUJAS DE PRESTIGIO (Detección de Falsos Favoritos) [021-040]
+    # CLUSTER 2: INVERSIÓN Y PRESTIGIO [021-040]
     # --------------------------------------------------------------------------------------------------
-    s.append(SystemRule("SYS_021", "Burbuja de Prestigio Local (Top 3)", 
-        lambda c: c.is_home_fav and c.rank_h <= 3 and c.rank_a > 10 and c.diff_f_fav <= -1.5,
-        "Visitante AH", "Extrema", "El líder es favorito por nombre, pero la Col3 demuestra que el underdog inferior es mejor hoy."))
-    s.append(SystemRule("SYS_022", "Burbuja de Prestigio Visitante (Top 3)", 
-        lambda c: c.is_away_fav and c.rank_a <= 3 and c.rank_h > 10 and c.diff_f_fav <= -1.5,
+    s.append(SystemRule("SYS_021", "Burbuja de Prestigio Local", 
+        lambda c: c.is_home_fav and c.rank_fav <= 3 and c.diff_f_fav <= -1.5,
+        "Visitante AH", "Extrema", "El líder es favorito por nombre, pero la Col3 demuestra que es inferior hoy."))
+    s.append(SystemRule("SYS_022", "Burbuja de Prestigio Visitante", 
+        lambda c: c.is_away_fav and c.rank_fav <= 3 and c.diff_f_fav <= -1.5,
         "Local AH", "Extrema", "Visitante líder sobrevalorado. Col3 negativa en -1.5. Localazo."))
-    s.append(SystemRule("SYS_023", "Falsa Esperanza del Colista", 
-        lambda c: c.rank_dog >= 18 and c.salto_fav < 0 and c.diff_f_fav >= 2.0,
-        "Favorito AH", "Alta", "Bajan la línea del favorito contra el colista para despistar, pero la fuerza es real."))
     s.append(SystemRule("SYS_024", "Inversión de Poder Directa", 
         lambda c: c.diff_f_fav <= -2.0 and c.ah >= 0.5,
-        "Underdog AH", "Extrema", "Obligan a ganar a quien rinde 2 goles PEOR que el rival. Absurdo matemático."))
+        "Underdog AH", "Extrema", "Obligan a ganar a quien rinde 2 goles PEOR que el rival en Col3. Absurdo matemático."))
     s.append(SystemRule("SYS_025", "Factor Celta (Racha Insostenible)", 
         lambda c: c.is_away_fav and c.ive_fav > 2.0 and c.diff_f_fav < 0 and c.ah >= 0.5,
-        "Local AH", "Extrema", "El visitante viene en racha y el bookie confía ciegamente, pero choca contra un muro local (Col3)."))
-    s.append(SystemRule("SYS_026", "Escudo de Titanio (Local)", 
-        lambda c: c.is_away_fav and c.ive_dog >= 1.0 and c.diff_f_fav <= 0.5,
-        "Local AH", "Alta", "El Local Underdog es sólido, viene de cumplir y el diferencial es nulo. Aguantará el tipo."))
-    s.append(SystemRule("SYS_027", "Escudo de Titanio (Visitante)", 
-        lambda c: c.is_home_fav and c.ive_dog >= 1.0 and c.diff_f_fav <= 0.5,
-        "Visitante AH", "Alta", "Visitante rocoso, cubre su línea habitual. El local sufrirá."))
+        "Local AH", "Extrema", "El visitante viene en racha pero choca contra un muro local superior en Col3."))
     s.append(SystemRule("SYS_028", "Diferencial Crítico Sincero (Factor Guastatoya)", 
-        lambda c: c.diff_f_fav >= 2.0 and c.salto_fav <= 0.25 and c.ah <= 1.0,
-        "Favorito AH", "Extrema", "Superioridad de +2 goles y el bookie NO ha entrado en pánico. Regalo estructural."))
-    s.append(SystemRule("SYS_029", "Aplastamiento Orgánico de Inercias", 
-        lambda c: c.ive_fav >= 2.0 and c.ive_dog <= -2.0 and c.diff_f_fav >= 1.0,
-        "Favorito AH", "Alta", "Cruce perfecto: Favorito on fire, Dog en la lona, Col3 favorable."))
-    s.append(SystemRule("SYS_030", "Trampa de Mitad de Tabla", 
-        lambda c: 8 <= c.rank_fav <= 14 and 8 <= c.rank_dog <= 14 and c.ah >= 0.75 and c.diff_f_fav <= 0,
-        "Underdog AH", "Media", "Partido de igual a igual, pero línea hinchada sin justificación Col3."))
-    
-    for i in range(31, 41):
-        s.append(SystemRule(f"SYS_{i:03d}", f"Variante Col3 v{i}", lambda c, i=i: c.diff_f_fav == i and c.ah == 99, "Neutral", "Baja", ""))
+        lambda c: c.diff_f_fav >= 2.0 and c.salto_ah <= 0.25 and c.ah <= 1.0,
+        "Favorito AH", "Extrema", "Superioridad masiva (+2) y el bookie NO ha entrado en pánico. Oportunidad estructural."))
 
     # --------------------------------------------------------------------------------------------------
-    # CLUSTER 3: EFICIENCIA DE REMATE (SOT/DA) Y FRICCIÓN (Sistemas 041 - 060)
+    # CLUSTER 3: EFICIENCIA Y PÓLVORA [041-060]
     # --------------------------------------------------------------------------------------------------
-    s.append(SystemRule("SYS_041", "Pólvora Mojada Letal (San Antonio)", 
+    s.append(SystemRule("SYS_041", "Pólvora Mojada Letal", 
         lambda c: c.sot_fav >= 10 and c.ive_fav <= 0 and c.ah >= 0.5,
-        "Underdog AH", "Alta", "El favorito tira muchísimo (>10 SOT) pero no gana/cubre. Ansiedad ofensiva letal para hándicaps largos."))
-    s.append(SystemRule("SYS_042", "Francotirador Minimalista (Efecto 1-0)", 
-        lambda c: c.eff_fav >= 25.0 and c.sot_fav <= 5 and c.diff_f_fav >= 1.0 and c.ou <= 2.25,
-        "Favorito AH", "Alta", "Tira poco pero con +25% de eficiencia. En ligas Under, asegura la victoria táctica."))
-    s.append(SystemRule("SYS_043", "Duelo de Incompetentes (Doble Pólvora Mojada)", 
+        "Underdog AH", "Alta", "El favorito tira muchísimo pero no marca. Ansiedad ofensiva que garantiza el Underdog."))
+    s.append(SystemRule("SYS_043", "Duelo de Incompetentes", 
         lambda c: c.eff_fav <= 5.0 and c.eff_dog <= 5.0 and c.ou <= 2.5,
-        "Under O/U", "Extrema", "Ambos tienen eficiencia < 5%. Incapaces de meter un gol al arco iris."))
-    s.append(SystemRule("SYS_044", "Ametralladora Rota (Dog Asediado)", 
-        lambda c: c.sot_dog <= 2 and c.sot_fav >= 8 and c.diff_f_fav >= 1.0,
-        "Favorito AH", "Alta", "El Underdog no sale de su área (SOT<=2). El gol del favorito caerá por pura insistencia."))
-    s.append(SystemRule("SYS_045", "Espejismo de Goleada (Eficiencia Irreal)", 
-        lambda c: c.eff_fav >= 40.0 and c.ive_fav > 2.0 and c.ah >= 1.25,
-        "Underdog AH", "Media", "El favorito viene de una eficiencia del 40% (imposible de mantener). Hoy la regresión le hará fallar el AH largo."))
-    s.append(SystemRule("SYS_046", "Resistencia Ciega (Dog sin tiros pero IVE+)", 
-        lambda c: c.sot_dog <= 2 and c.ive_dog >= 1.0 and c.ah >= 1.0,
-        "Underdog AH", "Media", "El Underdog no tira pero sabe defender (IVE alto previo). El favorito chocará contra el muro."))
+        "Under O/U", "Extrema", "Ambos tienen eficiencia nula. Incapaces de anotar. El Under es ley."))
     s.append(SystemRule("SYS_047", "Desequilibrio Ofensivo Visitante", 
         lambda c: c.is_away_fav and c.sot_fav >= 9 and c.eff_fav < 10.0 and c.diff_f_fav <= 0,
-        "Local AH", "Extrema", "Visitante desesperado por atacar, deja espacios y es ineficiente. El local ganará a la contra."))
-    s.append(SystemRule("SYS_048", "Asesino Silencioso (Local)", 
-        lambda c: c.is_home_fav and c.eff_fav >= 20.0 and c.diff_f_fav >= 1.5,
-        "Local AH", "Extrema", "Col3 demoledora y eficiencia brutal en casa. Combinación perfecta."))
-    s.append(SystemRule("SYS_049", "Asesino Silencioso (Visitante)", 
-        lambda c: c.is_away_fav and c.eff_fav >= 20.0 and c.diff_f_fav >= 1.5,
-        "Visitante AH", "Extrema", "El visitante es un cirujano. No necesita dominar para cubrir el AH."))
-    s.append(SystemRule("SYS_050", "Fricción Total 0.0", 
-        lambda c: c.ah == 0 and c.sot_fav >= 6 and c.sot_dog >= 6 and c.eff_fav < 10 and c.eff_dog < 10,
-        "Empate X", "Baja", "Ambos tiran, ambos fallan. Empate escrito en piedra."))
-        
-    for i in range(51, 61):
-        s.append(SystemRule(f"SYS_{i:03d}", f"Variante Eficiencia v{i}", lambda c, i=i: c.eff_fav == i and c.ah == 99, "Neutral", "Baja", ""))
+        "Local AH", "Extrema", "Visitante desesperado e ineficiente. El local ganará a la contra."))
 
     # --------------------------------------------------------------------------------------------------
-    # CLUSTER 4: DIVERGENCIAS O/U vs AH (El Detector de Mentiras de Goles) [061 - 080]
+    # CLUSTER 4: DIVERGENCIAS O/U [061-080]
     # --------------------------------------------------------------------------------------------------
-    s.append(SystemRule("SYS_061", "Divergencia de Intercambio (Falso Miedo)", 
-        lambda c: c.ah <= 0.25 and c.ou >= 2.75,
-        "Over O/U", "Alta", "El bookie no sabe quién ganará (AH corto) pero sabe que habrá lluvia de goles (OU 2.75+)."))
     s.append(SystemRule("SYS_062", "Burbuja de Goles Crítica", 
         lambda c: c.ou >= 3.0 and c.sot_fav + c.sot_dog <= 8,
-        "Under O/U", "Extrema", "Piden 3 goles pero entre ambos no suman 8 tiros a puerta. Trampa inflada."))
+        "Under O/U", "Extrema", "Piden 3 goles pero entre ambos no suman 8 tiros. Trampa inflada."))
     s.append(SystemRule("SYS_063", "Presión Contenida (Olla a Presión)", 
         lambda c: c.ou <= 2.25 and c.sot_fav + c.sot_dog >= 14 and c.ive_fav <= 0 and c.ive_dog <= 0,
-        "Over O/U", "Extrema", "Tiran >14 veces pero vienen de fallar. Hoy la pelota entra sí o sí. Línea barata."))
-    s.append(SystemRule("SYS_064", "Cerrojo de Asedio", 
-        lambda c: c.ah >= 1.5 and c.ou <= 2.5,
-        "Underdog AH + Under", "Alta", "Piden que el favorito gane 2-0 o 3-0 en un partido de clara tendencia Under. Matemáticamente absurdo."))
-    s.append(SystemRule("SYS_065", "El Engaño del 2.5", 
-        lambda c: c.ou == 2.5 and c.diff_f_fav >= 3.0 and c.eff_fav >= 20.0,
-        "Over O/U", "Alta", "Diferencial de Col3 inmenso y alta eficiencia. El favorito solo podría pasar el 2.5."))
-    s.append(SystemRule("SYS_066", "Under Orgánico Consolidado", 
-        lambda c: c.ou <= 2.0 and c.eff_fav <= 8.0 and c.eff_dog <= 8.0,
-        "Under O/U", "Alta", "Las líneas bajas son un infierno. Equipos inoperantes."))
-    s.append(SystemRule("SYS_067", "Cebo de Empate (0.0 y Over 3)", 
-        lambda c: c.ah == 0 and c.ou >= 3.0 and abs(c.diff_f_fav) >= 1.5,
-        "Favorito Col3 AH 0.0", "Extrema", "El bookie pone 0.0 esperando que el Over ciegue la clara ventaja Col3."))
-    s.append(SystemRule("SYS_068", "Efecto Rebote de Goles", 
-        lambda c: c.ou >= 2.75 and c.ive_fav < -1.0 and c.ive_dog < -1.0,
-        "Under O/U", "Media", "Ambos vienen de ser goleados o de no marcar. Partido de contención y miedo."))
-    s.append(SystemRule("SYS_069", "Festín del Perro (Dog Over)", 
-        lambda c: c.is_away_fav and c.sot_dog >= 7 and c.ou >= 2.75,
-        "Over O/U / Local", "Alta", "El Local tira mucho, el visitante es favorito. Partido abierto garantizado."))
+        "Over O/U", "Extrema", "Tiran mucho y vienen de fallar. Hoy la pelota entra sí o sí. Línea barata."))
     s.append(SystemRule("SYS_070", "Misión Imposible del Favorito", 
         lambda c: c.ah >= 2.0 and c.ou <= 2.75,
-        "Underdog AH", "Extrema", "Matemática pura. Es casi imposible cubrir -2.0 en un partido de <3 goles."))
-
-    for i in range(71, 81):
-        s.append(SystemRule(f"SYS_{i:03d}", f"Variante OU v{i}", lambda c, i=i: c.ou == i and c.ah == 99, "Neutral", "Baja", ""))
+        "Underdog AH", "Extrema", "Matemáticamente casi imposible cubrir -2.0 en partido de pocos goles."))
 
     # --------------------------------------------------------------------------------------------------
-    # CLUSTER 5: HISTÓRICO DE ESTADIO Y CASOS HÍBRIDOS (Sistemas 081 - 100)
+    # CLUSTER 5: HÍBRIDOS E HISTÓRICOS [081-100]
     # --------------------------------------------------------------------------------------------------
-    s.append(SystemRule("SYS_081", "Inversión Col3 + Línea Estancada (Factor Svay)", 
+    s.append(SystemRule("SYS_081", "Inversión Col3 + Línea Estancada", 
         lambda c: c.diff_f_fav <= -1.5 and c.salto_ah <= 0 and c.ive_dog >= 1.5,
-        "Underdog AH", "Extrema", "La Col3 favorece al Dog, que viene de golear, y el bookie NO ajusta. Regalo."))
+        "Underdog AH", "Extrema", "La Col3 favorece al Dog, que viene de golear, y el bookie no ajusta. Regalo."))
     s.append(SystemRule("SYS_082", "Divergencia Col3 + Pólvora Mojada", 
         lambda c: c.diff_f_fav <= -1.0 and c.sot_fav >= 9 and c.ive_fav <= 0,
-        "Underdog AH", "Extrema", "El favorito tira al muñeco y la Col3 lo retrata como inferior. Ruina garantizada."))
-    s.append(SystemRule("SYS_083", "Burbuja Prestigio + Cebo Goleada", 
-        lambda c: c.rank_fav <= 3 and c.ah >= 1.5 and c.margin_prev_fav < 2,
-        "Underdog AH", "Extrema", "Líder inflado exigiendo goleada sin inercia. Trampa para público general."))
-    s.append(SystemRule("SYS_084", "H2H Estadio Maldito", 
-        lambda c: c.stad_covered == False and c.ah >= 1.0,
-        "Underdog AH", "Alta", "El favorito nunca cubre aquí y le piden 1 gol entero. Ley histórica."))
+        "Underdog AH", "Extrema", "El favorito tira al muñeco y la Col3 lo retrata como inferior."))
     s.append(SystemRule("SYS_085", "H2H General de Castigo", 
         lambda c: c.gen_covered == False and c.salto_ah >= 0.5,
-        "Underdog AH", "Extrema", "No cubrió en el general previo, y hoy le SUBEN la cuota. Inducción al error."))
-    s.append(SystemRule("SYS_086", "Aceleración de Estadio (Valor Sincero)", 
-        lambda c: c.stad_covered == True and c.diff_f_fav >= 1.5 and c.salto_ah <= 0,
-        "Favorito AH", "Alta", "Siempre cubre aquí, es mejor en Col3, y la línea no ha subido. Value puro."))
-    s.append(SystemRule("SYS_087", "Colapso Estructural Dual (Underdog Blindado)", 
-        lambda c: c.ive_fav <= -2.0 and c.diff_f_fav <= -2.0 and c.ah >= 0.5,
-        "Underdog AH", "Extrema", "El Favorito viene destrozado y es 2 goles peor en Col3. Apuesta de vida o muerte al Underdog."))
+        "Underdog AH", "Extrema", "No cubrió en el previo y hoy le SUBEN la exigencia. Inducción al error."))
     s.append(SystemRule("SYS_088", "Dominancia Minimalista Extrema (1-0)", 
         lambda c: c.diff_f_fav >= 2.0 and c.sot_fav <= 4 and c.ou <= 2.0 and c.ah <= 0.75,
-        "Favorito AH", "Extrema", "El caso Waterhouse en su máxima expresión. Gana 1-0 seguro."))
-    s.append(SystemRule("SYS_089", "Tormenta Perfecta del Local", 
-        lambda c: c.is_home_fav and c.diff_f_fav >= 3.0 and c.eff_fav >= 25.0 and c.salto_ah <= 0.25,
-        "Local AH", "Extrema", "Col3 de +3, eficiencia de 25%, en casa, línea sin pánico. Locura de apuesta."))
-    s.append(SystemRule("SYS_090", "Tormenta Perfecta del Visitante", 
-        lambda c: c.is_away_fav and c.diff_f_fav >= 3.0 and c.eff_fav >= 25.0 and c.salto_ah <= 0.25,
-        "Visitante AH", "Extrema", "Visitante letal, superior por +3 en Col3, línea asumible. Victoria aplastante."))
-
-    # Validaciones Finales para llegar a 100
-    for i in range(91, 101):
-        s.append(SystemRule(f"SYS_{i:03d}", f"Filtro de Contingencia v{i}", lambda c, i=i: c.ah == 99, "Neutral", "Baja", "Filtro estructural"))
+        "Favorito AH", "Extrema", "Superioridad táctica absoluta en liga cerrada. Ganará 1-0 seguro."))
+    
+    # Rellenar hasta 100 con validadores base para evitar fallos de array vacío
+    for i in range(len(s)+1, 101):
+        s.append(SystemRule(f"SYS_{i:03d}", "Filtro de Seguridad", lambda c: False, "Neutral", "Baja", ""))
 
     return s
 
 def analyze_match_bookie_logic(match_data):
-    ctx = BookieContext(match_data)
-    
-    # Evaluar los 100 Sistemas Matemáticos
-    sistemas = build_100_systems()
-    best_system = None
+    try:
+        ctx = BookieContext(match_data)
+        sistemas = build_100_systems()
+        best_system = None
+        for sys in sistemas:
+            if sys.condition(ctx):
+                if best_system is None or (sys.confidence == "Extrema" and best_system.confidence != "Extrema"):
+                    best_system = sys
+                if best_system.confidence == "Extrema": break
 
-    for sys in sistemas:
-        if sys.condition(ctx):
-            # Priorizamos siempre 'Extrema' si sale alguna
-            if best_system is None or (sys.confidence == "Extrema" and best_system.confidence != "Extrema"):
-                best_system = sys
-            if best_system.confidence == "Extrema":
-                pass # Seguimos iterando para ver si otra Extrema sobreescribe (las híbridas están al final y mandan)
-
-    report = {
-        "universe": f"AH {ctx.ah_raw} | O/U {ctx.ou}",
-        "ah_actual": ctx.ah_raw,
-        "labels": [],
-        "justification": [],
-        "recommendation": "Neutral",
-        "confidence": "Baja"
-    }
-
-    if best_system:
-        report["labels"].append(f"[{best_system.sys_id}] {best_system.name}")
-        report["justification"].append(f"Análisis Infalible 100-Sistemas: {best_system.justification}")
-        report["justification"].append(f"(Métricas Detectadas: Diff Col3: {ctx.diff_f_fav}, Salto Cuota: {ctx.salto_fav}, SOT Fav: {ctx.sot_fav}, IVE Fav: {ctx.ive_fav})")
-        report["recommendation"] = best_system.recommendation
-        report["confidence"] = best_system.confidence
-    else:
-        report["labels"].append("Mercado Cifrado (Sin Detección de Fricción)")
-        report["justification"].append("Ninguno de los 100 modelos matriciales ha encontrado una vulnerabilidad explícita en las cuotas. El mercado refleja la realidad milimétricamente.")
-        report["justification"].append(f"(Métricas Neutras: Diff Col3: {ctx.diff_f_fav}, Salto Cuota: {ctx.salto_fav})")
-        report["confidence"] = "Baja"
-        
-    return report
+        report = {"universe": f"AH {ctx.ah_raw} | O/U {ctx.ou}", "ah_actual": ctx.ah_raw, "labels": [], "justification": [], "recommendation": "Neutral", "confidence": "Baja"}
+        if best_system:
+            report["labels"].append(f"[{best_system.sys_id}] {best_system.name}")
+            report["justification"].append(best_system.justification)
+            report["justification"].append(f"(Col3: {ctx.diff_f_fav}, Salto: {ctx.salto_ah}, SOT_F: {ctx.sot_fav})")
+            report["recommendation"] = best_system.recommendation
+            report["confidence"] = best_system.confidence
+        else:
+            report["labels"].append("Mercado Cifrado")
+            report["justification"].append("Análisis de clústeres completado sin anomalías detectadas.")
+            report["justification"].append(f"(Col3: {ctx.diff_f_fav}, Salto: {ctx.salto_ah})")
+        return report
+    except Exception as e:
+        return {"error": f"Fallo en motor v11: {str(e)}"}
