@@ -4752,6 +4752,23 @@
                     }
                 }
 
+                // Filtro automatico de ruido: selecciones/torneos internacionales juveniles.
+                if (show) {
+                    const m = totalFilteredMatches.find(x => x.id == matchId);
+                    if (m) {
+                        const homeTeam = (m.home_team || '').toLowerCase();
+                        const awayTeam = (m.away_team || '').toLowerCase();
+                        const league = (m.league || '').toLowerCase();
+                        const text = `${league} ${homeTeam} ${awayTeam}`;
+                        const internationalTerms = ['international', 'friendly', 'world', 'fifa', 'uefa', 'concacaf', 'conmebol', 'nations', 'tournament'];
+                        const isInternationalContext = internationalTerms.some(term => league.includes(term));
+                        const isYouthInternational = /\b(u16|u17|u18|u19|u20|u21|sub[-\s]?16|sub[-\s]?17|sub[-\s]?18|sub[-\s]?19|sub[-\s]?20|sub[-\s]?21|under[-\s]?16|under[-\s]?17|under[-\s]?18|under[-\s]?19|under[-\s]?20|under[-\s]?21)\b/.test(text);
+                        if (isInternationalContext && isYouthInternational) {
+                            show = false;
+                        }
+                    }
+                }
+
                 // Filtro: O/U (Over/Under)
                 if (show && ouFilterValues.length > 0) {
                     if (!checkOuMatch(row.getAttribute('data-ou'), ouFilterValues)) {
