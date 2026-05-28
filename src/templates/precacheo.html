@@ -4752,30 +4752,6 @@
                     }
                 }
 
-                // Filtro: Excluir partidos juveniles (excepto Italia U20/U21 e Inglaterra U21/U23)
-                if (show) {
-                    const m = totalFilteredMatches.find(x => x.id == matchId);
-                    if (m) {
-                        const homeTeam = (m.home_team || '').toLowerCase();
-                        const awayTeam = (m.away_team || '').toLowerCase();
-                        const league = (m.league || '').toLowerCase();
-
-                        // Ligas juveniles permitidas
-                        const allowedJuvenile = league.includes('italy') || league.includes('italia') ||
-                            league.includes('england') || league.includes('ingla') ||
-                            league.includes('serie c') || league.includes('premier league 2');
-
-                        if (!allowedJuvenile) {
-                            const excludePatterns = ['u19', 'u21', 'u20', 'u18', 'u17', 'u23', 'sub-19', 'sub-21', 'sub-20', 'sub-18', 'sub 19', 'sub 21'];
-                            for (const pattern of excludePatterns) {
-                                if (homeTeam.includes(pattern) || awayTeam.includes(pattern) || league.includes(pattern)) {
-                                    show = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
                 // Filtro: O/U (Over/Under)
                 if (show && ouFilterValues.length > 0) {
                     if (!checkOuMatch(row.getAttribute('data-ou'), ouFilterValues)) {
