@@ -884,7 +884,13 @@ def fetch_distinct_buckets() -> List[str]:
 def export_bucket_to_json(bucket: str) -> Path:
     ensure_bootstrap()
     path = DATA_DIR / bucket
-    rows = fetch_matches(bucket=bucket)
+    
+    # Limitar buckets históricos acumulativos a un máximo de 2500 partidos para evitar superar el límite de 100MB de GitHub.
+    limit_val = None
+    if bucket.startswith("data_") and bucket not in ("data_precacheo.json", "data_pending_results.json"):
+        limit_val = 2500
+        
+    rows = fetch_matches(bucket=bucket, limit=limit_val)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fh:
         json.dump(rows, fh, indent=2, ensure_ascii=False)

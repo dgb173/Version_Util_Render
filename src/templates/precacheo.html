@@ -994,6 +994,7 @@
             <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
             {% endif %}
             <a class="nav-link active" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+            <a class="nav-link" href="/ganadores"><i class="fa-solid fa-trophy"></i> Ganadores</a>
         </nav>
     </div>
 
@@ -2589,8 +2590,27 @@
 
         // Comparar si el partido es futuro respecto a la hora actual de España
         function isMatchUpcoming(match) {
+            if (hasValidResultScore(match)) {
+                return false;
+            }
+
             const schedule = getMatchScheduleParts(match);
             if (schedule && schedule.key) {
+                const now = new Date();
+                const nowParts = getSpainParts(now);
+                const todayKey = `${nowParts.year}-${nowParts.month}-${nowParts.day}`;
+                const matchKey = `${String(schedule.year).padStart(4, '0')}-${String(schedule.month).padStart(2, '0')}-${String(schedule.day).padStart(2, '0')}`;
+
+                if (matchKey === todayKey) {
+                    // Si el partido es hoy, aplicamos una tolerancia de 12 horas (720 minutos)
+                    // para evitar que partidos de hoy que aún no se han jugado se consideren pasados
+                    // debido a desfases de huso horario del servidor de Nowgoal.
+                    const nowMinutes = parseInt(nowParts.hour, 10) * 60 + parseInt(nowParts.minute, 10);
+                    const matchMinutes = schedule.hour * 60 + schedule.minute;
+                    const toleranceMinutes = 720; // 12 horas
+                    return nowMinutes <= (matchMinutes + toleranceMinutes);
+                }
+
                 return schedule.key > getNowSpainScheduleKey();
             }
 
@@ -2603,16 +2623,17 @@
             }
 
             // Fallback to simple time comparison (only works for same-day assumptions)
-            // This was the buggy legacy behavior, but we keep it just in case
             const matchTimeStr = match.time;
             const matchTime = parseMatchTime(matchTimeStr);
             if (!matchTime) return false;
 
             const nowParts = getSpainParts(new Date());
-            const currentMinutes = parseInt(nowParts.hour) * 60 + parseInt(nowParts.minute);
+            const currentMinutes = parseInt(nowParts.hour, 10) * 60 + parseInt(nowParts.minute, 10);
             const matchMinutes = matchTime.hours * 60 + matchTime.minutes;
-
-            return matchMinutes > currentMinutes;
+            
+            // Tolerancia de 12 horas para el fallback también si es el mismo día
+            const toleranceMinutes = 720; // 12 horas
+            return currentMinutes <= (matchMinutes + toleranceMinutes);
         }
 
         // Comparar si el partido ya pasó (es candidato a resultado pendiente)
@@ -2837,17 +2858,6 @@
                     }
                 }
 
-                // Si no hay próximos pero sí pendientes en precacheo, cambiar automáticamente de pestaña.
-                if (
-                    currentViewMode === 'proximos' &&
-                    (!matchesToShow || matchesToShow.length === 0) &&
-                    pendingFromPrecache.length > 0
-                ) {
-                    currentViewMode = 'pendientes';
-                    syncViewModeButtons(currentViewMode);
-                    matchesToShow = pendingFromPrecache;
-                }
-
                 // Last-resort fallback: show whatever is available in precacheo.
                 if ((!matchesToShow || matchesToShow.length === 0) && precacheMatches.length > 0) {
                     matchesToShow = [...precacheMatches];
@@ -2910,7 +2920,8 @@
                 }
 
                 // Ordenar por fecha/hora de España (también para fallback precacheo)
-                const sortAsc = currentViewMode === 'proximos';
+                // Siempre ordenamos de forma ascendente (orden cronológico natural) para evitar mezclas extrañas
+                const sortAsc = true;
                 matchesToShow.sort((a, b) => {
                     const sa = getMatchScheduleParts(a);
                     const sb = getMatchScheduleParts(b);
@@ -3140,16 +3151,34 @@
                 const masterPick = checkSuperSpecialistH0(pc, row);
                 const finalPick = masterPick || pickResult;
 
+                // --- SPECIALIST PICKS (PATTERN_V2 / ANTI_UNDERDOG) ---
+                const m = totalFilteredMatches.find(x => x.id == matchId);
+                const currentAh = m ? getLocalPerspectiveAh(m) : null;
+                const specialistPicksHtml = getSpecialistPicksHtml(pc, currentAh);
+
+                // Actualizar atributos de la fila para permitir filtrado por tipo de pick
+                const scoreResult = (pc && pc.specialist_picks && pc.specialist_picks.length > 0)
+                    ? calculateBettingScore(pc, pc.home_team || pc.home_name, pc.away_team || pc.away_name, currentAh)
+                    : null;
+                const hasAHSpecialist = !!(scoreResult && scoreResult.bestAHPick);
+                const hasOUSpecialist = !!(scoreResult && scoreResult.bestOUPick);
+                const hasH2HPick = perfStatus && perfStatus !== 'N/A';
+
+                row.setAttribute('data-has-pick', (hasH2HPick || hasAHSpecialist || hasOUSpecialist) ? '1' : '0');
+                row.setAttribute('data-has-ah-pick', hasAHSpecialist ? '1' : '0');
+                row.setAttribute('data-has-ou-pick', hasOUSpecialist ? '1' : '0');
+
                 // Actualizar la celda de picks
                 const pickCell = row.querySelector('.pick-cell');
                 if (pickCell) {
                     pickCell.innerHTML = `
-                        <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 180px; margin: 0 auto;">
-                            <div style="background: ${finalPick.bg}; border: 2px solid ${finalPick.border}; border-radius: 8px; padding: 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div class="d-flex flex-column align-items-center gap-1" style="width: 100%; max-width: 180px; margin: 0 auto;">
+                            <div style="background: ${finalPick.bg}; border: 2px solid ${finalPick.border}; border-radius: 8px; padding: 6px 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                 <div class="fw-bold ${finalPick.color} text-center" style="font-size: 0.68rem; line-height: 1.3;">
                                     ${finalPick.label}
                                 </div>
                             </div>
+                            ${specialistPicksHtml}
                         </div>`;
                 }
             }
@@ -3725,7 +3754,7 @@
                 roiOU: Math.round(((probOU / 100) * 1.90 - 1) * 100)
             };
 
-            // INCLUIR PATRONES v2 DEL BACKEND
+            // INCLUIR PATRONES v2 DEL BACKEND Y ANTI_UNDERDOG
             if (pc.specialist_picks && pc.specialist_picks.length > 0) {
                 // Solo procesar si tiene historial (prev home y prev away)
                 const hasHistory = pc.last_home_match && pc.last_home_match.score &&
@@ -3733,8 +3762,8 @@
 
                 if (hasHistory) {
                     // Separar por tipo: AH y OU
-                    const ahPicks = pc.specialist_picks.filter(p => p.algorithm === 'PATTERN_V2' && p.type === 'AH');
-                    const ouPicks = pc.specialist_picks.filter(p => p.algorithm === 'PATTERN_V2' && p.type === 'OU');
+                    const ahPicks = pc.specialist_picks.filter(p => (p.algorithm === 'PATTERN_V2' || p.algorithm === 'ANTI_UNDERDOG') && p.type === 'AH');
+                    const ouPicks = pc.specialist_picks.filter(p => (p.algorithm === 'PATTERN_V2' || p.algorithm === 'ANTI_UNDERDOG') && p.type === 'OU');
 
                     // Obtener el mejor de cada tipo (mayor ROI)
                     const bestAH = ahPicks.sort((a, b) => (b.roi || 0) - (a.roi || 0))[0];
@@ -3751,7 +3780,7 @@
                             if (pickType.includes('home') || pickType.includes('local')) {
                                 normalizedPick = 'LOCAL';
                                 pickLabel = 'LOCAL';
-                            } else if (pickType.includes('away') || pickType.includes('visita')) {
+                            } else if (pickType.includes('away') || pickType.includes('visita') || pickType.includes('visitante')) {
                                 normalizedPick = 'VISITA';
                                 pickLabel = 'VISITA';
                             }
@@ -3783,6 +3812,59 @@
             return result;
         }
 
+
+        // Genera el HTML para los picks especialistas asociados a un partido
+        function getSpecialistPicksHtml(pc, currentAh) {
+            try {
+                if (!pc || !pc.specialist_picks || pc.specialist_picks.length === 0) return '';
+                
+                const scoreResult = calculateBettingScore(pc, pc.home_team || pc.home_name, pc.away_team || pc.away_name, currentAh);
+                if (!scoreResult) return '';
+                
+                let html = '';
+                
+                if (scoreResult.bestAHPick) {
+                    const sp = scoreResult.bestAHPick;
+                    const algLabel = sp.algorithm === 'ANTI_UNDERDOG' ? 'GANADORES' : 'PATRÓN AH';
+                    const isAnti = sp.algorithm === 'ANTI_UNDERDOG';
+                    const badgeBg = isAnti ? 'linear-gradient(135deg, #2e7d32, #1b5e20)' : 'linear-gradient(135deg, #1565c0, #0d47a1)';
+                    const badgeBorder = isAnti ? '#81c784' : '#64b5f6';
+                    html += `
+                        <div class="mt-1 text-center specialist-pick-badge" 
+                             style="background: ${badgeBg}; border: 1px solid ${badgeBorder}; border-radius: 6px; padding: 4px 6px; width: 100%; color: white; cursor: help; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"
+                             title="${sp.name || ''}\n${sp.explanation || ''}">
+                            <div style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; line-height: 1.1;">
+                                ${algLabel}
+                            </div>
+                            <div style="font-size: 0.72rem; font-weight: 800; line-height: 1.2;">
+                                ${sp.pickLabel} (ROI: ${sp.roiPercent}%)
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (scoreResult.bestOUPick) {
+                    const sp = scoreResult.bestOUPick;
+                    html += `
+                        <div class="mt-1 text-center specialist-pick-badge" 
+                             style="background: linear-gradient(135deg, #ef6c00, #e65100); border: 1px solid #ffb74d; border-radius: 6px; padding: 4px 6px; width: 100%; color: white; cursor: help; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"
+                             title="${sp.name || ''}\n${sp.explanation || ''}">
+                            <div style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; line-height: 1.1;">
+                                PATRÓN O/U
+                            </div>
+                            <div style="font-size: 0.72rem; font-weight: 800; line-height: 1.2;">
+                                ${sp.pickLabel} (ROI: ${sp.roiPercent}%)
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return html;
+            } catch (err) {
+                console.error("Error generating specialist picks HTML:", err);
+                return '';
+            }
+        }
 
         // ==================== FUNCIONES AUXILIARES RESTAURADAS ====================
 
@@ -6159,14 +6241,18 @@
                     indRightResAttr
                 );
 
+                // --- SPECIALIST PICKS (PATTERN_V2 / ANTI_UNDERDOG) ---
+                const specialistPicksHtml = getSpecialistPicksHtml(pc, currentAh);
+
                 // Generar HTML del Pick con el nuevo sistema
                 let pickHtml = `
-                    <div class="d-flex flex-column align-items-center" style="width: 100%; max-width: 180px; margin: 0 auto;">
-                        <div style="background: ${pickResult.bg}; border: 2px solid ${pickResult.border}; border-radius: 8px; padding: 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="d-flex flex-column align-items-center gap-1" style="width: 100%; max-width: 180px; margin: 0 auto;">
+                        <div style="background: ${pickResult.bg}; border: 2px solid ${pickResult.border}; border-radius: 8px; padding: 6px 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             <div class="fw-bold ${pickResult.color} text-center" style="font-size: 0.68rem; line-height: 1.3;">
                                 ${pickResult.label}
                             </div>
                         </div>
+                        ${specialistPicksHtml}
                     </div>`;
 
                 const scrapeBtnHtml = !isScraped
@@ -6196,8 +6282,14 @@
                        <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
                             <i class="fas fa-robot"></i>
                        </button>
+                       <button class="btn btn-sm btn-outline-primary" onclick="copyLLMPrompt('${matchId}', this)" title="Copiar Prompt LLM">
+                            <i class="fas fa-copy"></i>
+                       </button>
                        <button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
                             <i class="fa-solid fa-brain"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-success" onclick="analyzeSCAH('${matchId}', this)" title="SCAH v10.0">
+                            <i class="fa-solid fa-microscope"></i>
                        </button>`
                     : '';
 
@@ -6205,14 +6297,23 @@
                     ? `<button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
                             <i class="fas fa-robot"></i>
                        </button>
+                       <button class="btn btn-sm btn-outline-primary" onclick="copyLLMPrompt('${matchId}', this)" title="Copiar Prompt LLM">
+                            <i class="fas fa-copy"></i>
+                       </button>
                        <button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
                             <i class="fa-solid fa-brain"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-success" onclick="analyzeSCAH('${matchId}', this)" title="SCAH v10.0">
+                            <i class="fa-solid fa-microscope"></i>
                        </button>`
                     : '';
 
                 const bookieBtnHtml = isScraped
                     ? `<button class="btn btn-sm btn-outline-dark" onclick="decodeBookie('${matchId}', this)" title="Mente del Bookie">
                             <i class="fa-solid fa-brain"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-success" onclick="analyzeSCAH('${matchId}', this)" title="SCAH v10.0">
+                            <i class="fa-solid fa-microscope"></i>
                        </button>`
                     : '';
 
@@ -6280,9 +6381,17 @@
                     <td class="text-center">${actionButtonsHtml}</td>
                 `;
                 tr.setAttribute('data-match-id', matchId);
-                // Nuevo sistema: Pick basado en H2H Col3
+                // Nuevo sistema: Pick basado en H2H Col3 y picks especialistas
                 const hasH2HPick = performanceStatus && performanceStatus !== 'N/A';
-                tr.setAttribute('data-has-pick', hasH2HPick ? '1' : '0');
+                const scoreResult = (pc && pc.specialist_picks && pc.specialist_picks.length > 0)
+                    ? calculateBettingScore(pc, pc.home_team || pc.home_name, pc.away_team || pc.away_name, currentAh)
+                    : null;
+                const hasAHSpecialist = !!(scoreResult && scoreResult.bestAHPick);
+                const hasOUSpecialist = !!(scoreResult && scoreResult.bestOUPick);
+
+                tr.setAttribute('data-has-pick', (hasH2HPick || hasAHSpecialist || hasOUSpecialist) ? '1' : '0');
+                tr.setAttribute('data-has-ah-pick', hasAHSpecialist ? '1' : '0');
+                tr.setAttribute('data-has-ou-pick', hasOUSpecialist ? '1' : '0');
                 tr.setAttribute('data-h2h-pick-type', pickResult.label.split(':')[0]); // MEJORA, EMPEORA, IGUALA, etc.
 
                 // Data-attributes para filtrado visual (evitar re-render)
@@ -6634,6 +6743,69 @@
             }).catch(err => {
                 alert('Error al copiar: ' + err.message);
             });
+        }
+
+        // Helper robusto para copiar al portapapeles con fallback
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    console.warn("Navigator clipboard failed, trying fallback: ", e);
+                }
+            }
+            
+            // Fallback clásico usando un textarea temporal
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-999999px";
+            textarea.style.top = "-999999px";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textarea);
+                if (successful) return true;
+                throw new Error("execCommand copy devolvió false");
+            } catch (err) {
+                document.body.removeChild(textarea);
+                throw new Error("No se pudo copiar al portapapeles: " + err.message);
+            }
+        }
+
+        // Fetch and copy LLM prompt
+        async function copyLLMPrompt(matchId, btnElement) {
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const response = await fetch(`/api/export_prompt/${matchId}`);
+                const data = await response.json();
+                
+                if (data.success && data.prompt) {
+                    await copyToClipboard(data.prompt);
+                    btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+                    btnElement.classList.add('btn-outline-success');
+                    btnElement.classList.remove('btn-outline-primary');
+                } else {
+                    alert('Error al generar prompt: ' + (data.error || 'Desconocido'));
+                    btnElement.innerHTML = originalHtml;
+                }
+            } catch (err) {
+                alert('Error al generar o copiar prompt: ' + err.message);
+                btnElement.innerHTML = originalHtml;
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-outline-success');
+                    btnElement.classList.add('btn-outline-primary');
+                    btnElement.disabled = false;
+                }, 2000);
+            }
         }
 
         // Buscar patrones similares en histórico - abre Explorador en una pestaña nueva
@@ -10195,7 +10367,82 @@
             btn.disabled = false;
         }
     }
+
+    async function analyzeSCAH(matchId, btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            const modalEl = document.getElementById('scahModal');
+            const modal = new bootstrap.Modal(modalEl);
+            
+            document.getElementById('scahModalBody').innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Analizando anomalías de hándicap y métricas de élite (SCAH v10.0)...</p>
+                </div>
+            `;
+            modal.show();
+
+            const response = await fetch('/api/analyze_scah', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                const report = data.report;
+                document.getElementById('scahModalBody').innerHTML = `
+                    <div style="border-left: 4px solid ${report.color}; padding: 15px; background: #f9f9f9; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <h5 style="color: ${report.color}; font-weight: bold; margin-bottom: 10px;">
+                            ${report.alerta === 'LÍNEA ESTÁNDAR' ? '<i class="fa-solid fa-scale-balanced me-2"></i>' : '<i class="fa-solid fa-triangle-exclamation me-2"></i>'}
+                            ${report.alerta}
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center p-3 mb-3" style="background: white; border: 1px solid #eee; border-radius: 6px;">
+                            <span class="text-muted text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Veredicto:</span>
+                            <span class="fw-bold fs-6" style="color: ${report.color};">${report.veredicto}</span>
+                        </div>
+                        <p class="mb-0" style="font-size: 0.95rem; line-height: 1.5;">${report.explicacion}</p>
+                    </div>
+                `;
+            } else {
+                document.getElementById('scahModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i> Error: ${data.error || 'Fallo en análisis.'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error in analyzeSCAH:', error);
+            document.getElementById('scahModalBody').innerHTML = '<div class="alert alert-danger">Error de conexión con el servidor.</div>';
+        } finally {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
+    }
     </script>
+
+    <!-- Modal SCAH v10.0 -->
+    <div class="modal fade" id="scahModal" tabindex="-1" aria-hidden="true" style="z-index: 1075;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <h5 class="modal-title"><i class="fa-solid fa-microscope me-2"></i> Análisis SCAH v10.0</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="scahModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile View Handler Script -->
     <script src="{{ url_for('static', filename='mobile_view_handler.js') }}"></script>
 </body>

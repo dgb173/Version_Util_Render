@@ -231,6 +231,73 @@ def remove_from_precacheo(match_id):
     return True
 
 
+def parse_match_date(date_str):
+    if not date_str or date_str == 'N/A':
+        return None
+    raw = str(date_str).strip()
+    if 'T' in raw:
+        try:
+            iso_dt = datetime.datetime.fromisoformat(raw.replace('Z', '+00:00'))
+            return iso_dt.replace(tzinfo=None)
+        except Exception:
+            pass
+    formats = ['%m/%d/%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']
+    date_part = raw.split(' ')[0]
+    for fmt in formats:
+        try:
+            return datetime.datetime.strptime(date_part, fmt)
+        except Exception:
+            continue
+    return None
+
+
+def flag_stale_prev_matches(match_data):
+    """
+    Compara match_date con last_home_match.date y last_away_match.date.
+    Calcula el gap en días.
+    Retorna un diccionario con detalles del desfase temporal y si se considera obsoleto (> 60 días).
+    """
+    m_date_str = match_data.get('match_date') or match_data.get('date') or match_data.get('precacheo_date')
+    m_date = parse_match_date(m_date_str)
+    
+    if not m_date:
+        return {
+            'home_gap_days': None,
+            'away_gap_days': None,
+            'max_gap_days': None,
+            'is_stale': False
+        }
+        
+    prev_home = match_data.get('last_home_match') or {}
+    prev_away = match_data.get('last_away_match') or {}
+    
+    home_date_str = prev_home.get('date')
+    away_date_str = prev_away.get('date')
+    
+    home_date = parse_match_date(home_date_str) if home_date_str else None
+    away_date = parse_match_date(away_date_str) if away_date_str else None
+    
+    home_gap = None
+    if home_date:
+        home_gap = abs((m_date - home_date).days)
+        
+    away_gap = None
+    if away_date:
+        away_gap = abs((m_date - away_date).days)
+        
+    gaps = [g for g in [home_gap, away_gap] if g is not None]
+    max_gap = max(gaps) if gaps else None
+    
+    is_stale = (max_gap > 60) if max_gap is not None else False
+    
+    return {
+        'home_gap_days': home_gap,
+        'away_gap_days': away_gap,
+        'max_gap_days': max_gap,
+        'is_stale': is_stale
+    }
+
+
 def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=1):
     """
     Removes old pre-cacheo matches.
@@ -255,29 +322,10 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=1):
         threshold_date = now - datetime.timedelta(days=days_threshold)
         pending_threshold_date = now - datetime.timedelta(days=pending_days_threshold)
 
-        def parse_date(date_str):
-            if not date_str or date_str == 'N/A':
-                return None
-            raw = str(date_str).strip()
-            if 'T' in raw:
-                try:
-                    iso_dt = datetime.datetime.fromisoformat(raw.replace('Z', '+00:00'))
-                    return iso_dt.replace(tzinfo=None)
-                except Exception:
-                    pass
-            formats = ['%m/%d/%Y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']
-            date_part = raw.split(' ')[0]
-            for fmt in formats:
-                try:
-                    return datetime.datetime.strptime(date_part, fmt)
-                except Exception:
-                    continue
-            return None
-
         to_remove: Set[str] = set()
         for match in data:
             m_date_str = match.get('match_date') or match.get('date') or match.get('precacheo_date')
-            m_date = parse_date(m_date_str)
+            m_date = parse_match_date(m_date_str)
 
             if m_date is None:
                 continue

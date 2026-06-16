@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking de Ganadores - Patrones de Handicap ⚽</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-grad: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
+            --emerald-grad: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+            --orange-grad: linear-gradient(135deg, #f97316 0%, #9a3412 100%);
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+        }
+
+        body {
+            background-color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #334155;
+        }
+
+        /* Sidebar similar a precacheo */
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            background-color: #ffffff;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.03);
+            padding: 24px;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 32px;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.mobile-active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+        }
+
+        .nav-link {
+            color: #64748b;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Tarjetas Premium */
+        .kpi-card {
+            border: none;
+            border-radius: 20px;
+            padding: 24px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            bottom: -50px;
+            right: -50px;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-card.total { background: var(--primary-grad); }
+        .kpi-card.bust-rate { background: var(--purple-grad); }
+        .kpi-card.roi { background: var(--emerald-grad); }
+        .kpi-card.stale { background: var(--orange-grad); }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+            opacity: 0.85;
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .kpi-desc {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        /* Panel de control */
+        .dashboard-panel {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Tablas */
+        .premium-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .premium-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.8px;
+            padding: 14px 16px;
+            border-bottom: 2px solid #edf2f7;
+            text-align: left;
+        }
+
+        .premium-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #edf2f7;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .premium-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Badges de resultados */
+        .badge-cover { background-color: #d1fae5; color: #065f46; font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+        .badge-bust { background-color: #fee2e2; color: #991b1b; font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+        .badge-push { background-color: #fef3c7; color: #92400e; font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+        .badge-half-cover { background-color: #e0f2fe; color: #0369a1; font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+        .badge-half-bust { background-color: #ffedd5; color: #9a3412; font-weight: 700; border-radius: 8px; padding: 6px 12px; }
+
+        /* Loader */
+        .spinner-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 20px;
+        }
+
+        /* Estilo para etiquetas compuestas */
+        .label-pill {
+            font-size: 0.75rem;
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            border: 1px solid #e2e8f0;
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .label-pill.highlight {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+
+        /* Gráficos card */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        .toggle-btn-custom {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <h4 class="mb-4 text-primary font-weight-800"><i class="fa-solid fa-futbol me-2"></i>Analizador</h4>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
+            <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+            <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+            <a class="nav-link active" href="/ganadores"><i class="fa-solid fa-trophy"></i> Ganadores</a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content expanded">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h3 class="mb-0 fw-800" style="font-family: 'Outfit', sans-serif;"><i class="fa-solid fa-trophy me-2 text-warning"></i>Sistema de Ganadores</h3>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-sm" onclick="loadAllData()">
+                    <i class="fa-solid fa-rotate me-1"></i> Actualizar Datos
+                </button>
+            </div>
+        </div>
+
+        <!-- KPIs Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card total">
+                    <div class="kpi-title">Partidos Válidos</div>
+                    <div class="kpi-value" id="kpi-total">0</div>
+                    <div class="kpi-desc" id="kpi-total-sub">Excluye obsoletos</div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card bust-rate">
+                    <div class="kpi-title">Bust Underdog %</div>
+                    <div class="kpi-value" id="kpi-bust">0.0%</div>
+                    <div class="kpi-desc">Favorito cubrió la línea</div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card roi">
+                    <div class="kpi-title">ROI Estimado</div>
+                    <div class="kpi-value" id="kpi-roi">0.0%</div>
+                    <div class="kpi-desc">A cuota promedio 1.90</div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="kpi-card stale">
+                    <div class="kpi-title">Datos Obsoletos</div>
+                    <div class="kpi-value" id="kpi-stale">0</div>
+                    <div class="kpi-desc">Gap temporal > 60 días</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Config Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-8">
+                <div class="dashboard-panel position-relative">
+                    <h5 class="panel-title"><i class="fa-solid fa-chart-column text-primary"></i>Tasa de Fallo (Bust) por Dimensión</h5>
+                    <div class="chart-container">
+                        <canvas id="dimensions-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-lg-4">
+                <div class="dashboard-panel">
+                    <h5 class="panel-title"><i class="fa-solid fa-sliders text-primary"></i>Filtros y Parámetros</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" for="min-sample">Muestra Mínima de Patrones</label>
+                        <input type="number" class="form-control form-control-sm" id="min-sample" value="10" min="2" onchange="loadPatterns()">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" for="min-rate">Bust Rate Mínimo (%)</label>
+                        <input type="number" class="form-control form-control-sm" id="min-rate" value="60" min="0" max="100" onchange="loadPatterns()">
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-stale-matches" onchange="loadMatches()">
+                        <label class="form-check-label small fw-bold" for="show-stale-matches">Incluir partidos obsoletos en lista</label>
+                    </div>
+
+                    <hr>
+
+                    <div class="small text-muted">
+                        <i class="fa-solid fa-circle-info me-1"></i> Las estadísticas y el ROI se calculan automáticamente sobre partidos con datos frescos. Los partidos obsoletos son excluidos por seguridad.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Optimal Patterns -->
+        <div class="dashboard-panel position-relative">
+            <div class="spinner-wrapper" id="patterns-loader">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <h5 class="panel-title"><i class="fa-solid fa-bullseye text-success"></i>Patrones Óptimos para Apostar Contra el Underdog</h5>
+            <div class="table-responsive">
+                <table class="premium-table" id="patterns-table">
+                    <thead>
+                        <tr>
+                            <th>Patrón Combinado</th>
+                            <th>Muestra (Partidos)</th>
+                            <th>Bust Rate (Acierto)</th>
+                            <th>ROI Estimado (1.90)</th>
+                            <th class="text-end">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Inserted dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Obsolete Matches Detector -->
+        <div class="dashboard-panel">
+            <h5 class="panel-title text-danger"><i class="fa-solid fa-circle-exclamation text-danger"></i>Detector de Calidad de Datos (Partidos Obsoletos)</h5>
+            <div class="table-responsive">
+                <table class="premium-table" id="stale-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Liga</th>
+                            <th>Partido</th>
+                            <th>Gap Local (Días)</th>
+                            <th>Gap Visitante (Días)</th>
+                            <th>Máx Gap (Días)</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Inserted dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Full Matches List -->
+        <div class="dashboard-panel position-relative">
+            <div class="spinner-wrapper" id="matches-loader">
+                <div class="spinner-border text-primary" role="status"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 class="panel-title mb-0"><i class="fa-solid fa-list text-primary"></i>Historial de Partidos Clasificados</h5>
+                
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" id="search-matches" placeholder="Buscar equipo..." oninput="filterMatchesTable()" style="width: 220px;">
+                    <select class="form-select form-select-sm" id="filter-underdog-result" onchange="filterMatchesTable()" style="width: 160px;">
+                        <option value="">-- Todos Resultados --</option>
+                        <option value="UND_BUST">Bust Completo (100%)</option>
+                        <option value="UND_HALF_BUST">Medio Bust (50%)</option>
+                        <option value="UND_COVER">Cover Completo</option>
+                        <option value="UND_HALF_COVER">Medio Cover</option>
+                        <option value="UND_PUSH">Push</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="premium-table" id="matches-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Liga</th>
+                            <th>Partido</th>
+                            <th>AH</th>
+                            <th>Score</th>
+                            <th>Etiquetas</th>
+                            <th>Resultado Underdog</th>
+                            <th class="text-end">Estudio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Inserted dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div class="small text-muted" id="table-stats">Mostrando 0 de 0 partidos</div>
+                <nav aria-label="Page navigation" id="matches-pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Paginación dinámica -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        let allMatches = [];
+        let filteredMatches = [];
+        let currentPage = 1;
+        const pageSize = 20;
+        let dimensionsChart = null;
+        let activePatternFilter = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+            sidebar.classList.toggle('mobile-active');
+        }
+
+        function loadAllData() {
+            document.getElementById('patterns-loader').style.display = 'flex';
+            document.getElementById('matches-loader').style.display = 'flex';
+            
+            // Cargar KPI stats
+            fetch('/api/underdog_stats')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('kpi-total').innerText = data.total_valid || 0;
+                    document.getElementById('kpi-total-sub').innerText = `De ${data.total_matches} totales`;
+                    document.getElementById('kpi-bust').innerText = `${((data.global_bust_rate || 0) * 100).toFixed(1)}%`;
+                    
+                    const roiEl = document.getElementById('kpi-roi');
+                    roiEl.innerText = `${(data.global_roi || 0).toFixed(1)}%`;
+                    if (data.global_roi > 0) {
+                        roiEl.style.color = '#10b981';
+                    } else {
+                        roiEl.style.color = '#ef4444';
+                    }
+                    
+                    document.getElementById('kpi-stale').innerText = data.total_stale || 0;
+                    
+                    // Renderizar gráficos
+                    renderChart(data.patterns || []);
+                    
+                    // Renderizar patrones
+                    renderPatterns(data.patterns || []);
+                    document.getElementById('patterns-loader').style.display = 'none';
+                })
+                .catch(err => {
+                    console.error("Error loading stats:", err);
+                    document.getElementById('patterns-loader').style.display = 'none';
+                });
+
+            // Cargar partidos
+            loadMatches();
+        }
+
+        function loadMatches() {
+            document.getElementById('matches-loader').style.display = 'flex';
+            const showStale = document.getElementById('show-stale-matches').checked;
+            
+            let url = `/api/underdog_matches?show_stale=${showStale}`;
+            if (activePatternFilter) {
+                url += `&pattern=${encodeURIComponent(activePatternFilter)}`;
+            }
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    allMatches = data;
+                    filteredMatches = [...allMatches];
+                    currentPage = 1;
+                    renderMatchesTable();
+                    renderStaleMatches();
+                    document.getElementById('matches-loader').style.display = 'none';
+                })
+                .catch(err => {
+                    console.error("Error loading matches:", err);
+                    document.getElementById('matches-loader').style.display = 'none';
+                });
+        }
+
+        function loadPatterns() {
+            document.getElementById('patterns-loader').style.display = 'flex';
+            const minSample = document.getElementById('min-sample').value;
+            const minRate = document.getElementById('min-rate').value / 100.0;
+            
+            fetch(`/api/underdog_patterns?min_sample=${minSample}&min_rate=${minRate}`)
+                .then(res => res.json())
+                .then(data => {
+                    renderPatterns(data);
+                    document.getElementById('patterns-loader').style.display = 'none';
+                })
+                .catch(err => {
+                    console.error("Error loading patterns:", err);
+                    document.getElementById('patterns-loader').style.display = 'none';
+                });
+        }
+
+        function renderPatterns(patterns) {
+            const tbody = document.querySelector('#patterns-table tbody');
+            tbody.innerHTML = '';
+            
+            // Filtrar solo los patrones interesantes (de más de 1 dimensión para la tabla principal)
+            const listable = patterns.filter(p => p.pattern.includes('|'));
+            
+            if (listable.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron patrones con los parámetros actuales.</td></tr>`;
+                return;
+            }
+
+            listable.forEach(p => {
+                const tr = document.createElement('tr');
+                
+                // Formatear el label del patrón
+                const pills = p.pattern.split('|').map(part => `<span class="label-pill highlight">${part}</span>`).join('');
+                
+                // Color según ROI / Bust rate
+                let colorClass = 'text-muted';
+                if (p.roi > 15) colorClass = 'text-success fw-bold';
+                else if (p.roi > 5) colorClass = 'text-primary';
+                else if (p.roi < 0) colorClass = 'text-danger';
+
+                tr.innerHTML = `
+                    <td>${pills}</td>
+                    <td class="fw-semibold">${p.total}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">${(p.bust_rate * 100).toFixed(1)}%</span>
+                            <div class="progress" style="width: 60px; height: 6px;">
+                                <div class="progress-bar bg-purple" role="progressbar" style="width: ${p.bust_rate * 100}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="${colorClass}">${p.roi > 0 ? '+' : ''}${p.roi.toFixed(1)}%</td>
+                    <td class="text-end">
+                        <button class="btn btn-outline-primary btn-sm py-1" onclick="filterByPattern('${p.pattern}')">
+                            <i class="fa-solid fa-filter me-1"></i> Filtrar Partidos
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterByPattern(pattern) {
+            activePatternFilter = pattern;
+            loadMatches();
+            
+            // Scroll a la lista de partidos
+            document.getElementById('matches-table').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderStaleMatches() {
+            const tbody = document.querySelector('#stale-table tbody');
+            tbody.innerHTML = '';
+            
+            // Filtrar partidos que son obsoletos
+            const stale = allMatches.filter(m => m.is_stale);
+            
+            if (stale.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-success fw-bold py-3"><i class="fa-solid fa-circle-check me-2"></i>¡Excelente! Todos los partidos tienen datos actualizados de previos.</td></tr>`;
+                return;
+            }
+
+            stale.slice(0, 15).forEach(m => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-muted small">${m.date}</td>
+                    <td class="small fw-semibold text-secondary">${m.league || 'N/A'}</td>
+                    <td><strong>${m.home}</strong> <span class="text-muted">vs</span> <strong>${m.away}</strong></td>
+                    <td class="text-center text-warning fw-bold">${m.home_gap_days !== null ? m.home_gap_days + 'd' : '-'}</td>
+                    <td class="text-center text-warning fw-bold">${m.away_gap_days !== null ? m.away_gap_days + 'd' : '-'}</td>
+                    <td class="text-center text-danger fw-bold fs-6">${m.max_gap_days}d</td>
+                    <td><span class="badge bg-warning text-dark"><i class="fa-solid fa-triangle-exclamation me-1"></i> Obsoleto (>60d)</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            if (stale.length > 15) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="7" class="text-center text-muted small py-2">Y ${stale.length - 15} partidos obsoletos adicionales...</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderMatchesTable() {
+            const tbody = document.querySelector('#matches-table tbody');
+            tbody.innerHTML = '';
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageMatches = filteredMatches.slice(start, end);
+
+            document.getElementById('table-stats').innerText = `Mostrando ${start + 1} a ${Math.min(end, filteredMatches.length)} de ${filteredMatches.length} partidos`;
+
+            if (pageMatches.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron partidos para los criterios seleccionados.</td></tr>`;
+                renderPagination(0);
+                return;
+            }
+
+            pageMatches.forEach(m => {
+                const tr = document.createElement('tr');
+                
+                // Formatear etiquetas
+                const labelParts = m.label.split('|');
+                const pills = labelParts.map(part => {
+                    const isBust = part.includes('BUST');
+                    const isStale = part.includes('STALE');
+                    const isOk = part.includes('_OK');
+                    const isUp = part.includes('_UP');
+                    
+                    let hl = '';
+                    if (isBust || isStale) hl = 'highlight bg-danger-subtle text-danger border-danger-subtle';
+                    else if (isOk || isUp) hl = 'highlight bg-success-subtle text-success border-success-subtle';
+                    
+                    return `<span class="label-pill ${hl}">${part}</span>`;
+                }).join('');
+
+                // Badge resultado
+                let resultBadge = '';
+                if (m.underdog_result === 'UND_BUST') resultBadge = '<span class="badge-bust">❌ BUST (100%)</span>';
+                else if (m.underdog_result === 'UND_HALF_BUST') resultBadge = '<span class="badge-half-bust">❌½ HALF BUST</span>';
+                else if (m.underdog_result === 'UND_COVER') resultBadge = '<span class="badge-cover">✅ COVER</span>';
+                else if (m.underdog_result === 'UND_HALF_COVER') resultBadge = '<span class="badge-half-cover">✅½ HALF COVER</span>';
+                else if (m.underdog_result === 'UND_PUSH') resultBadge = '<span class="badge-push">➖ PUSH</span>';
+
+                tr.innerHTML = `
+                    <td class="text-muted small">${m.date}</td>
+                    <td class="small fw-semibold text-secondary">${m.league}</td>
+                    <td>
+                        <span class="${m.ah > 0 ? 'text-primary fw-bold' : ''}">${m.home}</span>
+                        <span class="text-muted small">vs</span>
+                        <span class="${m.ah < 0 ? 'text-primary fw-bold' : ''}">${m.away}</span>
+                    </td>
+                    <td class="fw-bold">${m.ah}</td>
+                    <td class="fw-bold text-center">${m.score}</td>
+                    <td>${pills}</td>
+                    <td>${resultBadge}</td>
+                    <td class="text-end">
+                        <a href="/estudio?id=${m.match_id}" class="btn btn-outline-secondary btn-sm px-2 py-1" target="_blank">
+                            <i class="fa-solid fa-square-poll-horizontal"></i>
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPagination(filteredMatches.length);
+        }
+
+        function filterMatchesTable() {
+            const query = document.getElementById('search-matches').value.toLowerCase();
+            const resFilter = document.getElementById('filter-underdog-result').value;
+
+            filteredMatches = allMatches.filter(m => {
+                const matchesSearch = !query || m.home.toLowerCase().includes(query) || m.away.toLowerCase().includes(query) || (m.league && m.league.toLowerCase().includes(query));
+                const matchesResult = !resFilter || m.underdog_result === resFilter;
+                return matchesSearch && matchesResult;
+            });
+
+            currentPage = 1;
+            renderMatchesTable();
+        }
+
+        function renderPagination(totalItems) {
+            const paginationUl = document.getElementById('matches-pagination').querySelector('ul');
+            paginationUl.innerHTML = '';
+
+            const totalPages = Math.ceil(totalItems / pageSize);
+            if (totalPages <= 1) return;
+
+            // Botón Prev
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Prev</a>`;
+            paginationUl.appendChild(prevLi);
+
+            // Páginas intermedias (máximo 5)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${currentPage === i ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+                paginationUl.appendChild(li);
+            }
+
+            // Botón Next
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>`;
+            paginationUl.appendChild(nextLi);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderMatchesTable();
+        }
+
+        function renderChart(patterns) {
+            if (dimensionsChart) {
+                dimensionsChart.destroy();
+            }
+
+            // Filtrar dimensiones individuales
+            const individualDims = [
+                { key: 'MOV_UP', label: 'Línea subió (MOV_UP)' },
+                { key: 'MOV_DOWN', label: 'Línea bajó (MOV_DOWN)' },
+                { key: 'MOV_HOLD', label: 'Línea igual (MOV_HOLD)' },
+                { key: 'MOV_FLIP', label: 'Favorito cambió (MOV_FLIP)' },
+                { key: 'UFORM_LOSS', label: 'Underdog perdió previo' },
+                { key: 'UFORM_WIN', label: 'Underdog ganó previo' },
+                { key: 'STATS_FAV_DOMINANT', label: 'Favorito dominó stats' },
+                { key: 'STATS_UND_DOMINANT', label: 'Underdog dominó stats' },
+                { key: 'H2H_FAV_HISTORY', label: 'Historial H2H Favorito' },
+                { key: 'H2H_UND_HISTORY', label: 'Historial H2H Underdog' }
+            ];
+
+            const chartData = [];
+            individualDims.forEach(dim => {
+                const found = patterns.find(p => p.pattern === dim.key);
+                if (found && found.total >= 5) {
+                    chartData.push({
+                        label: dim.label,
+                        rate: found.bust_rate * 100.0,
+                        total: found.total
+                    });
+                }
+            });
+
+            // Ordenar por tasa de bust
+            chartData.sort((a, b) => b.rate - a.rate);
+
+            const ctx = document.getElementById('dimensions-chart').getContext('2d');
+            dimensionsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(d => d.label),
+                    datasets: [{
+                        label: 'Tasa de Fallo (Bust) Underdog %',
+                        data: chartData.map(d => d.rate),
+                        backgroundColor: chartData.map(d => {
+                            if (d.rate >= 70) return 'rgba(139, 92, 246, 0.85)'; // Morado premium
+                            if (d.rate >= 60) return 'rgba(59, 130, 246, 0.85)';  // Azul
+                            return 'rgba(148, 163, 184, 0.7)'; // Gris slate
+                        }),
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                footer: (tooltipItems) => {
+                                    const index = tooltipItems[0].dataIndex;
+                                    return `Total partidos: ${chartData[index].total}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: value => value + '%'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

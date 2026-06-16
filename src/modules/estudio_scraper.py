@@ -4,6 +4,8 @@ import time
 import copy
 import os
 import requests
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import re
 import json
 import math
@@ -1133,7 +1135,7 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
     url = f"{BASE_URL_OF}/match/live-{match_id}"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
         stat_titles = {"Shots": "-", "Shots on Goal": "-", "Attacks": "-", "Dangerous Attacks": "-"}
@@ -1206,7 +1208,7 @@ def get_h2h_details_for_original_logic_of(key_match_id, rival_a_id, rival_b_id, 
     url = f"{BASE_URL_OF}/match/h2h-{key_match_id}"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "lxml")
         
@@ -1381,7 +1383,7 @@ def fetch_odds_from_bf_data(match_id):
     url = f"{BASE_URL_OF}/gf/data/bf_en-idn.js"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         content = response.text
         
@@ -1442,7 +1444,7 @@ def fetch_odds_from_ajax(match_id):
     url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         if response.status_code != 200:
             return None
             
@@ -1729,68 +1731,134 @@ def extract_final_score_of(soup):
     except Exception: pass
     return '?:?', '?-?'
 
-def extract_match_time_of(soup):
-    """Extrae la hora del partido del HTML."""
-    if not soup: return "N/A"
+def _parse_to_spain_datetime(date_str, time_str, is_utc=True):
+    from datetime import datetime, timedelta
+    
+    # Normalizar AM/PM
+    am_pm = ""
+    time_str = time_str.strip()
+    if time_str.upper().endswith("PM"):
+        am_pm = "PM"
+        time_str = time_str[:-2].strip()
+    elif time_str.upper().endswith("AM"):
+        am_pm = "AM"
+        time_str = time_str[:-2].strip()
+        
+    time_str = time_str.rstrip(":")
+    
+    # Parsear hora y minuto
+    h, m = 12, 0
     try:
-        # Buscar en el script matchInfo primero
-        # Usamos una búsqueda más amplia para el script
+        parts = time_str.split(":")
+        if len(parts) >= 2:
+            h = int(parts[0])
+            m = int(parts[1])
+    except Exception:
+        pass
+        
+    if am_pm == "PM" and h < 12:
+        h += 12
+    elif am_pm == "AM" and h == 12:
+        h = 0
+        
+    # Parsear fecha
+    year, month, day = 2026, 6, 16
+    try:
+        if "-" in date_str:
+            parts = date_str.split("-")
+            if len(parts) == 3:
+                if len(parts[0]) == 4:
+                    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                else:
+                    day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
+        elif "/" in date_str:
+            parts = date_str.split("/")
+            if len(parts) == 3:
+                p1, p2, p3 = int(parts[0]), int(parts[1]), int(parts[2])
+                if p3 >= 100:
+                    if p1 > 12:
+                        day, month, year = p1, p2, p3
+                    elif p2 > 12:
+                        month, day, year = p1, p2, p3
+                    else:
+                        month, day, year = p1, p2, p3
+                else:
+                    year, month, day = p1, p2, p3
+    except Exception:
+        pass
+        
+    try:
+        dt = datetime(year, month, day, h, m)
+    except Exception:
+        dt = datetime(2026, 6, 16, 12, 0)
+        
+    # Convertir a España
+    if is_utc:
+        # En verano (abril a octubre) España es UTC+2, en invierno (noviembre a marzo) es UTC+1
+        if 4 <= dt.month <= 10:
+            dt_spain = dt + timedelta(hours=2)
+        else:
+            dt_spain = dt + timedelta(hours=1)
+    else:
+        # De Pekín (GMT+8) a España: restamos 7 horas
+        dt_spain = dt - timedelta(hours=7)
+        
+    return dt_spain
+
+def extract_match_datetime_spain(soup):
+    """Extrae el datetime del partido convertido a la hora de España."""
+    if not soup:
+        return None
+        
+    try:
+        # 1. Intentar con el span timeData (suele estar en UTC)
+        time_span = soup.find("span", attrs={"name": "timeData"})
+        if time_span and time_span.get("data-t"):
+            full_time = time_span.get("data-t").strip()
+            if ' ' in full_time:
+                date_part, time_part = full_time.split(' ', 1)
+                return _parse_to_spain_datetime(date_part, time_part, is_utc=True)
+                
+        # 2. Intentar con el script matchInfo (suele estar en GMT+8 o similar)
         scripts = soup.find_all("script")
         for script in scripts:
             if script.string and "var _matchInfo" in script.string:
-                match = re.search(r"mTime:\s*'([^']*)'", script.string)
+                match = re.search(r"(?:matchTime|mTime):\s*'([^']*)'", script.string)
                 if match:
-                    # Formato suele ser YYYY-MM-DD HH:MM:SS
-                    full_time = match.group(1)
+                    full_time = match.group(1).strip()
                     if ' ' in full_time:
-                        return full_time.split(' ')[1][:5] # HH:MM
-                    return full_time
+                        date_part, time_part = full_time.split(' ', 1)
+                        return _parse_to_spain_datetime(date_part, time_part, is_utc=False)
                 break
-        
-        # Fallback al HTML
+                
+        # 3. Fallback al HTML div#match_time
         time_div = soup.find("div", class_="row", id="match_time")
         if time_div:
-            return time_div.get_text(strip=True)
-            
-        # Fallback a un span con data-t (común en listas pero a veces en header)
-        time_span = soup.find("span", attrs={"name": "timeData"})
-        if time_span and time_span.get("data-t"):
-             full_time = time_span.get("data-t")
-             if ' ' in full_time:
-                return full_time.split(' ')[1][:5]
-             return full_time
+            text = time_div.get_text(strip=True)
+            if ' ' in text:
+                date_part, time_part = text.split(' ', 1)
+                return _parse_to_spain_datetime(date_part, time_part, is_utc=True)
+            else:
+                from datetime import datetime
+                today_str = datetime.now().strftime("%m/%d/%Y")
+                return _parse_to_spain_datetime(today_str, text, is_utc=True)
 
     except Exception:
         pass
+    return None
+
+def extract_match_time_of(soup):
+    """Extrae la hora del partido convertida a España (HH:MM)."""
+    dt = extract_match_datetime_spain(soup)
+    if dt:
+        return dt.strftime("%H:%M")
     return "N/A"
 
 def extract_match_date_of(soup):
-    """Extrae la fecha del partido del HTML (YYYY-MM-DD)."""
-    if not soup: return "N/A"
-    try:
-        # Buscar en el script matchInfo
-        scripts = soup.find_all("script")
-        for script in scripts:
-            if script.string and "var _matchInfo" in script.string:
-                match = re.search(r"mTime:\s*'([^']*)'", script.string)
-                if match:
-                    # Formato suele ser YYYY-MM-DD HH:MM:SS
-                    full_time = match.group(1)
-                    if ' ' in full_time:
-                        return full_time.split(' ')[0]
-                    return full_time
-                break
-        
-        # Fallback a un span con data-t
-        time_span = soup.find("span", attrs={"name": "timeData"})
-        if time_span and time_span.get("data-t"):
-             full_time = time_span.get("data-t")
-             if ' ' in full_time:
-                return full_time.split(' ')[0]
-             return full_time
-
-    except Exception:
-        pass
+    """Extrae la fecha del partido convertida a España (M/D/Y)."""
+    dt = extract_match_datetime_spain(soup)
+    if dt:
+        return f"{dt.month}/{dt.day}/{dt.year}"
     return "N/A"
 
 
@@ -1909,7 +1977,7 @@ def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id,
 def _load_main_match_soup(main_match_id: str):
     main_page_url = f"{BASE_URL_OF}/match/h2h-{main_match_id}"
     session = get_requests_session_of()
-    response = session.get(main_page_url, timeout=REQUEST_TIMEOUT_SECONDS)
+    response = session.get(main_page_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
     response.raise_for_status()
     return BeautifulSoup(response.text, "lxml")
 

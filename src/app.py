@@ -43,6 +43,8 @@ from modules.estudio_scraper import (
 
 from modules.pattern_search import find_similar_patterns, explore_matches
 from modules.bookie_decoder import analyze_match_bookie_logic
+from modules.scah_analyzer import analizar_partido_scah
+from modules import winner_tracker
 from flask import jsonify # Asegúrate de que jsonify está importado
 
 
@@ -1406,6 +1408,32 @@ def todos_resultados():
     """Muestra una vista dedicada con todos los partidos finalizados."""
     return render_template('finished_matches.html')
 
+
+@app.route('/api/export_prompt/<match_id>')
+def api_export_prompt(match_id):
+    try:
+        # Intentar obtener el partido directamente de la base de datos (instantaneo)
+        match_data = sql_store.get_match(str(match_id))
+        
+        if not match_data:
+            # Fallback si no esta en la DB: usar la funcion de analisis estandar
+            match_data = analizar_partido_completo(str(match_id), force_refresh=False)
+            if isinstance(match_data, tuple):
+                match_data = match_data[0]
+            
+        if not match_data or (isinstance(match_data, dict) and "error" in match_data):
+            return jsonify({"success": False, "error": "Datos del partido no encontrados. ¿Lo has analizado antes?"})
+        
+        if not isinstance(match_data, dict):
+            return jsonify({"success": False, "error": "Formato de datos invalido en la cache."})
+
+        from modules import llm_exporter
+        prompt = llm_exporter.generate_llm_prompt(match_data)
+        return jsonify({"success": True, "prompt": prompt})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)})
 
 @app.route('/api/matches')
 def api_matches():
@@ -4656,6 +4684,14 @@ def api_precacheo_picks_batch():
                 except Exception as e:
                     pass
             
+            # Winner Tracker (Anti-Underdog) picks
+            try:
+                rec_pick = winner_tracker.evaluate_precacheo_recommendation(m)
+                if rec_pick:
+                    picks.append(rec_pick)
+            except Exception as e:
+                print(f"Error evaluating winner tracker pick: {e}")
+            
             results[str(mid)] = picks
         
         return jsonify({'picks': results})
@@ -5713,6 +5749,110 @@ def api_precacheo_pattern_search():
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analyze_scah', methods=['POST'])
+def api_analyze_scah():
+    """
+    Endpoint para analizar un partido con el modelo SCAH v10.0
+    """
+    try:
+        data = request.json
+        match_id = data.get('match_id')
+        if not match_id:
+            return jsonify({'error': 'Falta match_id'}), 400
+
+        # Obtener datos completos del partido (usando caché si es posible)
+        match_data = analizar_partido_completo(str(match_id), force_refresh=False)
+        
+        if not match_data or 'error' in match_data:
+            return jsonify({'error': 'No se pudieron obtener datos completos para el análisis SCAH.'}), 500
+
+        resultado = analizar_partido_scah(match_data)
+        
+        return jsonify({
+            'status': 'success',
+            'match_id': match_id,
+            'report': resultado
+        })
+    except Exception as e:
+        print(f"Error en analyze_scah: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/ganadores')
+def route_ganadores():
+    return render_template('ganadores.html')
+
+
+@app.route('/api/underdog_stats')
+def api_underdog_stats():
+    try:
+        stats = winner_tracker.get_underdog_bust_stats()
+        return jsonify(stats)
+    except Exception as e:
+        print(f"Error en api_underdog_stats: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/underdog_matches')
+def api_underdog_matches():
+    try:
+        pattern = request.args.get('pattern')
+        show_stale = request.args.get('show_stale', 'false').lower() == 'true'
+        
+        all_matches = winner_tracker.scan_all_historical_buckets()
+        
+        filtered = []
+        for m in all_matches:
+            if m['is_stale'] and not show_stale:
+                continue
+                
+            if pattern:
+                if pattern not in m['label']:
+                    continue
+            filtered.append(m)
+            
+        return jsonify(filtered)
+    except Exception as e:
+        print(f"Error en api_underdog_matches: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/underdog_patterns')
+def api_underdog_patterns():
+    try:
+        min_sample = int(request.args.get('min_sample', 10))
+        min_bust_rate = float(request.args.get('min_rate', 0.6))
+        
+        stats = winner_tracker.get_underdog_bust_stats()
+        patterns = stats.get('patterns', [])
+        
+        filtered = [
+            p for p in patterns 
+            if p['total'] >= min_sample and p['bust_rate'] >= min_bust_rate
+        ]
+        
+        return jsonify(filtered)
+    except Exception as e:
+        print(f"Error en api_underdog_patterns: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/freshness_report')
+def api_freshness_report():
+    try:
+        all_matches = winner_tracker.scan_all_historical_buckets()
+        report = {
+            'FRESH_OK': sum(1 for m in all_matches if m['fresh_code'] == 'FRESH_OK'),
+            'FRESH_WARN': sum(1 for m in all_matches if m['fresh_code'] == 'FRESH_WARN'),
+            'FRESH_STALE': sum(1 for m in all_matches if m['fresh_code'] == 'FRESH_STALE'),
+            'FRESH_MISSING': sum(1 for m in all_matches if m['fresh_code'] == 'FRESH_MISSING'),
+        }
+        return jsonify(report)
+    except Exception as e:
+        print(f"Error en api_freshness_report: {e}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     # use_reloader=False para evitar que werkzeug detecte cambios en site-packages (plotly, etc.)

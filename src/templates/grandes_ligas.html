@@ -211,6 +211,7 @@
             <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
             <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
             <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+            <a class="nav-link" href="/ganadores"><i class="fa-solid fa-trophy"></i> Ganadores</a>
         </nav>
     </div>
 
@@ -1966,6 +1967,9 @@
                         </button>
                         <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
                             <i class="fas fa-robot"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyLLMPrompt('${matchId}', this)" title="Copiar Prompt LLM">
+                            <i class="fas fa-copy"></i>
                         </button>` : ''}
                     </td>
                 `;
@@ -2258,6 +2262,69 @@
             }).catch(err => {
                 alert('Error al copiar: ' + err.message);
             });
+        }
+
+        // Helper robusto para copiar al portapapeles con fallback
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    console.warn("Navigator clipboard failed, trying fallback: ", e);
+                }
+            }
+            
+            // Fallback clásico usando un textarea temporal
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-999999px";
+            textarea.style.top = "-999999px";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textarea);
+                if (successful) return true;
+                throw new Error("execCommand copy devolvió false");
+            } catch (err) {
+                document.body.removeChild(textarea);
+                throw new Error("No se pudo copiar al portapapeles: " + err.message);
+            }
+        }
+
+        // Fetch and copy LLM prompt
+        async function copyLLMPrompt(matchId, btnElement) {
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const response = await fetch(`/api/export_prompt/${matchId}`);
+                const data = await response.json();
+                
+                if (data.success && data.prompt) {
+                    await copyToClipboard(data.prompt);
+                    btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+                    btnElement.classList.add('btn-outline-success');
+                    btnElement.classList.remove('btn-outline-primary');
+                } else {
+                    alert('Error al generar prompt: ' + (data.error || 'Desconocido'));
+                    btnElement.innerHTML = originalHtml;
+                }
+            } catch (err) {
+                alert('Error al generar o copiar prompt: ' + err.message);
+                btnElement.innerHTML = originalHtml;
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-outline-success');
+                    btnElement.classList.add('btn-outline-primary');
+                    btnElement.disabled = false;
+                }, 2000);
+            }
         }
 
         // Buscar patrones similares en histórico

@@ -1,5 +1,572 @@
 [
   {
+    "match_id": "2873006",
+    "home_name": "Cekmekoy (W)",
+    "away_name": "Hakkarigucu SK (W)",
+    "league_name": "Turkey Bayanlar 1. Ligi",
+    "final_score": "1:5",
+    "time": "8:30:",
+    "match_date": "5/10/2026",
+    "home_standings": {
+      "name": "Cekmekoy (W)",
+      "ranking": "11",
+      "total_pj": "27",
+      "total_v": "9",
+      "total_e": "2",
+      "total_d": "16",
+      "total_gf": "36",
+      "total_gc": "74",
+      "specific_pj": "13",
+      "specific_v": "4",
+      "specific_e": "0",
+      "specific_d": "9",
+      "specific_gf": "19",
+      "specific_gc": "37",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Hakkarigucu SK (W)",
+      "ranking": "10",
+      "total_pj": "27",
+      "total_v": "11",
+      "total_e": "5",
+      "total_d": "11",
+      "total_gf": "40",
+      "total_gc": "33",
+      "specific_pj": "13",
+      "specific_v": "4",
+      "specific_e": "3",
+      "specific_d": "6",
+      "specific_gf": "13",
+      "specific_gc": "21",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>3 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "2025-03-09"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "2025-12-21"
+      },
+      "triangulacion": {
+        "caso": 5,
+        "diagnostico": "CHOQUE DE TRENES",
+        "senal": "✅",
+        "prioridad": "MEDIA",
+        "recomendacion_ah": "Favorito Win",
+        "explicacion": "Ambos vienen en buena dinámica relativa. El Fav es mejor por calidad de rival.",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Cekmekoy (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>750</td>\n                            <td>2026-04-27</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:5</td>\n                            <td class=\"\">Amedspor (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-04-04</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Pendik Camlikspor (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-03-17</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:4</td>\n                            <td class=\"\">Giresun Sanayispor (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-02-19</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">Yuksekova Belediyespor (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-1.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-02-08</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:4</td>\n                            <td class=\"\">Galatasaray SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-02-01</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">1207 Antalya Muratpasa (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-12-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:2</td>\n                            <td class=\"\">Besiktas (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-2.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-11-23</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:5</td>\n                            <td class=\"\">Fenerbahce SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-3</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-11-14</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"\">Bornova Hitabspor (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-11-12</td>\n                            <td class=\"text-end fw-bold text-primary\">Cekmekoy (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:4</td>\n                            <td class=\"\">Fomget Genclik (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-3.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 3</span> | \n                            <span class=\"text-muted fw-bold\">E: 0</span> | \n                            <span class=\"text-danger fw-bold\">D: 7</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Hakkarigucu SK (W))</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>750</td>\n                            <td>2026-04-27</td>\n                            <td class=\"text-end \">Yuksekova Belediyespor (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:0</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-04-03</td>\n                            <td class=\"text-end \">Trabzonspor (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:0</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-03-17</td>\n                            <td class=\"text-end \">Bornova Hitabspor (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:3</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-02-14</td>\n                            <td class=\"text-end \">Fenerbahce SK (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">3.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2026-02-01</td>\n                            <td class=\"text-end \">Giresun Sanayispor (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-12-28</td>\n                            <td class=\"text-end \">Fomget Genclik (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-12-14</td>\n                            <td class=\"text-end \">Galatasaray SK (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:2</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">2</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>750</td>\n                            <td>2025-11-22</td>\n                            <td class=\"text-end \">Fatih Vatan Spor (W)</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Hakkarigucu SK (W)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 1</span> | \n                            <span class=\"text-muted fw-bold\">E: 2</span> | \n                            <span class=\"text-danger fw-bold\">D: 5</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-04-27",
+      "home_team": "Cekmekoy (W)",
+      "away_team": "Amedspor (W)",
+      "score": "1:5",
+      "handicap_line_raw": "-2.25",
+      "match_id": "2872990",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Ataques",
+          "home": "81",
+          "away": "95"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "32",
+          "away": "55"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-04-27",
+      "home_team": "Yuksekova Belediyespor (W)",
+      "away_team": "Hakkarigucu SK (W)",
+      "score": "3:0",
+      "handicap_line_raw": "1.5",
+      "match_id": "2872996",
+      "is_different_league": false,
+      "stats_rows": []
+    },
+    "h2h_col3": {
+      "status": "found",
+      "goles_home": "0",
+      "goles_away": "1",
+      "handicap": "N/A",
+      "match_id": "2872910",
+      "h2h_home_team_name": "Amedspor (W)",
+      "h2h_away_team_name": "Yuksekova Belediyespor (W)",
+      "date": "2026-02-22",
+      "home_red": null,
+      "away_red": null,
+      "is_different_league": false,
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "1:4",
+        "ah_line": "-1.75",
+        "localia": "H",
+        "home_team": "Cekmekoy (W)",
+        "away_team": "Yuksekova Belediyespor (W)",
+        "match_id": "2872944",
+        "date": "2026-02-19",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Yuksekova Belediyespor (W)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "87",
+            "away": "136"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "43",
+            "away": "104"
+          }
+        ],
+        "title_home_name": "Cekmekoy (W)",
+        "title_away_name": "Hakkarigucu SK (W)"
+      },
+      "right": {
+        "score": "2:1",
+        "ah_line": "-",
+        "localia": "H",
+        "home_team": "Hakkarigucu SK (W)",
+        "away_team": "Amedspor (W)",
+        "match_id": "2872955",
+        "date": "2026-03-12",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Amedspor (W)",
+        "stats_rows": [],
+        "title_home_name": "Cekmekoy (W)",
+        "title_away_name": "Hakkarigucu SK (W)"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "0:3",
+      "res1_raw": "0-3",
+      "match1_id": "2662662",
+      "date1": "2025-03-09",
+      "ah6": "-",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2872891",
+      "date6": "2025-12-21",
+      "h2h_gen_home": "Hakkarigucu SK (W)",
+      "h2h_gen_away": "Cekmekoy (W)",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "N/A",
+        "match_id": "2872910",
+        "h2h_home_team_name": "Amedspor (W)",
+        "h2h_away_team_name": "Yuksekova Belediyespor (W)",
+        "date": "2026-02-22",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "1",
+          "away": "12"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "0",
+          "away": "8"
+        },
+        {
+          "label": "Ataques",
+          "home": "31",
+          "away": "36"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "17",
+          "away": "25"
+        }
+      ]
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "0:3",
+      "res1_raw": "0-3",
+      "match1_id": "2662662",
+      "date1": "2025-03-09",
+      "ah6": "-",
+      "res6": "1:1",
+      "res6_raw": "1-1",
+      "match6_id": "2872891",
+      "date6": "2025-12-21",
+      "h2h_gen_home": "Hakkarigucu SK (W)",
+      "h2h_gen_away": "Cekmekoy (W)",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "home_red_stadium": null,
+      "away_red_stadium": null,
+      "col3_data": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "1",
+        "handicap": "N/A",
+        "match_id": "2872910",
+        "h2h_home_team_name": "Amedspor (W)",
+        "h2h_away_team_name": "Yuksekova Belediyespor (W)",
+        "date": "2026-02-22",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false
+      },
+      "stats_rows": []
+    },
+    "execution_time_seconds": 53.85,
+    "cached_at": "2026-05-11 06:52:16"
+  },
+  {
+    "match_id": "2963657",
+    "home_name": "Montevideo City Torque",
+    "away_name": "Palestino",
+    "league_name": "Copa Sudamericana",
+    "final_score": "1:0",
+    "time": "10:00",
+    "match_date": "5/6/2026",
+    "home_standings": {
+      "name": "Montevideo City Torque",
+      "ranking": "7",
+      "total_pj": "14",
+      "total_v": "5",
+      "total_e": "5",
+      "total_d": "4",
+      "total_gf": "20",
+      "total_gc": "15",
+      "specific_pj": "6",
+      "specific_v": "3",
+      "specific_e": "1",
+      "specific_d": "2",
+      "specific_gf": "11",
+      "specific_gc": "8",
+      "specific_type": "Est. como Local (en Liga)"
+    },
+    "away_standings": {
+      "name": "Palestino",
+      "ranking": "11",
+      "total_pj": "11",
+      "total_v": "4",
+      "total_e": "2",
+      "total_d": "5",
+      "total_gf": "14",
+      "total_gc": "18",
+      "specific_pj": "5",
+      "specific_v": "1",
+      "specific_e": "0",
+      "specific_d": "4",
+      "specific_gf": "4",
+      "specific_gc": "12",
+      "specific_type": "Est. como Visitante (en Liga)"
+    },
+    "home_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "away_ou_stats": {
+      "over_pct": 0,
+      "under_pct": 0,
+      "push_pct": 0,
+      "total": 0
+    },
+    "main_match_odds": {
+      "ah_linea": "-",
+      "goals_linea": "-"
+    },
+    "market_analysis_html": "\n    <div style=\"border-left: 4px solid #1E90FF; padding: 12px 15px; margin-top: 15px; background-color: #f0f2f6; border-radius: 5px; font-size: 0.95em;\">\n        <p style='margin-bottom: 12px;'><strong>📊 Análisis de Mercado vs. Histórico H2H</strong><br><span style='font-style: italic; font-size: 0.9em;'>Líneas actuales: AH - / Goles N/A | Favorito: Ninguno (línea en 0)</span></p>\n        <div style='margin-bottom: 10px;'>  <strong style='font-size: 1.05em;'>🏟️ Análisis del Precedente en Este Estadio</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li><li><span class='score-value'>Goles:</span> No hay datos suficientes en este precedente.</li></ul></div>\n        <div>  <strong style='font-size: 1.05em;'>✈️ Análisis del H2H General Más Reciente</strong>  <ul style='margin: 5px 0 0 20px; padding-left: 0;'><li style='margin-bottom: 8px;'><div style='margin-bottom: 2px;'>  <span style='color: #2563eb; font-weight: bold;'>Palestino</span>   <span style='font-weight: bold; padding: 0 4px;'>0:2</span>   <span style='color: #f97316; font-weight: bold;'>Montevideo City Torque</span></div><div>  <span class='ah-value'>Hándicap:</span> No se pudo realizar una comparación detallada (línea histórica: <strong>0.25</strong>).    La línea actual habría sido <span style='color: #6c757d; font-weight: bold;'>INDETERMINADO 🤔</span>.</div></li><li><span class='score-value'>Goles:</span> El partido tuvo <strong>2 goles</strong>, por lo que la línea actual habría resultado <span style='color: #6c757d; font-weight: bold;'>indeterminado</span>.</li></ul></div>\n    </div>\n    ",
+    "market_analysis_data": {
+      "stadium": {
+        "movement": "N/A",
+        "result": "N/A",
+        "evaluation": "N/A",
+        "is_covered": null,
+        "date": "N/A"
+      },
+      "general": {
+        "movement": "N/A",
+        "result": "0:2",
+        "evaluation": "indeterminado",
+        "is_covered": null,
+        "date": "2026-04-15"
+      },
+      "triangulacion": {
+        "caso": null,
+        "diagnostico": "Sin datos H2H Col3",
+        "senal": "-",
+        "prioridad": "N/A",
+        "recomendacion_ah": "-",
+        "explicacion": "No hay datos suficientes para análisis de triangulación",
+        "etiqueta_inversa": false
+      }
+    },
+    "historical_matches_html": "<div class='historical-matches-container'><div class='row'>\n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos en Casa</strong> <small class=\"text-muted\">(Montevideo City Torque)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>240</td>\n                            <td>2026-04-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">4:1</td>\n                            <td class=\"\">Boston River</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>240</td>\n                            <td>2026-04-11</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"\">Albion FC</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>263</td>\n                            <td>2026-04-09</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Gremio (RS)</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>240</td>\n                            <td>2026-03-28</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">Nacional Montevideo</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>240</td>\n                            <td>2026-03-21</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"\">Central Espanol</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>263</td>\n                            <td>2026-03-03</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Defensor Sporting Montevideo</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>240</td>\n                            <td>2026-02-26</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"\">Defensor Sporting Montevideo</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>240</td>\n                            <td>2026-02-17</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"\">CA Juventud</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>41</td>\n                            <td>2026-01-24</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:0</td>\n                            <td class=\"\">D. Concepcion</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2797</td>\n                            <td>2026-01-14</td>\n                            <td class=\"text-end fw-bold text-primary\">Montevideo City Torque</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:3</td>\n                            <td class=\"\">Cerro Largo</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 6</span> | \n                            <span class=\"text-muted fw-bold\">E: 1</span> | \n                            <span class=\"text-danger fw-bold\">D: 3</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        \n        <div class=\"col-lg-6\">\n            <div class=\"card mb-3\">\n                <div class=\"card-header bg-light\">\n                    <h6 class=\"mb-0\"><strong>Partidos Fuera</strong> <small class=\"text-muted\">(Palestino)</small></h6>\n                </div>\n                <div class=\"table-responsive\">\n                    <table class=\"table table-sm table-hover mb-0\" style=\"font-size: 0.85rem;\">\n                        <thead class=\"table-light\">\n                            <tr>\n                                <th>Liga</th>\n                                <th>Fecha</th>\n                                <th class=\"text-end\">Local</th>\n                                <th class=\"text-center\">Res</th>\n                                <th>Visitante</th>\n                                <th class=\"text-center\">AH</th>\n\n                            </tr>\n                        </thead>\n                        <tbody>\n        \n                        <tr>\n                            <td>2820</td>\n                            <td>2026-05-02</td>\n                            <td class=\"text-end \">Everton CD</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:2</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>415</td>\n                            <td>2026-04-19</td>\n                            <td class=\"text-end \">Colo Colo</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:1</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">1</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>263</td>\n                            <td>2026-04-08</td>\n                            <td class=\"text-end \">Deportivo Riestra</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">0:0</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>415</td>\n                            <td>2026-04-02</td>\n                            <td class=\"text-end \">Univ Catolica</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">6:1</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.5</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>2820</td>\n                            <td>2026-03-26</td>\n                            <td class=\"text-end \">Deportes Limache</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:1</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>415</td>\n                            <td>2026-03-15</td>\n                            <td class=\"text-end \">Universidad de Concepcion</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:0</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>263</td>\n                            <td>2026-03-05</td>\n                            <td class=\"text-end \">Universidad de Chile</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">1:2</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>415</td>\n                            <td>2026-02-21</td>\n                            <td class=\"text-end \">Huachipato</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">2:1</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">-0.25</span></td>\n\n                        </tr>\n            \n                        <tr>\n                            <td>415</td>\n                            <td>2026-02-07</td>\n                            <td class=\"text-end \">Coquimbo Unido</td>\n                            <td class=\"text-center\" style=\"font-weight:bold;\">3:1</td>\n                            <td class=\"fw-bold text-primary\">Palestino</td>\n                            <td class=\"text-center\"><span class=\"badge bg-light text-dark border\">0.75</span></td>\n\n                        </tr>\n            \n                        </tbody>\n                    </table>\n                </div>\n                <div class=\"card-footer bg-white\">\n                    <div class=\"d-flex justify-content-around text-center\" style=\"font-size: 0.9rem;\">\n        \n                        <div>\n                            <span class=\"text-success fw-bold\">V: 2</span> | \n                            <span class=\"text-muted fw-bold\">E: 3</span> | \n                            <span class=\"text-danger fw-bold\">D: 4</span>\n                        </div>\n        \n                    </div>\n                </div>\n            </div>\n        </div>\n        </div></div>",
+    "last_home_match": {
+      "date": "2026-04-09",
+      "home_team": "Montevideo City Torque",
+      "away_team": "Gremio (RS)",
+      "score": "1:0",
+      "handicap_line_raw": "-0.25",
+      "match_id": "2963617",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "8",
+          "away": "7"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "111",
+          "away": "96"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "40",
+          "away": "31"
+        }
+      ]
+    },
+    "last_away_match": {
+      "date": "2026-04-08",
+      "home_team": "Deportivo Riestra",
+      "away_team": "Palestino",
+      "score": "0:0",
+      "handicap_line_raw": "0.25",
+      "match_id": "2963616",
+      "is_different_league": false,
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "9",
+          "away": "8"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "1",
+          "away": "1"
+        },
+        {
+          "label": "Ataques",
+          "home": "112",
+          "away": "135"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "73",
+          "away": "68"
+        }
+      ]
+    },
+    "h2h_col3": {
+      "status": "not_found",
+      "resultado": "H2H directo no encontrado para Gremio (RS) vs Deportivo Riestra.",
+      "stats_rows": []
+    },
+    "comparativas_indirectas": {
+      "left": {
+        "score": "2:1",
+        "ah_line": "0",
+        "localia": "A",
+        "home_team": "Deportivo Riestra",
+        "away_team": "Montevideo City Torque",
+        "match_id": "2963649",
+        "date": "2026-04-29",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Deportivo Riestra",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "14",
+            "away": "16"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "101",
+            "away": "115"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "47",
+            "away": "55"
+          }
+        ],
+        "title_home_name": "Montevideo City Torque",
+        "title_away_name": "Palestino"
+      },
+      "right": {
+        "score": "0:0",
+        "ah_line": "-0.25",
+        "localia": "H",
+        "home_team": "Palestino",
+        "away_team": "Gremio (RS)",
+        "match_id": "2963648",
+        "date": "2026-04-30",
+        "home_red": null,
+        "away_red": null,
+        "is_different_league": false,
+        "rival_name": "Gremio (RS)",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "10",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "2"
+          },
+          {
+            "label": "Ataques",
+            "home": "55",
+            "away": "59"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "26",
+            "away": "33"
+          }
+        ],
+        "title_home_name": "Montevideo City Torque",
+        "title_away_name": "Palestino"
+      }
+    },
+    "h2h_stadium": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "date1": "N/A",
+      "ah6": "0.25",
+      "res6": "0:2",
+      "res6_raw": "0-2",
+      "match6_id": "2963632",
+      "date6": "2026-04-15",
+      "h2h_gen_home": "Palestino",
+      "h2h_gen_away": "Montevideo City Torque",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "col3_data": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Gremio (RS) vs Deportivo Riestra."
+      },
+      "stats_rows": []
+    },
+    "h2h_general": {
+      "ah1": "-",
+      "res1": "?:?",
+      "res1_raw": "?-?",
+      "match1_id": null,
+      "date1": "N/A",
+      "ah6": "0.25",
+      "res6": "0:2",
+      "res6_raw": "0-2",
+      "match6_id": "2963632",
+      "date6": "2026-04-15",
+      "h2h_gen_home": "Palestino",
+      "h2h_gen_away": "Montevideo City Torque",
+      "home_red_gen": null,
+      "away_red_gen": null,
+      "col3_data": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Gremio (RS) vs Deportivo Riestra."
+      },
+      "stats_rows": [
+        {
+          "label": "Tiros",
+          "home": "15",
+          "away": "6"
+        },
+        {
+          "label": "Tiros a Puerta",
+          "home": "3",
+          "away": "2"
+        },
+        {
+          "label": "Ataques",
+          "home": "120",
+          "away": "85"
+        },
+        {
+          "label": "Ataques Peligrosos",
+          "home": "67",
+          "away": "35"
+        }
+      ]
+    },
+    "execution_time_seconds": 58.73,
+    "cached_at": "2026-05-07 06:11:01"
+  },
+  {
     "match_id": "2947078",
     "home_name": "Besa Kavaje",
     "away_name": "Lushnja KS",
