@@ -5,7 +5,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2837543
 - **Liga**: Italy C1
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -18,7 +18,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Perugia vs Vis Pesaro
 - **Fecha**: 2025-11-24
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 23 (Perugia) vs 3 (Vis Pesaro)
     - Tiros a Puerta: 10 (Perugia) vs 1 (Vis Pesaro)
@@ -29,7 +29,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sambenedettese vs Ternana
 - **Fecha**: 2025-11-15
 - **Resultado**: 0:0
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (Sambenedettese) vs 4 (Ternana)
     - Tiros a Puerta: 4 (Sambenedettese) vs 2 (Ternana)
@@ -40,7 +40,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Perugia vs Ternana
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 2 (Perugia) vs 15 (Ternana)
     - Tiros a Puerta: 2 (Perugia) vs 5 (Ternana)
@@ -51,7 +51,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ternana vs Perugia
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 1 → 0
+- **Movimiento**: 1 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 14 (Ternana) vs 4 (Perugia)
     - Tiros a Puerta: 2 (Ternana) vs 0 (Perugia)
@@ -62,7 +62,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sambenedettese vs Vis Pesaro
 - **Fecha**: 2025-08-16
 - **Resultado**: 2:0
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Sambenedettese) vs 3 (Vis Pesaro)
     - Tiros a Puerta: 5 (Sambenedettese) vs 0 (Vis Pesaro)
@@ -74,7 +74,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Perugia vs Sambenedettese
   - **Fecha**: 2025-09-23
   - **Resultado**: 1:2
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (Perugia) vs 9 (Sambenedettese)
     - Tiros a Puerta: 4 (Perugia) vs 2 (Sambenedettese)
@@ -84,7 +84,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Ternana vs Vis Pesaro
   - **Fecha**: 2025-11-09
   - **Resultado**: 1:1
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -94,7 +94,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2838062
 - **Liga**: Thai League 2
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -107,7 +107,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Pattaya Discovery United FC vs Nong Bua Lamphu
 - **Fecha**: 2025-11-30
 - **Resultado**: 4:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Pattaya Discovery United FC) vs 14 (Nong Bua Lamphu)
     - Tiros a Puerta: 6 (Pattaya Discovery United FC) vs 4 (Nong Bua Lamphu)
@@ -118,7 +118,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Nakhon Si United FC vs Phrae United FC
 - **Fecha**: 2025-11-07
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 3 (Nakhon Si United FC) vs 11 (Phrae United FC)
     - Tiros a Puerta: 1 (Nakhon Si United FC) vs 5 (Phrae United FC)
@@ -129,7 +129,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Pattaya Discovery United FC vs Phrae United FC
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Pattaya Discovery United FC) vs 11 (Phrae United FC)
     - Tiros a Puerta: 4 (Pattaya Discovery United FC) vs 7 (Phrae United FC)
@@ -140,7 +140,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Phrae United FC vs Pattaya Discovery United FC
 - **Fecha**: -
 - **Resultado**: 2:2
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 10 (Phrae United FC) vs 11 (Pattaya Discovery United FC)
     - Tiros a Puerta: 5 (Phrae United FC) vs 2 (Pattaya Discovery United FC)
@@ -151,7 +151,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Nakhon Si United FC vs Nong Bua Lamphu
 - **Fecha**: 2025-10-05
 - **Resultado**: 1:2
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Nakhon Si United FC) vs 11 (Nong Bua Lamphu)
     - Tiros a Puerta: 2 (Nakhon Si United FC) vs 4 (Nong Bua Lamphu)
@@ -163,14 +163,14 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Pattaya Discovery United FC vs Nakhon Si United FC
   - **Fecha**: 2025-08-28
   - **Resultado**: 2:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 ### Indirecta Visitante (Phrae United FC vs Rival)
   - **Encuentro**: Nong Bua Lamphu vs Phrae United FC
   - **Fecha**: 2025-09-27
   - **Resultado**: 3:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (Nong Bua Lamphu) vs 10 (Phrae United FC)
     - Tiros a Puerta: 6 (Nong Bua Lamphu) vs 4 (Phrae United FC)
@@ -183,7 +183,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2840462
 - **Liga**: Italy C1
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -196,7 +196,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Arzignano Valchiampo vs AC Dolomiti Bellunesi
 - **Fecha**: 2025-11-22
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 21 (Arzignano Valchiampo) vs 11 (AC Dolomiti Bellunesi)
     - Tiros a Puerta: 9 (Arzignano Valchiampo) vs 10 (AC Dolomiti Bellunesi)
@@ -207,7 +207,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AC Dolomiti Bellunesi vs Inter Milan U23
 - **Fecha**: 2025-12-03
 - **Resultado**: 1:0
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (AC Dolomiti Bellunesi) vs 7 (Inter Milan U23)
     - Tiros a Puerta: 1 (AC Dolomiti Bellunesi) vs 3 (Inter Milan U23)
@@ -219,7 +219,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Arzignano Valchiampo vs AC Dolomiti Bellunesi
   - **Fecha**: 2025-11-22
   - **Resultado**: 2:2
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 21 (Arzignano Valchiampo) vs 11 (AC Dolomiti Bellunesi)
     - Tiros a Puerta: 9 (Arzignano Valchiampo) vs 10 (AC Dolomiti Bellunesi)
@@ -229,7 +229,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: AC Dolomiti Bellunesi vs Inter Milan U23
   - **Fecha**: 2025-12-03
   - **Resultado**: 1:0
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 5 (AC Dolomiti Bellunesi) vs 7 (Inter Milan U23)
     - Tiros a Puerta: 1 (AC Dolomiti Bellunesi) vs 3 (Inter Milan U23)
@@ -242,7 +242,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2854868
 - **Liga**: France Youth U19 League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -255,7 +255,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Le Havre U19 vs Valenciennes US U19
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:3
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Le Havre U19) vs 16 (Valenciennes US U19)
     - Tiros a Puerta: 3 (Le Havre U19) vs 7 (Valenciennes US U19)
@@ -266,7 +266,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Paris Saint Germain U19 vs Amiens U19
 - **Fecha**: 2025-11-22
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 23 (Paris Saint Germain U19) vs 7 (Amiens U19)
     - Tiros a Puerta: 9 (Paris Saint Germain U19) vs 4 (Amiens U19)
@@ -277,7 +277,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Le Havre U19 vs Amiens U19
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: -
+- **Movimiento**: - (PUSH (Igualó))
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -285,7 +285,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Amiens U19 vs Le Havre U19
 - **Fecha**: -
 - **Resultado**: 2:3
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Amiens U19) vs 11 (Le Havre U19)
     - Tiros a Puerta: 4 (Amiens U19) vs 9 (Le Havre U19)
@@ -305,7 +305,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Le Havre U19 vs Paris Saint Germain U19
   - **Fecha**: 2025-11-01
   - **Resultado**: 2:1
-  - **Hándicap**: -0.75
+  - **Hándicap**: -0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (Le Havre U19) vs 15 (Paris Saint Germain U19)
     - Tiros a Puerta: 2 (Le Havre U19) vs 9 (Paris Saint Germain U19)
@@ -325,7 +325,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2859522
 - **Liga**: South Africa First League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -338,7 +338,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Baroka FC vs Black Leopards
 - **Fecha**: 2025-11-29
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Baroka FC) vs 10 (Black Leopards)
     - Tiros a Puerta: 3 (Baroka FC) vs 3 (Black Leopards)
@@ -349,7 +349,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Highbury vs Venda
 - **Fecha**: 2025-11-07
 - **Resultado**: 0:2
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -357,7 +357,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Baroka FC vs Venda
 - **Fecha**: -
 - **Resultado**: 4:2
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Baroka FC) vs 20 (Venda)
     - Tiros a Puerta: 6 (Baroka FC) vs 7 (Venda)
@@ -368,7 +368,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Venda vs Baroka FC
 - **Fecha**: -
 - **Resultado**: 5:1
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -385,7 +385,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Highbury vs Baroka FC
   - **Fecha**: 2025-09-14
   - **Resultado**: 1:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 1 (Highbury) vs 0 (Baroka FC)
     - Tiros a Puerta: 1 (Highbury) vs 0 (Baroka FC)
@@ -395,7 +395,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Venda vs Black Leopards
   - **Fecha**: 2025-11-21
   - **Resultado**: 1:0
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (Venda) vs 8 (Black Leopards)
     - Tiros a Puerta: 1 (Venda) vs 3 (Black Leopards)
@@ -408,7 +408,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2865187
 - **Liga**: Spain Segunda Division RFEF
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -421,7 +421,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Andratks vs RCD Espanyol B
 - **Fecha**: 2025-11-23
 - **Resultado**: 0:0
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Andratks) vs 7 (RCD Espanyol B)
     - Tiros a Puerta: 1 (Andratks) vs 3 (RCD Espanyol B)
@@ -432,7 +432,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sant Andreu vs UE Olot
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Sant Andreu) vs 3 (UE Olot)
     - Tiros a Puerta: 3 (Sant Andreu) vs 1 (UE Olot)
@@ -443,7 +443,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Andratks vs UE Olot
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Andratks) vs 6 (UE Olot)
     - Tiros a Puerta: 1 (Andratks) vs 4 (UE Olot)
@@ -454,7 +454,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Andratks vs UE Olot
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Andratks) vs 6 (UE Olot)
     - Tiros a Puerta: 1 (Andratks) vs 4 (UE Olot)
@@ -466,14 +466,14 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Andratks vs Sant Andreu
   - **Fecha**: 2025-09-06
   - **Resultado**: 1:0
-  - **Hándicap**: -0.75
+  - **Hándicap**: -0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 ### Indirecta Visitante (UE Olot vs Rival)
   - **Encuentro**: RCD Espanyol B vs UE Olot
   - **Fecha**: 2025-11-02
   - **Resultado**: 1:0
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (RCD Espanyol B) vs 6 (UE Olot)
     - Tiros a Puerta: 4 (RCD Espanyol B) vs 2 (UE Olot)
@@ -486,7 +486,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2867122
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -499,7 +499,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cerdanyola del Valles vs Fundacio Esportiva Grama
 - **Fecha**: 2025-11-16
 - **Resultado**: 1:1
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 2 (Cerdanyola del Valles) vs 5 (Fundacio Esportiva Grama)
     - Tiros a Puerta: 2 (Cerdanyola del Valles) vs 2 (Fundacio Esportiva Grama)
@@ -510,7 +510,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UE Vic vs CE Manresa
 - **Fecha**: 2025-11-15
 - **Resultado**: 2:4
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (UE Vic) vs 23 (CE Manresa)
     - Tiros a Puerta: 4 (UE Vic) vs 8 (CE Manresa)
@@ -521,7 +521,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cerdanyola del Valles vs CE Manresa
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Cerdanyola del Valles) vs 4 (CE Manresa)
     - Tiros a Puerta: 6 (Cerdanyola del Valles) vs 1 (CE Manresa)
@@ -532,7 +532,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cerdanyola del Valles vs CE Manresa
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Cerdanyola del Valles) vs 4 (CE Manresa)
     - Tiros a Puerta: 6 (Cerdanyola del Valles) vs 1 (CE Manresa)
@@ -552,7 +552,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: CE Manresa vs Fundacio Esportiva Grama
   - **Fecha**: 2025-10-19
   - **Resultado**: 1:3
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 10 (CE Manresa) vs 13 (Fundacio Esportiva Grama)
     - Tiros a Puerta: 3 (CE Manresa) vs 6 (Fundacio Esportiva Grama)
@@ -565,7 +565,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2868395
 - **Liga**: Bulgaria B PFG
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -578,7 +578,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Sevlievo vs Pirin Blagoevgrad
 - **Fecha**: 2025-11-16
 - **Resultado**: 1:3
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 29 (FC Sevlievo) vs 13 (Pirin Blagoevgrad)
     - Tiros a Puerta: 21 (FC Sevlievo) vs 10 (Pirin Blagoevgrad)
@@ -589,7 +589,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ludogorets Razgrad II vs Etar
 - **Fecha**: 2025-11-28
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Ludogorets Razgrad II) vs 21 (Etar)
     - Tiros a Puerta: 10 (Ludogorets Razgrad II) vs 17 (Etar)
@@ -600,7 +600,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Sevlievo vs Etar
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -608,7 +608,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Etar vs FC Sevlievo
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 11 (Etar) vs 9 (FC Sevlievo)
     - Tiros a Puerta: 4 (Etar) vs 3 (FC Sevlievo)
@@ -619,7 +619,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ludogorets Razgrad II vs Pirin Blagoevgrad
 - **Fecha**: 2025-09-29
 - **Resultado**: 2:1
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (Ludogorets Razgrad II) vs 8 (Pirin Blagoevgrad)
     - Tiros a Puerta: 6 (Ludogorets Razgrad II) vs 3 (Pirin Blagoevgrad)
@@ -631,14 +631,14 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: FC Sevlievo vs Ludogorets Razgrad II
   - **Fecha**: 2025-08-26
   - **Resultado**: 3:0
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 ### Indirecta Visitante (Etar vs Rival)
   - **Encuentro**: Pirin Blagoevgrad vs Etar
   - **Fecha**: 2025-10-26
   - **Resultado**: 1:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 29 (Pirin Blagoevgrad) vs 15 (Etar)
     - Tiros a Puerta: 22 (Pirin Blagoevgrad) vs 11 (Etar)
@@ -651,7 +651,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2874115
 - **Liga**: Cyprus 2 Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -664,7 +664,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: MEAP Nisou vs Digenis Morphou
 - **Fecha**: 2025-11-22
 - **Resultado**: 0:3
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (MEAP Nisou) vs 13 (Digenis Morphou)
     - Tiros a Puerta: 2 (MEAP Nisou) vs 7 (Digenis Morphou)
@@ -675,7 +675,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: PO Ahironas-Onisilos vs Agia Napa
 - **Fecha**: 2025-11-22
 - **Resultado**: 1:2
-- **Línea de Hándicap**: -1
+- **Línea de Hándicap**: -1 (PUSH (Igualó))
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -683,7 +683,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: MEAP Nisou vs Agia Napa
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -691,7 +691,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: MEAP Nisou vs Agia Napa
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -699,7 +699,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Digenis Morphou vs PO Ahironas-Onisilos
 - **Fecha**: 2025-11-07
 - **Resultado**: 1:1
-- **Hándicap Espejo**: 1.25
+- **Hándicap Espejo**: 1.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (Digenis Morphou) vs 6 (PO Ahironas-Onisilos)
     - Tiros a Puerta: 3 (Digenis Morphou) vs 2 (PO Ahironas-Onisilos)
@@ -711,7 +711,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: PO Ahironas-Onisilos vs MEAP Nisou
   - **Fecha**: 2025-11-29
   - **Resultado**: 0:1
-  - **Hándicap**: -0.75
+  - **Hándicap**: -0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (PO Ahironas-Onisilos) vs 23 (MEAP Nisou)
     - Tiros a Puerta: 2 (PO Ahironas-Onisilos) vs 9 (MEAP Nisou)
@@ -721,7 +721,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Digenis Morphou vs Agia Napa
   - **Fecha**: 2025-11-01
   - **Resultado**: 1:2
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 8 (Digenis Morphou) vs 10 (Agia Napa)
     - Tiros a Puerta: 1 (Digenis Morphou) vs 3 (Agia Napa)
@@ -734,7 +734,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2878984
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 3:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -747,7 +747,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CDF Tres Cantos vs CD Paracuellos Antamira
 - **Fecha**: 2025-11-16
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (CDF Tres Cantos) vs 4 (CD Paracuellos Antamira)
     - Tiros a Puerta: 3 (CDF Tres Cantos) vs 2 (CD Paracuellos Antamira)
@@ -758,7 +758,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mostoles vs AD Parla
 - **Fecha**: 2025-11-16
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 19 (Mostoles) vs 11 (AD Parla)
     - Tiros a Puerta: 10 (Mostoles) vs 3 (AD Parla)
@@ -769,7 +769,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CDF Tres Cantos vs AD Parla
 - **Fecha**: -
 - **Resultado**: 3:1
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (CDF Tres Cantos) vs 11 (AD Parla)
     - Tiros a Puerta: 8 (CDF Tres Cantos) vs 6 (AD Parla)
@@ -780,7 +780,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AD Parla vs CDF Tres Cantos
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -788,7 +788,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mostoles vs CD Paracuellos Antamira
 - **Fecha**: 2025-11-02
 - **Resultado**: 2:1
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (Mostoles) vs 12 (CD Paracuellos Antamira)
     - Tiros a Puerta: 10 (Mostoles) vs 3 (CD Paracuellos Antamira)
@@ -800,7 +800,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: CDF Tres Cantos vs Mostoles
   - **Fecha**: 2025-10-26
   - **Resultado**: 2:3
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 14 (CDF Tres Cantos) vs 14 (Mostoles)
     - Tiros a Puerta: 4 (CDF Tres Cantos) vs 6 (Mostoles)
@@ -813,7 +813,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2881871
 - **Liga**: Kenya Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -826,7 +826,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: APS Bomet vs Ulinzi Stars Nakuru
 - **Fecha**: 2025-11-19
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (APS Bomet) vs 11 (Ulinzi Stars Nakuru)
     - Tiros a Puerta: 2 (APS Bomet) vs 4 (Ulinzi Stars Nakuru)
@@ -837,7 +837,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ulinzi Stars Nakuru vs Bandari
 - **Fecha**: 2025-11-30
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (Ulinzi Stars Nakuru) vs 4 (Bandari)
     - Tiros a Puerta: 2 (Ulinzi Stars Nakuru) vs 2 (Bandari)
@@ -849,7 +849,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: APS Bomet vs Ulinzi Stars Nakuru
   - **Fecha**: 2025-11-19
   - **Resultado**: 0:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 7 (APS Bomet) vs 11 (Ulinzi Stars Nakuru)
     - Tiros a Puerta: 2 (APS Bomet) vs 4 (Ulinzi Stars Nakuru)
@@ -859,7 +859,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Ulinzi Stars Nakuru vs Bandari
   - **Fecha**: 2025-11-30
   - **Resultado**: 1:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (Ulinzi Stars Nakuru) vs 4 (Bandari)
     - Tiros a Puerta: 2 (Ulinzi Stars Nakuru) vs 2 (Bandari)
@@ -872,7 +872,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2890607
 - **Liga**: Ethiopia Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -885,7 +885,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Hadiya Hossana vs Arba Minch
 - **Fecha**: 2025-11-27
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Hadiya Hossana) vs 7 (Arba Minch)
     - Tiros a Puerta: 2 (Hadiya Hossana) vs 5 (Arba Minch)
@@ -896,7 +896,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ethiopian Insurance FC vs Negelle Arsi
 - **Fecha**: 2025-11-25
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Ethiopian Insurance FC) vs 11 (Negelle Arsi)
     - Tiros a Puerta: 2 (Ethiopian Insurance FC) vs 2 (Negelle Arsi)
@@ -907,7 +907,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Hadiya Hossana vs Negelle Arsi
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 7 (Hadiya Hossana) vs 11 (Negelle Arsi)
     - Tiros a Puerta: 2 (Hadiya Hossana) vs 4 (Negelle Arsi)
@@ -918,7 +918,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Hadiya Hossana vs Negelle Arsi
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 7 (Hadiya Hossana) vs 11 (Negelle Arsi)
     - Tiros a Puerta: 2 (Hadiya Hossana) vs 4 (Negelle Arsi)
@@ -929,7 +929,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ethiopian Insurance FC vs Arba Minch
 - **Fecha**: 2025-11-08
 - **Resultado**: 0:0
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Ethiopian Insurance FC) vs 3 (Arba Minch)
     - Tiros a Puerta: 2 (Ethiopian Insurance FC) vs 2 (Arba Minch)
@@ -941,7 +941,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Hadiya Hossana vs Ethiopian Insurance FC
   - **Fecha**: 2025-11-03
   - **Resultado**: 1:2
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 8 (Hadiya Hossana) vs 6 (Ethiopian Insurance FC)
     - Tiros a Puerta: 5 (Hadiya Hossana) vs 5 (Ethiopian Insurance FC)
@@ -951,7 +951,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Negelle Arsi vs Arba Minch
   - **Fecha**: 2025-10-18
   - **Resultado**: 1:1
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 7 (Negelle Arsi) vs 6 (Arba Minch)
     - Tiros a Puerta: 5 (Negelle Arsi) vs 4 (Arba Minch)
@@ -964,7 +964,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905287
 - **Liga**: Uganda Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -977,7 +977,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: BUL FC vs Entebbe UPPC FC
 - **Fecha**: 2025-11-27
 - **Resultado**: 0:2
-- **Línea de Hándicap**: 1
+- **Línea de Hándicap**: 1 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (BUL FC) vs 18 (Entebbe UPPC FC)
     - Tiros a Puerta: 6 (BUL FC) vs 5 (Entebbe UPPC FC)
@@ -988,7 +988,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mbarara City vs Kampala City Council FC
 - **Fecha**: 2025-11-28
 - **Resultado**: 1:2
-- **Línea de Hándicap**: -0.75
+- **Línea de Hándicap**: -0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Mbarara City) vs 6 (Kampala City Council FC)
     - Tiros a Puerta: 1 (Mbarara City) vs 2 (Kampala City Council FC)
@@ -997,7 +997,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: BUL FC vs Kampala City Council FC
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 8 (BUL FC) vs 10 (Kampala City Council FC)
     - Tiros a Puerta: 2 (BUL FC) vs 3 (Kampala City Council FC)
@@ -1008,7 +1008,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Kampala City Council FC vs BUL FC
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Kampala City Council FC) vs 7 (BUL FC)
     - Tiros a Puerta: 6 (Kampala City Council FC) vs 2 (BUL FC)
@@ -1020,7 +1020,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Mbarara City vs BUL FC
   - **Fecha**: 2025-10-17
   - **Resultado**: 1:1
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 14 (Mbarara City) vs 8 (BUL FC)
     - Tiros a Puerta: 7 (Mbarara City) vs 1 (BUL FC)
@@ -1033,7 +1033,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905558
 - **Liga**: Italy Serie D
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1046,7 +1046,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Celle Varazze FBC vs Asti
 - **Fecha**: 2025-11-26
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Celle Varazze FBC) vs 13 (Asti)
     - Tiros a Puerta: 5 (Celle Varazze FBC) vs 4 (Asti)
@@ -1065,7 +1065,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Asti vs Sanremese
 - **Fecha**: 2025-10-26
 - **Resultado**: 1:0
-- **Hándicap Espejo**: 0.25
+- **Hándicap Espejo**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1081,7 +1081,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: ACSD Saluzzo vs Asti
   - **Fecha**: 2025-11-30
   - **Resultado**: 2:0
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 14 (ACSD Saluzzo) vs 13 (Asti)
     - Tiros a Puerta: 6 (ACSD Saluzzo) vs 3 (Asti)
@@ -1094,7 +1094,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905570
 - **Liga**: Italy Serie D
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1123,7 +1123,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Milan Futuro vs Varesina Calcio
 - **Fecha**: -
 - **Resultado**: 2:3
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 22 (Milan Futuro) vs 8 (Varesina Calcio)
     - Tiros a Puerta: 7 (Milan Futuro) vs 4 (Varesina Calcio)
@@ -1134,7 +1134,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Villa dAlme Valbrembana vs Virtus Ciserano Bergamo
 - **Fecha**: 2025-08-31
 - **Resultado**: 0:1
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Villa dAlme Valbrembana) vs 8 (Virtus Ciserano Bergamo)
     - Tiros a Puerta: 2 (Villa dAlme Valbrembana) vs 4 (Virtus Ciserano Bergamo)
@@ -1146,7 +1146,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Villa dAlme Valbrembana vs Varesina Calcio
   - **Fecha**: 2025-09-28
   - **Resultado**: 1:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 8 (Villa dAlme Valbrembana) vs 5 (Varesina Calcio)
     - Tiros a Puerta: 4 (Villa dAlme Valbrembana) vs 1 (Varesina Calcio)
@@ -1166,7 +1166,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905959
 - **Liga**: Kosovo Superliga
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 3:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1179,7 +1179,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Gjilani vs KF Ferizaj
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Gjilani) vs 9 (KF Ferizaj)
     - Tiros a Puerta: 4 (Gjilani) vs 5 (KF Ferizaj)
@@ -1190,7 +1190,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Ballkani vs KF Llapi
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:4
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 24 (FC Ballkani) vs 10 (KF Llapi)
     - Tiros a Puerta: 9 (FC Ballkani) vs 7 (KF Llapi)
@@ -1201,7 +1201,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Gjilani vs KF Llapi
 - **Fecha**: -
 - **Resultado**: 2:3
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1209,7 +1209,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KF Llapi vs Gjilani
 - **Fecha**: -
 - **Resultado**: 4:1
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1217,7 +1217,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Ballkani vs KF Ferizaj
 - **Fecha**: 2025-11-01
 - **Resultado**: 1:1
-- **Hándicap Espejo**: 1.25
+- **Hándicap Espejo**: 1.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (FC Ballkani) vs 8 (KF Ferizaj)
     - Tiros a Puerta: 5 (FC Ballkani) vs 3 (KF Ferizaj)
@@ -1229,7 +1229,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: FC Ballkani vs Gjilani
   - **Fecha**: 2025-10-25
   - **Resultado**: 1:1
-  - **Hándicap**: 1
+  - **Hándicap**: 1 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 11 (FC Ballkani) vs 11 (Gjilani)
     - Tiros a Puerta: 3 (FC Ballkani) vs 7 (Gjilani)
@@ -1239,7 +1239,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: KF Llapi vs KF Ferizaj
   - **Fecha**: 2025-10-19
   - **Resultado**: 1:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 11 (KF Llapi) vs 12 (KF Ferizaj)
     - Tiros a Puerta: 5 (KF Llapi) vs 4 (KF Ferizaj)
@@ -1252,7 +1252,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2906420
 - **Liga**: Namibia Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1265,7 +1265,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: United Africa Tigers vs Blue Waters FC
 - **Fecha**: 2025-12-06
 - **Resultado**: 0:4
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 17 (United Africa Tigers) vs 16 (Blue Waters FC)
     - Tiros a Puerta: 1 (United Africa Tigers) vs 5 (Blue Waters FC)
@@ -1302,7 +1302,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2906423
 - **Liga**: Namibia Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1315,7 +1315,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: African Stars Windhoek vs Eeshoke Chula Chula
 - **Fecha**: 2025-12-06
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (African Stars Windhoek) vs 17 (Eeshoke Chula Chula)
     - Tiros a Puerta: 0 (African Stars Windhoek) vs 1 (Eeshoke Chula Chula)
@@ -1334,7 +1334,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KK Palace FC vs African Stars Windhoek
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1368,7 +1368,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2906882
 - **Liga**: Kenya Super League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1381,7 +1381,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Equity FC vs MCF FC
 - **Fecha**: 2025-11-29
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (Equity FC) vs 11 (MCF FC)
     - Tiros a Puerta: 5 (Equity FC) vs 3 (MCF FC)
@@ -1392,7 +1392,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Migori Youth vs 3K FC
 - **Fecha**: 2025-10-29
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Migori Youth) vs 9 (3K FC)
     - Tiros a Puerta: 2 (Migori Youth) vs 3 (3K FC)
@@ -1412,7 +1412,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Equity FC vs Migori Youth
   - **Fecha**: 2025-11-02
   - **Resultado**: 3:2
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 15 (Equity FC) vs 26 (Migori Youth)
     - Tiros a Puerta: 6 (Equity FC) vs 7 (Migori Youth)
@@ -1425,7 +1425,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907092
 - **Liga**: Rwanda Womens League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1438,7 +1438,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Police WFC (W) vs Kamonyi FC (W)
 - **Fecha**: 2025-11-02
 - **Resultado**: 6:0
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Police WFC (W)) vs 2 (Kamonyi FC (W))
     - Tiros a Puerta: 7 (Police WFC (W)) vs 0 (Kamonyi FC (W))
@@ -1449,7 +1449,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Muhazi United WFC (W) vs Rayon Sports (W)
 - **Fecha**: 2025-02-08
 - **Resultado**: 0:3
-- **Línea de Hándicap**: -2.5
+- **Línea de Hándicap**: -2.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Muhazi United WFC (W)) vs 14 (Rayon Sports (W))
     - Tiros a Puerta: 0 (Muhazi United WFC (W)) vs 5 (Rayon Sports (W))
@@ -1460,7 +1460,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Kamonyi FC (W) vs Muhazi United WFC (W)
 - **Fecha**: 2025-03-26
 - **Resultado**: 3:0
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Kamonyi FC (W)) vs 10 (Muhazi United WFC (W))
     - Tiros a Puerta: 5 (Kamonyi FC (W)) vs 6 (Muhazi United WFC (W))
@@ -1472,7 +1472,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Police WFC (W) vs Muhazi United WFC (W)
   - **Fecha**: 2025-02-02
   - **Resultado**: 3:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 27 (Police WFC (W)) vs 18 (Muhazi United WFC (W))
     - Tiros a Puerta: 13 (Police WFC (W)) vs 7 (Muhazi United WFC (W))
@@ -1485,7 +1485,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907128
 - **Liga**: Spain Youth League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1498,7 +1498,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Vazquez Cultural U19 vs San Felix CF U19
 - **Fecha**: 2025-10-25
 - **Resultado**: 0:2
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Vazquez Cultural U19) vs 12 (San Felix CF U19)
     - Tiros a Puerta: 2 (Vazquez Cultural U19) vs 7 (San Felix CF U19)
@@ -1509,7 +1509,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UD La Mosca U19 vs Cordoba U19
 - **Fecha**: 2025-11-22
 - **Resultado**: 3:0
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (UD La Mosca U19) vs 14 (Cordoba U19)
     - Tiros a Puerta: 7 (UD La Mosca U19) vs 1 (Cordoba U19)
@@ -1520,7 +1520,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Vazquez Cultural U19 vs Cordoba U19
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Vazquez Cultural U19) vs 9 (Cordoba U19)
     - Tiros a Puerta: 6 (Vazquez Cultural U19) vs 6 (Cordoba U19)
@@ -1531,7 +1531,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cordoba U19 vs Vazquez Cultural U19
 - **Fecha**: -
 - **Resultado**: 3:0
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Cordoba U19) vs 3 (Vazquez Cultural U19)
     - Tiros a Puerta: 5 (Cordoba U19) vs 2 (Vazquez Cultural U19)
@@ -1542,7 +1542,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UD La Mosca U19 vs San Felix CF U19
 - **Fecha**: 2025-10-04
 - **Resultado**: 2:2
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 6 (UD La Mosca U19) vs 10 (San Felix CF U19)
     - Tiros a Puerta: 3 (UD La Mosca U19) vs 3 (San Felix CF U19)
@@ -1554,7 +1554,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Cordoba U19 vs San Felix CF U19
   - **Fecha**: 2025-09-13
   - **Resultado**: 1:2
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Cordoba U19) vs 3 (San Felix CF U19)
     - Tiros a Puerta: 5 (Cordoba U19) vs 2 (San Felix CF U19)
@@ -1567,7 +1567,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907165
 - **Liga**: Holland Derde Divisie
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:3
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1597,7 +1597,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: UNA vs GOES
   - **Fecha**: 2025-03-16
   - **Resultado**: 0:0
-  - **Hándicap**: 1
+  - **Hándicap**: 1 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (UNA) vs 10 (GOES)
     - Tiros a Puerta: 1 (UNA) vs 3 (GOES)
@@ -1607,7 +1607,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Blauw Geel vs UDI 19
   - **Fecha**: 2025-10-11
   - **Resultado**: 0:1
-  - **Hándicap**: 1
+  - **Hándicap**: 1 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 15 (Blauw Geel) vs 8 (UDI 19)
     - Tiros a Puerta: 5 (Blauw Geel) vs 5 (UDI 19)
@@ -1620,7 +1620,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907202
 - **Liga**: Slovenia U19
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1633,7 +1633,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: NK Rudar Velenje U19 vs NK Radomlje U19
 - **Fecha**: 2025-11-10
 - **Resultado**: 0:5
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (NK Rudar Velenje U19) vs 15 (NK Radomlje U19)
     - Tiros a Puerta: 2 (NK Rudar Velenje U19) vs 7 (NK Radomlje U19)
@@ -1644,7 +1644,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: NK Fuzinar U19 vs Jadran Dekani U19
 - **Fecha**: 2025-11-12
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (NK Fuzinar U19) vs 9 (Jadran Dekani U19)
     - Tiros a Puerta: 1 (NK Fuzinar U19) vs 4 (Jadran Dekani U19)
@@ -1656,7 +1656,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: NK Fuzinar U19 vs NK Rudar Velenje U19
   - **Fecha**: 2025-11-29
   - **Resultado**: 2:1
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 17 (NK Fuzinar U19) vs 6 (NK Rudar Velenje U19)
     - Tiros a Puerta: 4 (NK Fuzinar U19) vs 2 (NK Rudar Velenje U19)
@@ -1666,7 +1666,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: NK Radomlje U19 vs Jadran Dekani U19
   - **Fecha**: 2025-10-03
   - **Resultado**: 1:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (NK Radomlje U19) vs 5 (Jadran Dekani U19)
     - Tiros a Puerta: 2 (NK Radomlje U19) vs 2 (Jadran Dekani U19)
@@ -1679,7 +1679,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907229
 - **Liga**: Ethiopia Higher League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 3:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1692,7 +1692,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Addis Ketema vs Debre Birhan Ketema
 - **Fecha**: 2025-11-23
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1700,7 +1700,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Halaba City vs Sululta Ketema
 - **Fecha**: 2025-11-22
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -1708,7 +1708,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Halaba City vs Debre Birhan Ketema
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:0
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Halaba City) vs 7 (Debre Birhan Ketema)
     - Tiros a Puerta: 3 (Halaba City) vs 0 (Debre Birhan Ketema)
@@ -1720,7 +1720,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Sululta Ketema vs Debre Birhan Ketema
   - **Fecha**: 2025-11-28
   - **Resultado**: 0:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 3 (Sululta Ketema) vs 5 (Debre Birhan Ketema)
     - Tiros a Puerta: 0 (Sululta Ketema) vs 2 (Debre Birhan Ketema)
@@ -1733,7 +1733,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2784613
 - **Liga**: Italian Serie A
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1746,7 +1746,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cremonese vs AS Roma
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:3
-- **Línea de Hándicap**: -0.75
+- **Línea de Hándicap**: -0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Cremonese) vs 12 (AS Roma)
     - Tiros a Puerta: 4 (Cremonese) vs 6 (AS Roma)
@@ -1757,7 +1757,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Lazio vs Lecce
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 1
+- **Línea de Hándicap**: 1 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 19 (Lazio) vs 5 (Lecce)
     - Tiros a Puerta: 9 (Lazio) vs 1 (Lecce)
@@ -1768,7 +1768,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cremonese vs Lecce
 - **Fecha**: -
 - **Resultado**: 0:2
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Cremonese) vs 9 (Lecce)
     - Tiros a Puerta: 3 (Cremonese) vs 4 (Lecce)
@@ -1779,7 +1779,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Cremonese vs Lecce
 - **Fecha**: -
 - **Resultado**: 0:2
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Cremonese) vs 9 (Lecce)
     - Tiros a Puerta: 3 (Cremonese) vs 4 (Lecce)
@@ -1790,7 +1790,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Lazio vs AS Roma
 - **Fecha**: 2025-09-21
 - **Resultado**: 0:1
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Lazio) vs 13 (AS Roma)
     - Tiros a Puerta: 2 (Lazio) vs 6 (AS Roma)
@@ -1803,7 +1803,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2791848
 - **Liga**: Belgian Pro League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1816,7 +1816,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mechelen vs Standard Liege
 - **Fecha**: 2025-11-28
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Mechelen) vs 6 (Standard Liege)
     - Tiros a Puerta: 1 (Mechelen) vs 2 (Standard Liege)
@@ -1827,7 +1827,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Club Brugge vs Charleroi
 - **Fecha**: 2025-11-22
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 1.25
+- **Línea de Hándicap**: 1.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 17 (Club Brugge) vs 11 (Charleroi)
     - Tiros a Puerta: 5 (Club Brugge) vs 1 (Charleroi)
@@ -1838,7 +1838,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mechelen vs Charleroi
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 19 (Mechelen) vs 10 (Charleroi)
     - Tiros a Puerta: 6 (Mechelen) vs 5 (Charleroi)
@@ -1849,7 +1849,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Charleroi vs Mechelen
 - **Fecha**: -
 - **Resultado**: 2:0
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (Charleroi) vs 7 (Mechelen)
     - Tiros a Puerta: 6 (Charleroi) vs 0 (Mechelen)
@@ -1860,7 +1860,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Standard Liege vs Club Brugge
 - **Fecha**: 2025-09-27
 - **Resultado**: 1:2
-- **Hándicap Espejo**: -0.75
+- **Hándicap Espejo**: -0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (Standard Liege) vs 15 (Club Brugge)
     - Tiros a Puerta: 5 (Standard Liege) vs 5 (Club Brugge)
@@ -1872,7 +1872,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Mechelen vs Club Brugge
   - **Fecha**: 2025-08-01
   - **Resultado**: 2:1
-  - **Hándicap**: -0.75
+  - **Hándicap**: -0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 10 (Mechelen) vs 21 (Club Brugge)
     - Tiros a Puerta: 6 (Mechelen) vs 6 (Club Brugge)
@@ -1882,7 +1882,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Standard Liege vs Charleroi
   - **Fecha**: 2025-10-31
   - **Resultado**: 3:1
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 8 (Standard Liege) vs 12 (Charleroi)
     - Tiros a Puerta: 5 (Standard Liege) vs 4 (Charleroi)
@@ -1895,7 +1895,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2840108
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1908,7 +1908,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Illescas vs Cazalegas
 - **Fecha**: 2025-11-22
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (CD Illescas) vs 10 (Cazalegas)
     - Tiros a Puerta: 4 (CD Illescas) vs 2 (Cazalegas)
@@ -1927,7 +1927,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Illescas vs La Solana
 - **Fecha**: -
 - **Resultado**: 3:0
-- **Movimiento**: 1.25 → 0
+- **Movimiento**: 1.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (CD Illescas) vs 9 (La Solana)
     - Tiros a Puerta: 3 (CD Illescas) vs 1 (La Solana)
@@ -1938,7 +1938,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Illescas vs La Solana
 - **Fecha**: -
 - **Resultado**: 3:0
-- **Movimiento**: 1.25 → 0
+- **Movimiento**: 1.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (CD Illescas) vs 9 (La Solana)
     - Tiros a Puerta: 3 (CD Illescas) vs 1 (La Solana)
@@ -1968,7 +1968,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2849944
 - **Liga**: Holland Eredivisie Women＇s
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -1981,7 +1981,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Hera United (W) vs Ajax (W)
 - **Fecha**: 2025-11-02
 - **Resultado**: 0:5
-- **Línea de Hándicap**: -2.25
+- **Línea de Hándicap**: -2.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 3 (Hera United (W)) vs 12 (Ajax (W))
     - Tiros a Puerta: 1 (Hera United (W)) vs 8 (Ajax (W))
@@ -1992,7 +1992,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: NAC Breda (W) vs Excelsior Barendrecht (W)
 - **Fecha**: 2025-11-16
 - **Resultado**: 2:1
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (NAC Breda (W)) vs 19 (Excelsior Barendrecht (W))
     - Tiros a Puerta: 8 (NAC Breda (W)) vs 6 (Excelsior Barendrecht (W))
@@ -2004,7 +2004,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Hera United (W) vs NAC Breda (W)
   - **Fecha**: 2025-10-05
   - **Resultado**: 1:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 13 (Hera United (W)) vs 4 (NAC Breda (W))
     - Tiros a Puerta: 8 (Hera United (W)) vs 2 (NAC Breda (W))
@@ -2014,7 +2014,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Ajax (W) vs Excelsior Barendrecht (W)
   - **Fecha**: 2025-10-12
   - **Resultado**: 3:0
-  - **Hándicap**: 3.5
+  - **Hándicap**: 3.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 15 (Ajax (W)) vs 7 (Excelsior Barendrecht (W))
     - Tiros a Puerta: 6 (Ajax (W)) vs 1 (Excelsior Barendrecht (W))
@@ -2027,7 +2027,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2874459
 - **Liga**: Professional Tunisian League 2
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2040,7 +2040,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: SC Moknine vs Redeyef
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (SC Moknine) vs 16 (Redeyef)
     - Tiros a Puerta: 5 (SC Moknine) vs 4 (Redeyef)
@@ -2051,7 +2051,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Bouchamma vs Jendouba Sport
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 9 (Bouchamma) vs 9 (Jendouba Sport)
     - Tiros a Puerta: 6 (Bouchamma) vs 6 (Jendouba Sport)
@@ -2062,7 +2062,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: SC Moknine vs Jendouba Sport
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2070,7 +2070,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: SC Moknine vs Jendouba Sport
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2078,7 +2078,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Bouchamma vs Redeyef
 - **Fecha**: 2025-11-07
 - **Resultado**: 2:2
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Bouchamma) vs 6 (Redeyef)
     - Tiros a Puerta: 5 (Bouchamma) vs 4 (Redeyef)
@@ -2090,7 +2090,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Bouchamma vs SC Moknine
   - **Fecha**: 2025-09-28
   - **Resultado**: 0:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (PUSH (Igualó))
   - **Estadísticas**:
     - Tiros: 7 (Bouchamma) vs 3 (SC Moknine)
     - Tiros a Puerta: 5 (Bouchamma) vs 1 (SC Moknine)
@@ -2110,7 +2110,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2878146
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2123,7 +2123,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: EG El Palmar vs Muleno CF
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (EG El Palmar) vs 14 (Muleno CF)
     - Tiros a Puerta: 7 (EG El Palmar) vs 6 (Muleno CF)
@@ -2134,7 +2134,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Molinense vs Mazarron CF
 - **Fecha**: 2025-11-16
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Molinense) vs 13 (Mazarron CF)
     - Tiros a Puerta: 3 (Molinense) vs 7 (Mazarron CF)
@@ -2145,7 +2145,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: EG El Palmar vs Mazarron CF
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (EG El Palmar) vs 12 (Mazarron CF)
     - Tiros a Puerta: 5 (EG El Palmar) vs 1 (Mazarron CF)
@@ -2156,7 +2156,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: EG El Palmar vs Mazarron CF
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (EG El Palmar) vs 12 (Mazarron CF)
     - Tiros a Puerta: 5 (EG El Palmar) vs 1 (Mazarron CF)
@@ -2176,7 +2176,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: EG El Palmar vs Molinense
   - **Fecha**: 2025-11-09
   - **Resultado**: 0:1
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (EG El Palmar) vs 11 (Molinense)
     - Tiros a Puerta: 1 (EG El Palmar) vs 6 (Molinense)
@@ -2189,7 +2189,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2879257
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2202,7 +2202,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sporting de Gijon B vs CD Llanes
 - **Fecha**: 2025-11-16
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 1.75
+- **Línea de Hándicap**: 1.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 23 (Sporting de Gijon B) vs 6 (CD Llanes)
     - Tiros a Puerta: 6 (Sporting de Gijon B) vs 3 (CD Llanes)
@@ -2221,7 +2221,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sporting de Gijon B vs UD Llanera
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Sporting de Gijon B) vs 7 (UD Llanera)
     - Tiros a Puerta: 4 (Sporting de Gijon B) vs 2 (UD Llanera)
@@ -2232,7 +2232,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UD Llanera vs Sporting de Gijon B
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 8 (UD Llanera) vs 6 (Sporting de Gijon B)
     - Tiros a Puerta: 3 (UD Llanera) vs 2 (Sporting de Gijon B)
@@ -2243,7 +2243,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Colunga vs CD Llanes
 - **Fecha**: 2025-11-02
 - **Resultado**: 1:4
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (CD Colunga) vs 15 (CD Llanes)
     - Tiros a Puerta: 4 (CD Colunga) vs 6 (CD Llanes)
@@ -2255,7 +2255,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Sporting de Gijon B vs CD Colunga
   - **Fecha**: 2025-10-26
   - **Resultado**: 7:0
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 23 (Sporting de Gijon B) vs 2 (CD Colunga)
     - Tiros a Puerta: 11 (Sporting de Gijon B) vs 1 (CD Colunga)
@@ -2268,7 +2268,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2884069
 - **Liga**: Burkina Faso League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2281,7 +2281,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sally Tas vs CFFEB
 - **Fecha**: 2025-11-15
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Sally Tas) vs 3 (CFFEB)
     - Tiros a Puerta: 2 (Sally Tas) vs 1 (CFFEB)
@@ -2292,7 +2292,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Majestic FC vs Real du Faso
 - **Fecha**: 2025-11-22
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2300,7 +2300,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sally Tas vs Real du Faso
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Sally Tas) vs 6 (Real du Faso)
     - Tiros a Puerta: 4 (Sally Tas) vs 3 (Real du Faso)
@@ -2311,7 +2311,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Sally Tas vs Real du Faso
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Sally Tas) vs 6 (Real du Faso)
     - Tiros a Puerta: 4 (Sally Tas) vs 3 (Real du Faso)
@@ -2322,7 +2322,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CFFEB vs Majestic FC
 - **Fecha**: 2025-10-10
 - **Resultado**: 1:2
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (CFFEB) vs 8 (Majestic FC)
     - Tiros a Puerta: 5 (CFFEB) vs 4 (Majestic FC)
@@ -2341,7 +2341,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Real du Faso vs CFFEB
   - **Fecha**: 2025-11-28
   - **Resultado**: 0:0
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 3 (Real du Faso) vs 4 (CFFEB)
     - Tiros a Puerta: 1 (Real du Faso) vs 3 (CFFEB)
@@ -2354,7 +2354,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2889213
 - **Liga**: Greece National B
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 3:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2367,7 +2367,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Egaleo Athens vs Panargiakos
 - **Fecha**: 2025-11-23
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Egaleo Athens) vs 6 (Panargiakos)
     - Tiros a Puerta: 3 (Egaleo Athens) vs 3 (Panargiakos)
@@ -2376,7 +2376,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Panargiakos vs Ilioupoli
 - **Fecha**: 2025-11-16
 - **Resultado**: 0:2
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Panargiakos) vs 7 (Ilioupoli)
     - Tiros a Puerta: 2 (Panargiakos) vs 2 (Ilioupoli)
@@ -2387,7 +2387,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Egaleo Athens vs Ilioupoli
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2395,7 +2395,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Ilioupoli vs Egaleo Athens
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Ilioupoli) vs 6 (Egaleo Athens)
     - Tiros a Puerta: 2 (Ilioupoli) vs 4 (Egaleo Athens)
@@ -2407,7 +2407,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Egaleo Athens vs Panargiakos
   - **Fecha**: 2025-11-23
   - **Resultado**: 0:0
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Egaleo Athens) vs 6 (Panargiakos)
     - Tiros a Puerta: 3 (Egaleo Athens) vs 3 (Panargiakos)
@@ -2415,7 +2415,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Panargiakos vs Ilioupoli
   - **Fecha**: 2025-11-16
   - **Resultado**: 0:2
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 4 (Panargiakos) vs 7 (Ilioupoli)
     - Tiros a Puerta: 2 (Panargiakos) vs 2 (Ilioupoli)
@@ -2428,7 +2428,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907250
 - **Liga**: Simon Bolivar Cup
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2441,7 +2441,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Integracion Del Norte San Juan vs Universitario de Sucre
 - **Fecha**: 2025-11-16
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Integracion Del Norte San Juan) vs 9 (Universitario de Sucre)
     - Tiros a Puerta: 4 (Integracion Del Norte San Juan) vs 1 (Universitario de Sucre)
@@ -2452,7 +2452,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Club 1 de Mayo vs Real Potosi
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2460,7 +2460,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Real Potosi vs Integracion Del Norte San Juan
 - **Fecha**: -
 - **Resultado**: 4:0
-- **Movimiento**: 1 → 0
+- **Movimiento**: 1 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 23 (Real Potosi) vs 9 (Integracion Del Norte San Juan)
     - Tiros a Puerta: 4 (Real Potosi) vs 2 (Integracion Del Norte San Juan)
@@ -2473,7 +2473,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2904250
 - **Liga**: Arab Nations Cup
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2486,7 +2486,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Syria vs Qatar
 - **Fecha**: 2025-12-04
 - **Resultado**: 1:1
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (Syria) vs 17 (Qatar)
     - Tiros a Puerta: 2 (Syria) vs 5 (Qatar)
@@ -2497,7 +2497,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Qatar vs Palestine
 - **Fecha**: 2025-12-01
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 1
+- **Línea de Hándicap**: 1 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Qatar) vs 7 (Palestine)
     - Tiros a Puerta: 3 (Qatar) vs 1 (Palestine)
@@ -2508,7 +2508,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Syria vs Palestine
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 13 (Syria) vs 5 (Palestine)
     - Tiros a Puerta: 3 (Syria) vs 0 (Palestine)
@@ -2519,7 +2519,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Palestine vs Syria
 - **Fecha**: -
 - **Resultado**: 4:3
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 15 (Palestine) vs 6 (Syria)
     - Tiros a Puerta: 6 (Palestine) vs 3 (Syria)
@@ -2531,7 +2531,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Syria vs Qatar
   - **Fecha**: 2025-12-04
   - **Resultado**: 1:1
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (Syria) vs 17 (Qatar)
     - Tiros a Puerta: 2 (Syria) vs 5 (Qatar)
@@ -2541,7 +2541,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Qatar vs Palestine
   - **Fecha**: 2025-12-01
   - **Resultado**: 0:1
-  - **Hándicap**: 1
+  - **Hándicap**: 1 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 10 (Qatar) vs 7 (Palestine)
     - Tiros a Puerta: 3 (Qatar) vs 1 (Palestine)
@@ -2554,7 +2554,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2838799
 - **Liga**: Albania Super league
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2567,7 +2567,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KF Tirana vs Egnatia
 - **Fecha**: 2025-11-29
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (KF Tirana) vs 15 (Egnatia)
     - Tiros a Puerta: 5 (KF Tirana) vs 6 (Egnatia)
@@ -2578,7 +2578,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KS Elbasani vs Partizani Tirana
 - **Fecha**: 2025-11-28
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (KS Elbasani) vs 9 (Partizani Tirana)
     - Tiros a Puerta: 4 (KS Elbasani) vs 2 (Partizani Tirana)
@@ -2589,7 +2589,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KF Tirana vs Partizani Tirana
 - **Fecha**: -
 - **Resultado**: 3:0
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (KF Tirana) vs 6 (Partizani Tirana)
     - Tiros a Puerta: 6 (KF Tirana) vs 2 (Partizani Tirana)
@@ -2600,7 +2600,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Partizani Tirana vs KF Tirana
 - **Fecha**: -
 - **Resultado**: 0:3
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Partizani Tirana) vs 8 (KF Tirana)
     - Tiros a Puerta: 5 (Partizani Tirana) vs 8 (KF Tirana)
@@ -2611,7 +2611,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: KS Elbasani vs Egnatia
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:0
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (KS Elbasani) vs 4 (Egnatia)
     - Tiros a Puerta: 4 (KS Elbasani) vs 1 (Egnatia)
@@ -2623,7 +2623,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: KF Tirana vs KS Elbasani
   - **Fecha**: 2025-10-29
   - **Resultado**: 1:4
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 13 (KF Tirana) vs 10 (KS Elbasani)
     - Tiros a Puerta: 6 (KF Tirana) vs 7 (KS Elbasani)
@@ -2633,7 +2633,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Partizani Tirana vs Egnatia
   - **Fecha**: 2025-10-25
   - **Resultado**: 0:0
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (PUSH (Igualó))
   - **Estadísticas**:
     - Tiros: 6 (Partizani Tirana) vs 8 (Egnatia)
     - Tiros a Puerta: 0 (Partizani Tirana) vs 2 (Egnatia)
@@ -2646,7 +2646,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2784615
 - **Liga**: Italian Serie A
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2659,7 +2659,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Lazio vs Lecce
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 1
+- **Línea de Hándicap**: 1 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 19 (Lazio) vs 5 (Lecce)
     - Tiros a Puerta: 9 (Lazio) vs 1 (Lecce)
@@ -2670,7 +2670,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Udinese vs Bologna
 - **Fecha**: 2025-11-22
 - **Resultado**: 0:3
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Udinese) vs 10 (Bologna)
     - Tiros a Puerta: 3 (Udinese) vs 5 (Bologna)
@@ -2681,7 +2681,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Lazio vs Bologna
 - **Fecha**: -
 - **Resultado**: 3:0
-- **Movimiento**: 0.5 → 0
+- **Movimiento**: 0.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Lazio) vs 3 (Bologna)
     - Tiros a Puerta: 4 (Lazio) vs 1 (Bologna)
@@ -2692,7 +2692,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Bologna vs Lazio
 - **Fecha**: -
 - **Resultado**: 5:0
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Bologna) vs 7 (Lazio)
     - Tiros a Puerta: 7 (Bologna) vs 2 (Lazio)
@@ -2703,7 +2703,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Udinese vs Lecce
 - **Fecha**: 2025-10-25
 - **Resultado**: 3:2
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Udinese) vs 13 (Lecce)
     - Tiros a Puerta: 4 (Udinese) vs 3 (Lecce)
@@ -2715,7 +2715,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Lecce vs Bologna
   - **Fecha**: 2025-09-28
   - **Resultado**: 2:2
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Lecce) vs 14 (Bologna)
     - Tiros a Puerta: 4 (Lecce) vs 5 (Bologna)
@@ -2728,7 +2728,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2840467
 - **Liga**: Italy C1
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2741,7 +2741,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Pro Patria vs US Pergolettese 1932
 - **Fecha**: 2025-11-21
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Pro Patria) vs 17 (US Pergolettese 1932)
     - Tiros a Puerta: 5 (Pro Patria) vs 7 (US Pergolettese 1932)
@@ -2752,7 +2752,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Arzignano Valchiampo vs AC Dolomiti Bellunesi
 - **Fecha**: 2025-11-22
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 21 (Arzignano Valchiampo) vs 11 (AC Dolomiti Bellunesi)
     - Tiros a Puerta: 9 (Arzignano Valchiampo) vs 10 (AC Dolomiti Bellunesi)
@@ -2763,7 +2763,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Arzignano Valchiampo vs US Pergolettese 1932
 - **Fecha**: 2025-11-08
 - **Resultado**: 1:0
-- **Hándicap Espejo**: 0.25
+- **Hándicap Espejo**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Arzignano Valchiampo) vs 7 (US Pergolettese 1932)
     - Tiros a Puerta: 2 (Arzignano Valchiampo) vs 1 (US Pergolettese 1932)
@@ -2775,7 +2775,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: US Pergolettese 1932 vs AC Dolomiti Bellunesi
   - **Fecha**: 2025-09-28
   - **Resultado**: 1:2
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 11 (US Pergolettese 1932) vs 8 (AC Dolomiti Bellunesi)
     - Tiros a Puerta: 3 (US Pergolettese 1932) vs 7 (AC Dolomiti Bellunesi)
@@ -2788,7 +2788,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2789273
 - **Liga**: English Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2801,7 +2801,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Fulham vs Manchester City
 - **Fecha**: 2025-12-02
 - **Resultado**: 4:5
-- **Línea de Hándicap**: -1
+- **Línea de Hándicap**: -1 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 12 (Fulham) vs 11 (Manchester City)
     - Tiros a Puerta: 6 (Fulham) vs 4 (Manchester City)
@@ -2812,7 +2812,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Burnley vs Crystal Palace
 - **Fecha**: 2025-12-03
 - **Resultado**: 0:1
-- **Línea de Hándicap**: -0.75
+- **Línea de Hándicap**: -0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Burnley) vs 4 (Crystal Palace)
     - Tiros a Puerta: 4 (Burnley) vs 3 (Crystal Palace)
@@ -2823,7 +2823,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Fulham vs Crystal Palace
 - **Fecha**: -
 - **Resultado**: 0:3
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (Fulham) vs 8 (Crystal Palace)
     - Tiros a Puerta: 3 (Fulham) vs 6 (Crystal Palace)
@@ -2834,7 +2834,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Fulham vs Crystal Palace
 - **Fecha**: -
 - **Resultado**: 0:3
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (Fulham) vs 8 (Crystal Palace)
     - Tiros a Puerta: 3 (Fulham) vs 6 (Crystal Palace)
@@ -2845,7 +2845,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Manchester City vs Burnley
 - **Fecha**: 2025-09-27
 - **Resultado**: 5:1
-- **Hándicap Espejo**: 2
+- **Hándicap Espejo**: 2 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 21 (Manchester City) vs 9 (Burnley)
     - Tiros a Puerta: 8 (Manchester City) vs 2 (Burnley)
@@ -2858,7 +2858,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907432
 - **Liga**: Liberia National League Women
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2871,7 +2871,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Shaita Angels FC (W) vs Real Muja FC (W)
 - **Fecha**: 2025-11-29
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 1.75
+- **Línea de Hándicap**: 1.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 17 (Shaita Angels FC (W)) vs 9 (Real Muja FC (W))
     - Tiros a Puerta: 8 (Shaita Angels FC (W)) vs 5 (Real Muja FC (W))
@@ -2882,7 +2882,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Real Muja FC (W) vs World Girls FC (W)
 - **Fecha**: 2025-12-03
 - **Resultado**: 0:12
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Real Muja FC (W)) vs 32 (World Girls FC (W))
     - Tiros a Puerta: 3 (Real Muja FC (W)) vs 20 (World Girls FC (W))
@@ -2894,7 +2894,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Shaita Angels FC (W) vs Real Muja FC (W)
   - **Fecha**: 2025-11-29
   - **Resultado**: 2:0
-  - **Hándicap**: 1.75
+  - **Hándicap**: 1.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 17 (Shaita Angels FC (W)) vs 9 (Real Muja FC (W))
     - Tiros a Puerta: 8 (Shaita Angels FC (W)) vs 5 (Real Muja FC (W))
@@ -2904,7 +2904,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Real Muja FC (W) vs World Girls FC (W)
   - **Fecha**: 2025-12-03
   - **Resultado**: 0:12
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 5 (Real Muja FC (W)) vs 32 (World Girls FC (W))
     - Tiros a Puerta: 3 (Real Muja FC (W)) vs 20 (World Girls FC (W))
@@ -2917,7 +2917,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2865191
 - **Liga**: Spain Segunda Division RFEF
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 3:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -2930,7 +2930,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CF Reus Deportiu vs Barbastro
 - **Fecha**: 2025-11-23
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (CF Reus Deportiu) vs 2 (Barbastro)
     - Tiros a Puerta: 5 (CF Reus Deportiu) vs 1 (Barbastro)
@@ -2941,7 +2941,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Barcelona B vs Terrassa
 - **Fecha**: 2025-11-22
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (Barcelona B) vs 8 (Terrassa)
     - Tiros a Puerta: 6 (Barcelona B) vs 2 (Terrassa)
@@ -2952,7 +2952,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CF Reus Deportiu vs Terrassa
 - **Fecha**: -
 - **Resultado**: 2:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2960,7 +2960,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CF Reus Deportiu vs Terrassa
 - **Fecha**: -
 - **Resultado**: 2:0
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -2969,7 +2969,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Barcelona B vs CF Reus Deportiu
   - **Fecha**: 2025-10-11
   - **Resultado**: 4:2
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Barcelona B) vs 7 (CF Reus Deportiu)
     - Tiros a Puerta: 7 (Barcelona B) vs 4 (CF Reus Deportiu)
@@ -2979,7 +2979,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Barbastro vs Terrassa
   - **Fecha**: 2025-11-09
   - **Resultado**: 0:1
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (Barbastro) vs 7 (Terrassa)
     - Tiros a Puerta: 1 (Barbastro) vs 3 (Terrassa)
@@ -2992,7 +2992,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2808235
 - **Liga**: Spain Segunda Division RFEF
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:3
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3005,7 +3005,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UD Ourense vs Bergantinos CF
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (UD Ourense) vs 8 (Bergantinos CF)
     - Tiros a Puerta: 3 (UD Ourense) vs 0 (Bergantinos CF)
@@ -3016,7 +3016,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Burgos Promesas vs Numancia
 - **Fecha**: 2025-11-22
 - **Resultado**: 0:1
-- **Línea de Hándicap**: -0.5
+- **Línea de Hándicap**: -0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Burgos Promesas) vs 12 (Numancia)
     - Tiros a Puerta: 5 (Burgos Promesas) vs 6 (Numancia)
@@ -3027,7 +3027,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Bergantinos CF vs Burgos Promesas
 - **Fecha**: 2025-10-19
 - **Resultado**: 4:2
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Bergantinos CF) vs 10 (Burgos Promesas)
     - Tiros a Puerta: 8 (Bergantinos CF) vs 3 (Burgos Promesas)
@@ -3039,7 +3039,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Burgos Promesas vs UD Ourense
   - **Fecha**: 2025-09-14
   - **Resultado**: 1:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 4 (Burgos Promesas) vs 12 (UD Ourense)
     - Tiros a Puerta: 1 (Burgos Promesas) vs 6 (UD Ourense)
@@ -3049,7 +3049,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Bergantinos CF vs Numancia
   - **Fecha**: 2025-09-21
   - **Resultado**: 3:1
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3059,7 +3059,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2870258
 - **Liga**: Ghana Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3072,7 +3072,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Hohoe United FC vs Techiman Eleven Wonders
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:1
-- **Línea de Hándicap**: 1
+- **Línea de Hándicap**: 1 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Hohoe United FC) vs 8 (Techiman Eleven Wonders)
     - Tiros a Puerta: 4 (Hohoe United FC) vs 3 (Techiman Eleven Wonders)
@@ -3083,7 +3083,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Basake Holy Stars FC vs Asante Kotoko FC
 - **Fecha**: 2025-11-26
 - **Resultado**: 2:1
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Basake Holy Stars FC) vs 8 (Asante Kotoko FC)
     - Tiros a Puerta: 4 (Basake Holy Stars FC) vs 4 (Asante Kotoko FC)
@@ -3094,7 +3094,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Basake Holy Stars FC vs Techiman Eleven Wonders
 - **Fecha**: 2025-09-14
 - **Resultado**: 0:0
-- **Hándicap Espejo**: 0.75
+- **Hándicap Espejo**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 17 (Basake Holy Stars FC) vs 8 (Techiman Eleven Wonders)
     - Tiros a Puerta: 5 (Basake Holy Stars FC) vs 2 (Techiman Eleven Wonders)
@@ -3107,7 +3107,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2878145
 - **Liga**: Spanish Bizkaia-Tercera Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3120,7 +3120,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Deportivo Maritimo vs EG El Palmar
 - **Fecha**: 2025-11-16
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Deportivo Maritimo) vs 9 (EG El Palmar)
     - Tiros a Puerta: 3 (Deportivo Maritimo) vs 4 (EG El Palmar)
@@ -3131,7 +3131,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: EF Santa Cruz vs UCAM Murcia CF B
 - **Fecha**: 2025-11-15
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (EF Santa Cruz) vs 10 (UCAM Murcia CF B)
     - Tiros a Puerta: 3 (EF Santa Cruz) vs 7 (UCAM Murcia CF B)
@@ -3142,7 +3142,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Deportivo Maritimo vs UCAM Murcia CF B
 - **Fecha**: -
 - **Resultado**: 1:3
-- **Movimiento**: -1.5 → 0
+- **Movimiento**: -1.5 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Deportivo Maritimo) vs 7 (UCAM Murcia CF B)
     - Tiros a Puerta: 4 (Deportivo Maritimo) vs 6 (UCAM Murcia CF B)
@@ -3153,7 +3153,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UCAM Murcia CF B vs Deportivo Maritimo
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: -
+- **Movimiento**: - (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 11 (UCAM Murcia CF B) vs 6 (Deportivo Maritimo)
     - Tiros a Puerta: 3 (UCAM Murcia CF B) vs 2 (Deportivo Maritimo)
@@ -3164,7 +3164,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: EF Santa Cruz vs EG El Palmar
 - **Fecha**: 2025-11-01
 - **Resultado**: 1:2
-- **Hándicap Espejo**: 1
+- **Hándicap Espejo**: 1 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (EF Santa Cruz) vs 11 (EG El Palmar)
     - Tiros a Puerta: 3 (EF Santa Cruz) vs 6 (EG El Palmar)
@@ -3176,7 +3176,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Deportivo Maritimo vs EF Santa Cruz
   - **Fecha**: 2025-10-26
   - **Resultado**: 1:2
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 7 (Deportivo Maritimo) vs 15 (EF Santa Cruz)
     - Tiros a Puerta: 4 (Deportivo Maritimo) vs 7 (EF Santa Cruz)
@@ -3189,7 +3189,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2793250
 - **Liga**: Switzerland Super League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3202,7 +3202,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Sion vs FC Zurich
 - **Fecha**: 2025-11-23
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (FC Sion) vs 13 (FC Zurich)
     - Tiros a Puerta: 5 (FC Sion) vs 4 (FC Zurich)
@@ -3213,7 +3213,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Servette vs Young Boys
 - **Fecha**: 2025-11-30
 - **Resultado**: 4:4
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (Servette) vs 10 (Young Boys)
     - Tiros a Puerta: 5 (Servette) vs 5 (Young Boys)
@@ -3224,7 +3224,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Sion vs Young Boys
 - **Fecha**: -
 - **Resultado**: 3:1
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 16 (FC Sion) vs 13 (Young Boys)
     - Tiros a Puerta: 6 (FC Sion) vs 5 (Young Boys)
@@ -3235,7 +3235,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Young Boys vs FC Sion
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 13 (Young Boys) vs 10 (FC Sion)
     - Tiros a Puerta: 4 (Young Boys) vs 3 (FC Sion)
@@ -3246,7 +3246,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Zurich vs Servette
 - **Fecha**: 2025-09-13
 - **Resultado**: 2:1
-- **Hándicap Espejo**: 0.25
+- **Hándicap Espejo**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (FC Zurich) vs 25 (Servette)
     - Tiros a Puerta: 8 (FC Zurich) vs 6 (Servette)
@@ -3258,7 +3258,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: FC Sion vs Servette
   - **Fecha**: 2025-09-17
   - **Resultado**: 0:2
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 8 (FC Sion) vs 12 (Servette)
     - Tiros a Puerta: 2 (FC Sion) vs 4 (Servette)
@@ -3268,7 +3268,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: FC Zurich vs Young Boys
   - **Fecha**: 2025-10-26
   - **Resultado**: 2:3
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 20 (FC Zurich) vs 15 (Young Boys)
     - Tiros a Puerta: 6 (FC Zurich) vs 7 (Young Boys)
@@ -3281,7 +3281,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907257
 - **Liga**: Togo Premier Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3294,7 +3294,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AS OTR vs AC Barracuda
 - **Fecha**: 2025-11-23
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3302,7 +3302,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Tambo FC vs Gbohloesu
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3310,7 +3310,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AS OTR vs Gbohloesu
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (AS OTR) vs 8 (Gbohloesu)
     - Tiros a Puerta: 3 (AS OTR) vs 3 (Gbohloesu)
@@ -3321,7 +3321,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AS OTR vs Gbohloesu
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (AS OTR) vs 8 (Gbohloesu)
     - Tiros a Puerta: 3 (AS OTR) vs 3 (Gbohloesu)
@@ -3332,7 +3332,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Tambo FC vs AC Barracuda
 - **Fecha**: 2025-11-09
 - **Resultado**: 0:1
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3341,7 +3341,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: AC Barracuda vs Gbohloesu
   - **Fecha**: 2025-04-09
   - **Resultado**: 0:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3351,7 +3351,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2907136
 - **Liga**: Spain Youth League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3364,7 +3364,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: San Felix CF U19 vs UD Tomares U19
 - **Fecha**: 2025-11-30
 - **Resultado**: 2:2
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (San Felix CF U19) vs 11 (UD Tomares U19)
     - Tiros a Puerta: 4 (San Felix CF U19) vs 4 (UD Tomares U19)
@@ -3375,7 +3375,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UCD Canada Atletico U19 vs Almeria U19
 - **Fecha**: 2025-09-24
 - **Resultado**: 0:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (UCD Canada Atletico U19) vs 6 (Almeria U19)
     - Tiros a Puerta: 1 (UCD Canada Atletico U19) vs 1 (Almeria U19)
@@ -3386,7 +3386,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: San Felix CF U19 vs Almeria U19
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 15 (San Felix CF U19) vs 10 (Almeria U19)
     - Tiros a Puerta: 9 (San Felix CF U19) vs 2 (Almeria U19)
@@ -3397,7 +3397,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: San Felix CF U19 vs Almeria U19
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 15 (San Felix CF U19) vs 10 (Almeria U19)
     - Tiros a Puerta: 9 (San Felix CF U19) vs 2 (Almeria U19)
@@ -3408,7 +3408,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UD Tomares U19 vs UCD Canada Atletico U19
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:1
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 14 (UD Tomares U19) vs 10 (UCD Canada Atletico U19)
     - Tiros a Puerta: 9 (UD Tomares U19) vs 3 (UCD Canada Atletico U19)
@@ -3420,7 +3420,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: San Felix CF U19 vs UCD Canada Atletico U19
   - **Fecha**: 2025-09-20
   - **Resultado**: 2:3
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (San Felix CF U19) vs 10 (UCD Canada Atletico U19)
     - Tiros a Puerta: 6 (San Felix CF U19) vs 6 (UCD Canada Atletico U19)
@@ -3433,7 +3433,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905537
 - **Liga**: Portugal Campeonato Nacional
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3446,7 +3446,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Uniao Da Serra vs SC Lusitania
 - **Fecha**: 2025-11-09
 - **Resultado**: 2:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Uniao Da Serra) vs 6 (SC Lusitania)
     - Tiros a Puerta: 7 (Uniao Da Serra) vs 2 (SC Lusitania)
@@ -3457,7 +3457,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Electrico FC vs Oliveira Hospital
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:3
-- **Línea de Hándicap**: -0.75
+- **Línea de Hándicap**: -0.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Electrico FC) vs 16 (Oliveira Hospital)
     - Tiros a Puerta: 2 (Electrico FC) vs 10 (Oliveira Hospital)
@@ -3468,7 +3468,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Electrico FC vs SC Lusitania
 - **Fecha**: 2025-10-26
 - **Resultado**: 3:0
-- **Hándicap Espejo**: -1.75
+- **Hándicap Espejo**: -1.75 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Electrico FC) vs 11 (SC Lusitania)
     - Tiros a Puerta: 4 (Electrico FC) vs 3 (SC Lusitania)
@@ -3480,7 +3480,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Uniao Da Serra vs Electrico FC
   - **Fecha**: 2025-10-05
   - **Resultado**: 2:2
-  - **Hándicap**: 1.75
+  - **Hándicap**: 1.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 14 (Uniao Da Serra) vs 7 (Electrico FC)
     - Tiros a Puerta: 4 (Uniao Da Serra) vs 4 (Electrico FC)
@@ -3493,7 +3493,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905533
 - **Liga**: Portugal Campeonato Nacional
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3506,7 +3506,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Electrico FC vs Oliveira Hospital
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:3
-- **Línea de Hándicap**: -0.75
+- **Línea de Hándicap**: -0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 4 (Electrico FC) vs 16 (Oliveira Hospital)
     - Tiros a Puerta: 2 (Electrico FC) vs 10 (Oliveira Hospital)
@@ -3517,7 +3517,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Marialvas vs Samora Correia
 - **Fecha**: 2025-11-09
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.75
+- **Línea de Hándicap**: 0.75 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 15 (Marialvas) vs 3 (Samora Correia)
     - Tiros a Puerta: 4 (Marialvas) vs 1 (Samora Correia)
@@ -3528,7 +3528,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Marialvas vs Oliveira Hospital
 - **Fecha**: 2025-10-26
 - **Resultado**: 0:1
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 2 (Marialvas) vs 8 (Oliveira Hospital)
     - Tiros a Puerta: 0 (Marialvas) vs 3 (Oliveira Hospital)
@@ -3540,7 +3540,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Electrico FC vs Marialvas
   - **Fecha**: 2025-08-17
   - **Resultado**: 1:5
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Electrico FC) vs 13 (Marialvas)
     - Tiros a Puerta: 5 (Electrico FC) vs 9 (Marialvas)
@@ -3550,7 +3550,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Samora Correia vs Oliveira Hospital
   - **Fecha**: 2025-08-24
   - **Resultado**: 1:0
-  - **Hándicap**: -0.25
+  - **Hándicap**: -0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 4 (Samora Correia) vs 12 (Oliveira Hospital)
     - Tiros a Puerta: 2 (Samora Correia) vs 3 (Oliveira Hospital)
@@ -3563,7 +3563,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905523
 - **Liga**: Portugal Campeonato Nacional
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3576,7 +3576,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Anadia vs CD Cinfaes
 - **Fecha**: 2025-11-09
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Anadia) vs 8 (CD Cinfaes)
     - Tiros a Puerta: 4 (Anadia) vs 2 (CD Cinfaes)
@@ -3587,7 +3587,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Vila Mea vs U. Lamas
 - **Fecha**: 2025-11-09
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (Vila Mea) vs 11 (U. Lamas)
     - Tiros a Puerta: 11 (Vila Mea) vs 7 (U. Lamas)
@@ -3598,7 +3598,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Vila Mea vs CD Cinfaes
 - **Fecha**: 2025-09-28
 - **Resultado**: 0:0
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Vila Mea) vs 8 (CD Cinfaes)
     - Tiros a Puerta: 4 (Vila Mea) vs 2 (CD Cinfaes)
@@ -3610,7 +3610,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: U. Lamas vs CD Cinfaes
   - **Fecha**: 2025-10-26
   - **Resultado**: 2:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (U. Lamas) vs 8 (CD Cinfaes)
     - Tiros a Puerta: 5 (U. Lamas) vs 3 (CD Cinfaes)
@@ -3623,7 +3623,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905525
 - **Liga**: Portugal Campeonato Nacional
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3636,7 +3636,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Beira Mar vs Florgrade
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (Beira Mar) vs 7 (Florgrade)
     - Tiros a Puerta: 3 (Beira Mar) vs 5 (Florgrade)
@@ -3647,7 +3647,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Gouveia vs FC Alpendorada
 - **Fecha**: 2025-11-09
 - **Resultado**: 0:3
-- **Línea de Hándicap**: -1
+- **Línea de Hándicap**: -1 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (CD Gouveia) vs 9 (FC Alpendorada)
     - Tiros a Puerta: 0 (CD Gouveia) vs 5 (FC Alpendorada)
@@ -3658,7 +3658,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Beira Mar vs FC Alpendorada
 - **Fecha**: -
 - **Resultado**: 2:0
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 6 (Beira Mar) vs 6 (FC Alpendorada)
     - Tiros a Puerta: 4 (Beira Mar) vs 2 (FC Alpendorada)
@@ -3669,7 +3669,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: FC Alpendorada vs Beira Mar
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: 0.75 → 0
+- **Movimiento**: 0.75 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (FC Alpendorada) vs 7 (Beira Mar)
     - Tiros a Puerta: 2 (FC Alpendorada) vs 3 (Beira Mar)
@@ -3680,7 +3680,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CD Gouveia vs Florgrade
 - **Fecha**: 2025-10-26
 - **Resultado**: 0:1
-- **Hándicap Espejo**: -1
+- **Hándicap Espejo**: -1 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 7 (CD Gouveia) vs 12 (Florgrade)
     - Tiros a Puerta: 3 (CD Gouveia) vs 3 (Florgrade)
@@ -3692,7 +3692,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: FC Alpendorada vs Florgrade
   - **Fecha**: 2025-09-28
   - **Resultado**: 3:1
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 11 (FC Alpendorada) vs 12 (Florgrade)
     - Tiros a Puerta: 7 (FC Alpendorada) vs 4 (Florgrade)
@@ -3705,7 +3705,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905521
 - **Liga**: Portugal Campeonato Nacional
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:3
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3718,7 +3718,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mirandela vs Chaves B
 - **Fecha**: 2025-11-09
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 7 (Mirandela) vs 9 (Chaves B)
     - Tiros a Puerta: 5 (Mirandela) vs 2 (Chaves B)
@@ -3740,7 +3740,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Vianense vs Mirandela
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -3748,7 +3748,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Camacha vs Chaves B
 - **Fecha**: 2025-09-28
 - **Resultado**: 3:0
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (Camacha) vs 5 (Chaves B)
     - Tiros a Puerta: 6 (Camacha) vs 0 (Chaves B)
@@ -3760,7 +3760,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Mirandela vs Camacha
   - **Fecha**: 2025-08-17
   - **Resultado**: 1:0
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 6 (Mirandela) vs 9 (Camacha)
     - Tiros a Puerta: 4 (Mirandela) vs 4 (Camacha)
@@ -3770,7 +3770,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Vianense vs Chaves B
   - **Fecha**: 2025-08-10
   - **Resultado**: 1:3
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Vianense) vs 12 (Chaves B)
     - Tiros a Puerta: 6 (Vianense) vs 5 (Chaves B)
@@ -3783,7 +3783,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2905512
 - **Liga**: Portugal Liga 3
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3796,7 +3796,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Lusitano Evora vs UD Santarem
 - **Fecha**: 2025-11-09
 - **Resultado**: 1:0
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (Lusitano Evora) vs 2 (UD Santarem)
     - Tiros a Puerta: 4 (Lusitano Evora) vs 0 (UD Santarem)
@@ -3807,7 +3807,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Atletico Clube Purtugal vs CF Os Belenenses
 - **Fecha**: 2025-11-30
 - **Resultado**: 1:2
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 9 (Atletico Clube Purtugal) vs 10 (CF Os Belenenses)
     - Tiros a Puerta: 1 (Atletico Clube Purtugal) vs 3 (CF Os Belenenses)
@@ -3818,7 +3818,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CF Os Belenenses vs Lusitano Evora
 - **Fecha**: -
 - **Resultado**: 1:0
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 12 (CF Os Belenenses) vs 8 (Lusitano Evora)
     - Tiros a Puerta: 4 (CF Os Belenenses) vs 3 (Lusitano Evora)
@@ -3829,7 +3829,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Atletico Clube Purtugal vs UD Santarem
 - **Fecha**: 2025-10-04
 - **Resultado**: 1:2
-- **Hándicap Espejo**: 0.5
+- **Hándicap Espejo**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (Atletico Clube Purtugal) vs 5 (UD Santarem)
     - Tiros a Puerta: 6 (Atletico Clube Purtugal) vs 4 (UD Santarem)
@@ -3841,7 +3841,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Lusitano Evora vs Atletico Clube Purtugal
   - **Fecha**: 2025-09-13
   - **Resultado**: 0:1
-  - **Hándicap**: 0
+  - **Hándicap**: 0 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 11 (Lusitano Evora) vs 4 (Atletico Clube Purtugal)
     - Tiros a Puerta: 7 (Lusitano Evora) vs 2 (Atletico Clube Purtugal)
@@ -3851,7 +3851,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: CF Os Belenenses vs UD Santarem
   - **Fecha**: 2025-11-02
   - **Resultado**: 0:2
-  - **Hándicap**: 0.75
+  - **Hándicap**: 0.75 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 14 (CF Os Belenenses) vs 10 (UD Santarem)
     - Tiros a Puerta: 4 (CF Os Belenenses) vs 6 (UD Santarem)
@@ -3864,7 +3864,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2827138
 - **Liga**: Cyprus 1 Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 2:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3877,7 +3877,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: APOEL Nicosia vs AEL Limassol
 - **Fecha**: 2025-11-23
 - **Resultado**: 1:2
-- **Línea de Hándicap**: 1.25
+- **Línea de Hándicap**: 1.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 13 (APOEL Nicosia) vs 4 (AEL Limassol)
     - Tiros a Puerta: 5 (APOEL Nicosia) vs 3 (AEL Limassol)
@@ -3888,7 +3888,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AEP Paphos vs Aris Limassol
 - **Fecha**: 2025-11-21
 - **Resultado**: 2:1
-- **Línea de Hándicap**: 0
+- **Línea de Hándicap**: 0 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 10 (AEP Paphos) vs 6 (Aris Limassol)
     - Tiros a Puerta: 4 (AEP Paphos) vs 4 (Aris Limassol)
@@ -3899,7 +3899,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: APOEL Nicosia vs Aris Limassol
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (APOEL Nicosia) vs 13 (Aris Limassol)
     - Tiros a Puerta: 4 (APOEL Nicosia) vs 6 (Aris Limassol)
@@ -3910,7 +3910,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: APOEL Nicosia vs Aris Limassol
 - **Fecha**: -
 - **Resultado**: 2:1
-- **Movimiento**: -0.25 → 0
+- **Movimiento**: -0.25 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 14 (APOEL Nicosia) vs 13 (Aris Limassol)
     - Tiros a Puerta: 4 (APOEL Nicosia) vs 6 (Aris Limassol)
@@ -3921,7 +3921,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: AEP Paphos vs AEL Limassol
 - **Fecha**: 2025-11-02
 - **Resultado**: 1:0
-- **Hándicap Espejo**: 1.5
+- **Hándicap Espejo**: 1.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (AEP Paphos) vs 11 (AEL Limassol)
     - Tiros a Puerta: 2 (AEP Paphos) vs 2 (AEL Limassol)
@@ -3933,7 +3933,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: APOEL Nicosia vs AEP Paphos
   - **Fecha**: 2025-08-31
   - **Resultado**: 0:1
-  - **Hándicap**: -0.5
+  - **Hándicap**: -0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 13 (APOEL Nicosia) vs 3 (AEP Paphos)
     - Tiros a Puerta: 3 (APOEL Nicosia) vs 2 (AEP Paphos)
@@ -3943,7 +3943,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Aris Limassol vs AEL Limassol
   - **Fecha**: 2025-10-19
   - **Resultado**: 4:0
-  - **Hándicap**: 1.5
+  - **Hándicap**: 1.5 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 25 (Aris Limassol) vs 5 (AEL Limassol)
     - Tiros a Puerta: 11 (Aris Limassol) vs 1 (AEL Limassol)
@@ -3956,7 +3956,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2825246
 - **Liga**: Portugal Liga Revelacao U19
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 1:0
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -3969,7 +3969,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: SC Uniao Torreense U19 vs Uniao Leiria U19
 - **Fecha**: 2025-11-08
 - **Resultado**: 0:1
-- **Línea de Hándicap**: 0.5
+- **Línea de Hándicap**: 0.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (SC Uniao Torreense U19) vs 4 (Uniao Leiria U19)
     - Tiros a Puerta: 0 (SC Uniao Torreense U19) vs 1 (Uniao Leiria U19)
@@ -3980,7 +3980,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Belenenses U19 vs Academico Viseu U19
 - **Fecha**: 2025-11-22
 - **Resultado**: 0:2
-- **Línea de Hándicap**: -0.25
+- **Línea de Hándicap**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 8 (Belenenses U19) vs 11 (Academico Viseu U19)
     - Tiros a Puerta: 1 (Belenenses U19) vs 4 (Academico Viseu U19)
@@ -3991,7 +3991,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: SC Uniao Torreense U19 vs Academico Viseu U19
 - **Fecha**: -
 - **Resultado**: 1:1
-- **Movimiento**: 0.25 → 0
+- **Movimiento**: 0.25 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 5 (SC Uniao Torreense U19) vs 10 (Academico Viseu U19)
     - Tiros a Puerta: 2 (SC Uniao Torreense U19) vs 6 (Academico Viseu U19)
@@ -4002,7 +4002,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Academico Viseu U19 vs SC Uniao Torreense U19
 - **Fecha**: -
 - **Resultado**: 0:0
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 11 (Academico Viseu U19) vs 12 (SC Uniao Torreense U19)
     - Tiros a Puerta: 2 (Academico Viseu U19) vs 7 (SC Uniao Torreense U19)
@@ -4013,7 +4013,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Uniao Leiria U19 vs Belenenses U19
 - **Fecha**: 2025-09-20
 - **Resultado**: 3:0
-- **Hándicap Espejo**: -0.25
+- **Hándicap Espejo**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (Uniao Leiria U19) vs 12 (Belenenses U19)
     - Tiros a Puerta: 4 (Uniao Leiria U19) vs 4 (Belenenses U19)
@@ -4025,7 +4025,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: SC Uniao Torreense U19 vs Belenenses U19
   - **Fecha**: 2025-09-27
   - **Resultado**: 0:0
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 7 (SC Uniao Torreense U19) vs 2 (Belenenses U19)
     - Tiros a Puerta: 3 (SC Uniao Torreense U19) vs 0 (Belenenses U19)
@@ -4035,7 +4035,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Academico Viseu U19 vs Uniao Leiria U19
   - **Fecha**: 2025-08-30
   - **Resultado**: 1:1
-  - **Hándicap**: 0.5
+  - **Hándicap**: 0.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 12 (Academico Viseu U19) vs 7 (Uniao Leiria U19)
     - Tiros a Puerta: 3 (Academico Viseu U19) vs 3 (Uniao Leiria U19)
@@ -4048,7 +4048,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2814064
 - **Liga**: Luxembourg National Division
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:2
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -4069,7 +4069,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UN Kaerjeng 97 vs Rodange 91
 - **Fecha**: 2025-12-03
 - **Resultado**: 3:1
-- **Línea de Hándicap**: 0.25
+- **Línea de Hándicap**: 0.25 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (UN Kaerjeng 97) vs 11 (Rodange 91)
     - Tiros a Puerta: 4 (UN Kaerjeng 97) vs 4 (Rodange 91)
@@ -4080,7 +4080,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mamer vs Rodange 91
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -4088,7 +4088,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Mamer vs Rodange 91
 - **Fecha**: -
 - **Resultado**: 1:2
-- **Movimiento**: -
+- **Movimiento**: - (CUBRIÓ)
 - **Estadísticas**:
     - Sin estadísticas detalladas.
 
@@ -4096,7 +4096,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: UN Kaerjeng 97 vs Hostert
 - **Fecha**: 2025-10-05
 - **Resultado**: 2:2
-- **Hándicap Espejo**: 0
+- **Hándicap Espejo**: 0 (PUSH (Igualó))
 - **Estadísticas**:
     - Tiros: 16 (UN Kaerjeng 97) vs 11 (Hostert)
     - Tiros a Puerta: 9 (UN Kaerjeng 97) vs 3 (Hostert)
@@ -4108,7 +4108,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: UN Kaerjeng 97 vs Mamer
   - **Fecha**: 2025-10-26
   - **Resultado**: 4:2
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 13 (UN Kaerjeng 97) vs 13 (Mamer)
     - Tiros a Puerta: 7 (UN Kaerjeng 97) vs 6 (Mamer)
@@ -4118,7 +4118,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Hostert vs Rodange 91
   - **Fecha**: 2025-08-10
   - **Resultado**: 0:0
-  - **Hándicap**: 0.25
+  - **Hándicap**: 0.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 9 (Hostert) vs 8 (Rodange 91)
     - Tiros a Puerta: 2 (Hostert) vs 2 (Rodange 91)
@@ -4131,7 +4131,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **ID**: 2809746
 - **Liga**: Spanish Ladies Premier League
 - **Fecha**: -
-- **Hándicap Inicial**: -
+- **Hándicap Inicial**: 0
 - **Resultado FT**: 0:1
 - **Estado**: historical
 - **Bucket**: data_ah_0.json
@@ -4144,7 +4144,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CDEF Logrono (W) vs Atletico de Madrid (W)
 - **Fecha**: 2025-11-09
 - **Resultado**: 0:5
-- **Línea de Hándicap**: -2
+- **Línea de Hándicap**: -2 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 3 (CDEF Logrono (W)) vs 24 (Atletico de Madrid (W))
     - Tiros a Puerta: 1 (CDEF Logrono (W)) vs 10 (Atletico de Madrid (W))
@@ -4155,7 +4155,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Real Madrid (W) vs Eibar (W)
 - **Fecha**: 2025-11-23
 - **Resultado**: 3:0
-- **Línea de Hándicap**: 2.5
+- **Línea de Hándicap**: 2.5 (NO CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 18 (Real Madrid (W)) vs 6 (Eibar (W))
     - Tiros a Puerta: 8 (Real Madrid (W)) vs 1 (Eibar (W))
@@ -4166,7 +4166,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CDEF Logrono (W) vs Eibar (W)
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (CDEF Logrono (W)) vs 13 (Eibar (W))
     - Tiros a Puerta: 1 (CDEF Logrono (W)) vs 3 (Eibar (W))
@@ -4177,7 +4177,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: CDEF Logrono (W) vs Eibar (W)
 - **Fecha**: -
 - **Resultado**: 0:1
-- **Movimiento**: 0 → 0
+- **Movimiento**: 0 → 0 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 5 (CDEF Logrono (W)) vs 13 (Eibar (W))
     - Tiros a Puerta: 1 (CDEF Logrono (W)) vs 3 (Eibar (W))
@@ -4188,7 +4188,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
 - **Encuentro**: Atletico de Madrid (W) vs Real Madrid (W)
 - **Fecha**: 2025-09-05
 - **Resultado**: 2:1
-- **Hándicap Espejo**: -0.25
+- **Hándicap Espejo**: -0.25 (CUBRIÓ)
 - **Estadísticas**:
     - Tiros: 11 (Atletico de Madrid (W)) vs 9 (Real Madrid (W))
     - Tiros a Puerta: 5 (Atletico de Madrid (W)) vs 5 (Real Madrid (W))
@@ -4200,7 +4200,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: CDEF Logrono (W) vs Real Madrid (W)
   - **Fecha**: 2025-08-31
   - **Resultado**: 2:2
-  - **Hándicap**: -3.25
+  - **Hándicap**: -3.25 (CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 10 (CDEF Logrono (W)) vs 16 (Real Madrid (W))
     - Tiros a Puerta: 1 (CDEF Logrono (W)) vs 6 (Real Madrid (W))
@@ -4210,7 +4210,7 @@ Contiene 291 partidos con previos, H2H y estadísticas completas.
   - **Encuentro**: Eibar (W) vs Atletico de Madrid (W)
   - **Fecha**: 2025-05-11
   - **Resultado**: 0:2
-  - **Hándicap**: -1.5
+  - **Hándicap**: -1.5 (NO CUBRIÓ)
   - **Estadísticas**:
     - Tiros: 7 (Eibar (W)) vs 18 (Atletico de Madrid (W))
     - Tiros a Puerta: 2 (Eibar (W)) vs 8 (Atletico de Madrid (W))

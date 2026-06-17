@@ -24,14 +24,115 @@ def calculate_wdl(score_str, ah_line, is_home):
         diff = hg - ag if is_home else ag - hg
         abs_ah = abs(ah_local)
         
-        # is_favorite: 
-        # Si is_home y ah_local < 0 -> local es favorito
-        # Si no is_home y ah_local > 0 -> visitante es favorito (ah_local es negativo para local, positivo para visitante)
-        
         if diff > abs_ah: return "CUBRIÓ"
         elif diff < abs_ah: return "NO CUBRIÓ"
         else: return "PUSH (Igualó)"
     except:
+        return "Desconocido"
+
+def parse_handicap(val):
+    if val is None or val == "" or val == "N/A" or val == "-":
+        return None
+    try:
+        val_str = str(val).replace(",", ".").strip()
+        if "→" in val_str:
+            val_str = val_str.split("→")[-1].strip()
+        elif "->" in val_str:
+            val_str = val_str.split("->")[-1].strip()
+        return float(val_str)
+    except ValueError:
+        return None
+
+def evaluate_handicap_cover(score_str, ah_line_raw, is_home_subject):
+    if not score_str or score_str in ("-", "?:?", "?-?"):
+        return ""
+    ah_num = parse_handicap(ah_line_raw)
+    if ah_num is None:
+        return ""
+    try:
+        parts = score_str.replace('-', ':').split(':')
+        goles_h = int(parts[0])
+        goles_a = int(parts[1])
+        
+        if ah_num > 0:
+            fav_is_local = True
+            abs_ah = ah_num
+        elif ah_num < 0:
+            fav_is_local = False
+            abs_ah = abs(ah_num)
+        else:
+            if goles_h > goles_a:
+                return "CUBRIÓ" if is_home_subject else "NO CUBRIÓ"
+            elif goles_a > goles_h:
+                return "NO CUBRIÓ" if is_home_subject else "CUBRIÓ"
+            else:
+                return "PUSH (Igualó)"
+
+        diff_local = goles_h - goles_a
+        
+        if fav_is_local:
+            fav_margin = diff_local - abs_ah
+        else:
+            fav_margin = -diff_local - abs_ah
+            
+        if fav_margin > 0.01:
+            fav_covered = True
+            fav_push = False
+        elif fav_margin < -0.01:
+            fav_covered = False
+            fav_push = False
+        else:
+            fav_covered = False
+            fav_push = True
+            
+        subject_is_fav = (fav_is_local and is_home_subject) or (not fav_is_local and not is_home_subject)
+        
+        if fav_push:
+            return "PUSH (Igualó)"
+        
+        if subject_is_fav:
+            return "CUBRIÓ" if fav_covered else "NO CUBRIÓ"
+        else:
+            return "CUBRIÓ" if not fav_covered else "NO CUBRIÓ"
+    except Exception:
+        return ""
+
+def check_handicap_cover_pure(score_str, ah_line_num, favorite_team_name, home_team_in_h2h, away_team_in_h2h, main_home_team_name):
+    if not score_str or score_str in ("-", "?:?", "?-?"):
+        return "Desconocido"
+    try:
+        parts = score_str.replace(':', '-').split('-')
+        goles_h = int(parts[0])
+        goles_a = int(parts[1])
+        
+        if ah_line_num is None:
+            return "Desconocido"
+            
+        if ah_line_num == 0.0:
+            if main_home_team_name.lower() == home_team_in_h2h.lower():
+                if goles_h > goles_a: return "CUBRIÓ"
+                elif goles_a > goles_h: return "NO CUBRIÓ"
+                else: return "PUSH (Igualó)"
+            else:
+                if goles_a > goles_h: return "CUBRIÓ"
+                elif goles_h > goles_a: return "NO CUBRIÓ"
+                else: return "PUSH (Igualó)"
+        
+        if favorite_team_name.lower() == home_team_in_h2h.lower():
+            favorite_margin = goles_h - goles_a
+        elif favorite_team_name.lower() == away_team_in_h2h.lower():
+            favorite_margin = goles_a - goles_h
+        else:
+            return "Desconocido"
+            
+        diff = favorite_margin - abs(ah_line_num)
+        if diff > 0.01:
+            return "CUBRIÓ"
+        elif diff < -0.01:
+            return "NO CUBRIÓ"
+        else:
+            return "PUSH (Igualó)"
+    except Exception:
         return "Desconocido"
 
 def generate_notebooklm_match_format(payload):
@@ -91,7 +192,14 @@ def generate_notebooklm_match_format(payload):
         md.append(f"- **Encuentro**: {lhm_home} vs {lhm_away}")
         md.append(f"- **Fecha**: {clean_value(lhm.get('date'))}")
         md.append(f"- **Resultado**: {clean_value(lhm.get('score'))}")
-        md.append(f"- **Línea de Hándicap**: {clean_value(lhm.get('handicap_line_raw'))}")
+        
+        # Añadir si cubrió
+        lhm_hc = clean_value(lhm.get('handicap_line_raw'))
+        cover_status = evaluate_handicap_cover(lhm.get("score"), lhm.get("handicap_line_raw"), True)
+        if cover_status:
+            lhm_hc = f"{lhm_hc} ({cover_status})"
+        md.append(f"- **Línea de Hándicap**: {lhm_hc}")
+        
         md.append("- **Estadísticas**:")
         md.append(format_stats(lhm.get("stats_rows"), lhm_home, lhm_away))
 
@@ -104,7 +212,14 @@ def generate_notebooklm_match_format(payload):
         md.append(f"- **Encuentro**: {lam_home} vs {lam_away}")
         md.append(f"- **Fecha**: {clean_value(lam.get('date'))}")
         md.append(f"- **Resultado**: {clean_value(lam.get('score'))}")
-        md.append(f"- **Línea de Hándicap**: {clean_value(lam.get('handicap_line_raw'))}")
+        
+        # Añadir si cubrió
+        lam_hc = clean_value(lam.get('handicap_line_raw'))
+        cover_status = evaluate_handicap_cover(lam.get("score"), lam.get("handicap_line_raw"), False)
+        if cover_status:
+            lam_hc = f"{lam_hc} ({cover_status})"
+        md.append(f"- **Línea de Hándicap**: {lam_hc}")
+        
         md.append("- **Estadísticas**:")
         md.append(format_stats(lam.get("stats_rows"), lam_home, lam_away))
 
@@ -120,12 +235,42 @@ def generate_notebooklm_match_format(payload):
         he_away = away
         he_date = h2h_estadio.get("date1") or m_estadio.get("date") or "N/A"
         he_score = h2h_estadio.get("res1") or m_estadio.get("result") or m_estadio.get("score") or "?:?"
-        he_movement = h2h_estadio.get("ah1") or m_estadio.get("movement") or "-"
+        
+        # Priorizar el movimiento de cuota completo calculado
+        he_movement = m_estadio.get("movement")
+        if not he_movement or str(he_movement).strip() in ("N/A", "-"):
+            he_movement = h2h_estadio.get("ah1") or "-"
+            
+        # Calcular cobertura H2H
+        he_cover = m_estadio.get("evaluation")
+        if not he_cover or str(he_cover).strip() in ("N/A", "-"):
+            current_ah_raw = payload.get("handicap") or (payload.get("main_match_odds") or {}).get("ah_linea")
+            current_ah = parse_handicap(current_ah_raw)
+            if current_ah is not None:
+                fav_team = home if current_ah > 0 else (away if current_ah < 0 else home)
+                he_cover = check_handicap_cover_pure(he_score, current_ah, fav_team, home, away, home)
+            else:
+                he_cover = ""
+                
+        # Normalizar el texto de cobertura
+        he_cover_str = ""
+        if he_cover:
+            he_cover_upper = str(he_cover).upper()
+            if "CUBIERTO" in he_cover_upper or "CUBRIÓ" in he_cover_upper or "CUBRIO" in he_cover_upper:
+                he_cover_str = "CUBRIÓ"
+            elif "NO CUBIERTO" in he_cover_upper or "FALLÓ" in he_cover_upper or "FALLO" in he_cover_upper or "NO CUBRIÓ" in he_cover_upper or "NO CUBRIO" in he_cover_upper:
+                he_cover_str = "NO CUBRIÓ"
+            elif "PUSH" in he_cover_upper or "IGUALÓ" in he_cover_upper or "IGUALO" in he_cover_upper:
+                he_cover_str = "PUSH (Igualó)"
+                
+        he_movement_display = clean_value(he_movement)
+        if he_cover_str:
+            he_movement_display = f"{he_movement_display} ({he_cover_str})"
         
         md.append(f"- **Encuentro**: {he_home} vs {he_away}")
         md.append(f"- **Fecha**: {clean_value(he_date)}")
         md.append(f"- **Resultado**: {clean_value(he_score)}")
-        md.append(f"- **Movimiento**: {clean_value(he_movement)}")
+        md.append(f"- **Movimiento**: {he_movement_display}")
         md.append("- **Estadísticas**:")
         md.append(format_stats(h2h_estadio.get("stats_rows"), he_home, he_away))
 
@@ -141,12 +286,42 @@ def generate_notebooklm_match_format(payload):
         hg_away = h2h_general.get("h2h_gen_away") or m_general.get("away_team") or away
         hg_date = h2h_general.get("date6") or m_general.get("date") or "N/A"
         hg_score = h2h_general.get("res6") or m_general.get("result") or m_general.get("score") or "?:?"
-        hg_movement = h2h_general.get("ah6") or m_general.get("movement") or "-"
+        
+        # Priorizar el movimiento de cuota completo calculado
+        hg_movement = m_general.get("movement")
+        if not hg_movement or str(hg_movement).strip() in ("N/A", "-"):
+            hg_movement = h2h_general.get("ah6") or "-"
+            
+        # Calcular cobertura H2H
+        hg_cover = m_general.get("evaluation")
+        if not hg_cover or str(hg_cover).strip() in ("N/A", "-"):
+            current_ah_raw = payload.get("handicap") or (payload.get("main_match_odds") or {}).get("ah_linea")
+            current_ah = parse_handicap(current_ah_raw)
+            if current_ah is not None:
+                fav_team = home if current_ah > 0 else (away if current_ah < 0 else home)
+                hg_cover = check_handicap_cover_pure(hg_score, current_ah, fav_team, hg_home, hg_away, home)
+            else:
+                hg_cover = ""
+                
+        # Normalizar el texto de cobertura
+        hg_cover_str = ""
+        if hg_cover:
+            hg_cover_upper = str(hg_cover).upper()
+            if "CUBIERTO" in hg_cover_upper or "CUBRIÓ" in hg_cover_upper or "CUBRIO" in hg_cover_upper:
+                hg_cover_str = "CUBRIÓ"
+            elif "NO CUBIERTO" in hg_cover_upper or "FALLÓ" in hg_cover_upper or "FALLO" in hg_cover_upper or "NO CUBRIÓ" in hg_cover_upper or "NO CUBRIO" in hg_cover_upper:
+                hg_cover_str = "NO CUBRIÓ"
+            elif "PUSH" in hg_cover_upper or "IGUALÓ" in hg_cover_upper or "IGUALO" in hg_cover_upper:
+                hg_cover_str = "PUSH (Igualó)"
+                
+        hg_movement_display = clean_value(hg_movement)
+        if hg_cover_str:
+            hg_movement_display = f"{hg_movement_display} ({hg_cover_str})"
         
         md.append(f"- **Encuentro**: {hg_home} vs {hg_away}")
         md.append(f"- **Fecha**: {clean_value(hg_date)}")
         md.append(f"- **Resultado**: {clean_value(hg_score)}")
-        md.append(f"- **Movimiento**: {clean_value(hg_movement)}")
+        md.append(f"- **Movimiento**: {hg_movement_display}")
         md.append("- **Estadísticas**:")
         md.append(format_stats(h2h_general.get("stats_rows"), hg_home, hg_away))
 
@@ -157,10 +332,17 @@ def generate_notebooklm_match_format(payload):
         c3_home = clean_value(col3.get("h2h_home_team_name") or col3.get("home_team"))
         c3_away = clean_value(col3.get("h2h_away_team_name") or col3.get("away_team"))
         score_c3 = f"{col3.get('goles_home')}:{col3.get('goles_away')}" if col3.get("goles_home") is not None else col3.get("score", "-")
+        
+        # Calcular si cubrió
+        c3_ah = clean_value(col3.get('handicap') or col3.get('ah_line'))
+        cover_status = evaluate_handicap_cover(score_c3, col3.get('handicap') or col3.get('ah_line'), True)
+        if cover_status:
+            c3_ah = f"{c3_ah} ({cover_status})"
+            
         md.append(f"- **Encuentro**: {c3_home} vs {c3_away}")
         md.append(f"- **Fecha**: {clean_value(col3.get('date'))}")
         md.append(f"- **Resultado**: {score_c3}")
-        md.append(f"- **Hándicap Espejo**: {clean_value(col3.get('handicap') or col3.get('ah_line'))}")
+        md.append(f"- **Hándicap Espejo**: {c3_ah}")
         md.append("- **Estadísticas**:")
         md.append(format_stats(col3.get("stats_rows"), c3_home, c3_away))
 
@@ -178,10 +360,18 @@ def generate_notebooklm_match_format(payload):
             md.append(f"### Indirecta Local ({home} vs Rival)")
             il_home = clean_value(ind_l.get("home_team"))
             il_away = clean_value(ind_l.get("away_team"))
+            
+            # Calcular si cubrió
+            il_is_home = ind_l.get("localia") in ("H", "L", "Local", "Home")
+            il_ah = clean_value(ind_l.get('ah_line') or ind_l.get('ah'))
+            cover_status = evaluate_handicap_cover(ind_l.get('score'), ind_l.get('ah_line') or ind_l.get('ah'), il_is_home)
+            if cover_status:
+                il_ah = f"{il_ah} ({cover_status})"
+                
             md.append(f"  - **Encuentro**: {il_home} vs {il_away}")
             md.append(f"  - **Fecha**: {clean_value(ind_l.get('date'))}")
             md.append(f"  - **Resultado**: {clean_value(ind_l.get('score'))}")
-            md.append(f"  - **Hándicap**: {clean_value(ind_l.get('ah_line') or ind_l.get('ah'))}")
+            md.append(f"  - **Hándicap**: {il_ah}")
             md.append("  - **Estadísticas**:")
             md.append(format_stats(ind_l.get("stats_rows"), il_home, il_away))
             
@@ -189,10 +379,18 @@ def generate_notebooklm_match_format(payload):
             md.append(f"### Indirecta Visitante ({away} vs Rival)")
             ir_home = clean_value(ind_r.get("home_team"))
             ir_away = clean_value(ind_r.get("away_team"))
+            
+            # Calcular si cubrió
+            ir_is_home = ind_r.get("localia") in ("H", "L", "Local", "Home")
+            ir_ah = clean_value(ind_r.get('ah_line') or ind_r.get('ah'))
+            cover_status = evaluate_handicap_cover(ind_r.get('score'), ind_r.get('ah_line') or ind_r.get('ah'), ir_is_home)
+            if cover_status:
+                ir_ah = f"{ir_ah} ({cover_status})"
+                
             md.append(f"  - **Encuentro**: {ir_home} vs {ir_away}")
             md.append(f"  - **Fecha**: {clean_value(ind_r.get('date'))}")
             md.append(f"  - **Resultado**: {clean_value(ind_r.get('score'))}")
-            md.append(f"  - **Hándicap**: {clean_value(ind_r.get('ah_line') or ind_r.get('ah'))}")
+            md.append(f"  - **Hándicap**: {ir_ah}")
             md.append("  - **Estadísticas**:")
             md.append(format_stats(ind_r.get("stats_rows"), ir_home, ir_away))
 
