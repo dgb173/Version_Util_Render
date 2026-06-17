@@ -206,48 +206,74 @@ def main():
         
     OUTPUT_DIR.mkdir(exist_ok=True)
     
-    # Obtener todos los partidos históricos ordenados por fecha
-    cursor.execute("SELECT match_id, bucket, state, payload_json FROM matches WHERE state = 'historical' ORDER BY match_date DESC")
+    # Primero limpiar los archivos markdown existentes de la exportación anterior
+    # para evitar mezclar partes viejas sin hándicap con las nuevas por hándicap.
+    print("Limpiando archivos markdown previos en la carpeta notebooklm...")
+    for f in OUTPUT_DIR.glob("notebooklm_matches_*.md"):
+        try:
+            f.unlink()
+        except Exception:
+            pass
+            
+    # Obtener los buckets que contienen partidos históricos
+    cursor.execute("SELECT DISTINCT bucket FROM matches WHERE state = 'historical' ORDER BY bucket")
+    buckets = [row["bucket"] for row in cursor.fetchall()]
+    
+    print(f"Buckets históricos encontrados: {len(buckets)}")
+    print("Exportando partidos a formato Markdown estructurado agrupados por hándicap...")
     
     matches_per_file = 1000
-    current_file_idx = 1
-    current_match_count = 0
-    current_file_content = []
     
-    print("Exportando partidos a formato Markdown estructurado...")
-    
-    row = cursor.fetchone()
-    while row is not None:
-        match_md = generate_markdown_match(row)
-        if match_md:
-            current_file_content.append(match_md)
-            current_match_count += 1
+    for bucket in buckets:
+        # Nombre del archivo limpio para el handicap (ej: data_ah_0.5.json -> ah_0.5)
+        clean_name = bucket
+        if clean_name.startswith("data_"):
+            clean_name = clean_name[5:]
+        if clean_name.endswith(".json"):
+            clean_name = clean_name[:-5]
             
-            if current_match_count >= matches_per_file:
-                # Escribir archivo
-                filename = OUTPUT_DIR / f"notebooklm_matches_part_{current_file_idx}.md"
-                with open(filename, "w", encoding="utf-8") as fh:
-                    fh.write(f"# Exportación de Partidos para NotebookLM - Parte {current_file_idx}\n")
-                    fh.write(f"Contiene {current_match_count} partidos con previos, H2H y estadísticas completas.\n\n")
-                    fh.write("\n".join(current_file_content))
-                print(f"Creado: {filename} ({current_match_count} partidos)")
-                
-                # Resetear contadores
-                current_file_idx += 1
-                current_match_count = 0
-                current_file_content = []
-                
+        print(f"\nProcesando bucket: {bucket} (nombre archivo: {clean_name})...")
+        
+        # Consultar partidos de este bucket
+        cursor.execute(
+            "SELECT match_id, bucket, state, payload_json FROM matches WHERE state = 'historical' AND bucket = ? ORDER BY match_date DESC",
+            (bucket,)
+        )
+        
+        current_file_idx = 1
+        current_match_count = 0
+        current_file_content = []
+        
         row = cursor.fetchone()
-        
-    # Escribir el sobrante
-    if current_file_content:
-        filename = OUTPUT_DIR / f"notebooklm_matches_part_{current_file_idx}.md"
-        with open(filename, "w", encoding="utf-8") as fh:
-            fh.write(f"# Exportación de Partidos para NotebookLM - Parte {current_file_idx}\n")
-            fh.write(f"Contiene {current_match_count} partidos con previos, H2H y estadísticas completas.\n\n")
-            fh.write("\n".join(current_file_content))
-        print(f"Creado: {filename} ({current_match_count} partidos)")
-        
+        while row is not None:
+            match_md = generate_markdown_match(row)
+            if match_md:
+                current_file_content.append(match_md)
+                current_match_count += 1
+                
+                if current_match_count >= matches_per_file:
+                    filename = OUTPUT_DIR / f"notebooklm_matches_{clean_name}_part_{current_file_idx}.md"
+                    with open(filename, "w", encoding="utf-8") as fh:
+                        fh.write(f"# Exportación de Partidos para NotebookLM - Hándicap {clean_name} - Parte {current_file_idx}\n")
+                        fh.write(f"Contiene {current_match_count} partidos con previos, H2H y estadísticas completas.\n\n")
+                        fh.write("\n".join(current_file_content))
+                    print(f"  Creado: {filename.name} ({current_match_count} partidos)")
+                    
+                    current_file_idx += 1
+                    current_match_count = 0
+                    current_file_content = []
+            
+            row = cursor.fetchone()
+            
+        # Escribir el sobrante
+        if current_file_content:
+            filename = OUTPUT_DIR / f"notebooklm_matches_{clean_name}_part_{current_file_idx}.md"
+            with open(filename, "w", encoding="utf-8") as fh:
+                fh.write(f"# Exportación de Partidos para NotebookLM - Hándicap {clean_name} - Parte {current_file_idx}\n")
+                fh.write(f"Contiene {current_match_count} partidos con previos, H2H y estadísticas completas.\n\n")
+                fh.write("\n".join(current_file_content))
+            print(f"  Creado: {filename.name} ({current_match_count} partidos)")
+            
     conn.close()
     print("\n¡Exportación completa con éxito!")
     print(f"Los archivos listos para subir a NotebookLM se encuentran en la carpeta: {OUTPUT_DIR}")
