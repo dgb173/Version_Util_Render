@@ -98,7 +98,11 @@ def generate_markdown_match(m):
         he_away = away
         he_date = h2h_estadio.get("date1") or m_estadio.get("date") or "N/A"
         he_score = h2h_estadio.get("res1") or m_estadio.get("result") or m_estadio.get("score") or "?:?"
-        he_movement = h2h_estadio.get("ah1") or m_estadio.get("movement") or "-"
+        
+        # Priorizar el movimiento de cuota completo calculado
+        he_movement = m_estadio.get("movement")
+        if not he_movement or str(he_movement).strip() in ("N/A", "-"):
+            he_movement = h2h_estadio.get("ah1") or "-"
         
         md.append(f"- **Encuentro**: {he_home} vs {he_away}")
         md.append(f"- **Fecha**: {clean_value(he_date)}")
@@ -119,7 +123,11 @@ def generate_markdown_match(m):
         hg_away = h2h_general.get("h2h_gen_away") or m_general.get("away_team") or away
         hg_date = h2h_general.get("date6") or m_general.get("date") or "N/A"
         hg_score = h2h_general.get("res6") or m_general.get("result") or m_general.get("score") or "?:?"
-        hg_movement = h2h_general.get("ah6") or m_general.get("movement") or "-"
+        
+        # Priorizar el movimiento de cuota completo calculado
+        hg_movement = m_general.get("movement")
+        if not hg_movement or str(hg_movement).strip() in ("N/A", "-"):
+            hg_movement = h2h_general.get("ah6") or "-"
         
         md.append(f"- **Encuentro**: {hg_home} vs {hg_away}")
         md.append(f"- **Fecha**: {clean_value(hg_date)}")
