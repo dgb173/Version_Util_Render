@@ -243,6 +243,13 @@ _PRECACHEO_ONLY_ALLOWED_PREFIXES = (
     '/precacheo',
     '/api/precacheo',
     '/static/',
+    '/api/export_prompt',
+    '/api/decode_match',
+    '/api/analyze_scah',
+    '/api/ai_prediction',
+    '/api/matches',
+    '/api/ligas_',
+    '/api/finished_matches_list',
 )
 
 
