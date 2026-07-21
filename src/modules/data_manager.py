@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import threading
 import time
@@ -6,6 +7,9 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from . import sql_store
+from .red_cards import normalize_red_card_stats_payload
+
+LOGGER = logging.getLogger(__name__)
 
 # Config
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / 'data'
@@ -84,7 +88,7 @@ def _is_pending_score(score: Optional[str]) -> bool:
     if score is None:
         return True
     text = str(score).strip()
-    return text in {'??', '?-?', '?:?', '? : ?', '? - ?'}
+    return not text or '?' in text or text in {'??', '?-?', '?:?', '? : ?', '? - ?'}
 
 
 def _sync_legacy_buckets(bucket_names: Iterable[str]) -> None:
@@ -99,6 +103,7 @@ def _sync_legacy_buckets(bucket_names: Iterable[str]) -> None:
 
 
 def _persist_match(match_data: Dict, bucket_name: str, state: str) -> Set[str]:
+    normalize_red_card_stats_payload(match_data)
     previous_bucket, _ = sql_store.upsert_match(match_data, bucket=bucket_name, state=state)
     _clear_explorer_cache()
     changed = {bucket_name}
@@ -214,6 +219,13 @@ def save_precacheo_match(match_data):
     with _precacheo_lock:
         changed_buckets = _persist_match(match_data, PRECACHEO_BUCKET, 'precacheo')
         _sync_legacy_buckets(changed_buckets)
+    # Historial universal de colocación: solo añade una fila cuando AH/O-U cambia.
+    # El import local evita acoplar el arranque del almacén SQL al motor de aprendizaje.
+    try:
+        from . import league_evolution_learning
+        league_evolution_learning.record_precache_snapshot(match_data)
+    except Exception:
+        LOGGER.exception("No se pudo registrar el snapshot de mercado de precacheo")
     return True
 
 
@@ -298,15 +310,18 @@ def flag_stale_prev_matches(match_data):
     }
 
 
-def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=1):
+def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
     """
     Removes old pre-cacheo matches.
     1. With result: remove if older than (today - days_threshold).
     2. Without result: keep up to pending_days_threshold days.
     """
     with _precacheo_lock:
-        data = load_precacheo_matches()
-        if not data:
+        sources = (
+            (PRECACHEO_BUCKET, load_precacheo_matches()),
+            (PENDING_RESULTS_BUCKET, load_pending_results_matches()),
+        )
+        if not any(rows for _, rows in sources):
             return 0
 
         try:
@@ -316,41 +331,43 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=1):
         try:
             pending_days_threshold = max(0, int(pending_days_threshold))
         except Exception:
-            pending_days_threshold = 1
+            pending_days_threshold = 2
 
         now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         threshold_date = now - datetime.timedelta(days=days_threshold)
         pending_threshold_date = now - datetime.timedelta(days=pending_days_threshold)
 
-        to_remove: Set[str] = set()
-        for match in data:
-            m_date_str = match.get('match_date') or match.get('date') or match.get('precacheo_date')
-            m_date = parse_match_date(m_date_str)
+        to_remove: Set[Tuple[str, str]] = set()
+        for source_bucket, rows in sources:
+            for match in rows:
+                m_date_str = match.get('match_date') or match.get('date') or match.get('precacheo_date')
+                m_date = parse_match_date(m_date_str)
 
-            if m_date is None:
-                continue
+                if m_date is None:
+                    continue
 
-            score = match.get('score') or match.get('final_score')
-            has_result = bool(score) and not _is_pending_score(str(score)) and ':' in str(score)
-            match_id = match.get('match_id') or match.get('id')
-            if match_id in (None, ''):
-                continue
+                score = match.get('score') or match.get('final_score')
+                has_result = bool(score) and not _is_pending_score(str(score)) and (
+                    ':' in str(score) or '-' in str(score)
+                )
+                match_id = match.get('match_id') or match.get('id')
+                if match_id in (None, ''):
+                    continue
 
-            if has_result:
-                if m_date < threshold_date:
-                    to_remove.add(str(match_id))
-            else:
-                if m_date < pending_threshold_date:
-                    to_remove.add(str(match_id))
+                max_date = threshold_date if has_result else pending_threshold_date
+                if m_date < max_date:
+                    to_remove.add((source_bucket, str(match_id)))
 
         removed_count = 0
-        for mid in to_remove:
-            if mid and sql_store.delete_match(mid, bucket=PRECACHEO_BUCKET):
+        changed_buckets: Set[str] = set()
+        for source_bucket, mid in to_remove:
+            if mid and sql_store.delete_match(mid, bucket=source_bucket):
                 removed_count += 1
+                changed_buckets.add(source_bucket)
 
         if removed_count > 0:
-            _sync_legacy_buckets({PRECACHEO_BUCKET})
-            print(f'Limpieza de Precacheo: {removed_count} partidos antiguos eliminados.')
+            _sync_legacy_buckets(changed_buckets)
+            print(f'Limpieza de Precacheo/Pendientes: {removed_count} partidos antiguos eliminados.')
 
         return removed_count
 

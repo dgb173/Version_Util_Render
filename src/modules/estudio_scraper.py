@@ -17,6 +17,7 @@ from urllib3.util.retry import Retry
 import pandas as pd
 from pathlib import Path
 from . import sql_store
+from .red_cards import extract_red_card_count_from_cell, normalize_red_card_stats_payload
 # Selenium imports removed
 SELENIUM_AVAILABLE = False
 
@@ -1055,13 +1056,16 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
             a = cells[idx].find('a')
             return a.get_text(strip=True) if a else cells[idx].get_text(strip=True)
         
-        def get_red_card(idx):
-            # Buscar span con clase 'rcard' o 'red-card'
-            rc = cells[idx].find('span', class_=lambda c: c and ('rcard' in c or 'red-card' in c))
-            return rc.get_text(strip=True) if rc else None
-
         home, away = get_cell_txt(home_idx), get_cell_txt(away_idx)
-        home_red, away_red = get_red_card(home_idx), get_red_card(away_idx)
+        home_red = extract_red_card_count_from_cell(cells[home_idx])
+        away_red = extract_red_card_count_from_cell(cells[away_idx])
+        links = row_element.find_all("a", onclick=True)
+        team_ids = []
+        for link in links[:2]:
+            id_match = re.search(r"team\((\d+)\)", link.get("onclick", ""))
+            team_ids.append(id_match.group(1) if id_match else None)
+        home_id = team_ids[0] if len(team_ids) > 0 else None
+        away_id = team_ids[1] if len(team_ids) > 1 else None
 
         if not home or not away: return None
         score_cell = cells[score_idx]
@@ -1104,6 +1108,7 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
             'ouLine': ou_line_raw, # Placeholder por ahora
             'matchIndex': row_element.get('index'), 'vs': row_element.get('vs'),
             'league_id_hist': row_element.get('title') or row_element.get('name'), # Usar title como nombre de liga si existe
+            'home_id': home_id, 'away_id': away_id,
             'home_red': home_red, 'away_red': away_red
         }
     except Exception:
@@ -1263,17 +1268,12 @@ def get_h2h_details_for_original_logic_of(key_match_id, rival_a_id, rival_b_id, 
                 else:
                     date_txt = date_span.get_text(strip=True) if date_span else ''
 
-            # Extract Red Cards
-            def get_red_card(cell):
-                rc = cell.find('span', class_=lambda c: c and ('rcard' in c or 'red-card' in c))
-                return rc.get_text(strip=True) if rc else None
-            
             # Assuming home team is in cell 2 (index 2) and away in cell 4 (index 4) based on typical layout
             # But we need to be careful about which link corresponds to which team.
             # The links list has [home_link, away_link].
             # Let's try to find the parent td for each link to check for red cards.
-            home_red = get_red_card(links[0].find_parent('td'))
-            away_red = get_red_card(links[1].find_parent('td'))
+            home_red = extract_red_card_count_from_cell(links[0].find_parent('td'))
+            away_red = extract_red_card_count_from_cell(links[1].find_parent('td'))
 
             return {
                 "status": "found", "goles_home": g_h.strip(), "goles_away": g_a.strip(),
@@ -2059,6 +2059,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         # Tambien aplicamos is_neutral_venue a las listas completas para consistencia
         recent_home_matches = extract_recent_matches(soup_completo, "table_v1", home_name, None, True, odds_map, limit=10, is_neutral_venue=is_neutral_venue)
         recent_away_matches = extract_recent_matches(soup_completo, "table_v2", away_name, None, False, odds_map, limit=10, is_neutral_venue=is_neutral_venue)
+        recent_away_matches_all = extract_recent_matches(soup_completo, "table_v2", away_name, None, False, odds_map, limit=15, is_neutral_venue=True)
         
         h2h_data = extract_h2h_data_of(soup_completo, home_name, away_name, None, odds_map)
         comp_L_vs_UV_A = extract_comparative_match_of(soup_completo, "table_v1", home_name, (last_away_match or {}).get('home_team'), league_id, True, odds_map)
@@ -2145,6 +2146,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         df = get_match_progression_stats_data(str(match_id_value))
         return _df_to_rows(df)
 
+    main_match_stats = get_stats_rows(main_match_id)
     last_home_match_stats = get_stats_rows((last_home_match or {}).get('match_id'))
     last_away_match_stats = get_stats_rows((last_away_match or {}).get('match_id'))
     h2h_col3_stats = get_stats_rows((details_h2h_col3 or {}).get('match_id'))
@@ -2169,6 +2171,9 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
             "ah_linea": format_ah_as_decimal_string_of(main_match_odds_data.get('ah_linea_raw', '?')),
             "goals_linea": format_ah_as_decimal_string_of(main_match_odds_data.get('goals_linea_raw', '?'))
         },
+        # Estadisticas del propio partido. El Explorador historico usa esta
+        # coleccion al reutilizar el encuentro como Prev/H2H/indirecta.
+        "stats_rows": main_match_stats,
         "market_analysis_html": market_analysis_html,
         "market_analysis_data": market_analysis_data,
         "historical_matches_html": historical_matches_html,
@@ -2198,8 +2203,12 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
 
         "h2h_stadium": {**h2h_data, "stats_rows": h2h_stadium_stats},
         "h2h_general": {**h2h_data, "stats_rows": h2h_general_stats},
+        "recent_home_matches": recent_home_matches,
+        "recent_away_matches": recent_away_matches,
+        "recent_away_matches_all": recent_away_matches_all,
         "execution_time_seconds": round(time.time() - start_time, 2),
     }
 
+    normalize_red_card_stats_payload(results)
     _set_cached_analysis(main_match_id, results)
     return copy.deepcopy(results)

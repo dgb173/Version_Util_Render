@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extraer Liga Completa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root { --navy:#092c40; --navy2:#0d435b; --mint:#32c7a5; --ink:#18313f; --muted:#6c7d86; --line:#dbe5ea; --bg:#f3f7f9; }
+        body { margin:0; color:var(--ink); background:var(--bg); font-family:Inter,Segoe UI,Arial,sans-serif; }
+        .sidebar { position:fixed; inset:0 auto 0 0; width:244px; padding:22px 16px; color:#d9e8ef; background:linear-gradient(180deg,var(--navy),var(--navy2)); z-index:20; }
+        .brand { display:flex; gap:.65rem; align-items:center; margin-bottom:1.5rem; color:#fff; font-size:1.08rem; font-weight:900; }
+        .brand i { color:var(--mint); }
+        .sidebar .nav-link { display:flex; align-items:center; gap:.65rem; margin:.15rem 0; padding:.65rem .75rem; color:#bfd0da; border-radius:10px; font-size:.86rem; font-weight:700; }
+        .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(50,199,165,.16); }
+        .sidebar .nav-link.active { box-shadow:inset 3px 0 var(--mint); }
+        main { min-height:100vh; margin-left:244px; }
+        .hero { padding:34px 34px 70px; color:#fff; background:linear-gradient(125deg,#0a3045,#126383); }
+        .hero h1 { margin:.3rem 0 .55rem; font-size:clamp(1.7rem,3vw,2.55rem); font-weight:900; }
+        .hero p { max-width:840px; margin:0; color:#d7e8ef; }
+        .eyebrow { color:#8fe7d3; font-size:.72rem; font-weight:900; letter-spacing:.12em; }
+        .workspace { padding:0 34px 45px; transform:translateY(-40px); }
+        .panel { margin-bottom:18px; border:1px solid rgba(9,44,64,.08); border-radius:18px; background:#fff; box-shadow:0 15px 38px rgba(24,49,63,.09); }
+        .panel-body { padding:24px; }
+        .form-label { font-size:.78rem; font-weight:800; color:#465f6c; }
+        .form-control,.form-select { border-color:#cfdee5; border-radius:10px; }
+        .btn-primary { border-color:var(--navy2); background:var(--navy2); }
+        .btn-success { border-color:#159574; background:#159574; }
+        .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+        .metric { padding:15px 17px; border:1px solid var(--line); border-radius:13px; background:#f9fbfc; }
+        .metric small { display:block; color:var(--muted); font-weight:700; }
+        .metric strong { font-size:1.45rem; }
+        .table-wrap { max-height:55vh; overflow:auto; border:1px solid var(--line); border-radius:12px; }
+        table { font-size:.82rem; }
+        thead th { position:sticky; top:0; z-index:2; white-space:nowrap; background:#edf4f7!important; }
+        td { vertical-align:middle; }
+        .team { min-width:220px; }
+        .result-list { max-height:220px; overflow:auto; }
+        .hint { padding:12px 14px; color:#49606d; border-left:4px solid var(--mint); border-radius:8px; background:#effaf7; font-size:.88rem; }
+        .archive-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+        .archive-item { padding:13px 14px; text-align:left; border:1px solid var(--line); border-radius:12px; background:#f9fbfc; transition:.15s ease; }
+        .archive-item:hover { border-color:var(--mint); transform:translateY(-1px); }
+        .archive-item .name { font-weight:900; color:var(--navy); }
+        .analysis-card { margin-bottom:18px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 5px 15px rgba(24,49,63,.07); }
+        .analysis-head { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 15px; border-bottom:1px solid var(--line); background:#f8fbfc; }
+        .round-chip { padding:4px 9px; color:#fff; border-radius:999px; background:var(--navy2); font-size:.72rem; font-weight:900; }
+        .analysis-head .match-name { flex:1 1 280px; font-weight:900; }
+        .stat-grid { display:grid; grid-template-columns:repeat(7,minmax(190px,1fr)); gap:8px; padding:10px; overflow-x:auto; }
+        .stat-box { min-height:150px; padding:10px; border:1px solid rgba(0,0,0,.12); border-radius:9px; }
+        .stat-box.prev-home{background:#e8f5e9}.stat-box.prev-away{background:#ffebee}.stat-box.h2h{background:#e3f2fd}.stat-box.col3{background:#fff8e1}.stat-box.indirect{background:#e3f2fd}
+        .stat-title { padding-bottom:6px; margin-bottom:8px; text-align:center; text-transform:uppercase; border-bottom:1px solid rgba(0,0,0,.1); font-size:.73rem; font-weight:900; }
+        .stat-match { min-height:34px; text-align:center; font-size:.72rem; }
+        .stat-score { display:inline-block; margin:0 4px; padding:2px 5px; border-radius:4px; background:rgba(255,255,255,.7); font-size:.88rem; font-weight:900; }
+        .stat-meta { margin:5px 0; text-align:center; color:var(--muted); font-size:.63rem; }
+        .stat-table { width:100%; margin-top:7px; border-top:1px solid rgba(0,0,0,.1); font-size:.64rem; }
+        .stat-table td { padding:3px 2px; border-bottom:1px solid rgba(0,0,0,.06); }
+        .empty-stat { display:flex; min-height:95px; align-items:center; justify-content:center; color:#82919a; }
+        .pagination-row { display:flex; justify-content:center; align-items:center; gap:10px; margin-top:15px; }
+        .round-navigation { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; margin-bottom:12px; border:1px solid var(--line); border-radius:12px; background:#f7fafb; }
+        .round-navigation .form-select { width:auto; min-width:230px; font-weight:800; color:var(--navy); }
+        .explorer-table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; }
+        .explorer-table { min-width:1450px; margin:0; table-layout:fixed; font-size:.7rem; }
+        .explorer-table th { padding:9px 6px; text-align:center; vertical-align:bottom; }
+        .explorer-table td { padding:8px 6px; text-align:center; border-right:1px solid #e1e9ed; }
+        .explorer-table .date-col { width:110px; }
+        .explorer-table .team-col { width:125px; text-align:left; font-weight:800; }
+        .explorer-table .market-col { width:56px; font-size:.82rem; font-weight:900; }
+        .explorer-table .case-col { width:120px; }
+        .explorer-main-row:hover td { background:#f8fbfc; }
+        .explorer-case { min-height:62px; line-height:1.25; }
+        .explorer-case .teams { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .explorer-case .mini-score { display:inline-block; margin:3px 0; padding:2px 5px; border-radius:4px; background:#eef3f5; font-size:.78rem; font-weight:900; }
+        .explorer-case .mini-meta { color:var(--muted); font-size:.61rem; }
+        .detail-row td { padding:0; background:#f5f8fa; }
+        .detail-row .stat-grid { padding:12px; }
+        .missing-analysis { color:#8a5960; background:#fff7f8; }
+        @media(max-width:800px) { .sidebar{position:static;width:auto}.sidebar nav{display:flex;overflow-x:auto}.sidebar .nav-link{flex:0 0 auto}main{margin-left:0}.hero,.workspace{padding-inline:15px}.workspace{transform:translateY(-25px)}.metric-grid{grid-template-columns:repeat(2,1fr)} }
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <div class="brand"><i class="fa-solid fa-database"></i> Antigravity Data</div>
+    <nav class="nav flex-column">
+        <a class="nav-link" href="/"><i class="fa-solid fa-house"></i> Inicio</a>
+        <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
+        <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass"></i> Explorador</a>
+        <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock"></i> Pre-Cacheo</a>
+        <a class="nav-link" href="/seguimiento-liga"><i class="fa-solid fa-building-columns"></i> Radar de Liga</a>
+        <a class="nav-link active" href="/extraer-liga"><i class="fa-solid fa-cloud-arrow-down"></i> Extraer Liga</a>
+        <a class="nav-link" href="/ganadores"><i class="fa-solid fa-trophy"></i> Ganadores</a>
+    </nav>
+</aside>
+<main>
+    <section class="hero">
+        <span class="eyebrow">FUENTE DE DATOS DEL MODELO</span>
+        <h1>Extracción profunda de una liga</h1>
+        <p>Recupera el calendario jornada por jornada y analiza cada encuentro con el mismo sistema de Pre-Cacheo: previos local/visitante, H2H estadio y general, Col3, indirectas, cuotas y estadísticas. Primero previsualiza; nada se guarda hasta que confirmes la selección.</p>
+    </section>
+    <section class="workspace">
+        <div class="panel"><div class="panel-body">
+            <form id="extractForm" class="row g-3">
+                <div class="col-lg-5">
+                    <label for="leagueReference" class="form-label">URL o ID de liga NowGoal</label>
+                    <input id="leagueReference" class="form-control" placeholder="https://football.nowgoal26.com/league/2025/381" required>
+                </div>
+                <div class="col-sm-6 col-lg-2">
+                    <label for="season" class="form-label">Temporada</label>
+                    <input id="season" class="form-control" placeholder="Automática">
+                </div>
+                <div class="col-sm-6 col-lg-2">
+                    <label for="targetAh" class="form-label">AH visible (opcional)</label>
+                    <input id="targetAh" type="number" step="0.25" class="form-control" placeholder="Todos">
+                </div>
+                <div class="col-sm-6 col-lg-1">
+                    <label for="company" class="form-label">Casa</label>
+                    <input id="company" type="number" min="1" value="8" class="form-control" required>
+                </div>
+                <div class="col-sm-6 col-lg-2 d-flex align-items-end">
+                    <button id="previewButton" class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-magnifying-glass me-1"></i> Previsualizar</button>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <label for="matchStatus" class="form-label">Estado de los partidos</label>
+                    <select id="matchStatus" class="form-select"><option value="all">Toda la temporada</option><option value="finished">Solo terminados</option><option value="upcoming">Próximos o pendientes</option></select>
+                </div>
+                <div class="col-sm-6 col-lg-2">
+                    <label for="workers" class="form-label">Procesos simultáneos</label>
+                    <select id="workers" class="form-select"><option value="1">1 — conservador</option><option value="3" selected>3 — recomendado</option><option value="5">5 — rápido</option><option value="10">10 — máximo</option></select>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <label for="leagueLabel" class="form-label">Etiqueta para guardar la liga</label>
+                    <input id="leagueLabel" class="form-control" placeholder="Ej.: Australia Capital 2025">
+                </div>
+                <div class="col-lg-3 d-flex align-items-end"><div class="form-check mb-2"><input id="force" class="form-check-input" type="checkbox"><label for="force" class="form-check-label">Volver a analizar partidos que ya estén en SQL</label></div></div>
+            </form>
+            <div class="hint mt-3"><strong>Para una liga completa:</strong> deja “AH visible” vacío. El filtro AH sirve para repetir la consulta únicamente con esa línea.</div>
+            <div id="message" class="alert mt-3 d-none" role="alert"></div>
+        </div></div>
+
+        <div class="panel"><div class="panel-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h5 class="mb-1"><i class="fa-solid fa-box-archive me-2"></i>Ligas analizadas</h5><div class="small text-muted">Registro separado de SQL. Conserva la jornada y permite volver a abrir los análisis.</div></div>
+                <button id="refreshArchives" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div id="archiveList" class="archive-list"><span class="text-muted">Cargando registro…</span></div>
+        </div></div>
+
+        <div id="previewPanel" class="panel d-none"><div class="panel-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+                <div><h5 id="summary" class="mb-1"></h5><div id="source" class="text-muted small"></div></div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="selectNew" type="button" class="btn btn-outline-secondary btn-sm">Solo nuevos</button>
+                    <button id="selectAll" type="button" class="btn btn-outline-secondary btn-sm">Seleccionar todos</button>
+                    <button id="registerLeague" type="button" class="btn btn-outline-primary"><i class="fa-solid fa-tag me-1"></i> Registrar etiqueta</button>
+                    <button id="startButton" type="button" class="btn btn-success"><i class="fa-solid fa-database me-1"></i> Analizar y guardar</button>
+                </div>
+            </div>
+            <div class="metric-grid">
+                <div class="metric"><small>Partidos</small><strong id="metricTotal">0</strong></div>
+                <div class="metric"><small>Terminados</small><strong id="metricFinished">0</strong></div>
+                <div class="metric"><small>Ya en SQL</small><strong id="metricSql">0</strong></div>
+                <div class="metric"><small>Seleccionados</small><strong id="metricSelected">0</strong></div>
+            </div>
+            <div class="table-wrap"><table class="table table-hover mb-0"><thead><tr><th></th><th>Jornada</th><th>Fecha</th><th>Partido</th><th>Resultado</th><th>AH visible</th><th>AH inicial SQL</th><th>Estado SQL</th></tr></thead><tbody id="rows"></tbody></table></div>
+        </div></div>
+
+        <div id="progressPanel" class="panel d-none"><div class="panel-body">
+            <div class="d-flex justify-content-between mb-2"><strong id="progressText">Preparando…</strong><span id="progressCount">0/0</span></div>
+            <div class="progress"><div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div></div>
+            <div id="results" class="result-list mt-3"></div>
+        </div></div>
+
+        <div id="analysisPanel" class="panel d-none"><div class="panel-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h5 id="analysisTitle" class="mb-1">Partidos analizados</h5><div id="analysisSubtitle" class="small text-muted"></div></div>
+                <span class="badge bg-light text-dark border">Jornada guardada fuera de SQL</span>
+            </div>
+            <div id="roundNavigation" class="round-navigation d-none">
+                <button id="roundPrev" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+                <select id="roundSelect" class="form-select form-select-sm" aria-label="Seleccionar jornada"></select>
+                <button id="roundNext" type="button" class="btn btn-outline-secondary btn-sm">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+                <span id="roundSummary" class="small text-muted ms-auto"></span>
+            </div>
+            <div class="explorer-table-wrap">
+                <table class="table explorer-table align-middle">
+                    <thead><tr>
+                        <th class="date-col">Fecha</th><th class="team-col">Local</th><th class="team-col">Visitante</th>
+                        <th class="market-col">HA</th><th class="market-col">O/U</th><th class="market-col">FT</th>
+                        <th class="case-col">Prev Home</th><th class="case-col">Prev Away</th><th class="case-col">H2H Estadio</th>
+                        <th class="case-col">H2H General</th><th class="case-col">H2H Col3</th><th class="case-col">Ind. Local</th>
+                        <th class="case-col">Ind. Visitante</th><th style="width:72px">Detalle</th>
+                    </tr></thead>
+                    <tbody id="analysisRows"></tbody>
+                </table>
+            </div>
+        </div></div>
+    </section>
+</main>
+<script>
+    const $ = id => document.getElementById(id);
+    let preview = null;
+    let pollTimer = null;
+    let activeExtractionId = null;
+    let activeRounds = [];
+    let activeRoundKey = '';
+    const liveLoaded = new Set();
+    const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    const message = (kind,text) => { $('message').className=`alert alert-${kind} mt-3`; $('message').textContent=text; };
+    const selected = () => preview ? Array.from(document.querySelectorAll('.match-check:checked')).map(el => preview.matches[Number(el.dataset.index)]).filter(Boolean) : [];
+
+    function updateSelection() {
+        const count=selected().length;
+        $('metricSelected').textContent=count;
+        $('startButton').disabled=!count;
+        $('startButton').innerHTML=`<i class="fa-solid fa-database me-1"></i> Analizar y guardar (${count})`;
+    }
+
+    function oddsCell(match) {
+        if (match.visible_ah === null || match.visible_ah === undefined) return '<span class="text-muted">Sin AH visible</span>';
+        const home=match.home_odds_decimal == null ? '—' : Number(match.home_odds_decimal).toFixed(2);
+        const away=match.away_odds_decimal == null ? '—' : Number(match.away_odds_decimal).toFixed(2);
+        return `${home} <span class="badge bg-danger mx-1">${escapeHtml(match.visible_ah)}</span> ${away}`;
+    }
+
+    function render(data) {
+        preview=data;
+        if(!$('leagueLabel').value.trim()) $('leagueLabel').value=`${data.league_name} · ${data.season}`;
+        const scope=data.target_ah == null ? 'todos los AH' : `AH ${data.target_ah}`;
+        $('summary').textContent=`${data.league_name} · ${data.matches.length} partidos`;
+        $('source').textContent=`Liga ${data.league_id} · Temporada ${data.season} · Casa ${data.company_id} · ${scope}`;
+        $('metricTotal').textContent=data.matches.length;
+        $('metricFinished').textContent=data.matches.filter(m=>m.finished).length;
+        $('metricSql').textContent=data.matches.filter(m=>m.already_in_sql).length;
+        $('rows').innerHTML=data.matches.map((m,i)=>`<tr data-match-id="${escapeHtml(m.id)}"><td><input type="checkbox" class="form-check-input match-check" data-index="${i}" checked></td><td>${escapeHtml(m.round||'—')}</td><td>${escapeHtml(m.date||'—')}</td><td class="team"><a href="/estudio/${escapeHtml(m.id)}" target="_blank">${escapeHtml(m.home||'—')} vs ${escapeHtml(m.away||'—')}</a></td><td>${escapeHtml(m.score&&m.score!=='-'?m.score:'Pendiente')} ${m.finished?'<span class="badge bg-success">FT</span>':''}</td><td>${oddsCell(m)}</td><td class="stored-ah">${escapeHtml(m.stored_initial_ah??'—')}</td><td class="sql-state">${m.already_in_sql?`<span class="badge bg-secondary">${escapeHtml(m.sql_bucket||'SQL')}</span>`:'<span class="badge bg-light text-dark border">Nuevo</span>'}</td></tr>`).join('');
+        document.querySelectorAll('.match-check').forEach(el=>el.addEventListener('change',updateSelection));
+        $('previewPanel').classList.remove('d-none'); $('progressPanel').classList.add('d-none'); updateSelection();
+    }
+
+    function statusText(extraction) {
+        const counts=extraction.counts||{};
+        const ready=(counts.saved||0)+(counts.exists||0);
+        const labels={queued:'En cola',running:'En curso',registered:'Registrada',completed:'Completada',failed:'Fallida'};
+        return `${labels[extraction.status]||extraction.status} · ${ready}/${extraction.total} disponibles`;
+    }
+
+    async function loadArchives() {
+        try {
+            const response=await fetch('/api/league-extractions');
+            const data=await response.json();
+            if(!response.ok) throw new Error(data.error||'No se pudo leer el registro');
+            const extractions=data.extractions||[];
+            $('archiveList').innerHTML=extractions.length ? extractions.map(extraction=>`
+                <button type="button" class="archive-item" data-extraction-id="${escapeHtml(extraction.extraction_id)}">
+                    <div class="d-flex justify-content-between gap-2"><span class="name">${escapeHtml(extraction.label||extraction.league_name)}</span><span class="badge bg-light text-dark border">${escapeHtml(extraction.season||'—')}</span></div>
+                    <div class="small text-muted mt-1">${escapeHtml(extraction.league_name)} · Liga ${escapeHtml(extraction.league_id)} · ${extraction.target_ah==null?'Todos los AH':`AH ${escapeHtml(extraction.target_ah)}`}</div>
+                    <div class="small mt-2">${escapeHtml(statusText(extraction))}</div>
+                </button>`).join('') : '<span class="text-muted">Todavía no hay ligas analizadas.</span>';
+            document.querySelectorAll('.archive-item').forEach(button=>button.addEventListener('click',()=>openExtraction(button.dataset.extractionId,'',true)));
+        } catch(error) {
+            $('archiveList').innerHTML=`<span class="text-danger">${escapeHtml(error.message)}</span>`;
+        }
+    }
+
+    const normalizedStats = stats => Array.isArray(stats) ? stats.filter(Boolean).slice(0,8) : [];
+
+    function movement(raw, fallback='') {
+        if(raw && raw.movement) return raw.movement;
+        const start=raw && raw.ah1;
+        const end=raw && raw.ah6;
+        if(start!==undefined && start!==null && end!==undefined && end!==null) return `${start} → ${end}`;
+        return fallback||'';
+    }
+
+    function statBox(title, data, className) {
+        const stats=normalizedStats(data && data.stats_rows);
+        const hasData=!!(data && (data.score || data.home || data.away || data.ah || stats.length));
+        if(!hasData) return `<div class="stat-box ${className}"><div class="stat-title">${escapeHtml(title)}</div><div class="empty-stat">—</div></div>`;
+        const statsHtml=stats.length ? `<table class="stat-table"><tbody>${stats.map(row=>`<tr><td class="text-start ${Number(row.home)>Number(row.away)?'text-success fw-bold':'text-danger'}">${escapeHtml(row.home??'')}</td><td class="text-center text-muted">${escapeHtml(row.label??'')}</td><td class="text-end ${Number(row.away)>Number(row.home)?'text-success fw-bold':'text-danger'}">${escapeHtml(row.away??'')}</td></tr>`).join('')}</tbody></table>` : '';
+        return `<div class="stat-box ${className}">
+            <div class="stat-title">${escapeHtml(title)}</div>
+            <div class="stat-match"><span class="text-success fw-bold">${escapeHtml(data.home||'')}</span><span class="stat-score">${escapeHtml(data.score||'—')}</span><span class="text-danger fw-bold">${escapeHtml(data.away||'')}</span></div>
+            <div class="stat-meta">${escapeHtml(data.date||'')}${data.ah?`<br>AH: <strong>${escapeHtml(data.ah)}</strong>`:''}</div>${statsHtml}
+        </div>`;
+    }
+
+    function analysisCases(match) {
+        const market=match.market_analysis_data||{};
+        const prevHome=match.last_home_match||{};
+        const prevAway=match.last_away_match||{};
+        const stadiumRaw=match.h2h_stadium||{};
+        const generalRaw=match.h2h_general||{};
+        const stadium=market.stadium||{};
+        const general=market.general||{};
+        const col3=match.h2h_col3||{};
+        const indirect=match.comparativas_indirectas||{};
+        const simple = raw => ({home:raw.home_team,away:raw.away_team,score:raw.score,date:raw.date,ah:raw.handicap_line_raw||raw.ah_line,stats_rows:raw.stats_rows});
+        const stadiumData={home:match.home_name||match.home_team,away:match.away_name||match.away_team,score:stadium.result||stadiumRaw.res1,date:stadium.date||stadiumRaw.date1,ah:movement(stadium,stadiumRaw.ah1),stats_rows:stadiumRaw.stats_rows||stadium.stats_rows};
+        const generalData={home:generalRaw.h2h_gen_home||match.home_name,away:generalRaw.h2h_gen_away||match.away_name,score:general.result||generalRaw.res6,date:general.date||generalRaw.date6,ah:movement(general,generalRaw.ah6),stats_rows:generalRaw.stats_rows||general.stats_rows};
+        const col3Data=col3.status==='found'?{home:col3.h2h_home_team_name,away:col3.h2h_away_team_name,score:(col3.goles_home!=null&&col3.goles_away!=null)?`${col3.goles_home}:${col3.goles_away}`:'',date:col3.date,ah:col3.handicap,stats_rows:col3.stats_rows}:null;
+        const indirectData = raw => raw?{home:raw.home_team,away:raw.away_team,score:raw.score,date:raw.date,ah:raw.ah_line,stats_rows:raw.stats_rows}:null;
+        return [
+            {title:'Prev Home',data:simple(prevHome),className:'prev-home'},
+            {title:'Prev Away',data:simple(prevAway),className:'prev-away'},
+            {title:'H2H Estadio',data:stadiumData,className:'h2h'},
+            {title:'H2H General',data:generalData,className:'h2h'},
+            {title:'H2H Col3',data:col3Data,className:'col3'},
+            {title:'Ind. Local',data:indirectData(indirect.left),className:'indirect'},
+            {title:'Ind. Visitante',data:indirectData(indirect.right),className:'indirect'}
+        ];
+    }
+
+    function analysisBoxes(match) {
+        return analysisCases(match).map(item=>statBox(item.title,item.data,item.className)).join('');
+    }
+
+    function explorerCaseCell(item) {
+        const data=item.data;
+        const stats=normalizedStats(data&&data.stats_rows);
+        const hasData=!!(data&&(data.score||data.home||data.away||data.ah||stats.length));
+        if(!hasData) return '<td class="case-col text-muted">—</td>';
+        return `<td class="case-col"><div class="explorer-case" title="${escapeHtml(item.title)}">
+            <div class="teams"><span class="text-success fw-bold">${escapeHtml(data.home||'—')}</span></div>
+            <div class="mini-score">${escapeHtml(data.score||'—')}</div>
+            <div class="teams text-danger fw-bold">${escapeHtml(data.away||'—')}</div>
+            <div class="mini-meta">${escapeHtml(data.date||'')}${data.ah?` · AH ${escapeHtml(data.ah)}`:''}</div>
+        </div></td>`;
+    }
+
+    function toggleAnalysisDetail(matchId) {
+        const row=$(`analysis-detail-${matchId}`);
+        const icon=document.querySelector(`[data-detail-button="${CSS.escape(String(matchId))}"] i`);
+        if(!row)return;
+        const willHide=!row.classList.contains('d-none');
+        row.classList.toggle('d-none',willHide);
+        if(icon)icon.className=willHide?'fa-solid fa-chevron-down':'fa-solid fa-chevron-up';
+    }
+
+    function renderAnalysisMatch(payload, append=true) {
+        const source=payload.source||{};
+        const match=payload.data;
+        const rowId=`analysis-match-${source.id}`;
+        const detailId=`analysis-detail-${source.id}`;
+        const previous=$(rowId);
+        const previousDetail=$(detailId);
+        let html;
+        if(!match) {
+            html=`<tr class="explorer-main-row missing-analysis" id="${rowId}">
+                <td>${escapeHtml(source.date||'—')}</td><td class="team-col text-primary">${escapeHtml(source.home||'—')}</td><td class="team-col text-danger">${escapeHtml(source.away||'—')}</td>
+                <td class="market-col">${escapeHtml(source.visible_ah??'—')}</td><td>—</td><td>?:?</td>
+                ${'<td class="case-col text-muted">—</td>'.repeat(7)}
+                <td><span class="badge bg-secondary">${escapeHtml(source.status||'Sin SQL')}</span></td></tr>`;
+        } else {
+            const home=match.home_name||match.home_team||source.home||'';
+            const away=match.away_name||match.away_team||source.away||'';
+            const score=match.final_score||match.score||'?:?';
+            const odds=match.main_match_odds||{};
+            const ah=odds.ah_linea??match.handicap??source.visible_ah??'—';
+            const goals=odds.goals_linea??match.goal_line??'—';
+            const caseCells=analysisCases(match).map(explorerCaseCell).join('');
+            html=`<tr class="explorer-main-row" id="${rowId}">
+                <td class="date-col text-muted">${escapeHtml(source.date||match.match_date||'—')}</td>
+                <td class="team-col"><a class="text-primary text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(home)}</a></td>
+                <td class="team-col"><a class="text-danger text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(away)}</a></td>
+                <td class="market-col">${escapeHtml(ah)}</td><td class="market-col">${escapeHtml(goals)}</td><td class="market-col">${escapeHtml(score)}</td>
+                ${caseCells}<td><button type="button" class="btn btn-outline-primary btn-sm" data-detail-button="${escapeHtml(source.id)}" onclick="toggleAnalysisDetail('${escapeHtml(source.id)}')" title="Mostrar u ocultar estadísticas"><i class="fa-solid fa-chevron-up"></i></button></td>
+            </tr><tr class="detail-row" id="${detailId}"><td colspan="14"><div class="stat-grid">${analysisBoxes(match)}</div></td></tr>`;
+        }
+        if(previous)previous.remove();
+        if(previousDetail)previousDetail.remove();
+        $('analysisRows').insertAdjacentHTML(append?'beforeend':'afterbegin',html);
+    }
+
+    function updateRoundButtons() {
+        const index=activeRounds.findIndex(round=>round.key===activeRoundKey);
+        $('roundPrev').disabled=index<=0;
+        $('roundNext').disabled=index<0||index>=activeRounds.length-1;
+    }
+
+    async function openExtraction(extractionId,roundKey='',scroll=false) {
+        try {
+            activeExtractionId=extractionId;
+            const query=roundKey?`?round=${encodeURIComponent(roundKey)}`:'';
+            const response=await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}${query}`);
+            const data=await response.json();
+            if(!response.ok) throw new Error(data.error||'No se pudo abrir la extracción');
+            const extraction=data.extraction;
+            activeRounds=data.rounds||[];
+            activeRoundKey=data.current_round||'';
+            const current=activeRounds.find(round=>round.key===activeRoundKey);
+            $('analysisTitle').textContent=`${extraction.league_name} · ${extraction.season||'Temporada sin nombre'}`;
+            $('analysisSubtitle').textContent=`${data.total} partidos registrados · explorador histórico por jornadas`;
+            $('roundSelect').innerHTML=activeRounds.map(round=>`<option value="${escapeHtml(round.key)}" ${round.key===activeRoundKey?'selected':''}>${escapeHtml(round.label)} (${round.count})</option>`).join('');
+            $('roundSummary').textContent=current?`${current.available}/${current.count} análisis disponibles en esta jornada`:'';
+            $('roundNavigation').classList.toggle('d-none',!activeRounds.length);
+            updateRoundButtons();
+            $('analysisRows').innerHTML='';
+            data.matches.forEach(payload=>renderAnalysisMatch(payload));
+            if(!data.matches.length)$('analysisRows').innerHTML='<tr><td colspan="14" class="py-4 text-muted">No hay partidos registrados en esta jornada.</td></tr>';
+            $('analysisPanel').classList.remove('d-none');
+            if(scroll) $('analysisPanel').scrollIntoView({behavior:'smooth',block:'start'});
+        } catch(error) { message('danger',error.message); }
+    }
+
+    async function loadLiveMatch(extractionId,result) {
+        if(!['saved','exists'].includes(result.status)) return;
+        const key=`${extractionId}:${result.id}`;
+        if(liveLoaded.has(key)) return;
+        liveLoaded.add(key);
+        try {
+            const response=await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}/match/${encodeURIComponent(result.id)}`);
+            const payload=await response.json();
+            if(!response.ok) throw new Error(payload.error||'No se pudo cargar el partido');
+            renderAnalysisMatch(payload);
+        } catch(error) {
+            liveLoaded.delete(key);
+        }
+    }
+
+    $('extractForm').addEventListener('submit',async event=>{
+        event.preventDefault(); $('previewButton').disabled=true; message('info','Leyendo todas las jornadas y cuotas disponibles…'); $('previewPanel').classList.add('d-none');
+        try { const response=await fetch('/api/league_handicap/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_reference:$('leagueReference').value,season:$('season').value,ah:$('targetAh').value,company_id:$('company').value,match_status:$('matchStatus').value})}); const data=await response.json(); if(!response.ok) throw new Error(data.error||'No se pudo consultar la liga'); render(data); message(data.matches.length?'success':'warning',data.matches.length?`Calendario recuperado: ${data.matches.length} partidos. Revisa la selección antes de guardar.`:'No hay partidos con esos filtros.'); }
+        catch(error){ message('danger',error.message); }
+        finally { $('previewButton').disabled=false; }
+    });
+    $('selectAll').addEventListener('click',()=>{document.querySelectorAll('.match-check').forEach(el=>el.checked=true);updateSelection();});
+    $('selectNew').addEventListener('click',()=>{document.querySelectorAll('.match-check').forEach(el=>el.checked=!preview.matches[Number(el.dataset.index)].already_in_sql);updateSelection();});
+    $('registerLeague').addEventListener('click',async()=>{
+        if(!preview||!preview.matches.length)return;
+        $('registerLeague').disabled=true;
+        try {
+            const response=await fetch('/api/league-extractions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_id:preview.league_id,league_name:preview.league_name,season:preview.season,label:$('leagueLabel').value.trim(),company_id:preview.company_id,target_ah:preview.target_ah,matches:preview.matches})});
+            const data=await response.json();
+            if(!response.ok)throw new Error(data.error||'No se pudo registrar la liga');
+            message('success',`Liga guardada con la etiqueta “${data.extraction.label}”.`);
+            await loadArchives();
+            await openExtraction(data.extraction.extraction_id,'',true);
+        } catch(error){message('danger',error.message);}
+        finally{$('registerLeague').disabled=false;}
+    });
+
+    async function poll(jobId){
+        try { const response=await fetch(`/api/league_handicap/status/${encodeURIComponent(jobId)}`); const job=await response.json(); if(!response.ok) throw new Error(job.error||'No se pudo consultar el proceso'); const pct=job.total?Math.round(job.processed/job.total*100):0; $('progressBar').style.width=`${pct}%`; $('progressCount').textContent=`${job.processed}/${job.total}`; $('progressText').textContent=job.status==='completed'?'Extracción completada':'Analizando partidos y guardando en SQL…'; const colors={saved:'success',exists:'secondary',filtered:'warning',error:'danger'}; $('results').innerHTML=job.results.map(r=>`<div class="small border-bottom py-1"><span class="badge bg-${colors[r.status]||'secondary'}">${escapeHtml(r.status)}</span> <strong>${escapeHtml(r.id)}</strong> Jornada ${escapeHtml(r.round||'—')} · ${escapeHtml(r.error||r.bucket||'')}</div>`).join(''); job.results.forEach(r=>{const row=document.querySelector(`tr[data-match-id="${r.id}"]`);if(row){row.querySelector('.sql-state').innerHTML=(r.status==='saved'||r.status==='exists')?`<span class="badge bg-success">${escapeHtml(r.bucket||'SQL')}</span>`:`<span class="badge bg-danger">${escapeHtml(r.status)}</span>`;if(r.stored_initial_ah!=null)row.querySelector('.stored-ah').textContent=r.stored_initial_ah;} loadLiveMatch(job.extraction_id,r);}); if(job.status==='completed'){ $('progressBar').classList.remove('progress-bar-animated'); const c=job.counts||{}; message(c.error?'warning':'success',`Finalizado: ${c.saved||0} guardados, ${c.exists||0} existentes, ${c.filtered||0} filtrados y ${c.error||0} errores.`); $('startButton').disabled=false; await loadArchives(); await openExtraction(job.extraction_id,'',false); return; } if(job.status==='failed')throw new Error(job.error||'El proceso falló'); pollTimer=setTimeout(()=>poll(jobId),1000); }
+        catch(error){message('danger',error.message);$('startButton').disabled=false;}
+    }
+
+    $('startButton').addEventListener('click',async()=>{
+        const matches=selected();
+        if(!matches.length||!preview)return;
+        if(!confirm(`¿Analizar ${matches.length} partidos con el sistema completo y guardarlos en SQL?`))return;
+        clearTimeout(pollTimer); liveLoaded.clear(); $('startButton').disabled=true;
+        $('progressPanel').classList.remove('d-none'); $('progressBar').classList.add('progress-bar-animated'); $('progressBar').style.width='0%'; $('results').innerHTML='';
+        $('analysisRows').innerHTML=''; $('analysisTitle').textContent=`${preview.league_name} · análisis en curso`; $('analysisSubtitle').textContent='Los partidos aparecerán aquí según termine cada análisis.'; $('roundNavigation').classList.add('d-none'); $('analysisPanel').classList.remove('d-none');
+        message('info','Creando el trabajo de extracción profunda…');
+        try {
+            const response=await fetch('/api/league_handicap/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_id:preview.league_id,league_name:preview.league_name,season:preview.season,label:$('leagueLabel').value.trim(),company_id:preview.company_id,target_ah:preview.target_ah,workers:$('workers').value,force:$('force').checked,matches})});
+            const data=await response.json();
+            if(!response.ok)throw new Error(data.error||'No se pudo iniciar');
+            activeExtractionId=data.extraction_id; loadArchives(); poll(data.job_id);
+        } catch(error){message('danger',error.message);$('startButton').disabled=false;}
+    });
+
+    $('refreshArchives').addEventListener('click',loadArchives);
+    $('roundSelect').addEventListener('change',event=>activeExtractionId&&openExtraction(activeExtractionId,event.target.value));
+    $('roundPrev').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>0)openExtraction(activeExtractionId,activeRounds[index-1].key);});
+    $('roundNext').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>=0&&index<activeRounds.length-1)openExtraction(activeExtractionId,activeRounds[index+1].key);});
+    loadArchives();
+</script>
+</body>
+</html>

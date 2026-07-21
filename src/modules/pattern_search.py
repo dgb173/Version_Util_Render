@@ -37,6 +37,73 @@ def normalize_ah_bucket(ah: float) -> float:
     
     return sign * (base + 0.5)
 
+
+def _as_filter_values(raw_value):
+    if raw_value in (None, ''):
+        return []
+    if isinstance(raw_value, (list, tuple, set)):
+        values = raw_value
+    else:
+        values = [raw_value]
+    parsed = []
+    for value in values:
+        try:
+            parsed.append(float(value))
+        except (TypeError, ValueError):
+            continue
+    return parsed
+
+
+def ah_matches_any_bucket(row_ah, selected_values) -> bool:
+    """
+    Shared Explorer AH bucket matcher.
+    Buckets are intentionally the same as the UI:
+    0, +/-0.5 (0.25/0.5/0.75), +/-1, +/-1.5 (1.25/1.5/1.75),
+    +/-2, and +/-2.5+ (2.25 and higher).
+    """
+    selected = _as_filter_values(selected_values)
+    if not selected:
+        return True
+    try:
+        row = float(row_ah)
+    except (TypeError, ValueError):
+        return False
+
+    abs_row = abs(row)
+    for selected_ah in selected:
+        abs_selected = abs(selected_ah)
+        if abs_selected >= 2.49:
+            if selected_ah > 0 and row >= 2.24:
+                return True
+            if selected_ah < 0 and row <= -2.24:
+                return True
+        elif abs(abs_selected - 2) < 0.01:
+            if selected_ah > 0 and abs(row - 2) < 0.01:
+                return True
+            if selected_ah < 0 and abs(row + 2) < 0.01:
+                return True
+        elif abs(abs_selected - 1.5) < 0.01:
+            if selected_ah > 0 and 1.24 <= row <= 1.76:
+                return True
+            if selected_ah < 0 and -1.76 <= row <= -1.24:
+                return True
+        elif abs(abs_selected - 1) < 0.01:
+            if selected_ah > 0 and abs(row - 1) < 0.01:
+                return True
+            if selected_ah < 0 and abs(row + 1) < 0.01:
+                return True
+        elif abs(abs_selected - 0.5) < 0.01:
+            if selected_ah > 0 and 0.24 <= row <= 0.76:
+                return True
+            if selected_ah < 0 and -0.76 <= row <= -0.24:
+                return True
+        elif abs_selected < 0.01 and abs_row < 0.01:
+            return True
+        elif abs(row - selected_ah) < 0.01:
+            return True
+
+    return False
+
 # --- B) Resultado Asiático ---
 def asian_result(team_goals, opp_goals, ah_line):
     """
@@ -804,6 +871,7 @@ def explore_matches(datajson, filters=None):
             odds = m.get('main_match_odds', {})
             ah = odds.get('ah_linea') or m.get('handicap')
             return {
+                'match_id': str(m.get('match_id') or ''),
                 'score': score,
                 'date': m_date.strftime("%Y-%m-%d"),
                 'ah': ah,
@@ -813,12 +881,7 @@ def explore_matches(datajson, filters=None):
             }
         return None
 
-    target_ah_bucket = None
-    if filters.get('handicap') is not None:
-        try:
-            target_ah_bucket = normalize_ah_bucket(float(filters['handicap']))
-        except:
-            pass
+    target_ah_values = _as_filter_values(filters.get('handicap'))
             
     target_result = filters.get('result')
     target_team = filters.get('team')
@@ -893,14 +956,8 @@ def explore_matches(datajson, filters=None):
         if target_favorite_side and match_favorite_side != target_favorite_side:
             continue
             
-        if target_ah_bucket is not None:
-            hist_bucket = normalize_ah_bucket(hist_ah)
-            if target_ah_bucket >= 2.5:
-                if hist_bucket < 2.5: continue
-            elif target_ah_bucket <= -2.5:
-                if hist_bucket > -2.5: continue
-            else:
-                if hist_bucket != target_ah_bucket: continue
+        if target_ah_values and not ah_matches_any_bucket(hist_ah, target_ah_values):
+            continue
         else:
             hist_bucket = normalize_ah_bucket(hist_ah)
 
@@ -1000,6 +1057,7 @@ def explore_matches(datajson, filters=None):
                 movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
             
             prev_home_data = {
+                'match_id': str(lhm.get('match_id') or ''),
                 'rival': lhm.get('away_team'),
                 'score': p_score,
                 'ah': p_ah,
@@ -1037,6 +1095,7 @@ def explore_matches(datajson, filters=None):
                     movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
                 
                 prev_home_data = {
+                    'match_id': str(pm.get('match_id') or ''),
                     'rival': pm.get('away_name') or pm.get('away_team'),
                     'score': p_score,
                     'ah': p_ah,
@@ -1070,6 +1129,7 @@ def explore_matches(datajson, filters=None):
                 movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
             
             prev_away_data = {
+                'match_id': str(lam.get('match_id') or ''),
                 'rival': lam.get('home_team'),
                 'score': p_score,
                 'ah': p_ah,
@@ -1108,6 +1168,7 @@ def explore_matches(datajson, filters=None):
                     movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
 
                 prev_away_data = {
+                    'match_id': str(pm.get('match_id') or ''),
                     'rival': pm.get('home_name') or pm.get('home_team'), 
                     'score': p_score,
                     'ah': p_ah,
@@ -1320,23 +1381,29 @@ def explore_matches(datajson, filters=None):
                 mov_str = 'N/A'
                 mov_dir = 'SAME'
                 
+                h2h_home = (h2h_res.get('home_team') or '').strip().lower()
+                curr_home = home_team.strip().lower()
+                is_reversed_h2h = bool(h2h_home and curr_home and h2h_home != curr_home)
+
                 if h2h_ah_raw is not None:
-                    # Normalize H2H AH to current Home perspective
-                    # If H2H was Away(curr Home) vs Home(curr Away), invert AH
-                    h2h_home = (h2h_res.get('home_team') or '').strip().lower()
-                    curr_home = home_team.strip().lower()
-                    
-                    effective_h2h_ah = h2h_ah_raw if h2h_home == curr_home else -h2h_ah_raw
-                    mov_str = f"{format_ah(effective_h2h_ah)} -> {format_ah(hist_ah)}"
+                    # Mostrar siempre el signo REAL publicado en el precedente.
+                    # La orientación se aplica únicamente al cálculo de cobertura, no a la cuota mostrada.
+                    mov_str = f"{format_ah(h2h_ah_raw)} -> {format_ah(hist_ah)}"
                     mov_dir = get_general_movement_direction(mov_str)
+
+                favorite_was_home = (match_favorite_side == 'HOME') != is_reversed_h2h
 
                 h2h_general_data = {
                     'movement': mov_str,
                     'score': h2h_res['score'],
-                    'wdl': get_simulated_wdl(h2h_res['score'], hist_ah, False),
+                    'wdl': get_simulated_wdl(h2h_res['score'], hist_ah, favorite_was_home),
                     'mov_direction': mov_dir,
-                    'real_wdl': get_real_wdl_helper(h2h_res['score'], hist_ah, True),
-                    'date': h2h_res['date']
+                    'real_wdl': get_real_wdl_helper(h2h_res['score'], hist_ah, is_reversed_h2h),
+                    'date': h2h_res['date'],
+                    'home_team': h2h_res.get('home_team'),
+                    'away_team': h2h_res.get('away_team'),
+                    'is_reversed': is_reversed_h2h,
+                    'historical_ah': h2h_ah_raw
                 }
 
         # --- 6. Filtros de Previos ---
@@ -1363,17 +1430,8 @@ def explore_matches(datajson, filters=None):
 
         if filters.get('prev_home_ah'):
             if not prev_home_data: continue
-            try:
-                target_ph_bucket = normalize_ah_bucket(float(filters.get('prev_home_ah')))
-                ph_bucket = normalize_ah_bucket(prev_home_data.get('ah'))
-                
-                if target_ph_bucket >= 2.5:
-                    if ph_bucket < 2.5: continue
-                elif target_ph_bucket <= -2.5:
-                    if ph_bucket > -2.5: continue
-                else:
-                    if ph_bucket != target_ph_bucket: continue
-            except: pass
+            if not ah_matches_any_bucket(prev_home_data.get('ah'), filters.get('prev_home_ah')):
+                continue
             
         if target_prev_away_wdl:
             if not prev_away_data: continue
@@ -1390,17 +1448,8 @@ def explore_matches(datajson, filters=None):
 
         if filters.get('prev_away_ah'):
             if not prev_away_data: continue
-            try:
-                target_pa_bucket = normalize_ah_bucket(float(filters.get('prev_away_ah')))
-                pa_bucket = normalize_ah_bucket(prev_away_data.get('ah'))
-                
-                if target_pa_bucket >= 2.5:
-                    if pa_bucket < 2.5: continue
-                elif target_pa_bucket <= -2.5:
-                    if pa_bucket > -2.5: continue
-                else:
-                    if pa_bucket != target_pa_bucket: continue
-            except: pass
+            if not ah_matches_any_bucket(prev_away_data.get('ah'), filters.get('prev_away_ah')):
+                continue
         
         # --- 6.5 H2H Filters ---
         if target_stadium_mov:
@@ -1431,6 +1480,7 @@ def explore_matches(datajson, filters=None):
         pre_h2h = match.get('h2h_col3')
         if pre_h2h and isinstance(pre_h2h, dict) and pre_h2h.get('status') == 'found':
             h2h_col3_data = {
+                'match_id': str(pre_h2h.get('match_id') or ''),
                 'score': f"{pre_h2h.get('goles_home')}:{pre_h2h.get('goles_away')}",
                 'date': pre_h2h.get('date'),
                 'ah': pre_h2h.get('handicap'),
@@ -1451,10 +1501,31 @@ def explore_matches(datajson, filters=None):
                 h2h_col3_data = dict(h2h_col3_data)
                 h2h_col3_data['stats'] = []
 
+        if filters.get('h2h_col3_ah'):
+            if not h2h_col3_data:
+                continue
+            col3_ah = h2h_col3_data.get('handicap') or h2h_col3_data.get('ah') or h2h_col3_data.get('ah_line')
+            if not ah_matches_any_bucket(col3_ah, filters.get('h2h_col3_ah')):
+                continue
+
         match_date_display = match_date_str.split(' ')[0] if match_date_str else 'N/A'
 
         ind_local = match.get('comparativas_indirectas', {}).get('left') if match.get('comparativas_indirectas') else None
         ind_visitante = match.get('comparativas_indirectas', {}).get('right') if match.get('comparativas_indirectas') else None
+        if filters.get('ind_local_ah'):
+            if not ind_local:
+                continue
+            ind_local_ah = ind_local.get('ah_line') or ind_local.get('ah_linea') or ind_local.get('ah')
+            if not ah_matches_any_bucket(ind_local_ah, filters.get('ind_local_ah')):
+                continue
+
+        if filters.get('ind_visitante_ah'):
+            if not ind_visitante:
+                continue
+            ind_visitante_ah = ind_visitante.get('ah_line') or ind_visitante.get('ah_linea') or ind_visitante.get('ah')
+            if not ah_matches_any_bucket(ind_visitante_ah, filters.get('ind_visitante_ah')):
+                continue
+
         if not include_stats:
             if isinstance(ind_local, dict):
                 ind_local = dict(ind_local)

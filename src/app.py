@@ -17,12 +17,19 @@ import threading
 import json
 import time
 import logging
+import uuid
 from pathlib import Path
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import urllib3
 import csv
 import os
+import gzip
+
+# Desactivar advertencias de SSL inseguro para verify=False
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 from dotenv import load_dotenv
 load_dotenv()  # Carga variables desde .env (local) o usa env vars de sistema (Render)
 import concurrent.futures
@@ -35,6 +42,8 @@ from modules import history_manager
 # ¡Importante! Importa tu nuevo módulo de scraping
 from modules.estudio_scraper import (
     analizar_partido_completo, 
+    get_match_progression_stats_data,
+    _df_to_rows,
     format_ah_as_decimal_string_of,
     parse_ah_to_number_of,
     check_handicap_cover,
@@ -44,11 +53,15 @@ from modules.estudio_scraper import (
 from modules.pattern_search import find_similar_patterns, explore_matches
 from modules.bookie_decoder import analyze_match_bookie_logic
 from modules.scah_analyzer import analizar_partido_scah
-from modules import winner_tracker
+from modules.handicap_similar_analyzer import analizar_partido_handicap_similar
+from modules import winner_tracker, lexington_pattern, favorite_process_pattern, local_rerate_pattern, col3_indirect_pattern, quarter_away_pattern, last_general_context, rival_handicap_samples, housemind_ou, league_handicap_scraper, league_extraction_registry, uefa_qualifying, sofascore_context, league_market_tracker, league_evolution_learning
 from flask import jsonify # Asegúrate de que jsonify está importado
 
 
 app = Flask(__name__)
+
+_league_market_jobs = {}
+_league_market_jobs_lock = threading.Lock()
 
 # --- CONFIGURACIÓN CSV ---
 STUDIED_MATCHES_DIR = Path(__file__).resolve().parent.parent / 'studied_matches'
@@ -133,6 +146,8 @@ def save_match_to_csv(match_data):
 
 from modules import data_manager
 from modules import sql_store
+from modules import pending_results_query
+from scripts.finished_result_validation import validate_finished_result
 
 def save_match_to_json(match_data):
     """Guarda los datos del partido usando el nuevo sistema de buckets."""
@@ -193,7 +208,7 @@ _PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS = max(
 )
 _PRECACHEO_PENDING_MAX_AGE_DAYS = max(
     0,
-    int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '1'))
+    int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '2'))
 )
 _PRECACHEO_BUCKET_NAME = data_manager.PRECACHEO_BUCKET
 _PRECACHEO_FILE_CANDIDATES = [
@@ -726,7 +741,7 @@ def _fetch_nowgoal_html_sync(url: str) -> str | None:
     session = _get_shared_requests_session()
     try:
         with _requests_fetch_lock:
-            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         return response.text
     except Exception as exc:
@@ -975,14 +990,15 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
             else:
                 score_text = score_cell.get_text(strip=True)
 
-        if not re.match(r'^\d+\s*-\s*\d+$', score_text):
-            continue
-
         odds_data = row.get('odds', '').split(',')
-        handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
-        goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
+        handicap_raw = odds_data[2] if len(odds_data) > 2 else "N/A"
+        goal_line = odds_data[10].strip() if len(odds_data) > 10 else "N/A"
 
-        if handicap == "N/A":
+        # Doble verificación: se mantiene el flujo normal cuando existe AH.
+        # Si falta, la fila solo pasa cuando contiene un marcador final estricto;
+        # el hándicap queda como N/A y nunca se inventa un valor de mercado.
+        verified_result = validate_finished_result(score_text, handicap_raw)
+        if not verified_result:
             continue
 
         time_cell = row.find('td', {'name': 'timeData'})
@@ -998,9 +1014,10 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
             "time_obj": match_time,
             "home_team": home_team_tag.text.strip() if home_team_tag else "N/A",
             "away_team": away_team_tag.text.strip() if away_team_tag else "N/A",
-            "score": score_text,
-            "handicap": handicap,
-            "goal_line": goal_line
+            "score": verified_result["score"],
+            "handicap": verified_result["handicap"],
+            "goal_line": goal_line,
+            "result_only": verified_result["result_only"],
         })
 
     handicap_predicate = _build_handicap_filter_predicate(handicap_filter)
@@ -1375,10 +1392,12 @@ def _get_cached_upcoming_match_ids(limit=2000):
     return ids
 
 
-def _compact_precacheo_match_for_list(match):
+def _compact_precacheo_match_for_list(match, include_specialist_picks=False):
     """
     Trim heavyweight HTML blobs from precache rows for list APIs.
     They are not used by pre-cache table rendering and can trigger OOM in small instances.
+    Inyecta automaticamente el pick de la Clave Dicotomica V4 (AH + OU).
+    Salidas: FAV_CUBRE / DOG_CUBRE / NO_BET (AH) | OVER / UNDER / NO_BET (OU)
     """
     if not isinstance(match, dict):
         return {}
@@ -1391,6 +1410,119 @@ def _compact_precacheo_match_for_list(match):
         if isinstance(value, str) and 'html' in key_l and len(value) > 500:
             continue
         compact[key] = value
+
+    # La columna Picks tiene una sola autoridad. Se descartan motores legacy
+    # persistidos para que no reaparezcan al mezclar snapshots antiguos.
+    compact['specialist_picks'] = []
+
+    # --- CLAVE DICOTOMICA V7: inyectar predicciones, lectura raw y calidad ---
+    try:
+        from modules.clave_dicotomica import apply_key
+        pick = apply_key(match)
+        compact['clave_pick_ah']    = pick.get('ah', 'NO_BET')
+        compact['clave_label_ah']   = pick.get('ah_label', '')
+        compact['clave_pick_ou']    = pick.get('ou', 'NO_BET')
+        compact['clave_label_ou']   = pick.get('ou_label', '')
+        compact['clave_engine_version'] = pick.get('engine_version', 'V7.0')
+        compact['clave_raw_ah']     = pick.get('raw_ah', pick.get('ah', 'NO_BET'))
+        compact['clave_raw_ou']     = pick.get('raw_ou', pick.get('ou', 'NO_BET'))
+        compact['clave_tier_ah']    = pick.get('prediction_tier_ah', 'NO_BET')
+        compact['clave_tier_ou']    = pick.get('prediction_tier_ou', 'NO_BET')
+        compact['clave_confidence_ah'] = pick.get('confidence_ah', 'NONE')
+        compact['clave_confidence_ou'] = pick.get('confidence_ou', 'NONE')
+        compact['clave_quality']    = pick.get('quality', {})
+        compact['clave_ah_gate_reasons'] = pick.get('ah_gate_reasons', [])
+        compact['clave_ou_gate_reasons'] = pick.get('ou_gate_reasons', [])
+        compact['clave_production_ah_rules'] = pick.get('production_ah_rules', [])
+        compact['clave_production_ou_rules'] = pick.get('production_ou_rules', [])
+        compact['clave_validated_ah_line'] = pick.get('validated_ah_line', False)
+        compact['clave_validated_ah_expansion'] = pick.get('validated_ah_expansion', False)
+        compact['clave_expansion_ah_rule'] = pick.get('expansion_ah_rule', None)
+        compact['clave_bookie_detector'] = pick.get('bookie_detector', {})
+        compact['clave_bookie_confirmation'] = pick.get('bookie_confirmation', 'NO_DATA')
+        compact['clave_edge_ah']    = pick.get('edge_AH', 0)
+        compact['clave_edge_ou']    = pick.get('edge_OU', 0)
+        compact['clave_mr_ah']      = pick.get('mr_dog', []) + pick.get('mr_fav', [])
+        compact['clave_mr_ou']      = pick.get('mr_under', []) + pick.get('mr_over', [])
+        compact['clave_base_cover'] = pick.get('base_cover', '')
+        compact['clave_pressure']   = pick.get('pressure', '')
+
+        # Propiedades estructurales heredadas y banderas de aprendizaje
+        compact['clave_score_draw']  = pick.get('score_DRAW', 0)
+        compact['clave_draw_type']   = pick.get('draw_type', '')
+        compact['clave_argumentos']  = pick.get('argumentos', [])
+        compact['clave_flags']       = pick.get('flags', [])
+        compact['clave_score_f']     = pick.get('score_F', 0)
+        compact['clave_score_d']     = pick.get('score_D', 0)
+        compact['clave_role_mode']   = pick.get('role_mode', '')
+        compact['clave_is_pickem']   = pick.get('is_pickem', False)
+        compact['clave_learning_hooks'] = pick.get('learning_hooks', [])
+        compact['clave_stadium_rh']  = pick.get('stadium_RH', None)
+        compact['clave_u10_anomalia'] = pick.get('u10_anomalia_linea_baja', False)
+        compact['clave_u11_dog_persistente'] = pick.get('u11_favorito_125_dog_persistente', False)
+        compact['clave_u12_bloqueo_seco'] = pick.get('u12_bloqueo_seco', False)
+        compact['clave_u13_push_seco'] = pick.get('u13_push_seco', False)
+        compact['clave_u14_repeticion_proceso'] = pick.get('u14_repeticion_proceso', False)
+        compact['clave_u15_rebaja_protectora'] = pick.get('u15_rebaja_protectora', False)
+        compact['clave_u16_fav_025_capado'] = pick.get('u16_fav_025_capado', False)
+        compact['clave_u17_market_flip_validated'] = pick.get('u17_market_flip_validated', False)
+        compact['clave_u18_over_counterintuitive'] = pick.get('u18_over_counterintuitive', False)
+        compact['clave_u19_market_rejects_obvious_dog_x2'] = pick.get('u19_market_rejects_obvious_dog_x2', False)
+        compact['clave_u20_huge_drop_protects_dog_under'] = pick.get('u20_huge_drop_protects_dog_under', False)
+        compact['clave_u21_h2h_over_capped_draw_under'] = pick.get('u21_h2h_over_capped_draw_under', False)
+        compact['clave_u22_pickem_dog_win_home_dnb_under'] = pick.get('u22_pickem_dog_win_home_dnb_under', False)
+        compact['clave_over_counter_confirmers'] = pick.get('over_counter_confirmers', 0)
+    except Exception:
+        compact['clave_pick_ah']  = 'NO_BET'
+        compact['clave_pick_ou']  = 'NO_BET'
+        compact['clave_label_ah'] = ''
+        compact['clave_label_ou'] = ''
+        compact['clave_engine_version'] = 'V7.0'
+        compact['clave_raw_ah'] = 'NO_BET'
+        compact['clave_raw_ou'] = 'NO_BET'
+        compact['clave_tier_ah'] = 'NO_BET'
+        compact['clave_tier_ou'] = 'NO_BET'
+        compact['clave_confidence_ah'] = 'NONE'
+        compact['clave_confidence_ou'] = 'NONE'
+        compact['clave_quality'] = {}
+        compact['clave_ah_gate_reasons'] = []
+        compact['clave_ou_gate_reasons'] = []
+        compact['clave_production_ah_rules'] = []
+        compact['clave_production_ou_rules'] = []
+        compact['clave_validated_ah_line'] = False
+        compact['clave_validated_ah_expansion'] = False
+        compact['clave_expansion_ah_rule'] = None
+        compact['clave_bookie_detector'] = {}
+        compact['clave_bookie_confirmation'] = 'NO_DATA'
+        compact['clave_edge_ah']  = 0
+        compact['clave_edge_ou']  = 0
+        compact['clave_mr_ah']    = []
+        compact['clave_mr_ou']    = []
+        compact['clave_score_draw'] = 0
+        compact['clave_draw_type']  = ''
+        compact['clave_argumentos'] = []
+        compact['clave_flags']      = []
+        compact['clave_score_f']    = 0
+        compact['clave_score_d']    = 0
+        compact['clave_role_mode']  = ''
+        compact['clave_is_pickem']  = False
+        compact['clave_learning_hooks'] = []
+        compact['clave_stadium_rh'] = None
+        compact['clave_u10_anomalia'] = False
+        compact['clave_u11_dog_persistente'] = False
+        compact['clave_u12_bloqueo_seco'] = False
+        compact['clave_u13_push_seco'] = False
+        compact['clave_u14_repeticion_proceso'] = False
+        compact['clave_u15_rebaja_protectora'] = False
+        compact['clave_u16_fav_025_capado'] = False
+        compact['clave_u17_market_flip_validated'] = False
+        compact['clave_u18_over_counterintuitive'] = False
+        compact['clave_u19_market_rejects_obvious_dog_x2'] = False
+        compact['clave_u20_huge_drop_protects_dog_under'] = False
+        compact['clave_u21_h2h_over_capped_draw_under'] = False
+        compact['clave_u22_pickem_dog_win_home_dnb_under'] = False
+        compact['clave_over_counter_confirmers'] = 0
+
     return compact
 
 
@@ -1441,6 +1573,37 @@ def api_export_prompt(match_id):
         import traceback
         traceback.print_exc()
         return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/export_prompts_bulk', methods=['POST'])
+def api_export_prompts_bulk():
+    try:
+        data = request.json or {}
+        match_ids = data.get('match_ids', [])
+        if not match_ids:
+            return jsonify({"success": False, "error": "Falta la lista de match_ids"}), 400
+
+        from modules import llm_exporter
+        prompts = []
+        for mid in match_ids:
+            # Obtener el partido directamente de la base de datos
+            match_data = sql_store.get_match(str(mid))
+            if not match_data:
+                # Fallback de análisis si no está en la base de datos
+                match_data = analizar_partido_completo(str(mid), force_refresh=False)
+                if isinstance(match_data, tuple):
+                    match_data = match_data[0]
+
+            if isinstance(match_data, dict) and "error" not in match_data:
+                prompt = llm_exporter.generate_llm_prompt(match_data)
+                prompts.append(prompt)
+            else:
+                prompts.append(f"# Partido ID: {mid}\n- **Error**: No se pudieron cargar los datos del partido.")
+
+        return jsonify({"success": True, "prompts": prompts})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/matches')
 def api_matches():
@@ -3195,7 +3358,7 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
 def scrape_pending_results_background():
     """
     Scrapea SOLO el resultado final de partidos ya pre-cacheados que:
-    - Empezaron hace +2 horas
+    - Empezaron hace +30 minutos
     - No tienen resultado válido (score es ?:? o ??)
     """
     print("Iniciando SCRAPE de resultados pendientes...")
@@ -3215,11 +3378,11 @@ def scrape_pending_results_background():
         # 2. Hora actual en España
         spain_tz = pytz.timezone('Europe/Madrid')
         now_spain = datetime.datetime.now(spain_tz)
-        two_hours_ago = now_spain - datetime.timedelta(hours=2)
+        thirty_minutes_ago = now_spain - datetime.timedelta(minutes=30)
         
-        print(f"Hora España: {now_spain.strftime('%H:%M')}, buscando partidos que empezaron antes de {two_hours_ago.strftime('%H:%M')}")
+        print(f"Hora España: {now_spain.strftime('%H:%M')}, buscando partidos que empezaron antes de {thirty_minutes_ago.strftime('%H:%M')}")
         
-        # 3. Filtrar: partidos sin resultado que empezaron hace +2 horas
+        # 3. Filtrar: partidos sin resultado que empezaron hace +30 minutos
         to_process = []
         today_str = now_spain.strftime('%Y-%m-%d')
         
@@ -3243,14 +3406,14 @@ def scrape_pending_results_background():
                 else:
                     continue
                     
-                # Crear datetime del partido en zona España
-                match_dt = spain_tz.localize(datetime.datetime.strptime(
-                    f"{match_date_str} {match_time_str}", 
-                    "%Y-%m-%d %H:%M"
-                ))
+                # match_date llega normalmente como M/D/YYYY desde Precacheo.
+                parsed_date = data_manager.parse_match_date(match_date_str)
+                if parsed_date is None:
+                    continue
+                match_dt = spain_tz.localize(parsed_date.replace(hour=h, minute=mi))
                 
-                # Solo si empezó hace +2 horas
-                if match_dt <= two_hours_ago:
+                # Solo si empezó hace +30 minutos
+                if match_dt <= thirty_minutes_ago:
                     mid = m.get('match_id')
                     if mid:
                         to_process.append(mid)
@@ -3772,6 +3935,170 @@ def api_estudio_panel(match_id):
         logging.exception("Error generando el panel dinámico para %s", match_id)
         return jsonify({'error': f'No se pudo renderizar el análisis: {exc}'}), 500
 
+
+@app.route('/seguimiento-liga')
+def league_market_page():
+    """Cronologia de colocacion O/U para la Iceland Division 1."""
+    return render_template('league_market_tracker.html')
+
+
+@app.route('/api/league-market/overview')
+def api_league_market_overview():
+    league_id = ''.join(filter(str.isdigit, str(request.args.get('league_id') or '381'))) or '381'
+    season = str(request.args.get('season') or '2025').strip()[:20]
+    try:
+        company_id = int(request.args.get('company_id') or 8)
+        return jsonify(league_market_tracker.get_overview(league_id, season, company_id))
+    except Exception as exc:
+        logging.exception('Error leyendo seguimiento de liga %s/%s', league_id, season)
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/league-market/seasons')
+def api_league_market_seasons():
+    league_id = ''.join(filter(str.isdigit, str(request.args.get('league_id') or '381'))) or '381'
+    return jsonify({'league_id': league_id, 'seasons': league_market_tracker.available_seasons(league_id)})
+
+
+@app.route('/api/league-market/match/<match_id>')
+def api_league_market_match(match_id):
+    clean_id = ''.join(filter(str.isdigit, str(match_id)))
+    league_id = ''.join(filter(str.isdigit, str(request.args.get('league_id') or '381'))) or '381'
+    season = str(request.args.get('season') or '2025').strip()[:20]
+    if not clean_id:
+        return jsonify({'available': False, 'error': 'ID no valido'}), 400
+    return jsonify(league_market_tracker.get_match_timeline(league_id, season, clean_id))
+
+
+@app.route('/api/league-market/learning')
+def api_league_market_learning():
+    league_id = ''.join(filter(str.isdigit, str(request.args.get('league_id') or '381'))) or '381'
+    return jsonify(league_evolution_learning.get_learning_report(league_id))
+
+
+@app.route('/api/league-market/learning/train', methods=['POST'])
+def api_league_market_learning_train():
+    payload = request.get_json(silent=True) or {}
+    league_id = ''.join(filter(str.isdigit, str(payload.get('league_id') or '381'))) or '381'
+    train_seasons = [str(value).strip()[:20] for value in (payload.get('train_seasons') or ['2023', '2024'])]
+    test_season = str(payload.get('test_season') or '2025').strip()[:20]
+    try:
+        company_id = int(payload.get('company_id') or 8)
+        result = league_evolution_learning.train_league(league_id, train_seasons, test_season, company_id)
+        return jsonify(result)
+    except Exception as exc:
+        logging.exception('Error entrenando evolución de liga %s', league_id)
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/precacheo/league-learning/<match_id>')
+def api_precacheo_league_learning(match_id):
+    clean_id = ''.join(filter(str.isdigit, str(match_id)))
+    if not clean_id:
+        return jsonify({'available': False, 'error': 'ID no valido'}), 400
+    match = data_manager.get_precacheo_match(clean_id) or sql_store.get_match(clean_id)
+    if not isinstance(match, dict):
+        return jsonify({'available': False, 'error': 'Partido no encontrado'}), 404
+    return jsonify(league_evolution_learning.predict_precache(match))
+
+
+def _run_league_market_sync(job_id, league_id, seasons, companies):
+    def progress(snapshot):
+        with _league_market_jobs_lock:
+            if job_id in _league_market_jobs:
+                _league_market_jobs[job_id].update(snapshot)
+
+    try:
+        result = league_market_tracker.sync_league(
+            league_id=league_id,
+            seasons=seasons,
+            companies=companies,
+            workers=6,
+            progress=progress,
+        )
+        learning = None
+        if {'2023', '2024', '2025'}.issubset({str(value) for value in seasons}):
+            learning = league_evolution_learning.train_league(league_id, ('2023', '2024'), '2025', 8)
+        with _league_market_jobs_lock:
+            _league_market_jobs[job_id].update({'state': 'complete', 'result': result, 'learning': learning})
+    except Exception as exc:
+        logging.exception('Error sincronizando seguimiento de liga')
+        with _league_market_jobs_lock:
+            _league_market_jobs[job_id].update({'state': 'failed', 'error': str(exc)})
+
+
+@app.route('/api/league-market/sync', methods=['POST'])
+def api_league_market_sync():
+    payload = request.get_json(silent=True) or {}
+    league_id = ''.join(filter(str.isdigit, str(payload.get('league_id') or '381'))) or '381'
+    seasons = [str(value).strip()[:20] for value in (payload.get('seasons') or ['2023', '2024', '2025'])]
+    seasons = [value for value in seasons if value][:6]
+    try:
+        companies = [int(value) for value in (payload.get('companies') or [8, 31, 3])][:6]
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Lista de casas no valida'}), 400
+    job_id = uuid.uuid4().hex
+    with _league_market_jobs_lock:
+        _league_market_jobs[job_id] = {
+            'job_id': job_id, 'state': 'running', 'league_id': league_id,
+            'seasons': seasons, 'completed': 0, 'total': 0, 'snapshots': 0,
+        }
+    thread = threading.Thread(
+        target=_run_league_market_sync,
+        args=(job_id, league_id, seasons, companies),
+        daemon=True,
+    )
+    thread.start()
+    return jsonify(_league_market_jobs[job_id]), 202
+
+
+@app.route('/api/league-market/sync/<job_id>')
+def api_league_market_sync_status(job_id):
+    with _league_market_jobs_lock:
+        job = dict(_league_market_jobs.get(job_id) or {})
+    if not job:
+        return jsonify({'error': 'Sincronizacion no encontrada'}), 404
+    return jsonify(job)
+
+
+@app.route('/api/sofascore/league-table', methods=['POST'])
+def api_sofascore_league_table():
+    """Carga la clasificación externa solo cuando la solicita el panel de estudio."""
+    payload = request.get_json(silent=True) or {}
+    home_name = str(payload.get('home_name') or '').strip()[:120]
+    away_name = str(payload.get('away_name') or '').strip()[:120]
+    league_name = str(payload.get('league_name') or '').strip()[:160]
+    match_date = str(payload.get('match_date') or '').strip()[:20]
+    goal_line = payload.get('goal_line')
+
+    if not home_name or not away_name:
+        return jsonify({'available': False, 'reason': 'missing_teams', 'views': {}})
+
+    query = {
+        'home_name': home_name,
+        'away_name': away_name,
+        'league_name': league_name,
+        'match_date': match_date,
+        'goal_line': goal_line,
+    }
+    result = sofascore_context.get_league_table_context(**query)
+
+    # SofaScore puede fallar de forma puntual aunque el torneo sí exista. Un
+    # segundo intento evita convertir ese corte breve en un falso "sin tabla".
+    if not result.get('available') and result.get('reason') == 'provider_unavailable':
+        time.sleep(0.2)
+        result = sofascore_context.get_league_table_context(**query)
+
+    # La fecha ayuda a escoger el evento, pero no forma parte de la tabla. Si
+    # viene con un formato inesperado, dejamos que el resolvedor use el cruce.
+    if (
+        not result.get('available')
+        and match_date
+        and result.get('reason') in {'provider_unavailable', 'match_not_resolved'}
+    ):
+        result = sofascore_context.get_league_table_context(**{**query, 'match_date': None})
+    return jsonify(result)
+
 # --- NUEVA RUTA PARA ANALIZAR PARTIDOS FINALIZADOS ---
 @app.route('/analizar_partido', methods=['GET', 'POST'])
 def analizar_partido():
@@ -4152,11 +4479,256 @@ def explorador():
     """Muestra la vista del Explorador de Datos."""
     return render_template('explorer.html')
 
+
+UEFA_QUALIFYING_JOBS = {}
+UEFA_QUALIFYING_JOBS_LOCK = threading.Lock()
+
+
+@app.route('/explorador/fases-previas-uefa')
+def explorador_fases_previas_uefa():
+    """Replica completa del Explorador, limitada al catalogo UEFA qualifying."""
+    return render_template(
+        'explorer.html',
+        explorer_scope='uefa_qualifying',
+        explorer_title='Explorador · Fases previas UEFA',
+        explorer_dashboard_url='/explorador/fases-previas-uefa/resumen',
+    )
+
+
+@app.route('/explorador/fases-previas-uefa/resumen')
+def resumen_fases_previas_uefa():
+    """Resumen, próximos partidos y patrones agregados UEFA."""
+    return render_template(
+        'uefa_qualifying.html',
+        competitions=uefa_qualifying.COMPETITIONS,
+        default_seasons=uefa_qualifying.DEFAULT_SEASONS,
+    )
+
+
+def _uefa_filter_values(raw_value):
+    if isinstance(raw_value, list):
+        return [str(value).strip() for value in raw_value if str(value).strip()]
+    return [value.strip() for value in str(raw_value or '').split(',') if value.strip()]
+
+
+@app.route('/api/uefa_qualifying/analysis')
+def api_uefa_qualifying_analysis():
+    try:
+        result = uefa_qualifying.load_analysis(
+            competition_ids=_uefa_filter_values(request.args.get('competitions')) or None,
+            seasons=_uefa_filter_values(request.args.get('seasons')) or None,
+            stages=_uefa_filter_values(request.args.get('stages')) or None,
+            limit=min(max(int(request.args.get('limit', 5000)), 1), 20000),
+        )
+        result['available'] = {
+            'competitions': uefa_qualifying.COMPETITIONS,
+            'seasons': list(uefa_qualifying.DEFAULT_SEASONS),
+            'stages': sorted({row.get('stage_name') for row in result['rows'] if row.get('stage_name')}),
+        }
+        return jsonify(result)
+    except Exception as exc:
+        app.logger.exception('Error cargando el explorador de fases previas UEFA')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/uefa_qualifying/upcoming')
+def api_uefa_qualifying_upcoming():
+    try:
+        matches = uefa_qualifying.load_precache_upcoming()
+        return jsonify({'matches': matches, 'total': len(matches)})
+    except Exception as exc:
+        app.logger.exception('Error cargando próximos UEFA desde Pre-Cacheo')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/uefa_qualifying/explorer_cards')
+def api_uefa_qualifying_explorer_cards():
+    try:
+        result = uefa_qualifying.load_explorer_cards(
+            competition_ids=_uefa_filter_values(request.args.get('competitions')) or None,
+            seasons=_uefa_filter_values(request.args.get('seasons')) or None,
+            stages=_uefa_filter_values(request.args.get('stages')) or None,
+            page=int(request.args.get('page', 1)),
+            per_page=int(request.args.get('per_page', 20)),
+        )
+        return jsonify(result)
+    except Exception as exc:
+        app.logger.exception('Error creando fichas Explorer UEFA')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/match/<match_id>/progression-stats')
+def api_match_progression_stats(match_id):
+    """Carga bajo demanda tiros/ataques de una ficha historica y los persiste."""
+    if not str(match_id).isdigit():
+        return jsonify({'error': 'ID de partido no valido'}), 400
+    try:
+        stats_rows = _df_to_rows(get_match_progression_stats_data(str(match_id)))
+        existing = sql_store.get_match(str(match_id))
+        if existing and stats_rows:
+            payload = {**existing, 'stats_rows': stats_rows}
+            bucket = 'data_uefa_qualifying.json' if existing.get('uefa_qualifying_catalogue') else 'data.json'
+            sql_store.upsert_match(payload, bucket=bucket, state='historical')
+        return jsonify({'match_id': str(match_id), 'stats_rows': stats_rows})
+    except Exception as exc:
+        app.logger.exception('Error cargando estadisticas del partido %s', match_id)
+        return jsonify({'error': str(exc)}), 500
+
+
+def _run_uefa_catalog_job(job_id, competition_ids, seasons, company_id):
+    with UEFA_QUALIFYING_JOBS_LOCK:
+        UEFA_QUALIFYING_JOBS[job_id].update(
+            status='running',
+            started_at=datetime.datetime.utcnow().isoformat(),
+        )
+    try:
+        result = uefa_qualifying.ingest_history(competition_ids, seasons, company_id)
+        with UEFA_QUALIFYING_JOBS_LOCK:
+            UEFA_QUALIFYING_JOBS[job_id].update(
+                status='completed',
+                result=result,
+                completed_at=datetime.datetime.utcnow().isoformat(),
+            )
+    except Exception as exc:
+        with UEFA_QUALIFYING_JOBS_LOCK:
+            UEFA_QUALIFYING_JOBS[job_id].update(
+                status='failed',
+                error=str(exc),
+                completed_at=datetime.datetime.utcnow().isoformat(),
+            )
+
+
+@app.route('/api/uefa_qualifying/scrape', methods=['POST'])
+def api_uefa_qualifying_scrape():
+    payload = request.get_json(silent=True) or {}
+    competition_ids = _uefa_filter_values(payload.get('competitions')) or list(uefa_qualifying.COMPETITIONS)
+    competition_ids = [value for value in competition_ids if value in uefa_qualifying.COMPETITIONS]
+    seasons = _uefa_filter_values(payload.get('seasons')) or list(uefa_qualifying.DEFAULT_SEASONS)
+    if not competition_ids or not seasons:
+        return jsonify({'error': 'Selecciona al menos una competicion y una temporada'}), 400
+    try:
+        company_id = int(payload.get('company_id', 8))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Casa de cuotas no valida'}), 400
+
+    job_id = uuid.uuid4().hex
+    with UEFA_QUALIFYING_JOBS_LOCK:
+        UEFA_QUALIFYING_JOBS[job_id] = {
+            'job_id': job_id,
+            'type': 'catalogue',
+            'status': 'queued',
+            'competitions': competition_ids,
+            'seasons': seasons,
+            'created_at': datetime.datetime.utcnow().isoformat(),
+        }
+    threading.Thread(
+        target=_run_uefa_catalog_job,
+        args=(job_id, competition_ids, seasons, company_id),
+        daemon=True,
+        name=f'uefa-catalog-{job_id[:8]}',
+    ).start()
+    return jsonify({'status': 'started', 'job_id': job_id}), 202
+
+
+def _run_uefa_deep_job(job_id, rows, workers):
+    with UEFA_QUALIFYING_JOBS_LOCK:
+        job = UEFA_QUALIFYING_JOBS[job_id]
+        job.update(status='running', started_at=datetime.datetime.utcnow().isoformat())
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(
+                    league_handicap_scraper.scrape_match_to_sql,
+                    {
+                        'id': row['match_id'],
+                        'visible_ah': row.get('ah_line'),
+                        'company_id': row.get('company_id', 8),
+                    },
+                    row['competition_id'],
+                    True,
+                ): row
+                for row in rows
+            }
+            for future in concurrent.futures.as_completed(futures):
+                row = futures[future]
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    result = {'id': row['match_id'], 'status': 'error', 'error': str(exc)}
+                if result.get('status') == 'saved':
+                    sql_store.mark_uefa_qualifying_deep_status(row['match_id'], 'enriched')
+                elif result.get('status') == 'error':
+                    sql_store.mark_uefa_qualifying_deep_status(row['match_id'], 'error')
+                with UEFA_QUALIFYING_JOBS_LOCK:
+                    job = UEFA_QUALIFYING_JOBS[job_id]
+                    job['processed'] += 1
+                    status = result.get('status', 'error')
+                    job['counts'][status] = job['counts'].get(status, 0) + 1
+                    job['last_result'] = result
+        with UEFA_QUALIFYING_JOBS_LOCK:
+            UEFA_QUALIFYING_JOBS[job_id].update(
+                status='completed', completed_at=datetime.datetime.utcnow().isoformat()
+            )
+    except Exception as exc:
+        with UEFA_QUALIFYING_JOBS_LOCK:
+            UEFA_QUALIFYING_JOBS[job_id].update(
+                status='failed', error=str(exc), completed_at=datetime.datetime.utcnow().isoformat()
+            )
+
+
+@app.route('/api/uefa_qualifying/enrich', methods=['POST'])
+def api_uefa_qualifying_enrich():
+    payload = request.get_json(silent=True) or {}
+    match_ids = _uefa_filter_values(payload.get('match_ids'))
+    try:
+        max_matches = min(max(int(payload.get('limit', 100)), 1), 300)
+        workers = min(max(int(payload.get('workers', 2)), 1), 4)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Limite o concurrencia no validos'}), 400
+    rows = sql_store.fetch_uefa_qualifying_matches(limit=20000)
+    if match_ids:
+        requested = set(match_ids)
+        rows = [row for row in rows if str(row.get('match_id')) in requested]
+    else:
+        rows = [row for row in rows if row.get('deep_status') != 'enriched']
+    rows = rows[:max_matches]
+    if not rows:
+        return jsonify({'error': 'No hay partidos pendientes de enriquecer'}), 400
+    job_id = uuid.uuid4().hex
+    with UEFA_QUALIFYING_JOBS_LOCK:
+        UEFA_QUALIFYING_JOBS[job_id] = {
+            'job_id': job_id,
+            'type': 'deep',
+            'status': 'queued',
+            'total': len(rows),
+            'processed': 0,
+            'counts': {},
+            'created_at': datetime.datetime.utcnow().isoformat(),
+        }
+    threading.Thread(
+        target=_run_uefa_deep_job,
+        args=(job_id, rows, workers),
+        daemon=True,
+        name=f'uefa-deep-{job_id[:8]}',
+    ).start()
+    return jsonify({'status': 'started', 'job_id': job_id, 'total': len(rows)}), 202
+
+
+@app.route('/api/uefa_qualifying/status/<job_id>')
+def api_uefa_qualifying_status(job_id):
+    with UEFA_QUALIFYING_JOBS_LOCK:
+        job = UEFA_QUALIFYING_JOBS.get(str(job_id))
+        if job is None:
+            return jsonify({'error': 'Trabajo no encontrado'}), 404
+        return jsonify(json.loads(json.dumps(job, ensure_ascii=False)))
+
 @app.route('/api/explorer_search', methods=['POST'])
 def api_explorer_search():
     try:
         data = request.json
         filters = data.get('filters', {})
+        explorer_scope = str(data.get('scope') or filters.pop('scope', '') or '').strip().lower()
+        scope_filters = data.get('scope_filters') or {}
         print(f"DEBUG: Explorer Search Request. Filters: {filters}")
 
         # Allow deep analysis while keeping a hard safety ceiling.
@@ -4172,7 +4744,10 @@ def api_explorer_search():
             filters['include_stats'] = True
 
         # Explorer should read finalized historical rows from SQL only.
-        ah_filter = filters.get('handicap')
+        raw_ah_filter = filters.get('handicap')
+        ah_filter = raw_ah_filter
+        if isinstance(raw_ah_filter, list):
+            ah_filter = raw_ah_filter[0] if len(raw_ah_filter) == 1 else None
         if ah_filter in (None, ''):
             ah_filter = filters.get('exact_handicap')
         scan_limit = None
@@ -4192,6 +4767,9 @@ def api_explorer_search():
                     'h2h_stadium_res',
                     'h2h_general_mov',
                     'h2h_general_res',
+                    'h2h_col3_ah',
+                    'ind_local_ah',
+                    'ind_visitante_ah',
                     'exact_handicap',
                     'favorite_side',
                     'favorite_result',
@@ -4207,14 +4785,45 @@ def api_explorer_search():
             else:
                 scan_limit = min(max(filters['limit'] * 2, 2000), 3500)
 
-        history_data = data_manager.load_explorer_matches(ah_filter, scan_limit=scan_limit)
+        if explorer_scope == 'uefa_qualifying':
+            uefa_rows = sql_store.fetch_uefa_qualifying_matches(
+                competition_ids=_uefa_filter_values(scope_filters.get('competitions')) or None,
+                seasons=_uefa_filter_values(scope_filters.get('seasons')) or None,
+                stages=_uefa_filter_values(scope_filters.get('stages')) or None,
+                limit=20000,
+            )
+            uefa_ids = [str(row.get('match_id')) for row in uefa_rows if row.get('match_id')]
+            history_data = sql_store.fetch_matches_by_ids(
+                uefa_ids,
+                state='historical',
+                limit=20000,
+                prefer_explorer_payload=True,
+            )
+        else:
+            history_data = data_manager.load_explorer_matches(ah_filter, scan_limit=scan_limit)
             
         if not history_data:
              return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
             
         results = explore_matches(history_data, filters=filters)
-        
-        return jsonify({'results': results})
+
+        # A full Explorer response can exceed 50 MB. Browsers advertise gzip by
+        # default; compressing here avoids truncated JSON/connection resets while
+        # preserving the complete result set and every client-side filter.
+        response_payload = json.dumps(
+            {'results': results},
+            ensure_ascii=False,
+            separators=(',', ':'),
+        ).encode('utf-8')
+        if 'gzip' in request.headers.get('Accept-Encoding', '').lower():
+            response = app.response_class(
+                gzip.compress(response_payload, compresslevel=5),
+                mimetype='application/json',
+            )
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Vary'] = 'Accept-Encoding'
+            return response
+        return app.response_class(response_payload, mimetype='application/json')
     except Exception as e:
         print(f"Error en explorer search: {e}")
         return jsonify({'error': str(e)}), 500
@@ -4523,6 +5132,40 @@ def api_precacheo_list():
             if 'specialist_picks' not in m:
                 m['specialist_picks'] = []
 
+        # El modo "pendientes" de /precacheo usa esta misma respuesta. Mezclamos
+        # tambien el bucket de resultados pendientes para que conserve el analisis
+        # completo y pueda renderizar el pick recomendado nuevo en ambas vistas.
+        try:
+            pending_limit = limit if isinstance(limit, int) and limit > 0 else None
+            pending_rows = sql_store.fetch_matches(
+                bucket=data_manager.PENDING_RESULTS_BUCKET,
+                limit=pending_limit,
+            )
+        except Exception as pending_exc:
+            print(f"[api/precacheo_list] No se pudieron cargar pendientes: {pending_exc}")
+            pending_rows = []
+
+        if pending_rows:
+            seen_ids = {
+                str(m.get('match_id') or m.get('id'))
+                for m in matches
+                if isinstance(m, dict) and (m.get('match_id') or m.get('id')) not in (None, '')
+            }
+            for pending_row in pending_rows:
+                if not isinstance(pending_row, dict):
+                    continue
+                raw_id = pending_row.get('match_id') or pending_row.get('id')
+                if raw_id in (None, ''):
+                    continue
+                mid = str(raw_id)
+                if mid in seen_ids:
+                    continue
+                pending_row.setdefault('state', 'pending_results')
+                pending_row.setdefault('bucket', data_manager.PENDING_RESULTS_BUCKET)
+                pending_row.setdefault('specialist_picks', [])
+                matches.append(pending_row)
+                seen_ids.add(mid)
+
         compact_arg = str(request.args.get('compact', '1')).strip().lower()
         use_compact = compact_arg not in {'0', 'false', 'no'}
         if use_compact:
@@ -4624,7 +5267,7 @@ def _get_v2_loader_cached():
 
 @app.route('/api/precacheo_picks_batch', methods=['POST'])
 def api_precacheo_picks_batch():
-    """Evalúa picks para un lote de partidos (bajo demanda)."""
+    """Evalua exclusivamente la Clave Dicotomica Universal para un lote."""
     try:
         data = request.json
         match_ids = data.get('match_ids', [])
@@ -4661,44 +5304,15 @@ def api_precacheo_picks_batch():
         
         results = {}
         
-        # Cargar motores con caché para evitar picos de memoria/CPU en cada request.
-        validator = _get_specialist_validator_cached()
-        v2_loader = _get_v2_loader_cached()
-        
-        # Evaluar solo los partidos solicitados
+        from modules.clave_universal_picks import build_universal_picks
+
+        # Evaluar solo los partidos solicitados con una unica autoridad.
         for mid in normalized_ids:
             m = matches_by_id.get(mid)
             if not m:
                 continue
             
-            picks = []
-            
-            # Specialist picks
-            if validator:
-                try:
-                    sp = validator.evaluate_match(m)
-                    picks.extend(sp or [])
-                except Exception as e:
-                    pass
-            
-            # V2 picks
-            if v2_loader:
-                try:
-                    v2_res = v2_loader.evaluate_match(m)
-                    if v2_res:
-                        v2_picks = v2_res.get('ah_picks', []) + v2_res.get('ou_picks', [])
-                        picks.extend(v2_picks)
-                except Exception as e:
-                    pass
-            
-            # Winner Tracker (Anti-Underdog) picks
-            try:
-                rec_pick = winner_tracker.evaluate_precacheo_recommendation(m)
-                if rec_pick:
-                    picks.append(rec_pick)
-            except Exception as e:
-                print(f"Error evaluating winner tracker pick: {e}")
-            
+            picks = build_universal_picks(m)
             results[str(mid)] = picks
         
         return jsonify({'picks': results})
@@ -4772,7 +5386,7 @@ def api_precacheo_scrape_background():
 
 @app.route('/api/scrape_pending_results', methods=['POST'])
 def api_scrape_pending_results():
-    """Endpoint para scrapear solo los resultados de partidos pendientes (+2h sin score)."""
+    """Endpoint para scrapear resultados de partidos pendientes (+30 min sin score)."""
     try:
         # Iniciar hilo
         thread = threading.Thread(target=scrape_pending_results_background)
@@ -4781,10 +5395,200 @@ def api_scrape_pending_results():
         
         return jsonify({
             'status': 'success', 
-            'message': 'Buscando resultados de partidos pendientes (partidos +2h sin score)...'
+            'message': 'Buscando resultados de partidos pendientes (partidos +30 min sin score)...'
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/precacheo_pending_list')
+def api_precacheo_pending_list():
+    """Devuelve resultados pendientes paginados y filtrados desde SQL."""
+    try:
+        _maybe_cleanup_precacheo_stale(force=False)
+
+        try:
+            page = max(1, int(request.args.get('page', '1')))
+        except (TypeError, ValueError):
+            page = 1
+        try:
+            per_page = max(1, min(int(request.args.get('per_page', '100')), 100))
+        except (TypeError, ValueError):
+            per_page = 100
+
+        handicap_filters = []
+        for raw_value in request.args.getlist('handicap'):
+            for value in str(raw_value).split(','):
+                value = value.strip()
+                if value and value not in handicap_filters:
+                    handicap_filters.append(value)
+
+        result = pending_results_query.fetch_pending_page(
+            page=page,
+            per_page=per_page,
+            handicap_buckets=handicap_filters,
+            min_age_minutes=30,
+            max_age_hours=48,
+        )
+        # pending_results_query ya lee explorer_json (payload compacto). No se
+        # recalcula la Clave para 100 filas durante una simple navegación.
+        result['matches'] = [
+            row for row in result.get('matches', []) if isinstance(row, dict)
+        ]
+        body = json.dumps(result, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        accepts_gzip = 'gzip' in str(request.headers.get('Accept-Encoding') or '').lower()
+        if accepts_gzip:
+            response = app.response_class(
+                gzip.compress(body, compresslevel=3),
+                content_type='application/json; charset=utf-8',
+            )
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Vary'] = 'Accept-Encoding'
+        else:
+            response = app.response_class(body, content_type='application/json; charset=utf-8')
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+    except Exception as exc:
+        logging.exception("Error loading paginated pending results")
+        return jsonify({'error': str(exc), 'matches': []}), 500
+
+
+@app.route('/api/precacheo_upcoming_list')
+def api_precacheo_upcoming_list():
+    """Devuelve próximos partidos paginados de 100 en 100 desde SQL."""
+    try:
+        _maybe_cleanup_precacheo_stale(force=False)
+        try:
+            page = max(1, int(request.args.get('page', '1')))
+        except (TypeError, ValueError):
+            page = 1
+        try:
+            per_page = max(1, min(int(request.args.get('per_page', '100')), 100))
+        except (TypeError, ValueError):
+            per_page = 100
+        handicap_filters = []
+        for raw_value in request.args.getlist('handicap'):
+            for value in str(raw_value).split(','):
+                value = value.strip()
+                if value and value not in handicap_filters:
+                    handicap_filters.append(value)
+        result = pending_results_query.fetch_upcoming_page(
+            page=page,
+            per_page=per_page,
+            handicap_buckets=handicap_filters,
+        )
+        body = json.dumps(result, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        accepts_gzip = 'gzip' in str(request.headers.get('Accept-Encoding') or '').lower()
+        if accepts_gzip:
+            response = app.response_class(
+                gzip.compress(body, compresslevel=3),
+                content_type='application/json; charset=utf-8',
+            )
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Vary'] = 'Accept-Encoding'
+        else:
+            response = app.response_class(body, content_type='application/json; charset=utf-8')
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+    except Exception as exc:
+        logging.exception("Error loading paginated upcoming matches")
+        return jsonify({'error': str(exc), 'matches': []}), 500
+
+
+@app.route('/api/housemind_ou/status')
+def api_housemind_ou_status():
+    """Expose the frozen model audit and its current safety gate."""
+    return jsonify(housemind_ou.model_status())
+
+
+@app.route('/api/housemind_ou/<string:match_id>')
+def api_housemind_ou_match(match_id):
+    """Return an auditable O/U decision, including explicit NO_BET reasons."""
+    match = data_manager.get_precacheo_match(match_id) or sql_store.get_match(str(match_id))
+    if not match:
+        return jsonify({'error': 'Partido no encontrado'}), 404
+
+    prediction = housemind_ou.predict_probability(match)
+    feature_vector = prediction.pop('feature_vector', {}) or {}
+    prediction['quality'] = feature_vector.get('quality') or {}
+    prediction['match'] = {
+        'match_id': str(match_id),
+        'home': match.get('home_name') or match.get('home_team') or '',
+        'away': match.get('away_name') or match.get('away_team') or '',
+        'league': match.get('league_name') or match.get('league') or '',
+        **(feature_vector.get('meta') or {}),
+    }
+    return jsonify(prediction)
+
+
+@app.route('/api/precacheo_last_general', methods=['POST'])
+def api_precacheo_last_general():
+    """Scrapea bajo demanda el contexto de último partido general de ambos equipos."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = payload.get('match_id')
+        force_refresh = bool(payload.get('force_refresh'))
+        if not match_id:
+            return jsonify({'status': 'error', 'error': 'Falta match_id'}), 400
+
+        context, cached = last_general_context.get_or_create(str(match_id), force_refresh=force_refresh)
+        if not context or context.get('error'):
+            return jsonify({
+                'status': 'error',
+                'error': (context or {}).get('error', 'No se pudo generar Último General')
+            }), 500
+
+        return jsonify({'status': 'success', 'cached': cached, 'context': context})
+    except Exception as exc:
+        logging.exception("Error en /api/precacheo_last_general")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
+@app.route('/api/precacheo_last_general_batch', methods=['POST'])
+def api_precacheo_last_general_batch():
+    """Procesa Último General para una lista elegida por el usuario."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        raw_ids = payload.get('match_ids') or []
+        force_refresh = bool(payload.get('force_refresh'))
+        try:
+            max_items = int(payload.get('max_items') or 0) or None
+        except Exception:
+            max_items = None
+
+        if not raw_ids:
+            raw_ids = [
+                str(m.get('match_id') or m.get('id'))
+                for m in data_manager.load_precacheo_matches()
+                if m.get('match_id') or m.get('id')
+            ]
+
+        result = last_general_context.process_match_ids(raw_ids, force_refresh=force_refresh, max_items=max_items)
+        return jsonify({'status': 'success', **result})
+    except Exception as exc:
+        logging.exception("Error en /api/precacheo_last_general_batch")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
+@app.route('/api/precacheo_rival_handicap_samples', methods=['POST'])
+def api_precacheo_rival_handicap_samples():
+    """Scraping manual de muestras AH y comparacion Col3 ampliada."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = payload.get('match_id')
+        if not match_id:
+            return jsonify({'status': 'error', 'error': 'Falta match_id'}), 400
+
+        context = rival_handicap_samples.analyze(str(match_id))
+        if not context or context.get('error'):
+            return jsonify({
+                'status': 'error',
+                'error': (context or {}).get('error', 'No se pudo generar la comparativa AH')
+            }), 500
+        return jsonify({'status': 'success', 'cached': False, 'context': context})
+    except Exception as exc:
+        logging.exception("Error en /api/precacheo_rival_handicap_samples")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
 @app.route('/api/precacheo_finalize/<match_id>', methods=['POST'])
@@ -4872,6 +5676,371 @@ def api_decode_match():
 def scraper_view():
     pending_matches = history_manager.get_pending_matches()
     return render_template('scraper.html', pending_matches=pending_matches)
+
+
+@app.route('/extraer-liga')
+def league_extractor_view():
+    """Pantalla dedicada a importar y analizar una liga completa por jornadas."""
+    return render_template('league_extractor.html')
+
+
+LEAGUE_AH_JOBS = {}
+LEAGUE_AH_JOBS_LOCK = threading.Lock()
+
+
+def _update_league_ah_job(job_id, **changes):
+    with LEAGUE_AH_JOBS_LOCK:
+        job = LEAGUE_AH_JOBS.get(job_id)
+        if job is not None:
+            job.update(changes)
+
+
+def _run_league_ah_job(job_id, extraction_id, matches, league_id, workers, force):
+    _update_league_ah_job(job_id, status='running', started_at=datetime.datetime.utcnow().isoformat())
+    league_extraction_registry.update_extraction_status(extraction_id, 'running')
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(
+                    league_handicap_scraper.scrape_match_to_sql,
+                    match,
+                    league_id,
+                    force,
+                ): match
+                for match in matches
+            }
+            for future in concurrent.futures.as_completed(futures):
+                source_match = futures[future]
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    result = {
+                        'id': source_match.get('id'),
+                        'status': 'error',
+                        'error': str(exc),
+                    }
+                result['round'] = str(source_match.get('round') or '')
+                league_extraction_registry.update_match(
+                    extraction_id,
+                    str(source_match.get('id') or ''),
+                    result,
+                )
+
+                with LEAGUE_AH_JOBS_LOCK:
+                    job = LEAGUE_AH_JOBS.get(job_id)
+                    if job is None:
+                        return
+                    job['processed'] += 1
+                    job['results'].append(result)
+                    result_status = result.get('status', 'error')
+                    job['counts'][result_status] = job['counts'].get(result_status, 0) + 1
+                    job['updated_at'] = datetime.datetime.utcnow().isoformat()
+
+        _update_league_ah_job(
+            job_id,
+            status='completed',
+            completed_at=datetime.datetime.utcnow().isoformat(),
+        )
+        league_extraction_registry.update_extraction_status(extraction_id, 'completed')
+    except Exception as exc:
+        _update_league_ah_job(
+            job_id,
+            status='failed',
+            error=str(exc),
+            completed_at=datetime.datetime.utcnow().isoformat(),
+        )
+        league_extraction_registry.update_extraction_status(extraction_id, 'failed')
+
+
+@app.route('/api/league_handicap/preview', methods=['POST'])
+def api_league_handicap_preview():
+    try:
+        payload = request.get_json(silent=True) or {}
+        league_reference = str(payload.get('league_reference') or '').strip()
+        if not league_reference:
+            return jsonify({'error': 'Introduce la URL o el ID de la liga'}), 400
+
+        raw_target_ah = payload.get('ah')
+        try:
+            target_ah = None if raw_target_ah in (None, '') else float(raw_target_ah)
+            company_id = int(payload.get('company_id', 8))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'El handicap opcional y la casa deben ser valores numericos'}), 400
+
+        match_status = str(payload.get('match_status') or 'all').strip().lower()
+        if match_status not in {'all', 'finished', 'upcoming'}:
+            return jsonify({'error': 'Filtro de estado no valido'}), 400
+
+        preview = league_handicap_scraper.preview_league_handicap(
+            league_reference=league_reference,
+            target_ah=target_ah,
+            season=str(payload.get('season') or '').strip(),
+            company_id=company_id,
+            match_status=match_status,
+        )
+        return jsonify({'status': 'success', **preview})
+    except (ValueError, RuntimeError) as exc:
+        return jsonify({'error': str(exc)}), 400
+    except requests.RequestException as exc:
+        return jsonify({'error': f'NowGoal no respondio correctamente: {exc}'}), 502
+    except Exception as exc:
+        app.logger.exception('Error previsualizando liga por handicap')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/league_handicap/start', methods=['POST'])
+def api_league_handicap_start():
+    try:
+        payload = request.get_json(silent=True) or {}
+        league_id = ''.join(filter(str.isdigit, str(payload.get('league_id') or '')))
+        if not league_id:
+            return jsonify({'error': 'ID de liga no valido'}), 400
+
+        raw_target_ah = payload.get('target_ah')
+        try:
+            company_id = int(payload.get('company_id', 8))
+            target_ah = None if raw_target_ah in (None, '') else float(raw_target_ah)
+            workers = max(1, min(10, int(payload.get('workers', 4))))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Parametros numericos no validos'}), 400
+
+        matches = league_handicap_scraper.sanitize_selected_matches(
+            payload.get('matches') or [],
+            company_id,
+        )
+        if target_ah is not None:
+            matches = [
+                m for m in matches
+                if m.get('visible_ah') is not None and abs(m['visible_ah'] - target_ah) < 1e-9
+            ]
+        if not matches:
+            return jsonify({'error': 'No hay partidos validos seleccionados'}), 400
+        if len(matches) > 500:
+            return jsonify({'error': 'El limite por trabajo es de 500 partidos'}), 400
+
+        extraction = league_extraction_registry.create_extraction(
+            league_id=league_id,
+            league_name=str(payload.get('league_name') or f'Liga {league_id}').strip(),
+            season=str(payload.get('season') or '').strip(),
+            company_id=company_id,
+            target_ah=target_ah,
+            matches=matches,
+            label=str(payload.get('label') or '').strip(),
+        )
+        extraction_id = extraction['extraction_id']
+        job_id = uuid.uuid4().hex
+        job = {
+            'job_id': job_id,
+            'extraction_id': extraction_id,
+            'status': 'queued',
+            'league_id': league_id,
+            'target_ah': target_ah,
+            'company_id': company_id,
+            'total': len(matches),
+            'processed': 0,
+            'counts': {},
+            'results': [],
+            'created_at': datetime.datetime.utcnow().isoformat(),
+            'updated_at': datetime.datetime.utcnow().isoformat(),
+        }
+        with LEAGUE_AH_JOBS_LOCK:
+            completed_jobs = [
+                key for key, value in LEAGUE_AH_JOBS.items()
+                if value.get('status') in {'completed', 'failed'}
+            ]
+            while len(LEAGUE_AH_JOBS) >= 50 and completed_jobs:
+                LEAGUE_AH_JOBS.pop(completed_jobs.pop(0), None)
+            LEAGUE_AH_JOBS[job_id] = job
+
+        thread = threading.Thread(
+            target=_run_league_ah_job,
+            args=(job_id, extraction_id, matches, league_id, workers, bool(payload.get('force'))),
+            daemon=True,
+            name=f'league-ah-{job_id[:8]}',
+        )
+        thread.start()
+        return jsonify({
+            'status': 'started',
+            'job_id': job_id,
+            'extraction_id': extraction_id,
+            'total': len(matches),
+        }), 202
+    except Exception as exc:
+        app.logger.exception('Error iniciando scrapeo por handicap')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/league_handicap/status/<job_id>')
+def api_league_handicap_status(job_id):
+    with LEAGUE_AH_JOBS_LOCK:
+        job = LEAGUE_AH_JOBS.get(str(job_id))
+        if job is None:
+            return jsonify({'error': 'Trabajo no encontrado'}), 404
+        snapshot = json.loads(json.dumps(job, ensure_ascii=False))
+    return jsonify(snapshot)
+
+
+@app.route('/api/league-extractions')
+def api_league_extractions():
+    return jsonify({'extractions': league_extraction_registry.list_extractions()})
+
+
+@app.route('/api/league-extractions/register', methods=['POST'])
+def api_register_league_extraction():
+    payload = request.get_json(silent=True) or {}
+    league_id = ''.join(filter(str.isdigit, str(payload.get('league_id') or '')))
+    if not league_id:
+        return jsonify({'error': 'ID de liga no valido'}), 400
+    try:
+        company_id = int(payload.get('company_id', 8))
+        raw_target_ah = payload.get('target_ah')
+        target_ah = None if raw_target_ah in (None, '') else float(raw_target_ah)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Parametros numericos no validos'}), 400
+    matches = payload.get('matches') or []
+    if not isinstance(matches, list) or not matches:
+        return jsonify({'error': 'No hay calendario para registrar'}), 400
+    extraction = league_extraction_registry.register_existing_league(
+        league_id=league_id,
+        league_name=str(payload.get('league_name') or f'Liga {league_id}').strip(),
+        season=str(payload.get('season') or '').strip(),
+        company_id=company_id,
+        target_ah=target_ah,
+        matches=matches,
+        label=str(payload.get('label') or '').strip(),
+    )
+    return jsonify({'status': 'registered', 'extraction': extraction})
+
+
+def _league_extraction_match_payload(extraction, source_match):
+    match_id = str(source_match.get('id') or '')
+    stored = sql_store.get_match(match_id) if match_id else None
+    if isinstance(stored, dict):
+        compact = {
+            key: stored.get(key)
+            for key in (
+                'match_id',
+                'home_name',
+                'home_team',
+                'away_name',
+                'away_team',
+                'final_score',
+                'score',
+                'match_date',
+                'date',
+                'handicap',
+                'goal_line',
+                'main_match_odds',
+                'last_home_match',
+                'last_away_match',
+                'h2h_stadium',
+                'h2h_general',
+                'h2h_col3',
+                'comparativas_indirectas',
+                'market_analysis_data',
+            )
+            if stored.get(key) is not None
+        }
+    else:
+        compact = None
+    return {
+        'source': source_match,
+        'data': compact,
+    }
+
+
+def _league_round_groups(matches):
+    """Agrupa el registro por fase y jornada sin mezclar rondas homónimas."""
+    groups = {}
+    sub_order = {}
+    stage_translations = {
+        'league': '',
+        'final qual.': 'Clasificación final',
+        'semifinals': 'Semifinales',
+        'semifinal': 'Semifinal',
+        'final': 'Final',
+    }
+    for source_index, match in enumerate(matches):
+        sub_id = str(match.get('sub_id') or '0')
+        round_value = str(match.get('round') or 'Sin jornada')
+        round_key = f'{sub_id}:{round_value}'
+        sub_order.setdefault(sub_id, source_index)
+        group = groups.setdefault(round_key, {
+            'key': round_key,
+            'round': round_value,
+            'sub_id': sub_id,
+            'sub_name': str(match.get('sub_name') or '').strip(),
+            'matches': [],
+        })
+        group['matches'].append(match)
+
+    def round_sort_value(value):
+        return (0, int(value)) if str(value).isdigit() else (1, str(value).casefold())
+
+    ordered = sorted(
+        groups.values(),
+        key=lambda group: (
+            sub_order.get(group['sub_id'], 10**9),
+            round_sort_value(group['round']),
+        ),
+    )
+    for group in ordered:
+        stage = group['sub_name']
+        translated = stage_translations.get(stage.casefold(), stage)
+        base = f"Jornada {group['round']}"
+        group['label'] = f'{translated} · {base}' if translated else base
+        group['count'] = len(group['matches'])
+        group['available'] = sum(
+            1 for match in group['matches']
+            if str(match.get('status') or '') in {'saved', 'exists'}
+        )
+    return ordered
+
+
+@app.route('/api/league-extractions/<extraction_id>')
+def api_league_extraction_detail(extraction_id):
+    extraction = league_extraction_registry.get_extraction(extraction_id)
+    if extraction is None:
+        return jsonify({'error': 'Extraccion no encontrada'}), 404
+    registered = extraction.pop('matches', [])
+    round_groups = _league_round_groups(registered)
+    requested_round = str(request.args.get('round') or '').strip()
+    active_group = next(
+        (group for group in round_groups if group['key'] == requested_round),
+        round_groups[0] if round_groups else None,
+    )
+    selected_matches = active_group['matches'] if active_group else []
+    public_rounds = [
+        {key: group[key] for key in ('key', 'label', 'round', 'sub_id', 'sub_name', 'count', 'available')}
+        for group in round_groups
+    ]
+    return jsonify({
+        'extraction': extraction,
+        'total': len(registered),
+        'round_total': len(selected_matches),
+        'current_round': active_group['key'] if active_group else None,
+        'rounds': public_rounds,
+        'matches': [
+            _league_extraction_match_payload(extraction, match)
+            for match in selected_matches
+        ],
+    })
+
+
+@app.route('/api/league-extractions/<extraction_id>/match/<match_id>')
+def api_league_extraction_match(extraction_id, match_id):
+    extraction = league_extraction_registry.get_extraction(extraction_id)
+    if extraction is None:
+        return jsonify({'error': 'Extraccion no encontrada'}), 404
+    clean_id = ''.join(filter(str.isdigit, str(match_id)))
+    source_match = next(
+        (match for match in extraction.get('matches', []) if str(match.get('id')) == clean_id),
+        None,
+    )
+    if source_match is None:
+        return jsonify({'error': 'El partido no pertenece a esta extraccion'}), 404
+    return jsonify(_league_extraction_match_payload(extraction, source_match))
+
 
 @app.route('/api/scrape_league', methods=['POST'])
 def api_scrape_league():

@@ -163,6 +163,7 @@ def generate_notebooklm_match_format(payload):
     league = clean_value(payload.get("league_name") or payload.get("league"))
     date = clean_value(payload.get("match_date") or payload.get("date"))
     handicap = clean_value(payload.get("handicap") or (payload.get("main_match_odds") or {}).get("ah_linea"))
+    goal_line = clean_value(payload.get("goal_line") or (payload.get("main_match_odds") or {}).get("goals_linea"))
     score = clean_value(payload.get("score") or payload.get("final_score"))
     
     md = []
@@ -171,6 +172,7 @@ def generate_notebooklm_match_format(payload):
     md.append(f"- **Liga**: {league}")
     md.append(f"- **Fecha**: {date}")
     md.append(f"- **Hándicap Inicial**: {handicap}")
+    md.append(f"- **Línea de Goles**: {goal_line}")
     md.append(f"- **Resultado FT**: {score}")
     md.append(f"- **Estado**: {clean_value(payload.get('state') or 'precacheo')}")
     md.append(f"- **Bucket**: {clean_value(payload.get('bucket') or 'data_precacheo.json')}")
@@ -396,10 +398,14 @@ def generate_notebooklm_match_format(payload):
 
     return "\n".join(md)
 
+
+def _plain_clipboard_text(text):
+    return text.replace("*", "")
+
 def generate_llm_prompt(match):
     """
     Generates a structured prompt designed to be copy-pasted into an LLM
     like NotebookLM or ChatGPT to get predictions.
-    Uses the exact same clean Markdown structure used for NotebookLM exports.
+    Uses the same structured sections, returned as plain text for clipboard use.
     """
-    return generate_notebooklm_match_format(match)
+    return _plain_clipboard_text(generate_notebooklm_match_format(match))

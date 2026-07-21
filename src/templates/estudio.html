@@ -451,6 +451,56 @@
                 statusBox.dataset.state = state;
             };
 
+            const copyTextToClipboard = async (text) => {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return;
+                }
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                const copied = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (!copied) {
+                    throw new Error('No se pudo copiar al portapapeles.');
+                }
+            };
+
+            const copyLLMPromptFromStudy = async (matchId, btn) => {
+                const cleanId = normalizeMatchId(matchId);
+                if (!cleanId) return;
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Copiando...';
+                try {
+                    const response = await fetch(`/api/export_prompt/${cleanId}`);
+                    const data = await response.json();
+                    if (!response.ok || !data.success || !data.prompt) {
+                        throw new Error(data.error || 'No se pudo generar el prompt.');
+                    }
+                    await copyTextToClipboard(data.prompt);
+                    btn.innerHTML = '<i class="fas fa-check text-success me-2"></i>Copiado';
+                    btn.classList.add('btn-outline-success');
+                    btn.classList.remove('btn-outline-primary');
+                } catch (error) {
+                    console.error(error);
+                    alert('Error al copiar prompt: ' + error.message);
+                    btn.innerHTML = originalHtml;
+                } finally {
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-outline-success');
+                        btn.classList.add('btn-outline-primary');
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            };
+
             const highlightRow = (matchId) => {
                 sidebarRows.forEach(row => {
                     if (row.dataset.matchId === matchId) {
@@ -1289,6 +1339,10 @@
                 document.querySelectorAll('.refresh-analysis').forEach(btn => {
                     btn.addEventListener('click', () => loadMatch(btn.dataset.matchId, { force: true }));
                 });
+
+                document.querySelectorAll('.copy-llm-prompt-trigger').forEach(btn => {
+                    btn.addEventListener('click', () => copyLLMPromptFromStudy(btn.dataset.matchId, btn));
+                });
             };
 
             document.addEventListener('click', event => {
@@ -1476,11 +1530,20 @@
             if (!stats || stats.length === 0) return '';
             // Show only key stats: Shots, Shots on Goal, Attacks, Dangerous Attacks
             // If allowedStats is provided, use it. Otherwise default to the standard set.
-            const keyStats = allowedStats || ['Tiros', 'Tiros a Puerta'];
+            const keyStats = allowedStats || ['Tiros', 'Tiros a Puerta', 'Tarjetas Rojas'];
             let html = '<div class="mt-2 pt-2 border-top"><small class="d-block text-muted mb-1">Estadísticas</small><table class="table table-borderless table-sm mb-0" style="font-size: 0.75rem;">';
             stats.forEach(row => {
-                if (keyStats.includes(row.label)) {
-                    html += `<tr><td>${row.home}</td><td class="text-center text-muted">${row.label}</td><td class="text-end">${row.away}</td></tr>`;
+                const label = row.label || '';
+                const isRedCardRow = !!row.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
+                if (keyStats.includes(label) || isRedCardRow) {
+                    const parseVal = (value) => {
+                        const match = String(value ?? '').match(/(\d+)/);
+                        return match ? parseInt(match[1], 10) : 0;
+                    };
+                    const homeClass = isRedCardRow && parseVal(row.home) > 0 ? 'text-danger fw-bold' : '';
+                    const awayClass = isRedCardRow && parseVal(row.away) > 0 ? 'text-danger fw-bold' : '';
+                    const labelClass = isRedCardRow ? 'text-center text-danger fw-bold' : 'text-center text-muted';
+                    html += `<tr><td class="${homeClass}">${row.home}</td><td class="${labelClass}">${label}</td><td class="text-end ${awayClass}">${row.away}</td></tr>`;
                 }
             });
             html += '</table></div>';

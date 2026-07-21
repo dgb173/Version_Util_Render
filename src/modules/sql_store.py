@@ -10,6 +10,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+from .red_cards import normalize_red_card_stats_payload
+
 LOGGER = logging.getLogger(__name__)
 
 try:
@@ -236,6 +238,43 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 
         CREATE INDEX IF NOT EXISTS idx_history_pending_season_league ON history_pending(season, league_id);
         CREATE INDEX IF NOT EXISTS idx_history_cached_season_league ON history_cached(season, league_id);
+
+        CREATE TABLE IF NOT EXISTS uefa_qualifying_matches (
+            match_id TEXT PRIMARY KEY,
+            competition_id TEXT NOT NULL,
+            competition_name TEXT NOT NULL,
+            season TEXT NOT NULL,
+            stage_id TEXT NOT NULL,
+            stage_name TEXT NOT NULL,
+            stage_order INTEGER NOT NULL DEFAULT 0,
+            match_date TEXT,
+            home_team_id TEXT,
+            home_team TEXT NOT NULL,
+            away_team_id TEXT,
+            away_team TEXT NOT NULL,
+            score TEXT,
+            half_time_score TEXT,
+            source_state INTEGER,
+            ah_line REAL,
+            ou_line REAL,
+            home_odds_decimal REAL,
+            away_odds_decimal REAL,
+            company_id INTEGER NOT NULL DEFAULT 8,
+            source_url TEXT,
+            source_json TEXT NOT NULL,
+            deep_status TEXT NOT NULL DEFAULT 'catalogued',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_uefa_qualifying_competition_season
+            ON uefa_qualifying_matches(competition_id, season);
+        CREATE INDEX IF NOT EXISTS idx_uefa_qualifying_stage
+            ON uefa_qualifying_matches(stage_name, stage_order);
+        CREATE INDEX IF NOT EXISTS idx_uefa_qualifying_date
+            ON uefa_qualifying_matches(match_date);
+        CREATE INDEX IF NOT EXISTS idx_uefa_qualifying_home
+            ON uefa_qualifying_matches(home_team);
         """
     )
     _ensure_matches_explorer_column(conn)
@@ -261,6 +300,7 @@ def _compact_prev_match(raw: Any) -> Optional[Dict[str, Any]]:
     if not isinstance(raw, dict):
         return None
     return {
+        "match_id": raw.get("match_id"),
         "score": raw.get("score"),
         "handicap_line_raw": raw.get("handicap_line_raw"),
         "home_team": raw.get("home_team"),
@@ -300,6 +340,7 @@ def _compact_indirect_side(raw: Any) -> Optional[Dict[str, Any]]:
     if not isinstance(raw, dict):
         return None
     return {
+        "match_id": raw.get("match_id"),
         "ah_line": raw.get("ah_line"),
         "ah": raw.get("ah"),
         "score": raw.get("score"),
@@ -331,6 +372,11 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "home_team": match_data.get("home_team"),
         "away_team": match_data.get("away_team"),
         "league_name": match_data.get("league_name"),
+        "league_id": match_data.get("league_id"),
+        "competition_type": match_data.get("competition_type"),
+        "competition_stage": match_data.get("competition_stage"),
+        "competition_stage_id": match_data.get("competition_stage_id"),
+        "season": match_data.get("season"),
         "match_date": match_data.get("match_date"),
         "date": match_data.get("date"),
         "cached_at": match_data.get("cached_at"),
@@ -338,6 +384,9 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "handicap": match_data.get("handicap"),
         "score": match_data.get("score"),
         "final_score": match_data.get("final_score"),
+        "stats_rows": match_data.get("stats_rows") if isinstance(match_data.get("stats_rows"), list) else [],
+        "stats_status": match_data.get("stats_status"),
+        "stats_updated_at": match_data.get("stats_updated_at"),
         "main_match_odds": _compact_main_match_odds(match_data.get("main_match_odds")),
         "last_home_match": _compact_prev_match(match_data.get("last_home_match")),
         "last_away_match": _compact_prev_match(match_data.get("last_away_match")),
@@ -451,6 +500,7 @@ def _upsert_match(
     bucket: str,
     state: str,
 ) -> Tuple[Optional[str], str]:
+    normalize_red_card_stats_payload(match_data)
     match_id_raw = match_data.get("match_id")
     if match_id_raw in (None, ""):
         raise ValueError("match_data requires 'match_id'")
@@ -892,8 +942,31 @@ def export_bucket_to_json(bucket: str) -> Path:
         
     rows = fetch_matches(bucket=bucket, limit=limit_val)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as fh:
-        json.dump(rows, fh, indent=2, ensure_ascii=False)
+    temporary = path.with_name(
+        f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
+    )
+    try:
+        with temporary.open("w", encoding="utf-8") as fh:
+            json.dump(rows, fh, indent=2, ensure_ascii=False)
+            fh.flush()
+            os.fsync(fh.fileno())
+
+        last_error = None
+        for attempt in range(5):
+            try:
+                os.replace(temporary, path)
+                last_error = None
+                break
+            except OSError as exc:
+                last_error = exc
+                time.sleep(0.15 * (attempt + 1))
+        if last_error is not None:
+            raise last_error
+    finally:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
     return path
 
 
@@ -1132,6 +1205,226 @@ def delete_state(key: str) -> None:
     ensure_bootstrap()
     with _connect() as conn:
         conn.execute("DELETE FROM kv_store WHERE key = ?", (key,))
+
+
+def upsert_uefa_qualifying_matches(rows: Iterable[Dict[str, Any]]) -> int:
+    """Persiste el catalogo especializado de fases previas UEFA en el SQL principal."""
+    ensure_bootstrap()
+    timestamp = now_iso()
+    saved = 0
+    with _connect() as conn:
+        for raw in rows or []:
+            if not isinstance(raw, dict):
+                continue
+            match_id = str(raw.get("match_id") or raw.get("id") or "").strip()
+            if not match_id:
+                continue
+            conn.execute(
+                """
+                INSERT INTO uefa_qualifying_matches (
+                    match_id, competition_id, competition_name, season,
+                    stage_id, stage_name, stage_order, match_date,
+                    home_team_id, home_team, away_team_id, away_team,
+                    score, half_time_score, source_state, ah_line, ou_line,
+                    home_odds_decimal, away_odds_decimal, company_id,
+                    source_url, source_json, deep_status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(match_id) DO UPDATE SET
+                    competition_id = excluded.competition_id,
+                    competition_name = excluded.competition_name,
+                    season = excluded.season,
+                    stage_id = excluded.stage_id,
+                    stage_name = excluded.stage_name,
+                    stage_order = excluded.stage_order,
+                    match_date = excluded.match_date,
+                    home_team_id = excluded.home_team_id,
+                    home_team = excluded.home_team,
+                    away_team_id = excluded.away_team_id,
+                    away_team = excluded.away_team,
+                    score = excluded.score,
+                    half_time_score = excluded.half_time_score,
+                    source_state = excluded.source_state,
+                    ah_line = excluded.ah_line,
+                    ou_line = excluded.ou_line,
+                    home_odds_decimal = excluded.home_odds_decimal,
+                    away_odds_decimal = excluded.away_odds_decimal,
+                    company_id = excluded.company_id,
+                    source_url = excluded.source_url,
+                    source_json = excluded.source_json,
+                    deep_status = CASE
+                        WHEN uefa_qualifying_matches.deep_status = 'enriched' THEN 'enriched'
+                        ELSE excluded.deep_status
+                    END,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    match_id,
+                    str(raw.get("competition_id") or ""),
+                    str(raw.get("competition_name") or ""),
+                    str(raw.get("season") or ""),
+                    str(raw.get("stage_id") or ""),
+                    str(raw.get("stage_name") or ""),
+                    int(raw.get("stage_order") or 0),
+                    raw.get("match_date"),
+                    str(raw.get("home_team_id") or ""),
+                    str(raw.get("home_team") or ""),
+                    str(raw.get("away_team_id") or ""),
+                    str(raw.get("away_team") or ""),
+                    raw.get("score"),
+                    raw.get("half_time_score"),
+                    raw.get("source_state"),
+                    raw.get("ah_line"),
+                    raw.get("ou_line"),
+                    raw.get("home_odds_decimal"),
+                    raw.get("away_odds_decimal"),
+                    int(raw.get("company_id") or 8),
+                    raw.get("source_url"),
+                    json.dumps(raw, ensure_ascii=False),
+                    str(raw.get("deep_status") or "catalogued"),
+                    timestamp,
+                    timestamp,
+                ),
+            )
+            saved += 1
+    return saved
+
+
+def fetch_uefa_qualifying_matches(
+    competition_ids: Optional[Sequence[str]] = None,
+    seasons: Optional[Sequence[str]] = None,
+    stages: Optional[Sequence[str]] = None,
+    limit: int = 5000,
+) -> List[Dict[str, Any]]:
+    ensure_bootstrap()
+    clauses: List[str] = []
+    params: List[Any] = []
+
+    def add_in_clause(column: str, values: Optional[Sequence[str]]) -> None:
+        clean = [str(value).strip() for value in (values or []) if str(value).strip()]
+        if not clean:
+            return
+        clauses.append(f"{column} IN ({', '.join(['?'] * len(clean))})")
+        params.extend(clean)
+
+    add_in_clause("competition_id", competition_ids)
+    add_in_clause("season", seasons)
+    add_in_clause("stage_name", stages)
+    where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+    safe_limit = max(1, min(int(limit or 5000), 20000))
+
+    with _connect() as conn:
+        rows = conn.execute(
+            f"SELECT source_json, deep_status FROM uefa_qualifying_matches{where} "
+            "ORDER BY match_date DESC, match_id DESC LIMIT ?",
+            [*params, safe_limit],
+        ).fetchall()
+
+    output: List[Dict[str, Any]] = []
+    for row in rows:
+        try:
+            payload = json.loads(row["source_json"])
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if isinstance(payload, dict):
+            payload["deep_status"] = row["deep_status"]
+            output.append(payload)
+    return output
+
+
+def mark_uefa_qualifying_deep_status(match_id: str, status: str) -> None:
+    ensure_bootstrap()
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE uefa_qualifying_matches SET deep_status = ?, updated_at = ? WHERE match_id = ?",
+            (str(status), now_iso(), str(match_id)),
+        )
+
+
+def update_uefa_qualifying_stats(
+    match_id: str,
+    stats_rows: Sequence[Dict[str, Any]],
+    status: str,
+) -> bool:
+    """Persiste las estadisticas del partido tambien en el catalogo UEFA separado."""
+    ensure_bootstrap()
+    timestamp = now_iso()
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT source_json FROM uefa_qualifying_matches WHERE match_id = ?",
+            (str(match_id),),
+        ).fetchone()
+        if not row:
+            return False
+        try:
+            payload = json.loads(row["source_json"])
+        except (TypeError, json.JSONDecodeError):
+            payload = {}
+        if not isinstance(payload, dict):
+            payload = {}
+        payload["stats_rows"] = list(stats_rows or [])
+        payload["stats_status"] = str(status)
+        payload["stats_updated_at"] = timestamp
+        conn.execute(
+            "UPDATE uefa_qualifying_matches SET source_json = ?, updated_at = ? WHERE match_id = ?",
+            (json.dumps(payload, ensure_ascii=False), timestamp, str(match_id)),
+        )
+    return True
+
+
+def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
+    """Actualiza matches y catalogo UEFA en una sola transaccion por lote."""
+    ensure_bootstrap()
+    updated = 0
+    with _connect() as conn:
+        for item in items or []:
+            match_id = str(item.get("match_id") or "")
+            if not match_id:
+                continue
+            stats_rows = list(item.get("stats_rows") or [])
+            status = str(item.get("status") or "unavailable")
+            timestamp = str(item.get("updated_at") or now_iso())
+
+            match_row = conn.execute(
+                "SELECT payload_json, bucket, state FROM matches WHERE match_id = ?",
+                (match_id,),
+            ).fetchone()
+            if match_row:
+                try:
+                    match_payload = json.loads(match_row["payload_json"])
+                except (TypeError, json.JSONDecodeError):
+                    match_payload = {"match_id": match_id}
+                if not isinstance(match_payload, dict):
+                    match_payload = {"match_id": match_id}
+                match_payload["stats_rows"] = stats_rows
+                match_payload["stats_status"] = status
+                match_payload["stats_updated_at"] = timestamp
+                _upsert_match(
+                    conn,
+                    match_payload,
+                    bucket=str(match_row["bucket"] or "data_uefa_qualifying.json"),
+                    state=str(match_row["state"] or "historical"),
+                )
+
+            catalogue_row = conn.execute(
+                "SELECT source_json FROM uefa_qualifying_matches WHERE match_id = ?",
+                (match_id,),
+            ).fetchone()
+            if catalogue_row:
+                try:
+                    catalogue_payload = json.loads(catalogue_row["source_json"])
+                except (TypeError, json.JSONDecodeError):
+                    catalogue_payload = {}
+                if not isinstance(catalogue_payload, dict):
+                    catalogue_payload = {}
+                catalogue_payload["stats_rows"] = stats_rows
+                catalogue_payload["stats_status"] = status
+                catalogue_payload["stats_updated_at"] = timestamp
+                conn.execute(
+                    "UPDATE uefa_qualifying_matches SET source_json = ?, updated_at = ? WHERE match_id = ?",
+                    (json.dumps(catalogue_payload, ensure_ascii=False), timestamp, match_id),
+                )
+            updated += 1
+    return updated
 
 
 def get_db_path() -> Path:

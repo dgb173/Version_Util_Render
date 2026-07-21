@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fases previas UEFA · Explorador</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --ink:#172033; --muted:#64748b; --line:#dce3ed; --purple:#6d28d9; --navy:#172554; }
+        body { margin:0; background:#f5f7fb; color:var(--ink); font-family:Segoe UI,Arial,sans-serif; }
+        .sidebar { position:fixed; inset:0 auto 0 0; width:250px; padding:20px; background:#fff; border-right:1px solid var(--line); z-index:10; }
+        .brand { font-weight:800; color:var(--navy); margin-bottom:22px; }
+        .nav-link { color:#475569; border-radius:8px; padding:10px 12px; margin:3px 0; }
+        .nav-link:hover,.nav-link.active { color:var(--purple); background:#f2ebff; }
+        .main { margin-left:250px; padding:24px; }
+        .hero { color:#fff; border-radius:18px; padding:24px; background:linear-gradient(125deg,#172554,#5b21b6 64%,#7c3aed); box-shadow:0 14px 35px rgba(54,32,117,.2); }
+        .panel,.metric { background:#fff; border:1px solid var(--line); border-radius:12px; }
+        .panel { padding:18px; margin-top:18px; }
+        .metric { padding:14px; height:100%; }
+        .metric strong { font-size:1.55rem; display:block; }
+        .metric span { color:var(--muted); font-size:.82rem; }
+        .filters { display:grid; grid-template-columns:2fr 1.3fr 1.4fr auto; gap:12px; align-items:end; }
+        label { font-size:.78rem; font-weight:700; color:#475569; margin-bottom:5px; }
+        select[multiple] { min-height:92px; }
+        .table-wrap { overflow:auto; max-height:620px; }
+        table { font-size:.82rem; }
+        thead th { position:sticky; top:0; background:#f8fafc !important; z-index:2; white-space:nowrap; }
+        .badge-tough { background:#dcfce7; color:#166534; }
+        .badge-weak { background:#fee2e2; color:#991b1b; }
+        .badge-neutral { background:#e2e8f0; color:#334155; }
+        .pattern-card { border-left:4px solid var(--purple); }
+        .status-box { min-height:24px; color:#475569; font-size:.85rem; }
+        .matches-toolbar { display:grid; grid-template-columns:2fr repeat(3,1fr) auto; gap:10px; align-items:end; }
+        .match-table-wrap { overflow:auto; max-height:680px; border:1px solid var(--line); border-radius:9px; }
+        .match-table tbody tr:hover { background:#f6f2ff; }
+        .ah-pill { display:inline-block; min-width:52px; text-align:center; padding:3px 7px; border-radius:999px; background:#ede9fe; color:#5b21b6; font-weight:800; }
+        .team-favorite { color:#5b21b6; font-weight:800; }
+        .upcoming-panel { border:2px solid #c4b5fd; box-shadow:0 8px 24px rgba(91,33,182,.08); }
+        .live-dot { width:9px; height:9px; display:inline-block; border-radius:50%; background:#22c55e; box-shadow:0 0 0 4px #dcfce7; margin-right:8px; }
+        .competition-chip { display:inline-block; padding:3px 7px; border-radius:6px; background:#eef2ff; color:#3730a3; font-size:.72rem; font-weight:700; }
+        .rich-match { background:#fff; border:1px solid #cbd5e1; border-radius:12px; overflow:hidden; margin-bottom:18px; box-shadow:0 3px 10px rgba(15,23,42,.06); }
+        .rich-head { display:grid; grid-template-columns:125px 1.3fr 1.3fr 85px 85px 110px 110px; border-bottom:1px solid #cbd5e1; }
+        .rich-cell { padding:11px; border-right:1px solid #dbe3ed; min-height:82px; display:flex; flex-direction:column; justify-content:center; }
+        .rich-cell:last-child { border-right:0; }
+        .final-score { font-size:1.45rem; font-weight:900; color:#0f172a; }
+        .context-grid { display:grid; grid-template-columns:repeat(7,minmax(155px,1fr)); gap:8px; padding:14px; overflow-x:auto; }
+        .context-card { border:1px solid #bfd0de; border-radius:9px; padding:9px; min-height:174px; box-shadow:0 2px 5px rgba(15,23,42,.08); }
+        .context-card h6 { text-align:center; font-size:.76rem; font-weight:900; padding-bottom:7px; border-bottom:1px solid rgba(100,116,139,.25); }
+        .ctx-green { background:#edf9ef; } .ctx-red { background:#fff0f2; } .ctx-blue { background:#eaf6ff; }
+        .ctx-gold { background:#fff8dd; } .ctx-yellow { background:#fff9bd; } .ctx-empty { background:#eef8ff; }
+        .context-score { font-weight:900; background:#fff; padding:2px 5px; border-radius:4px; }
+        .mini-stats { width:100%; margin-top:7px; font-size:.67rem; background:#fff; }
+        .mini-stats td { padding:2px 4px; border-bottom:1px solid #eef2f7; }
+        .rich-actions { padding:0 14px 12px; display:flex; gap:8px; align-items:center; }
+        @media (max-width: 900px) {
+            .sidebar { position:static; width:auto; height:auto; }
+            .main { margin-left:0; padding:14px; }
+            .filters,.matches-toolbar { grid-template-columns:1fr; }
+            .rich-head { grid-template-columns:1fr 1fr; }
+            .context-grid { grid-template-columns:repeat(7,190px); }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="brand"><i class="fa-solid fa-futbol me-2"></i>Análisis Fútbol</div>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line me-2"></i>Estudio</a>
+            <a class="nav-link" href="/explorador"><i class="fa-solid fa-compass me-2"></i>Explorador general</a>
+            <a class="nav-link" href="/explorador/fases-previas-uefa"><i class="fa-solid fa-earth-europe me-2"></i>Explorador UEFA</a>
+            <a class="nav-link active" href="/explorador/fases-previas-uefa/resumen"><i class="fa-solid fa-gauge-high me-2"></i>Resumen y próximos</a>
+            <a class="nav-link" href="/precacheo"><i class="fa-solid fa-clock me-2"></i>Pre-Cacheo</a>
+            <a class="nav-link" href="/extraer-liga"><i class="fa-solid fa-cloud-arrow-down me-2"></i>Extraer Liga</a>
+            <a class="nav-link" href="/ganadores"><i class="fa-solid fa-trophy me-2"></i>Ganadores</a>
+        </nav>
+        <div class="small text-muted mt-4">Histórico separado por competición, temporada, ronda y comportamiento local.</div>
+    </aside>
+
+    <main class="main">
+        <section class="hero">
+            <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center">
+                <div>
+                    <div class="small text-uppercase opacity-75 fw-bold">Explorador por competición</div>
+                    <h2 class="mb-1">Fases previas UEFA</h2>
+                    <p class="mb-0 opacity-75">Champions · Europa League · Conference League — colocación AH/O/U y fortaleza en casa</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-light" id="scrapeBtn"><i class="fa-solid fa-cloud-arrow-down me-1"></i>Actualizar 3 temporadas</button>
+                    <button class="btn btn-outline-light" id="deepBtn"><i class="fa-solid fa-microscope me-1"></i>Enriquecer 100 pendientes</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="filters">
+                <div>
+                    <label for="competitionFilter">COMPETICIONES</label>
+                    <select id="competitionFilter" class="form-select" multiple>
+                        {% for competition_id, competition_name in competitions.items() %}
+                        <option value="{{ competition_id }}" selected>{{ competition_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="seasonFilter">TEMPORADAS</label>
+                    <select id="seasonFilter" class="form-select" multiple>
+                        {% for season in default_seasons %}<option selected>{{ season }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="stageFilter">FASES</label>
+                    <select id="stageFilter" class="form-select" multiple></select>
+                </div>
+                <button class="btn btn-primary" id="applyBtn"><i class="fa-solid fa-filter me-1"></i>Analizar</button>
+            </div>
+            <div class="status-box mt-3" id="statusBox">Cargando histórico SQL…</div>
+        </section>
+
+        <section class="row g-3 mt-1" id="metrics"></section>
+
+        <section class="panel upcoming-panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h5 class="mb-0"><span class="live-dot"></span>Próximos partidos desde Pre-Cacheo</h5><small class="text-muted">Se actualizan automáticamente con los partidos UEFA que ya están analizados en Pre-Cacheo.</small></div>
+                <div class="d-flex align-items-center gap-2"><span class="badge text-bg-success" id="upcomingCount">0 partidos</span><button class="btn btn-sm btn-outline-primary" id="refreshUpcoming"><i class="fa-solid fa-rotate me-1"></i>Actualizar</button></div>
+            </div>
+            <div class="match-table-wrap" style="max-height:520px">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead><tr><th>Fecha/hora</th><th>Competición</th><th>Local</th><th>Visitante</th><th>AH</th><th>Favorito</th><th>O/U</th><th>Ranking</th><th>Perfil local histórico</th><th>Últimos AH</th><th>Acciones</th></tr></thead>
+                    <tbody id="upcomingBody"><tr><td colspan="11" class="text-center text-muted py-4">Cargando Pre-Cacheo…</td></tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h5 class="mb-0">Partidos terminados · Vista Explorer completa</h5><small class="text-muted">Marcador final y tarjetas Prev/H2H/Col3/Indirectas. “Completar ficha” carga los datos profundos que falten.</small></div>
+                <span class="badge text-bg-dark" id="richCount">0 fichas</span>
+            </div>
+            <div id="richMatches"><div class="text-center text-muted py-5">Cargando fichas completas…</div></div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="small text-muted" id="richPageInfo"></span>
+                <div class="btn-group btn-group-sm"><button class="btn btn-outline-primary" id="richPrev">Anterior</button><button class="btn btn-outline-primary" id="richNext">Siguiente</button></div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div><h5 class="mb-0">Patrones de colocación</h5><small class="text-muted">Solo grupos con al menos cuatro partidos; la confianza depende de la muestra.</small></div>
+                <span class="badge text-bg-primary" id="patternCount">0</span>
+            </div>
+            <div class="row g-3" id="patterns"></div>
+        </section>
+
+        <section class="panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div><h5 class="mb-0">Explorador de partidos</h5><small class="text-muted">Todos los partidos del histórico, con el hándicap visible como en Pre-Cacheo.</small></div>
+                <span class="badge text-bg-dark" id="matchCount">0 partidos</span>
+            </div>
+            <div class="matches-toolbar mb-3">
+                <div><label for="teamSearch">BUSCAR EQUIPO</label><input id="teamSearch" class="form-control" placeholder="Ej.: Vikingur, Levski, Partizan…"></div>
+                <div><label for="ahFilter">HÁNDICAP AH</label><select id="ahFilter" class="form-select"><option value="">Todos</option></select></div>
+                <div><label for="profileFilter">PERFIL LOCAL</label><select id="profileFilter" class="form-select"><option value="">Todos</option><option>Duro en casa</option><option>Local neutro</option><option>Peor en casa</option><option>Muestra corta</option></select></div>
+                <div><label for="pageSize">POR PÁGINA</label><select id="pageSize" class="form-select"><option>50</option><option selected>100</option><option>200</option></select></div>
+                <button class="btn btn-outline-secondary" id="clearMatchFilters"><i class="fa-solid fa-eraser me-1"></i>Limpiar</button>
+            </div>
+            <div class="match-table-wrap">
+                <table class="table table-sm table-hover align-middle mb-0 match-table">
+                    <thead><tr><th>Fecha</th><th>Competición / fase</th><th>Local</th><th>Visitante</th><th>Marcador</th><th>AH</th><th>Favorito</th><th>O/U</th><th>Cuota local</th><th>Cuota visitante</th><th>Perfil en casa</th><th>SQL</th></tr></thead>
+                    <tbody id="matchesBody"></tbody>
+                </table>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                <span class="small text-muted" id="pageInfo"></span>
+                <div class="btn-group btn-group-sm"><button class="btn btn-outline-primary" id="prevPage">Anterior</button><button class="btn btn-outline-primary" id="nextPage">Siguiente</button></div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h5>Matiz de equipos en casa</h5>
+            <div class="table-wrap">
+                <table class="table table-sm align-middle">
+                    <thead><tr><th>Equipo</th><th>Perfil</th><th>PJ</th><th>G%</th><th>Cover%</th><th>DG</th></tr></thead>
+                    <tbody id="teamsBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const selectedValues = id => Array.from($(id).selectedOptions).map(option => option.value);
+        const esc = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+        const pct = value => value === null || value === undefined ? '—' : `${value}%`;
+        let allStages = [];
+        let currentRows = [];
+        let currentPage = 1;
+        let richPage = 1;
+        let richPages = 1;
+
+        function badgeClass(label) {
+            if (label === 'Duro en casa') return 'badge-tough';
+            if (label === 'Peor en casa') return 'badge-weak';
+            return 'badge-neutral';
+        }
+
+        function favoriteLabel(row) {
+            const ah = Number(row.ah_line);
+            if (!Number.isFinite(ah) || Math.abs(ah) < 0.001) return 'Parejo';
+            return ah > 0 ? row.home_team : row.away_team;
+        }
+
+        function refreshAhOptions(rows) {
+            const previous = $('ahFilter').value;
+            const values = [...new Set(rows.map(row => row.ah_line).filter(value => value !== null && value !== undefined).map(Number))].sort((a,b) => a-b);
+            $('ahFilter').innerHTML = '<option value="">Todos</option>' + values.map(value => `<option value="${value}">${value > 0 ? '+' : ''}${value}</option>`).join('');
+            if (values.map(String).includes(previous)) $('ahFilter').value = previous;
+        }
+
+        function renderMatches() {
+            const query = $('teamSearch').value.trim().toLowerCase();
+            const ah = $('ahFilter').value;
+            const profile = $('profileFilter').value;
+            const pageSize = Number($('pageSize').value) || 100;
+            let rows = currentRows.filter(row => {
+                const teams = `${row.home_team || ''} ${row.away_team || ''}`.toLowerCase();
+                if (query && !teams.includes(query)) return false;
+                if (ah !== '' && Math.abs(Number(row.ah_line) - Number(ah)) > 0.001) return false;
+                if (profile && row.home_profile?.label !== profile) return false;
+                return true;
+            });
+            const pages = Math.max(1, Math.ceil(rows.length / pageSize));
+            currentPage = Math.min(Math.max(currentPage, 1), pages);
+            const start = (currentPage - 1) * pageSize;
+            const visible = rows.slice(start, start + pageSize);
+            $('matchCount').textContent = `${rows.length} partidos`;
+            $('pageInfo').textContent = rows.length ? `Mostrando ${start + 1}-${Math.min(start + pageSize, rows.length)} de ${rows.length} · página ${currentPage}/${pages}` : 'No hay partidos con estos filtros';
+            $('prevPage').disabled = currentPage <= 1;
+            $('nextPage').disabled = currentPage >= pages;
+            $('matchesBody').innerHTML = visible.map(m => {
+                const favorite = favoriteLabel(m);
+                const homeFav = favorite === m.home_team;
+                const awayFav = favorite === m.away_team;
+                const ahText = m.ah_line === null || m.ah_line === undefined ? '—' : `${Number(m.ah_line) > 0 ? '+' : ''}${m.ah_line}`;
+                return `<tr>
+                    <td class="text-nowrap">${esc((m.match_date || '').slice(0,16).replace('T',' '))}</td>
+                    <td><b>${esc(m.competition_name)}</b><br><span class="text-muted">${esc(m.season)} · ${esc(m.stage_name)}</span></td>
+                    <td class="${homeFav ? 'team-favorite' : ''}">${esc(m.home_team)}</td><td class="${awayFav ? 'team-favorite' : ''}">${esc(m.away_team)}</td>
+                    <td class="fw-bold text-nowrap">${esc(m.score)}</td><td><span class="ah-pill">${esc(ahText)}</span></td><td>${esc(favorite)}</td><td>${m.ou_line ?? '—'}</td>
+                    <td>${m.home_odds_decimal?.toFixed?.(2) || '—'}</td><td>${m.away_odds_decimal?.toFixed?.(2) || '—'}</td>
+                    <td><span class="badge ${badgeClass(m.home_profile?.label)}">${esc(m.home_profile?.label || 'Sin muestra')}</span></td>
+                    <td><span class="badge ${m.deep_status === 'enriched' ? 'text-bg-success' : 'text-bg-light'}">${m.deep_status === 'enriched' ? 'Profundo' : 'Catálogo'}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function loadUpcoming() {
+            $('upcomingBody').innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">Leyendo Pre-Cacheo…</td></tr>';
+            const response = await fetch('/api/uefa_qualifying/upcoming');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudieron cargar los próximos partidos');
+            const selectedCompetitions = new Set(selectedValues('competitionFilter'));
+            const matches = (data.matches || []).filter(match => selectedCompetitions.size === 0 || selectedCompetitions.has(match.competition_id));
+            $('upcomingCount').textContent = `${matches.length} partidos`;
+            $('upcomingBody').innerHTML = matches.length ? matches.map(m => {
+                const ahText = m.ah_line === null || m.ah_line === undefined ? '—' : `${Number(m.ah_line) > 0 ? '+' : ''}${m.ah_line}`;
+                const homeFav = m.favorite === m.home_team;
+                const awayFav = m.favorite === m.away_team;
+                const lastHomeAh = m.last_home?.handicap_line_raw ?? '—';
+                const lastAwayAh = m.last_away?.handicap_line_raw ?? '—';
+                return `<tr>
+                    <td class="text-nowrap"><b>${esc(m.time || '—')}</b><br><span class="text-muted">${esc(m.match_date || '')}</span></td>
+                    <td><span class="competition-chip">${esc(m.competition_name)}</span></td>
+                    <td class="${homeFav ? 'team-favorite' : ''}">${esc(m.home_team)}</td><td class="${awayFav ? 'team-favorite' : ''}">${esc(m.away_team)}</td>
+                    <td><span class="ah-pill">${esc(ahText)}</span></td><td>${esc(m.favorite)}</td><td><b>${m.ou_line ?? '—'}</b></td>
+                    <td class="text-nowrap">${esc(m.home_rank || '—')} / ${esc(m.away_rank || '—')}</td>
+                    <td><span class="badge ${badgeClass(m.home_profile?.label)}">${esc(m.home_profile?.label || 'Sin muestra')}</span></td>
+                    <td class="text-nowrap">L ${esc(lastHomeAh)} · V ${esc(lastAwayAh)}</td>
+                    <td class="text-nowrap"><a class="btn btn-sm btn-primary" href="/estudio?match_id=${encodeURIComponent(m.match_id)}"><i class="fa-solid fa-chart-line"></i></a> <a class="btn btn-sm btn-outline-secondary" href="/precacheo" title="Abrir Pre-Cacheo"><i class="fa-solid fa-clock"></i></a></td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="11" class="text-center text-muted py-4">No hay partidos de estas competiciones en Pre-Cacheo.</td></tr>';
+        }
+
+        function statsTable(data) {
+            const stats = data?.stats_rows || data?.stats || [];
+            if (!stats.length) return '<div class="small text-muted text-center mt-3">Sin estadísticas detalladas</div>';
+            return `<table class="mini-stats">${stats.slice(0,4).map(row => `<tr><td class="text-success fw-bold">${esc(row.home ?? '—')}</td><td class="text-center">${esc(row.label || '')}</td><td class="text-danger fw-bold text-end">${esc(row.away ?? '—')}</td></tr>`).join('')}</table>`;
+        }
+
+        function contextCard(title, data, cssClass) {
+            if (!data) return `<div class="context-card ctx-empty"><h6>${esc(title)}</h6><div class="text-center text-muted mt-5">—</div></div>`;
+            const home = data.home_team || '';
+            const away = data.away_team || data.rival || '';
+            const score = data.score || '—';
+            const movement = data.movement ? `AH: ${data.movement}` : (data.ah !== null && data.ah !== undefined ? `AH: ${data.ah}` : '');
+            return `<div class="context-card ${cssClass}">
+                <h6>${esc(title)}</h6>
+                <div class="text-center small"><span class="text-success fw-bold">${esc(home)}</span> <span class="context-score">${esc(score)}</span> <span class="text-danger fw-bold">${esc(away)}</span></div>
+                <div class="text-center text-muted mt-2" style="font-size:.66rem">${esc(data.date || '')}</div>
+                <div class="text-center fw-semibold mt-1" style="font-size:.7rem">${esc(movement)}</div>
+                ${statsTable(data)}
+            </div>`;
+        }
+
+        function renderRichCards(data) {
+            richPages = data.pages || 1;
+            richPage = data.page || 1;
+            $('richCount').textContent = `${data.total || 0} fichas`;
+            $('richPageInfo').textContent = `Página ${richPage}/${richPages}`;
+            $('richPrev').disabled = richPage <= 1;
+            $('richNext').disabled = richPage >= richPages;
+            const cards = data.cards || [];
+            $('richMatches').innerHTML = cards.length ? cards.map(card => {
+                const c = card.candidate || {};
+                const meta = card.competition_meta || {};
+                const favorite = c.favorite_side === 'HOME' ? c.home : c.favorite_side === 'AWAY' ? c.away : 'Parejo';
+                const resultClass = c.favorite_result === 'COVER' ? 'text-bg-success' : c.favorite_result === 'NO_COVER' ? 'text-bg-danger' : 'text-bg-secondary';
+                return `<article class="rich-match">
+                    <div class="rich-head">
+                        <div class="rich-cell"><small class="text-muted">${esc(c.date || '')}</small><b>${esc(meta.stage_name || '')}</b></div>
+                        <div class="rich-cell"><span class="text-primary fw-bold">${esc(c.home)}</span><small class="text-muted">Local</small></div>
+                        <div class="rich-cell"><span class="text-danger fw-bold">${esc(c.away)}</span><small class="text-muted">Visitante</small></div>
+                        <div class="rich-cell text-center"><small>FINAL</small><span class="final-score">${esc(c.score)}</span></div>
+                        <div class="rich-cell text-center"><small>AH</small><span class="ah-pill">${c.ah_real > 0 ? '+' : ''}${esc(c.ah_real)}</span></div>
+                        <div class="rich-cell"><small>Favorito</small><b>${esc(favorite)}</b><span class="badge ${resultClass} mt-1">${esc(c.favorite_result || '—')}</span></div>
+                        <div class="rich-cell"><small>O/U</small><b>${esc(c.ou_line ?? '—')}</b><small>${esc(meta.season || '')}</small></div>
+                    </div>
+                    <div class="context-grid">
+                        ${contextCard('PREV HOME', card.prev_home, 'ctx-green')}
+                        ${contextCard('PREV AWAY', card.prev_away, 'ctx-red')}
+                        ${contextCard('H2H ESTADIO', card.h2h_stadium, 'ctx-blue')}
+                        ${contextCard('H2H GENERAL', card.h2h_general, 'ctx-blue')}
+                        ${contextCard('H2H COL3', card.h2h_col3, 'ctx-gold')}
+                        ${contextCard('IND. LOCAL', card.ind_local, 'ctx-yellow')}
+                        ${contextCard('IND. VISITANTE', card.ind_visitante, 'ctx-empty')}
+                    </div>
+                    <div class="rich-actions">
+                        <span class="competition-chip">${esc(meta.competition_name || c.league || '')}</span>
+                        <span class="badge ${meta.deep_status === 'enriched' ? 'text-bg-success' : 'text-bg-warning'}">${meta.deep_status === 'enriched' ? 'Ficha profunda' : 'Ficha de catálogo'}</span>
+                        <button class="btn btn-sm btn-primary complete-card" data-match-id="${esc(card.match_id)}"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>Completar ficha</button>
+                        <a class="btn btn-sm btn-outline-secondary" href="/estudio?match_id=${encodeURIComponent(card.match_id)}">Abrir en Estudio</a>
+                    </div>
+                </article>`;
+            }).join('') : '<div class="text-center text-muted py-5">No hay fichas con estos filtros.</div>';
+            document.querySelectorAll('.complete-card').forEach(button => button.addEventListener('click', () => enrichCard(button)));
+        }
+
+        async function loadRichCards() {
+            $('richMatches').innerHTML = '<div class="text-center text-muted py-5">Construyendo fichas Explorer…</div>';
+            const params = new URLSearchParams({
+                competitions:selectedValues('competitionFilter').join(','), seasons:selectedValues('seasonFilter').join(','),
+                stages:selectedValues('stageFilter').join(','), page:String(richPage), per_page:'10'
+            });
+            const response = await fetch(`/api/uefa_qualifying/explorer_cards?${params}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudieron crear las fichas');
+            renderRichCards(data);
+        }
+
+        async function enrichCard(button) {
+            const matchId = button.dataset.matchId;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Analizando…';
+            try {
+                const response = await fetch('/api/uefa_qualifying/enrich', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({match_ids:[matchId],limit:1,workers:1})});
+                const job = await response.json();
+                if (!response.ok) throw new Error(job.error || 'No se pudo iniciar');
+                await pollJob(job.job_id);
+                await loadRichCards();
+            } catch (error) { $('statusBox').textContent = error.message; button.disabled=false; button.textContent='Reintentar ficha'; }
+        }
+
+        function render(data) {
+            const s = data.summary || {};
+            $('metrics').innerHTML = [
+                ['Partidos catalogados', s.catalogued || 0], ['Terminados', s.finished || 0],
+                ['Competiciones', s.competitions || 0], ['Temporadas', s.seasons || 0],
+                ['Análisis profundos', s.deep_enriched || 0]
+            ].map(([label,value]) => `<div class="col-6 col-lg"><div class="metric"><strong>${esc(value)}</strong><span>${esc(label)}</span></div></div>`).join('');
+
+            const patterns = (data.patterns || []).slice(0, 18);
+            $('patternCount').textContent = data.patterns?.length || 0;
+            $('patterns').innerHTML = patterns.length ? patterns.map(p => `
+                <div class="col-md-6 col-xxl-4"><div class="metric pattern-card">
+                    <div class="small text-muted">${esc(p.competition)} · ${esc(p.stage)}</div>
+                    <div class="fw-bold my-1">AH ${esc(p.ah_bucket)} · ${esc(p.price_band)}</div>
+                    <div class="small mb-1">${esc(p.home_profile)}</div>
+                    <div class="d-flex gap-3 small"><span>n=<b>${p.matches}</b></span><span>Local <b>${pct(p.home_win_rate)}</b></span><span>Fav cover <b>${pct(p.favorite_cover_rate)}</b></span><span>Over <b>${pct(p.over_rate)}</b></span></div>
+                    <span class="badge text-bg-light mt-2">Confianza ${esc(p.confidence)}</span>
+                </div></div>`).join('') : '<div class="text-muted">Todavía no hay muestra suficiente. Pulsa “Actualizar 3 temporadas”.</div>';
+
+            $('teamsBody').innerHTML = (data.home_teams || []).slice(0, 80).map(t => `<tr>
+                <td class="fw-semibold">${esc(t.team)}</td><td><span class="badge ${badgeClass(t.label)}">${esc(t.label)}</span></td>
+                <td>${t.matches}</td><td>${pct(t.win_rate)}</td><td>${pct(t.cover_rate)}</td><td>${esc(t.avg_goal_diff)}</td>
+            </tr>`).join('');
+
+            currentRows = data.rows || [];
+            currentPage = 1;
+            refreshAhOptions(currentRows);
+            renderMatches();
+        }
+
+        async function loadAnalysis(refreshStages = false) {
+            $('statusBox').textContent = 'Analizando histórico SQL…';
+            const params = new URLSearchParams({
+                competitions: selectedValues('competitionFilter').join(','),
+                seasons: selectedValues('seasonFilter').join(','),
+                stages: selectedValues('stageFilter').join(','),
+                limit: '10000'
+            });
+            const response = await fetch(`/api/uefa_qualifying/analysis?${params}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo cargar el análisis');
+            if (refreshStages || allStages.length === 0) {
+                allStages = data.available?.stages || [];
+                $('stageFilter').innerHTML = allStages.map(stage => `<option value="${esc(stage)}">${esc(stage)}</option>`).join('');
+            }
+            render(data);
+            $('statusBox').textContent = `${data.summary?.catalogued || 0} partidos filtrados. Datos persistidos en app_data.db.`;
+        }
+
+        async function pollJob(jobId) {
+            for (;;) {
+                const response = await fetch(`/api/uefa_qualifying/status/${jobId}`);
+                const job = await response.json();
+                if (!response.ok) throw new Error(job.error || 'Trabajo no encontrado');
+                const progress = job.total ? ` ${job.processed || 0}/${job.total}` : '';
+                $('statusBox').textContent = `Trabajo ${job.type}: ${job.status}${progress}`;
+                if (job.status === 'completed') { await loadAnalysis(true); return job; }
+                if (job.status === 'failed') throw new Error(job.error || 'El trabajo falló');
+                await new Promise(resolve => setTimeout(resolve, 1800));
+            }
+        }
+
+        $('applyBtn').addEventListener('click', () => { richPage=1; Promise.all([loadAnalysis(false), loadUpcoming(), loadRichCards()]).catch(error => $('statusBox').textContent = error.message); });
+        $('refreshUpcoming').addEventListener('click', () => loadUpcoming().catch(error => $('statusBox').textContent = error.message));
+        ['teamSearch','ahFilter','profileFilter','pageSize'].forEach(id => $(id).addEventListener(id === 'teamSearch' ? 'input' : 'change', () => { currentPage = 1; renderMatches(); }));
+        $('clearMatchFilters').addEventListener('click', () => { $('teamSearch').value=''; $('ahFilter').value=''; $('profileFilter').value=''; currentPage=1; renderMatches(); });
+        $('prevPage').addEventListener('click', () => { currentPage -= 1; renderMatches(); });
+        $('nextPage').addEventListener('click', () => { currentPage += 1; renderMatches(); });
+        $('richPrev').addEventListener('click', () => { if (richPage > 1) { richPage -= 1; loadRichCards().catch(error => $('statusBox').textContent=error.message); } });
+        $('richNext').addEventListener('click', () => { if (richPage < richPages) { richPage += 1; loadRichCards().catch(error => $('statusBox').textContent=error.message); } });
+        $('scrapeBtn').addEventListener('click', async () => {
+            try {
+                $('scrapeBtn').disabled = true;
+                const response = await fetch('/api/uefa_qualifying/scrape', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+                    competitions:selectedValues('competitionFilter'), seasons:selectedValues('seasonFilter'), company_id:8
+                })});
+                const job = await response.json();
+                if (!response.ok) throw new Error(job.error || 'No se pudo iniciar');
+                await pollJob(job.job_id);
+            } catch (error) { $('statusBox').textContent = error.message; }
+            finally { $('scrapeBtn').disabled = false; }
+        });
+        $('deepBtn').addEventListener('click', async () => {
+            try {
+                $('deepBtn').disabled = true;
+                const response = await fetch('/api/uefa_qualifying/enrich', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({limit:100, workers:2})});
+                const job = await response.json();
+                if (!response.ok) throw new Error(job.error || 'No se pudo iniciar');
+                await pollJob(job.job_id);
+            } catch (error) { $('statusBox').textContent = error.message; }
+            finally { $('deepBtn').disabled = false; }
+        });
+        Promise.all([loadAnalysis(true), loadUpcoming(), loadRichCards()]).catch(error => $('statusBox').textContent = error.message);
+    </script>
+</body>
+</html>

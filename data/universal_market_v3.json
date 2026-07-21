@@ -1,0 +1,6505 @@
+{
+  "profile": "universal_market_v3",
+  "generated_at": "2026-07-15T20:18:55",
+  "config": {
+    "project_root": ".",
+    "output_json": "data/universal_market_v3.json",
+    "output_md": "UNIVERSAL_MARKET_V3.md",
+    "min_quality": 5,
+    "max_h2h_days": 1100,
+    "max_recent_days": 260,
+    "max_indirect_days": 900,
+    "min_discovery_support": 45,
+    "min_validation_support": 18,
+    "min_confirmation_support": 12,
+    "min_audit_support": 10,
+    "min_hit": 58.0,
+    "min_lift": 3.0,
+    "min_wilson": 50.0,
+    "max_combo": 3,
+    "max_rules": 100,
+    "include_unknown": false
+  },
+  "summary": {
+    "loaded": 8808,
+    "usable": 5436,
+    "rejected": 3372,
+    "split": {
+      "discovery": 2718,
+      "validation": 1087,
+      "confirmation": 815,
+      "audit": 816
+    },
+    "side_rules": 17,
+    "goal_rules": 15,
+    "audit_side_mean_hit": 58.89,
+    "audit_goals_mean_hit": 52.62,
+    "audit_side_ensemble": {
+      "bets": 145,
+      "wins": 82,
+      "hit_rate": 56.55,
+      "coverage": 17.77,
+      "by_confidence": {
+        "LOW": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        },
+        "MEDIUM": {
+          "bets": 15,
+          "wins": 9,
+          "hit_rate": 60.0
+        }
+      }
+    },
+    "audit_goals_ensemble": {
+      "bets": 288,
+      "wins": 159,
+      "hit_rate": 55.21,
+      "coverage": 35.29,
+      "by_confidence": {
+        "HIGH": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        },
+        "LOW": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        },
+        "MEDIUM": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    "current_side_picks_after_audit_gate": 28,
+    "current_goal_picks_after_audit_gate": 24
+  },
+  "load_audit": {
+    "loaded_file:data_ah_0.json": 2348,
+    "skip:no_final_score": 1193,
+    "loaded_file:data_ah_0.5.json": 2500,
+    "loaded_file:data_ah_1.5.json": 2500,
+    "loaded_file:data_ah_2_plus.json": 626,
+    "loaded_file:data_minus_ah_0.5.json": 698,
+    "loaded_file:data_minus_ah_1.5.json": 1024,
+    "loaded_file:data_minus_ah_2_plus.json": 305,
+    "deduped_rows": 8808
+  },
+  "rejects": {
+    "missing_stadium": 2670,
+    "missing_general": 2578,
+    "missing_fav_recent": 2114,
+    "missing_dog_recent": 2114,
+    "missing_fav_indirect": 2544,
+    "missing_dog_indirect": 2551,
+    "no_h2h_base": 2554,
+    "pickem_no_favorite_side": 2114,
+    "quality_lt_5": 3372,
+    "obsolete_stadium": 702,
+    "obsolete_general": 793,
+    "obsolete_fav_recent": 1163,
+    "obsolete_dog_recent": 1190,
+    "obsolete_fav_indirect": 815,
+    "obsolete_dog_indirect": 812
+  },
+  "rules": {
+    "side": [
+      {
+        "key": [
+          "BASE_PRESSURE=PRESSURE_NEW_FAV",
+          "IND_FAV_COVER_FAIL",
+          "OU_FAMILY=OU_MID"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 50,
+          "wins": 33,
+          "hit_rate": 66.0
+        },
+        "validation": {
+          "bets": 38,
+          "wins": 25,
+          "hit_rate": 65.79
+        },
+        "confirmation": {
+          "bets": 24,
+          "wins": 17,
+          "hit_rate": 70.83,
+          "wilson_lower_90": 54.1
+        },
+        "audit": {
+          "bets": 15,
+          "wins": 9,
+          "hit_rate": 60.0,
+          "wilson_lower_90": 39.26
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "DOG_RECENT_STATS_STRONG_FOR"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 199,
+          "wins": 120,
+          "hit_rate": 60.3
+        },
+        "validation": {
+          "bets": 23,
+          "wins": 16,
+          "hit_rate": 69.57
+        },
+        "confirmation": {
+          "bets": 23,
+          "wins": 16,
+          "hit_rate": 69.57,
+          "wilson_lower_90": 52.44
+        },
+        "audit": {
+          "bets": 29,
+          "wins": 12,
+          "hit_rate": 41.38,
+          "wilson_lower_90": 27.71
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "DOG_RECENT_STATS_STRONG_FOR"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 199,
+          "wins": 120,
+          "hit_rate": 60.3
+        },
+        "validation": {
+          "bets": 23,
+          "wins": 16,
+          "hit_rate": 69.57
+        },
+        "confirmation": {
+          "bets": 23,
+          "wins": 16,
+          "hit_rate": 69.57,
+          "wilson_lower_90": 52.44
+        },
+        "audit": {
+          "bets": 29,
+          "wins": 12,
+          "hit_rate": 41.38,
+          "wilson_lower_90": 27.71
+        }
+      },
+      {
+        "key": [
+          "BASE_STATS=STATS_STRONG_FOR",
+          "IND_DOG_TOTAL_OVER_LINE",
+          "OU_FAMILY=OU_MID"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 145,
+          "wins": 90,
+          "hit_rate": 62.07
+        },
+        "validation": {
+          "bets": 61,
+          "wins": 38,
+          "hit_rate": 62.3
+        },
+        "confirmation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 51.66
+        },
+        "audit": {
+          "bets": 29,
+          "wins": 22,
+          "hit_rate": 75.86,
+          "wilson_lower_90": 60.96
+        }
+      },
+      {
+        "key": [
+          "BASE_STATS=STATS_STRONG_FOR",
+          "IND_DOG_OU_CURRENT_OVER_LINE",
+          "OU_FAMILY=OU_MID"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 145,
+          "wins": 90,
+          "hit_rate": 62.07
+        },
+        "validation": {
+          "bets": 61,
+          "wins": 38,
+          "hit_rate": 62.3
+        },
+        "confirmation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 51.66
+        },
+        "audit": {
+          "bets": 29,
+          "wins": 22,
+          "hit_rate": 75.86,
+          "wilson_lower_90": 60.96
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "BASE_COVER=FAIL",
+          "IND_FAV_COVER_FAIL"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 134,
+          "wins": 78,
+          "hit_rate": 58.21
+        },
+        "validation": {
+          "bets": 20,
+          "wins": 15,
+          "hit_rate": 75.0
+        },
+        "confirmation": {
+          "bets": 25,
+          "wins": 17,
+          "hit_rate": 68.0,
+          "wilson_lower_90": 51.56
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 8,
+          "hit_rate": 50.0,
+          "wilson_lower_90": 30.98
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "BASE_COVER=FAIL",
+          "IND_FAV_COVER_FAIL"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 134,
+          "wins": 78,
+          "hit_rate": 58.21
+        },
+        "validation": {
+          "bets": 20,
+          "wins": 15,
+          "hit_rate": 75.0
+        },
+        "confirmation": {
+          "bets": 25,
+          "wins": 17,
+          "hit_rate": 68.0,
+          "wilson_lower_90": 51.56
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 8,
+          "hit_rate": 50.0,
+          "wilson_lower_90": 30.98
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "BASE_COVER=FAIL",
+          "IND_DOG_TOTAL_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 147,
+          "wins": 91,
+          "hit_rate": 61.9
+        },
+        "validation": {
+          "bets": 34,
+          "wins": 23,
+          "hit_rate": 67.65
+        },
+        "confirmation": {
+          "bets": 22,
+          "wins": 15,
+          "hit_rate": 68.18,
+          "wilson_lower_90": 50.65
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 9,
+          "hit_rate": 56.25,
+          "wilson_lower_90": 36.46
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "BASE_COVER=FAIL",
+          "IND_DOG_OU_CURRENT_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 147,
+          "wins": 91,
+          "hit_rate": 61.9
+        },
+        "validation": {
+          "bets": 34,
+          "wins": 23,
+          "hit_rate": 67.65
+        },
+        "confirmation": {
+          "bets": 22,
+          "wins": 15,
+          "hit_rate": 68.18,
+          "wilson_lower_90": 50.65
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 9,
+          "hit_rate": 56.25,
+          "wilson_lower_90": 36.46
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "BASE_COVER=FAIL",
+          "IND_DOG_TOTAL_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 147,
+          "wins": 91,
+          "hit_rate": 61.9
+        },
+        "validation": {
+          "bets": 34,
+          "wins": 23,
+          "hit_rate": 67.65
+        },
+        "confirmation": {
+          "bets": 22,
+          "wins": 15,
+          "hit_rate": 68.18,
+          "wilson_lower_90": 50.65
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 9,
+          "hit_rate": 56.25,
+          "wilson_lower_90": 36.46
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "BASE_COVER=FAIL",
+          "IND_DOG_OU_CURRENT_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 147,
+          "wins": 91,
+          "hit_rate": 61.9
+        },
+        "validation": {
+          "bets": 34,
+          "wins": 23,
+          "hit_rate": 67.65
+        },
+        "confirmation": {
+          "bets": 22,
+          "wins": 15,
+          "hit_rate": 68.18,
+          "wilson_lower_90": 50.65
+        },
+        "audit": {
+          "bets": 16,
+          "wins": 9,
+          "hit_rate": 56.25,
+          "wilson_lower_90": 36.46
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_DOG_OU_CURRENT_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 113,
+          "wins": 69,
+          "hit_rate": 61.06
+        },
+        "validation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67
+        },
+        "confirmation": {
+          "bets": 17,
+          "wins": 12,
+          "hit_rate": 70.59,
+          "wilson_lower_90": 50.64
+        },
+        "audit": {
+          "bets": 13,
+          "wins": 9,
+          "hit_rate": 69.23,
+          "wilson_lower_90": 46.48
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_DOG_TOTAL_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 113,
+          "wins": 69,
+          "hit_rate": 61.06
+        },
+        "validation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67
+        },
+        "confirmation": {
+          "bets": 17,
+          "wins": 12,
+          "hit_rate": 70.59,
+          "wilson_lower_90": 50.64
+        },
+        "audit": {
+          "bets": 13,
+          "wins": 9,
+          "hit_rate": 69.23,
+          "wilson_lower_90": 46.48
+        }
+      },
+      {
+        "key": [
+          "AH_FAMILY=AH_1_1_25",
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_DOG_OU_CURRENT_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 113,
+          "wins": 69,
+          "hit_rate": 61.06
+        },
+        "validation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67
+        },
+        "confirmation": {
+          "bets": 17,
+          "wins": 12,
+          "hit_rate": 70.59,
+          "wilson_lower_90": 50.64
+        },
+        "audit": {
+          "bets": 13,
+          "wins": 9,
+          "hit_rate": 69.23,
+          "wilson_lower_90": 46.48
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_MID",
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_DOG_TOTAL_OVER_LINE"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 113,
+          "wins": 69,
+          "hit_rate": 61.06
+        },
+        "validation": {
+          "bets": 30,
+          "wins": 20,
+          "hit_rate": 66.67
+        },
+        "confirmation": {
+          "bets": 17,
+          "wins": 12,
+          "hit_rate": 70.59,
+          "wilson_lower_90": 50.64
+        },
+        "audit": {
+          "bets": 13,
+          "wins": 9,
+          "hit_rate": 69.23,
+          "wilson_lower_90": 46.48
+        }
+      },
+      {
+        "key": [
+          "BASE_PRESSURE=PRESSURE_NEW_FAV",
+          "DOG_RECENT_GOALS_2_MINUS",
+          "OU_FAMILY=OU_LOW"
+        ],
+        "market": "side",
+        "direction": "DOG",
+        "discovery": {
+          "bets": 85,
+          "wins": 51,
+          "hit_rate": 60.0
+        },
+        "validation": {
+          "bets": 76,
+          "wins": 46,
+          "hit_rate": 60.53
+        },
+        "confirmation": {
+          "bets": 43,
+          "wins": 27,
+          "hit_rate": 62.79,
+          "wilson_lower_90": 50.25
+        },
+        "audit": {
+          "bets": 42,
+          "wins": 23,
+          "hit_rate": 54.76,
+          "wilson_lower_90": 42.22
+        }
+      },
+      {
+        "key": [
+          "BASE_STATS=STATS_STRONG_AGAINST",
+          "DOG_RECENT_MARGIN_M_DRAW"
+        ],
+        "market": "side",
+        "direction": "FAVORITE",
+        "discovery": {
+          "bets": 63,
+          "wins": 39,
+          "hit_rate": 61.9
+        },
+        "validation": {
+          "bets": 44,
+          "wins": 26,
+          "hit_rate": 59.09
+        },
+        "confirmation": {
+          "bets": 29,
+          "wins": 19,
+          "hit_rate": 65.52,
+          "wilson_lower_90": 50.24
+        },
+        "audit": {
+          "bets": 24,
+          "wins": 12,
+          "hit_rate": 50.0,
+          "wilson_lower_90": 34.08
+        }
+      }
+    ],
+    "goals": [
+      {
+        "key": [
+          "DOG_VENUE_GC_LOW",
+          "OU_CAUSE_FAVORITE_ATTACK"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 145,
+          "wins": 87,
+          "hit_rate": 60.0
+        },
+        "validation": {
+          "bets": 48,
+          "wins": 29,
+          "hit_rate": 60.42
+        },
+        "confirmation": {
+          "bets": 27,
+          "wins": 21,
+          "hit_rate": 77.78,
+          "wilson_lower_90": 62.45
+        },
+        "audit": {
+          "bets": 43,
+          "wins": 18,
+          "hit_rate": 41.86,
+          "wilson_lower_90": 30.33
+        }
+      },
+      {
+        "key": [
+          "AH_SUPER=AHS_LOW",
+          "DOG_RECENT_STATS_LEAN_AGAINST"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 61,
+          "wins": 37,
+          "hit_rate": 60.66
+        },
+        "validation": {
+          "bets": 89,
+          "wins": 55,
+          "hit_rate": 61.8
+        },
+        "confirmation": {
+          "bets": 52,
+          "wins": 38,
+          "hit_rate": 73.08,
+          "wilson_lower_90": 62.0
+        },
+        "audit": {
+          "bets": 51,
+          "wins": 26,
+          "hit_rate": 50.98,
+          "wilson_lower_90": 39.71
+        }
+      },
+      {
+        "key": [
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_FAV_SHORT_CURRENT_AH",
+          "OU_FAMILY=OU_HIGH"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 98,
+          "wins": 58,
+          "hit_rate": 59.18
+        },
+        "validation": {
+          "bets": 32,
+          "wins": 21,
+          "hit_rate": 65.62
+        },
+        "confirmation": {
+          "bets": 21,
+          "wins": 16,
+          "hit_rate": 76.19,
+          "wilson_lower_90": 58.5
+        },
+        "audit": {
+          "bets": 28,
+          "wins": 15,
+          "hit_rate": 53.57,
+          "wilson_lower_90": 38.45
+        }
+      },
+      {
+        "key": [
+          "DOG_RECENT_STATS_LEAN_AGAINST",
+          "OU_FAMILY=OU_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 62,
+          "wins": 38,
+          "hit_rate": 61.29
+        },
+        "validation": {
+          "bets": 49,
+          "wins": 29,
+          "hit_rate": 59.18
+        },
+        "confirmation": {
+          "bets": 26,
+          "wins": 19,
+          "hit_rate": 73.08,
+          "wilson_lower_90": 57.11
+        },
+        "audit": {
+          "bets": 19,
+          "wins": 8,
+          "hit_rate": 42.11,
+          "wilson_lower_90": 25.63
+        }
+      },
+      {
+        "key": [
+          "BASE_PRESSURE=PRESSURE_RAISE",
+          "IND_FAV_GOALS_2_MINUS",
+          "OU_FAMILY=OU_HIGH"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 72,
+          "wins": 42,
+          "hit_rate": 58.33
+        },
+        "validation": {
+          "bets": 23,
+          "wins": 15,
+          "hit_rate": 65.22
+        },
+        "confirmation": {
+          "bets": 17,
+          "wins": 13,
+          "hit_rate": 76.47,
+          "wilson_lower_90": 56.7
+        },
+        "audit": {
+          "bets": 17,
+          "wins": 8,
+          "hit_rate": 47.06,
+          "wilson_lower_90": 28.96
+        }
+      },
+      {
+        "key": [
+          "DOG_RECENT_STATS_LEAN_AGAINST",
+          "TABLE=TABLE_UNKNOWN"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 94,
+          "wins": 55,
+          "hit_rate": 58.51
+        },
+        "validation": {
+          "bets": 31,
+          "wins": 18,
+          "hit_rate": 58.06
+        },
+        "confirmation": {
+          "bets": 31,
+          "wins": 22,
+          "hit_rate": 70.97,
+          "wilson_lower_90": 56.31
+        },
+        "audit": {
+          "bets": 30,
+          "wins": 18,
+          "hit_rate": 60.0,
+          "wilson_lower_90": 45.06
+        }
+      },
+      {
+        "key": [
+          "DOG_RESILIENT_IN_VENUE",
+          "OU_FAMILY=OU_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 106,
+          "wins": 64,
+          "hit_rate": 60.38
+        },
+        "validation": {
+          "bets": 70,
+          "wins": 42,
+          "hit_rate": 60.0
+        },
+        "confirmation": {
+          "bets": 52,
+          "wins": 34,
+          "hit_rate": 65.38,
+          "wilson_lower_90": 54.02
+        },
+        "audit": {
+          "bets": 41,
+          "wins": 18,
+          "hit_rate": 43.9,
+          "wilson_lower_90": 31.93
+        }
+      },
+      {
+        "key": [
+          "IND_DOG_MARGIN_M_POS2"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 139,
+          "wins": 81,
+          "hit_rate": 58.27
+        },
+        "validation": {
+          "bets": 67,
+          "wins": 39,
+          "hit_rate": 58.21
+        },
+        "confirmation": {
+          "bets": 39,
+          "wins": 26,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 53.53
+        },
+        "audit": {
+          "bets": 48,
+          "wins": 32,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 54.85
+        }
+      },
+      {
+        "key": [
+          "DOG_RESILIENT_IN_VENUE",
+          "FAV_VENUE_GF_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 62,
+          "wins": 36,
+          "hit_rate": 58.06
+        },
+        "validation": {
+          "bets": 30,
+          "wins": 21,
+          "hit_rate": 70.0
+        },
+        "confirmation": {
+          "bets": 21,
+          "wins": 15,
+          "hit_rate": 71.43,
+          "wilson_lower_90": 53.52
+        },
+        "audit": {
+          "bets": 30,
+          "wins": 10,
+          "hit_rate": 33.33,
+          "wilson_lower_90": 21.08
+        }
+      },
+      {
+        "key": [
+          "DOG_RECENT_STATS_LEAN_AGAINST"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 233,
+          "wins": 136,
+          "hit_rate": 58.37
+        },
+        "validation": {
+          "bets": 118,
+          "wins": 71,
+          "hit_rate": 60.17
+        },
+        "confirmation": {
+          "bets": 70,
+          "wins": 44,
+          "hit_rate": 62.86,
+          "wilson_lower_90": 53.04
+        },
+        "audit": {
+          "bets": 77,
+          "wins": 44,
+          "hit_rate": 57.14,
+          "wilson_lower_90": 47.78
+        }
+      },
+      {
+        "key": [
+          "IND_FAV_COVER_PUSH",
+          "TABLE=TABLE_FAV_BETTER"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 76,
+          "wins": 45,
+          "hit_rate": 59.21
+        },
+        "validation": {
+          "bets": 24,
+          "wins": 16,
+          "hit_rate": 66.67
+        },
+        "confirmation": {
+          "bets": 23,
+          "wins": 16,
+          "hit_rate": 69.57,
+          "wilson_lower_90": 52.44
+        },
+        "audit": {
+          "bets": 25,
+          "wins": 11,
+          "hit_rate": 44.0,
+          "wilson_lower_90": 29.06
+        }
+      },
+      {
+        "key": [
+          "BASE_STATS=STATS_STRONG_FOR",
+          "FAV_RECENT_TOTAL_UNDER_LINE",
+          "OU_FAMILY=OU_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 117,
+          "wins": 69,
+          "hit_rate": 58.97
+        },
+        "validation": {
+          "bets": 63,
+          "wins": 39,
+          "hit_rate": 61.9
+        },
+        "confirmation": {
+          "bets": 37,
+          "wins": 24,
+          "hit_rate": 64.86,
+          "wilson_lower_90": 51.35
+        },
+        "audit": {
+          "bets": 36,
+          "wins": 26,
+          "hit_rate": 72.22,
+          "wilson_lower_90": 58.72
+        }
+      },
+      {
+        "key": [
+          "BASE_STATS=STATS_STRONG_FOR",
+          "FAV_RECENT_OU_CURRENT_UNDER_LINE",
+          "OU_FAMILY=OU_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 117,
+          "wins": 69,
+          "hit_rate": 58.97
+        },
+        "validation": {
+          "bets": 63,
+          "wins": 39,
+          "hit_rate": 61.9
+        },
+        "confirmation": {
+          "bets": 37,
+          "wins": 24,
+          "hit_rate": 64.86,
+          "wilson_lower_90": 51.35
+        },
+        "audit": {
+          "bets": 36,
+          "wins": 26,
+          "hit_rate": 72.22,
+          "wilson_lower_90": 58.72
+        }
+      },
+      {
+        "key": [
+          "DOG_RESILIENT_IN_VENUE",
+          "FAV_VENUE_WIN_LOW"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 75,
+          "wins": 44,
+          "hit_rate": 58.67
+        },
+        "validation": {
+          "bets": 28,
+          "wins": 17,
+          "hit_rate": 60.71
+        },
+        "confirmation": {
+          "bets": 27,
+          "wins": 18,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 50.84
+        },
+        "audit": {
+          "bets": 40,
+          "wins": 15,
+          "hit_rate": 37.5,
+          "wilson_lower_90": 26.08
+        }
+      },
+      {
+        "key": [
+          "BASE_COVER=FAIL",
+          "IND_DOG_STATS_STRONG_FOR",
+          "OU_FAMILY=OU_HIGH"
+        ],
+        "market": "goals",
+        "direction": "UNDER",
+        "discovery": {
+          "bets": 51,
+          "wins": 32,
+          "hit_rate": 62.75
+        },
+        "validation": {
+          "bets": 25,
+          "wins": 15,
+          "hit_rate": 60.0
+        },
+        "confirmation": {
+          "bets": 22,
+          "wins": 15,
+          "hit_rate": 68.18,
+          "wilson_lower_90": 50.65
+        },
+        "audit": {
+          "bets": 21,
+          "wins": 14,
+          "hit_rate": 66.67,
+          "wilson_lower_90": 48.72
+        }
+      }
+    ]
+  },
+  "predictions": [
+    {
+      "match_id": "3025540",
+      "home": "New England Revolution B",
+      "away": "Columbus Crew B",
+      "date": "7/16/2026",
+      "ah": 0.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2942502",
+      "home": "Sporting Jax",
+      "away": "Pittsburgh Riverhounds",
+      "date": "7/16/2026",
+      "ah": -0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2955274",
+      "home": "Chattanooga Red Wolves",
+      "away": "AV Alta",
+      "date": "7/16/2026",
+      "ah": 0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2942500",
+      "home": "Lexington",
+      "away": "New Mexico United",
+      "date": "7/16/2026",
+      "ah": 1.0,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2937838",
+      "home": "Universidad Catolica",
+      "away": "Liga Dep. Universitaria Quito",
+      "date": "7/16/2026",
+      "ah": 0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.5"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "2956968",
+      "home": "Orlando Pride (W)",
+      "away": "Boston Legacy W",
+      "date": "7/16/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "2955276",
+      "home": "Knoxville troops",
+      "away": "Fort Wayne FC",
+      "date": "7/16/2026",
+      "ah": 0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2937836",
+      "home": "Leones del Norte",
+      "away": "Deportivo Cuenca",
+      "date": "7/16/2026",
+      "ah": 0.25,
+      "ou": 2.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.25,
+        "market_pick": "Deportivo Cuenca (no favorito; AH codificado 0.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032567",
+      "home": "Hercilio Luz SC",
+      "away": "Juventus SC",
+      "date": "7/16/2026",
+      "ah": 1.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 56.31,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2971420",
+      "home": "Real Potosi",
+      "away": "San Antonio Bulo Bulo",
+      "date": "7/16/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025900",
+      "home": "Resende RJ",
+      "away": "Sampaio Correa (RJ)",
+      "date": "7/16/2026",
+      "ah": -0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032565",
+      "home": "Caravaggio",
+      "away": "Atletico Tubarao SC",
+      "date": "7/16/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2959286",
+      "home": "Vinotinto de Ecuador",
+      "away": "CD El Nacional",
+      "date": "7/15/2026",
+      "ah": 1.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2924706",
+      "home": "Breidablik (W)",
+      "away": "Vikingur Reykjavik (W)",
+      "date": "7/15/2026",
+      "ah": 2.0,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032180",
+      "home": "KB Breidholt",
+      "away": "BF 108",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999983",
+      "home": "FK Sutjeska Niksic",
+      "away": "FC Kairat Almaty",
+      "date": "7/15/2026",
+      "ah": -0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999975",
+      "home": "Egnatia",
+      "away": "CS Petrocub",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "CONFLICT",
+        "matched_rules": 2,
+        "scores": {
+          "DOG": 0.9460474084795653,
+          "FAVORITE": 0.8162873715989241
+        },
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 54.02,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032658",
+      "home": "EC Timon",
+      "away": "Tupan MA",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "FAVORITE",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.24,
+        "market_pick": "EC Timon (favorito; AH codificado 0.5)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032622",
+      "home": "Atletico Colegiales",
+      "away": "Club Fernando de la Mora",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032568",
+      "home": "Blumenau EC",
+      "away": "Metropolitano SC",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032566",
+      "home": "Fluminense SC",
+      "away": "Guarani de Palhoca",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.25,
+        "market_pick": "Guarani de Palhoca (no favorito; AH codificado 0.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 4,
+          "supporting_rules": 4,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3032600",
+      "home": "Palmeiras U20 (W)",
+      "away": "Corinthians U20 (W)",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "FAVORITE",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.24,
+        "market_pick": "Palmeiras U20 (W) (favorito; AH codificado 0.5)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2924705",
+      "home": "IBV Vestmannaeyjar (W)",
+      "away": "Valur (W)",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "FAVORITE",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.24,
+        "market_pick": "IBV Vestmannaeyjar (W) (favorito; AH codificado 0.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999982",
+      "home": "Atert Bissen",
+      "away": "KI Klaksvik",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032611",
+      "home": "Portuguesa Desportos (W) U20",
+      "away": "Ferroviaria U20 (W)",
+      "date": "7/15/2026",
+      "ah": -2.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032602",
+      "home": "Audax SP U20 (W)",
+      "away": "Centro Olimpico U20 (W)",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032115",
+      "home": "Bavois",
+      "away": "Chenois",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032656",
+      "home": "Caucaia U20",
+      "away": "Fortaleza U20",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032526",
+      "home": "Luxembourg City",
+      "away": "Hostert",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025898",
+      "home": "Americano RJ",
+      "away": "Portuguesa RJ",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025899",
+      "home": "Bonsucesso",
+      "away": "Madureira",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025556",
+      "home": "UN Kaerjeng 97",
+      "away": "Victoria Rosport",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 56.7,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032102",
+      "home": "Walferdange",
+      "away": "Jeunesse Esch",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999987",
+      "home": "CS Universitatea Craiova",
+      "away": "ML Vitebsk",
+      "date": "7/15/2026",
+      "ah": 1.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032099",
+      "home": "CD Derio",
+      "away": "Athletic Bilbao",
+      "date": "7/15/2026",
+      "ah": -2.75,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032096",
+      "home": "SV Tasmania Berlin",
+      "away": "Hertha Zehlendorf",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032089",
+      "home": "KSK Heist",
+      "away": "Mechelen",
+      "date": "7/15/2026",
+      "ah": -2.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032100",
+      "home": "HSV Hoek",
+      "away": "NAC Breda",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 3.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "HSV Hoek (no favorito; AH codificado -1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025555",
+      "home": "Vitesse Arnhem",
+      "away": "AEK Athens",
+      "date": "7/15/2026",
+      "ah": -1.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025845",
+      "home": "Cordoba",
+      "away": "Orlando Pirates",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032179",
+      "home": "KUPS Akatemia II",
+      "away": "Jippo II",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 4.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Jippo II (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032095",
+      "home": "Lyon",
+      "away": "Servette",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 3.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Servette (no favorito; AH codificado 1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032113",
+      "home": "Solihull Moors",
+      "away": "Birmingham City",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032091",
+      "home": "FC 1980 Wien",
+      "away": "Wiener Viktoria",
+      "date": "7/15/2026",
+      "ah": -1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 56.31,
+          "market_pick": "UNDER 3.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032083",
+      "home": "Patro Eisden",
+      "away": "Sint-Truidense",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032047",
+      "home": "Stade Lavallois MFC",
+      "away": "Quevilly",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3027575",
+      "home": "Deportivo Recoleta (W)",
+      "away": "Sportivo Trinidense (W)",
+      "date": "7/15/2026",
+      "ah": -1.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032647",
+      "home": "Aldershot Town",
+      "away": "Portsmouth",
+      "date": "7/15/2026",
+      "ah": -1.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2921892",
+      "home": "JIPPO",
+      "away": "MP MIKELI",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 2.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 4,
+        "supporting_rules": 4,
+        "best_wilson": 52.44,
+        "market_pick": "MP MIKELI (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2943522",
+      "home": "GBK Kokkola",
+      "away": "Narpes Kraft",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032109",
+      "home": "Eintracht Trier",
+      "away": "Fortuna Koln",
+      "date": "7/15/2026",
+      "ah": -0.5,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 53.53,
+        "market_pick": "UNDER 3.5",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032028",
+      "home": "Sturm Graz",
+      "away": "Pogon Szczecin",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032023",
+      "home": "Pelikan Lowicz",
+      "away": "Swit Nowy Dwor Mazowiecki",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032037",
+      "home": "Polonia Warszawa",
+      "away": "Tescoma Zlin",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2989233",
+      "home": "Ordabasy",
+      "away": "Altay FK",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.35,
+        "market_pick": "UNDER 2.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032020",
+      "home": "AFC Ajax",
+      "away": "VfL Bochum",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032010",
+      "home": "Caen",
+      "away": "Paris 13 Atletico",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025549",
+      "home": "Baumit Jablonec",
+      "away": "Metalist 1925 Kharkiv",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999894",
+      "home": "Malisheva",
+      "away": "Vllaznia Shkoder",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031936",
+      "home": "Black Bulls",
+      "away": "Ferrovario Lichinga",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032002",
+      "home": "Red Bull Salzburg",
+      "away": "Gamba Osaka",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2944086",
+      "home": "Charleston City Blues",
+      "away": "Weston Workers FC",
+      "date": "7/15/2026",
+      "ah": -1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 6,
+        "supporting_rules": 6,
+        "best_wilson": 51.56,
+        "market_pick": "Charleston City Blues (no favorito; AH codificado -1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032003",
+      "home": "Almere City FC",
+      "away": "Volendam",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.65,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2944104",
+      "home": "Kahibah FC",
+      "away": "Maitland",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032005",
+      "home": "Aarhus AGF",
+      "away": "AC Horsens",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2960795",
+      "home": "Maca Searle (W)",
+      "away": "WS Wanderers B (W)",
+      "date": "7/15/2026",
+      "ah": -0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025541",
+      "home": "Tensung FC",
+      "away": "Thimphu City",
+      "date": "7/15/2026",
+      "ah": -3.0,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031950",
+      "home": "Fortuna Dusseldorf",
+      "away": "MFK Ruzomberok",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032126",
+      "home": "FC Bulleen Lions (W)",
+      "away": "Essendon Royals (W)",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032517",
+      "home": "Fredericia",
+      "away": "CD Mafra",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3018329",
+      "home": "Beijing Guoan U21",
+      "away": "Hubei Istar U21",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031989",
+      "home": "SC Bregenz",
+      "away": "Austria Lustenau",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "SC Bregenz (no favorito; AH codificado -1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032599",
+      "home": "Criciuma SC (Youth)",
+      "away": "Concordia U20",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 56.31,
+          "market_pick": "UNDER 2.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032193",
+      "home": "Fencibles United (W)",
+      "away": "Western Springs (W)",
+      "date": "7/15/2026",
+      "ah": 3.75,
+      "ou": 5.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032191",
+      "home": "Zwekapin FC (W)",
+      "away": "Yangon United FC (W)",
+      "date": "7/15/2026",
+      "ah": -2.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025544",
+      "home": "Oud-Heverlee Leuven",
+      "away": "KVSK Lommel",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.84,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032004",
+      "home": "LaLouviere",
+      "away": "Excelsior Virton",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 3,
+        "supporting_rules": 3,
+        "best_wilson": 53.53,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032183",
+      "home": "Kuching City U20",
+      "away": "Johor Darul Takzim III U20",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Kuching City U20 (no favorito; AH codificado -1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024845",
+      "home": "Paysandu FC",
+      "away": "Centro Atletico Fenix",
+      "date": "7/14/2026",
+      "ah": -0.25,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025044",
+      "home": "Deportivo Capiata",
+      "away": "Atletico Tembetary",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2940065",
+      "home": "America MG",
+      "away": "Londrina PR",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.35,
+        "market_pick": "UNDER 2.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2949354",
+      "home": "Figueirense",
+      "away": "Volta Redonda",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031816",
+      "home": "Shandong Jinghua II W",
+      "away": "Chongqing Olympic (W)",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3018268",
+      "home": "Cavalry FC",
+      "away": "Vancouver Whitecaps",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2916503",
+      "home": "Atletico Atlanta",
+      "away": "Colegiales",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 1.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024863",
+      "home": "America FC Natal RN",
+      "away": "Trem",
+      "date": "7/14/2026",
+      "ah": 2.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024864",
+      "home": "Centro Sportivo Alagoano",
+      "away": "Betim FC",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 2.25,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.25,
+        "market_pick": "Betim FC (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2940068",
+      "home": "Ceara",
+      "away": "Athletic Club MG",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 4,
+          "supporting_rules": 4,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.0"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031809",
+      "home": "Qingdao West (W)",
+      "away": "Zhejiang Hangzhou B (W)",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031345",
+      "home": "Viettel FC U21",
+      "away": "Hoang Anh Gia Lai U21",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031815",
+      "home": "Zhanjiang Yuezhan (W)",
+      "away": "Wuhan Three Towns Martial Arts (W)",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025176",
+      "home": "Andorra FC",
+      "away": "Millwall",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031944",
+      "home": "Dordrecht",
+      "away": "Borussia Dortmund (Youth)",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 56.31,
+          "market_pick": "UNDER 3.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031812",
+      "home": "Hebei Snow Ruyi W",
+      "away": "Fujian Nanan (W)",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031813",
+      "home": "Tianjin Shengde (W)",
+      "away": "Shanxi Xihua W",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031946",
+      "home": "Polissya Zhytomyr",
+      "away": "Shimizu S-Pulse",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3032134",
+      "home": "The Cove FC",
+      "away": "Adelaide United",
+      "date": "7/14/2026",
+      "ah": -4.75,
+      "ou": 5.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3012938",
+      "home": "Rochedale Rovers",
+      "away": "SD Raiders FC",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2997187",
+      "home": "Ha Noi II(W)",
+      "away": "Than KSVN (W)",
+      "date": "7/14/2026",
+      "ah": -3.25,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2997188",
+      "home": "Phong Phu Ha Nam (W)",
+      "away": "Ho Chi Minh City B (W)",
+      "date": "7/14/2026",
+      "ah": 2.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 58.5,
+          "market_pick": "UNDER 3.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031896",
+      "home": "Gold Coast United W",
+      "away": "Brisbane City (W)",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.65,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031908",
+      "home": "Calcutta Polica Club",
+      "away": "Aryan",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.66,
+        "market_pick": "Calcutta Polica Club (no favorito; AH codificado -0.5)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031895",
+      "home": "Eastern Suburbs SC (W)",
+      "away": "Brisbane Olympic (W)",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.65,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031883",
+      "home": "South Melbourne (W)",
+      "away": "Heidelberg United (W)",
+      "date": "7/14/2026",
+      "ah": 1.75,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031893",
+      "home": "Legia Warszawa",
+      "away": "Radomiak Radom",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031881",
+      "home": "Grange Thistle (W)",
+      "away": "North Lakes United (W)",
+      "date": "7/14/2026",
+      "ah": -2.5,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031964",
+      "home": "AZ Alkmaar (W)",
+      "away": "FC Twente Enschede (W)",
+      "date": "7/14/2026",
+      "ah": -2.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031339",
+      "home": "T T Hanoi U21",
+      "away": "Hung Vuong An Giang U21",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2981801",
+      "home": "Boroondara Eagles (W)",
+      "away": "Preston Lions (W)",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2997189",
+      "home": "TNG Thai Nguyen (W)",
+      "away": "Ho Chi Minh City (W)",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 54.02,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3025177",
+      "home": "Dukla Banska Bystrica",
+      "away": "Hapoel Tel Aviv",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.84,
+        "market_pick": "UNDER 2.75",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031930",
+      "home": "Al Akhaahli Alay",
+      "away": "Risaleh Toura",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 3,
+          "supporting_rules": 3,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031902",
+      "home": "SV Wehen Wiesbaden",
+      "away": "Fagiano Okayama",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031909",
+      "home": "ZhFC Astana (W)",
+      "away": "Irtysh Pavlodar （W）",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 3.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Irtysh Pavlodar （W） (no favorito; AH codificado 1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025315",
+      "home": "Amazonas U20",
+      "away": "Manaus U20",
+      "date": "7/14/2026",
+      "ah": 3.0,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2944745",
+      "home": "Zhejiang Professional FC",
+      "away": "Qingdao Manatee",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999978",
+      "home": "KuPs",
+      "away": "FC Vardar Skopje",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031901",
+      "home": "Slovan Liberec",
+      "away": "Puskas Akademia",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031900",
+      "home": "Korona Kielce",
+      "away": "Stal Rzeszow",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 56.7,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031928",
+      "home": "Deportivo Espanol Reserves",
+      "away": "Deportivo Muniz Reserves",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031931",
+      "home": "Centro Espanyol Reserves",
+      "away": "Lujan Reserves",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 2.75,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 8,
+        "supporting_rules": 8,
+        "best_wilson": 52.44,
+        "market_pick": "Centro Espanyol Reserves (no favorito; AH codificado -1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999986",
+      "home": "Inter Club Escaldes",
+      "away": "Lincoln Red Imps FC",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999980",
+      "home": "FC Iberia 1999 Tbilisi",
+      "away": "FC Flora Tallinn",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025179",
+      "home": "Randers FC",
+      "away": "Notts County",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 53.04,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031905",
+      "home": "Winterthur",
+      "away": "Bruhl SG",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031906",
+      "home": "Macva Sabac",
+      "away": "Naftagas",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2943431",
+      "home": "Ilves Tampere II",
+      "away": "GrIFK Kauniainen",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.75,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 8,
+        "supporting_rules": 8,
+        "best_wilson": 52.44,
+        "market_pick": "GrIFK Kauniainen (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 53.53,
+        "market_pick": "UNDER 3.75",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031918",
+      "home": "Middelfart G og",
+      "away": "Brabrand",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031923",
+      "home": "Darmstadt",
+      "away": "FC 08 Hombrug",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025173",
+      "home": "Estudiantes LP Reserves",
+      "away": "Colon Reserves",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 2.25,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Colon Reserves (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025175",
+      "home": "Union Santa Fe Reserves",
+      "away": "Gimnasia LP Reserves",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.35,
+        "market_pick": "UNDER 2.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031925",
+      "home": "SR Donaufeld Wien",
+      "away": "Rapid Vienna (Youth)",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 4.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3025172",
+      "home": "Atletico Tucuman Reserve",
+      "away": "CA Aldosivi Reserves",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.66,
+        "market_pick": "CA Aldosivi Reserves (no favorito; AH codificado 0.75)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025180",
+      "home": "Sporting CP",
+      "away": "Celtic FC",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031921",
+      "home": "Arminia Bielefeld",
+      "away": "SC Imst",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025174",
+      "home": "Rosario Central Reserves",
+      "away": "San Lorenzo Reserves",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 4,
+          "supporting_rules": 4,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031927",
+      "home": "Mahdov FC",
+      "away": "FSV luckenwalde",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031926",
+      "home": "Parndorf",
+      "away": "Austria Wien (Youth)",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999988",
+      "home": "Gyori ETO",
+      "away": "Vikingur Reykjavik",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999979",
+      "home": "Riga FC",
+      "away": "FC Ararat Armenia",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 2.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "FC Ararat Armenia (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031915",
+      "home": "SC Weiz",
+      "away": "SV Ilz",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.75,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "SV Ilz (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031914",
+      "home": "SV Leobendorf",
+      "away": "Zwettl SC",
+      "date": "7/14/2026",
+      "ah": 1.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031929",
+      "home": "Leones de Rosario Reserve",
+      "away": "El Porvenir Reserves",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031961",
+      "home": "NEC Nijmegen",
+      "away": "V-Varen Nagasaki",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999977",
+      "home": "The New Saints",
+      "away": "Sabah FK Baku",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2931262",
+      "home": "HK Kopavogs",
+      "away": "IR Reykjavik",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 58.5,
+          "market_pick": "UNDER 3.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2999984",
+      "home": "Levski Sofia",
+      "away": "Borac Banja Luka",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031917",
+      "home": "LASK Linz",
+      "away": "Fenerbahce",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031886",
+      "home": "Alfreton Town",
+      "away": "Boston United",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "FAVORITE",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.24,
+        "market_pick": "Boston United (favorito; AH codificado -1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999981",
+      "home": "KF Drita Gjilan",
+      "away": "Kauno Zalgiris",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "CONFLICT",
+        "matched_rules": 2,
+        "scores": {
+          "DOG": 0.9460474084795653,
+          "FAVORITE": 0.8162873715989241
+        },
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.25"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031889",
+      "home": "Woking",
+      "away": "Portsmouth",
+      "date": "7/14/2026",
+      "ah": -1.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031887",
+      "home": "Hyde F.C.",
+      "away": "AFC Fylde",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2931218",
+      "home": "Grotta Seltjarnarnes",
+      "away": "Grindavik",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2934690",
+      "home": "Deportivo Camioneros",
+      "away": "Liniers",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 1.75,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.25,
+        "market_pick": "Liniers (no favorito; AH codificado 0.5)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 1.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "2934684",
+      "home": "Argentino de Quilmes",
+      "away": "Arsenal de Sarandi",
+      "date": "7/14/2026",
+      "ah": -0.25,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 3,
+          "supporting_rules": 3,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 2.0"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "2934691",
+      "home": "Sportivo Dock Sud",
+      "away": "UAI Urquiza",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2934687",
+      "home": "Defensores Unidos",
+      "away": "Excursionistas",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 4,
+          "supporting_rules": 4,
+          "best_wilson": 54.02,
+          "market_pick": "UNDER 2.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032118",
+      "home": "Santos FC U20 (W)",
+      "away": "Sao Bento (W) U20",
+      "date": "7/14/2026",
+      "ah": 3.25,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3019423",
+      "home": "Vasco da Gama (Youth)",
+      "away": "Cruzeiro (Youth)",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2934694",
+      "home": "Sportivo Italiano",
+      "away": "Villa San Carlos",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 3,
+          "supporting_rules": 3,
+          "best_wilson": 54.02,
+          "market_pick": "UNDER 2.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031888",
+      "home": "Redcar Athletic",
+      "away": "Hartlepool United",
+      "date": "7/14/2026",
+      "ah": -2.75,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2924704",
+      "home": "Stjarnan Gardabaer (W)",
+      "away": "Thor KA Akureyri (W)",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.25,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 5,
+        "supporting_rules": 4,
+        "best_wilson": 50.64,
+        "market_pick": "Thor KA Akureyri (W) (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 58.5,
+          "market_pick": "UNDER 3.25"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031892",
+      "home": "Chippenham Town",
+      "away": "Swindon Town",
+      "date": "7/14/2026",
+      "ah": -2.5,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3031891",
+      "home": "Carmarthen",
+      "away": "Briton Ferry Athletic",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3031932",
+      "home": "St. Patricks Athletic",
+      "away": "Doncaster Rovers",
+      "date": "7/14/2026",
+      "ah": -0.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 2.75",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032018",
+      "home": "Hebburn Town",
+      "away": "Gateshead",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032033",
+      "home": "Real Bedford",
+      "away": "Boreham Wood",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 3.0"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032045",
+      "home": "Plymouth Parkway",
+      "away": "Torquay United",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032032",
+      "home": "Llandudno",
+      "away": "Rhyl FC",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 3.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995170",
+      "home": "Brora Rangers",
+      "away": "Aberdeen",
+      "date": "7/14/2026",
+      "ah": -3.0,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 3,
+        "supporting_rules": 3,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 4.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3031922",
+      "home": "Resistencia Central",
+      "away": "Defensores Puerto Vilelas",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995174",
+      "home": "Cove Rangers",
+      "away": "East Kilbride",
+      "date": "7/14/2026",
+      "ah": -0.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995176",
+      "home": "Annan Athletic",
+      "away": "Dundee FC",
+      "date": "7/14/2026",
+      "ah": -2.25,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2995175",
+      "home": "Dunfermline Athletic",
+      "away": "Dumbarton",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995178",
+      "home": "Brechin City",
+      "away": "Livingston",
+      "date": "7/14/2026",
+      "ah": -2.5,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 56.7,
+          "market_pick": "UNDER 3.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2995179",
+      "home": "Forfar Athletic",
+      "away": "Partick Thistle",
+      "date": "7/14/2026",
+      "ah": -1.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 50.84,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2995180",
+      "home": "East Fife",
+      "away": "Greenock Morton",
+      "date": "7/14/2026",
+      "ah": -0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995177",
+      "home": "Clyde",
+      "away": "Airdrie United",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2995182",
+      "home": "Edinburgh City",
+      "away": "Alloa Athletic",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995184",
+      "home": "Elgin City",
+      "away": "Peterhead",
+      "date": "7/14/2026",
+      "ah": -0.5,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995183",
+      "home": "Falkirk",
+      "away": "Ayr United",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Ayr United (no favorito; AH codificado 1.0)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2995185",
+      "home": "Kilmarnock",
+      "away": "Raith Rovers",
+      "date": "7/14/2026",
+      "ah": 0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032052",
+      "home": "Halifax Town",
+      "away": "Chesterfield",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032057",
+      "home": "FC United of Manchester",
+      "away": "Rochdale",
+      "date": "7/14/2026",
+      "ah": -1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032056",
+      "home": "leek Town",
+      "away": "Macclesfield Town",
+      "date": "7/14/2026",
+      "ah": -1.0,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032066",
+      "home": "Kingstonian",
+      "away": "Wingate Finchley",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032065",
+      "home": "Tonbridge Angels",
+      "away": "Sutton United",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032074",
+      "home": "Ware",
+      "away": "Hendon",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032076",
+      "home": "Slough Town",
+      "away": "Basingstoke Town",
+      "date": "7/14/2026",
+      "ah": 1.0,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032139",
+      "home": "Sportivo Limpeno",
+      "away": "General Caballero LJM",
+      "date": "7/14/2026",
+      "ah": -1.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 56.31,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2999891",
+      "home": "SP La Fiorita",
+      "away": "UNA Strassen",
+      "date": "7/14/2026",
+      "ah": -0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2999976",
+      "home": "Larne FC",
+      "away": "Tre Fiori",
+      "date": "7/14/2026",
+      "ah": 1.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2924707",
+      "home": "Trottur Reykjavik (W)",
+      "away": "Fram Reykjavik  (W)",
+      "date": "7/14/2026",
+      "ah": 1.5,
+      "ou": 3.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2907404",
+      "home": "France",
+      "away": "Spain",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.35,
+        "market_pick": "UNDER 2.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3032135",
+      "home": "Independencia FC U20",
+      "away": "Santa Cruz Arce U20",
+      "date": "7/15/2026",
+      "ah": -1.25,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2971415",
+      "home": "Real Oruro",
+      "away": "Always Ready",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 1,
+        "supporting_rules": 1,
+        "best_wilson": 53.53,
+        "market_pick": "UNDER 3.25",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "2937841",
+      "home": "Macara",
+      "away": "Mushuc Runa",
+      "date": "7/14/2026",
+      "ah": 0.25,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2979075",
+      "home": "Wuhan Jianghan (W)",
+      "away": "Shandong (W)",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3018332",
+      "home": "Zhejiang Greentown U21",
+      "away": "ShanXi Union U21",
+      "date": "7/15/2026",
+      "ah": 0.5,
+      "ou": 2.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 2,
+          "supporting_rules": 2,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.0"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3024718",
+      "home": "Gyeongnam FC",
+      "away": "Yeoju Sejong",
+      "date": "7/15/2026",
+      "ah": 1.0,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024714",
+      "home": "Cheonan City",
+      "away": "Mokpo City",
+      "date": "7/15/2026",
+      "ah": 1.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3025850",
+      "home": "Busan I Park",
+      "away": "Geoje Citizen",
+      "date": "7/15/2026",
+      "ah": 2.5,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024716",
+      "home": "Chungbuk Cheongju",
+      "away": "Gyeongju KHNP",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024712",
+      "home": "Hwaseong FC",
+      "away": "Yangpyeong",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 2.75,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 52.44,
+        "market_pick": "Yangpyeong (no favorito; AH codificado 1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024713",
+      "home": "Suwon FC",
+      "away": "Pyeongchang FC",
+      "date": "7/15/2026",
+      "ah": 3.0,
+      "ou": 4.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024715",
+      "home": "Namyangju FC",
+      "away": "Gimpo FC",
+      "date": "7/15/2026",
+      "ah": -1.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024717",
+      "home": "Busan Transportation Corporation",
+      "away": "Suwon Samsung Bluewings",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024704",
+      "home": "Jeonnam Dragons",
+      "away": "Chungnam Asan",
+      "date": "7/15/2026",
+      "ah": -0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 51.66,
+        "market_pick": "Jeonnam Dragons (no favorito; AH codificado -0.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024711",
+      "home": "Yong-in FC",
+      "away": "Dangjin Citizen",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024708",
+      "home": "Paju Frontier FC",
+      "away": "Gangneung City",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024706",
+      "home": "Changwon City",
+      "away": "Gimhae City",
+      "date": "7/15/2026",
+      "ah": -0.5,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 2.75",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3024710",
+      "home": "Ansan Greeners FC",
+      "away": "Jinju Citizen",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 3.0,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 3.0",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3024709",
+      "home": "Ulsan Citizens",
+      "away": "Seoul E-Land FC",
+      "date": "7/15/2026",
+      "ah": -0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3024707",
+      "home": "Seongnam FC",
+      "away": "Pocheon FC",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "UNDER",
+        "confidence": "LOW",
+        "matched_rules": 2,
+        "supporting_rules": 2,
+        "best_wilson": 53.52,
+        "market_pick": "UNDER 2.5",
+        "audit_tier": {
+          "bets": 123,
+          "wins": 76,
+          "hit_rate": 61.79
+        }
+      }
+    },
+    {
+      "match_id": "3024705",
+      "home": "Daegu FC",
+      "away": "Siheung City",
+      "date": "7/15/2026",
+      "ah": 0.75,
+      "ou": 2.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.75"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032140",
+      "home": "UNSW FC (W)",
+      "away": "Manly Utd (W)",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 3.0,
+      "side": {
+        "pick": "DOG",
+        "confidence": "LOW",
+        "matched_rules": 4,
+        "supporting_rules": 4,
+        "best_wilson": 50.65,
+        "market_pick": "Manly Utd (W) (no favorito; AH codificado 1.25)",
+        "audit_tier": {
+          "bets": 130,
+          "wins": 73,
+          "hit_rate": 56.15
+        }
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032165",
+      "home": "Caboolture FC",
+      "away": "Brisbane Roar",
+      "date": "7/15/2026",
+      "ah": -3.25,
+      "ou": 4.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2937840",
+      "home": "Manta FC",
+      "away": "Delfin SC",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 1.75,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "HIGH",
+          "matched_rules": 3,
+          "supporting_rules": 3,
+          "best_wilson": 62.0,
+          "market_pick": "UNDER 1.75"
+        },
+        "audit_tier": {
+          "bets": 80,
+          "wins": 40,
+          "hit_rate": 50.0
+        }
+      }
+    },
+    {
+      "match_id": "3031350",
+      "home": "PVF Vietnam U21",
+      "away": "SHB Da Nang U21",
+      "date": "7/15/2026",
+      "ah": 0.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "2971416",
+      "home": "Blooming",
+      "away": "San Jose de Oruro",
+      "date": "7/15/2026",
+      "ah": 1.25,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 58.5,
+          "market_pick": "UNDER 3.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "2999985",
+      "home": "Shamrock Rovers",
+      "away": "Floriana F.C.",
+      "date": "7/14/2026",
+      "ah": 1.25,
+      "ou": 2.5,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 62.45,
+          "market_pick": "UNDER 2.5"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032172",
+      "home": "Canvey Island",
+      "away": "Chelmsford City",
+      "date": "7/14/2026",
+      "ah": -1.5,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    },
+    {
+      "match_id": "3032042",
+      "home": "Barry Town United",
+      "away": "Trey Thomas Drossel",
+      "date": "7/14/2026",
+      "ah": 1.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "market_pick": "NO BET",
+        "confidence": "REJECTED_BY_AUDIT",
+        "reason": "El nivel de evidencia no alcanzo soporte/acierto minimo en el tramo audit.",
+        "raw_prediction": {
+          "pick": "UNDER",
+          "confidence": "MEDIUM",
+          "matched_rules": 1,
+          "supporting_rules": 1,
+          "best_wilson": 56.7,
+          "market_pick": "UNDER 3.25"
+        },
+        "audit_tier": {
+          "bets": 85,
+          "wins": 43,
+          "hit_rate": 50.59
+        }
+      }
+    },
+    {
+      "match_id": "3032034",
+      "home": "Marine",
+      "away": "Colwyn Bay",
+      "date": "7/14/2026",
+      "ah": 0.75,
+      "ou": 3.25,
+      "side": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      },
+      "goals": {
+        "pick": "NO BET",
+        "confidence": "NONE",
+        "matched_rules": 0,
+        "market_pick": "NO BET"
+      }
+    }
+  ]
+}

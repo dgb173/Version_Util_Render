@@ -1,4 +1,6 @@
 <div class="analysis-panel" data-current-match="{{ data.match_id or data.id }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='league_table_modal.css') }}">
+    <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}"></script>
     <style>
         .analysis-panel .home-color {
             color: #2563eb;
@@ -147,6 +149,8 @@
     </style>
     {% macro render_stat_rows(rows) -%}
     {% for stat in rows %}
+    {% set stat_label = stat.label | default('', true) %}
+    {% set is_red_card_row = stat.is_red_card | default(false) or ('Roja' in stat_label) or ('roja' in stat_label) or ('Red Card' in stat_label) or ('red card' in stat_label) %}
     {% set home_txt = stat.home | default('', true) | trim %}
     {% set away_txt = stat.away | default('', true) | trim %}
     {% set home_clean = home_txt | replace(',', '.') %}
@@ -157,9 +161,26 @@
     {% set away_is_num = away_digits and away_digits.isdigit() %}
     {% set home_class = 'home' %}
     {% set away_class = 'away' %}
-    {% if home_is_num and away_is_num %}
+    {% set home_val = 0 %}
+    {% set away_val = 0 %}
+    {% if home_is_num %}
     {% set home_val = home_clean | float %}
+    {% endif %}
+    {% if away_is_num %}
     {% set away_val = away_clean | float %}
+    {% endif %}
+    {% if is_red_card_row %}
+    {% if home_val > 0 %}
+    {% set home_class = home_class ~ ' text-danger fw-bold' %}
+    {% else %}
+    {% set home_class = home_class ~ ' text-muted' %}
+    {% endif %}
+    {% if away_val > 0 %}
+    {% set away_class = away_class ~ ' text-danger fw-bold' %}
+    {% else %}
+    {% set away_class = away_class ~ ' text-muted' %}
+    {% endif %}
+    {% elif home_is_num and away_is_num %}
     {% if home_val > away_val %}
     {% set home_class = home_class ~ ' text-success' %}
     {% set away_class = away_class ~ ' text-danger' %}
@@ -170,7 +191,7 @@
     {% endif %}
     <tr>
         <td class="{{ home_class }}">{{ stat.home | safe }}</td>
-        <td class="label">{{ stat.label }}</td>
+        <td class="label{% if is_red_card_row %} text-danger fw-bold{% endif %}">{{ stat.label }}</td>
         <td class="{{ away_class }}">{{ stat.away | safe }}</td>
     </tr>
     {% endfor %}
@@ -213,6 +234,10 @@
                 data-preview-target="analysis-preview-container" data-match-id="{{ data.match_id or data.id }}">
                 <i class="fa-solid fa-eye me-2"></i>Vista previa rápida
             </button>
+            <button class="btn btn-outline-primary btn-sm copy-llm-prompt-trigger"
+                data-match-id="{{ data.match_id or data.id }}" title="Copiar Prompt LLM">
+                <i class="fas fa-copy me-2"></i>Copiar prompt
+            </button>
             <button class="btn btn-outline-secondary btn-sm refresh-analysis"
                 data-match-id="{{ data.match_id or data.id }}">
                 <i class="fa-solid fa-rotate-right me-2"></i>Actualizar datos
@@ -236,6 +261,17 @@
             <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
                 data-bs-parent="#analysisAccordion">
                 <div class="accordion-body">
+                    {% if data.home_name and data.away_name %}
+                    <div class="d-flex justify-content-end mb-3">
+                        <button type="button" class="btn btn-sm league-table-trigger"
+                            data-home-name="{{ data.home_name }}"
+                            data-away-name="{{ data.away_name }}"
+                            data-league-name="{{ data.league_name or '' }}"
+                            data-match-date="{{ data.match_date or '' }}">
+                            <i class="fa-solid fa-table-list me-2"></i>Ver clasificación completa
+                        </button>
+                    </div>
+                    {% endif %}
                     <div class="row">
                         <div class="col-md-6 border-end">
                             <h4 class="card-title text-center home-color">{{ data.home_name }}</h4>
@@ -621,3 +657,25 @@
                         </div>
                     </div>
                 </div>
+
+    <div class="modal fade league-table-modal" id="leagueTableModal" tabindex="-1"
+        aria-labelledby="leagueTableModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1" id="leagueTableModalTitle">Clasificación</h5>
+                        <div class="small opacity-75" id="leagueTableModalSubtitle"></div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Cerrar"></button>
+                </div>
+                <div class="league-table-tabs" id="leagueTableTabs"></div>
+                <div class="modal-body p-0" id="leagueTableModalBody"></div>
+                <div class="league-source-note d-flex justify-content-between gap-3 flex-wrap">
+                    <span>GF: goles a favor · GC: goles en contra · DG: diferencia de goles</span>
+                    <a href="https://www.sofascore.com/" target="_blank" rel="noopener noreferrer">Datos: SofaScore</a>
+                </div>
+            </div>
+        </div>
+    </div>

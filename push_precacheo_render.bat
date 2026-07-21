@@ -40,15 +40,15 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [2/5] Preparando solo archivos de precacheo...
-git add -- "data.json" "data/data.json" "data/data_precacheo.json"
+echo [2/5] Preparando precacheo y etiquetas de ligas...
+git add -- "data/data_precacheo.json" "data/data_pending_results.json" "data/league_extractions.json"
 if errorlevel 1 (
     echo [ERROR] No se pudieron preparar los archivos de precacheo.
     pause
     exit /b 1
 )
 
-git diff --cached --quiet -- "data.json" "data/data.json" "data/data_precacheo.json"
+git diff --cached --quiet -- "data/data_precacheo.json" "data/data_pending_results.json" "data/league_extractions.json"
 set "DIFF_EXIT=%ERRORLEVEL%"
 if "%DIFF_EXIT%"=="0" (
     echo [INFO] No hay cambios nuevos en los archivos de precacheo.
@@ -63,7 +63,7 @@ if not "%DIFF_EXIT%"=="1" (
 )
 
 echo [3/5] Creando commit...
-git commit --only -m "%MSG%" -- "data.json" "data/data.json" "data/data_precacheo.json"
+git commit --only -m "%MSG%" -- "data/data_precacheo.json" "data/data_pending_results.json" "data/league_extractions.json"
 if errorlevel 1 (
     echo [ERROR] El commit ha fallado.
     pause
