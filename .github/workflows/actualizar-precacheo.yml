@@ -114,16 +114,19 @@ jobs:
 
             if git -C "$publish_dir" diff --cached --quiet; then
               echo "No hay cambios nuevos que publicar."
+              git worktree remove --force "$publish_dir"
               echo "published=false" >> "$GITHUB_OUTPUT"
               exit 0
             fi
 
             git -C "$publish_dir" commit -m "chore: cloud refresh precacheo ${stamp}"
             if git -C "$publish_dir" push origin HEAD:main; then
+              git worktree remove --force "$publish_dir"
               echo "published=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
 
+            git worktree remove --force "$publish_dir"
             echo "main avanzó durante la publicación; se reintentará sobre su última versión."
           done
 
