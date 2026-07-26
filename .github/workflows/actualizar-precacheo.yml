@@ -38,13 +38,13 @@ jobs:
 
     steps:
       - name: Descargar la versión de Render
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 1
 
       - name: Preparar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -81,26 +81,54 @@ jobs:
       - name: Publicar en main
         id: publish
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add -- \
-            data.json \
-            data/data.json \
-            data/data_precacheo.json \
-            data/data_pending_results.json \
-            data/league_extractions.json
-
-          if git diff --cached --quiet; then
-            echo "No hay cambios nuevos que publicar."
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
+          output_dir="$RUNNER_TEMP/precacheo-output"
+          mkdir -p "$output_dir/data"
+          cp data.json "$output_dir/data.json"
+          cp data/data.json "$output_dir/data/data.json"
+          cp data/data_precacheo.json "$output_dir/data/data_precacheo.json"
+          cp data/data_pending_results.json "$output_dir/data/data_pending_results.json"
+          cp data/league_extractions.json "$output_dir/data/league_extractions.json"
           stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
-          git commit -m "chore: cloud refresh precacheo ${stamp}"
-          git push origin HEAD:main
-          echo "published=true" >> "$GITHUB_OUTPUT"
+
+          for attempt in 1 2 3; do
+            echo "Intento de publicación $attempt/3"
+            git fetch origin main --depth=1
+
+            publish_dir="$RUNNER_TEMP/precacheo-publish-$attempt"
+            git worktree add --detach "$publish_dir" origin/main
+
+            cp "$output_dir/data.json" "$publish_dir/data.json"
+            cp "$output_dir/data/data.json" "$publish_dir/data/data.json"
+            cp "$output_dir/data/data_precacheo.json" "$publish_dir/data/data_precacheo.json"
+            cp "$output_dir/data/data_pending_results.json" "$publish_dir/data/data_pending_results.json"
+            cp "$output_dir/data/league_extractions.json" "$publish_dir/data/league_extractions.json"
+
+            git -C "$publish_dir" config user.name "github-actions[bot]"
+            git -C "$publish_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git -C "$publish_dir" add -- \
+              data.json \
+              data/data.json \
+              data/data_precacheo.json \
+              data/data_pending_results.json \
+              data/league_extractions.json
+
+            if git -C "$publish_dir" diff --cached --quiet; then
+              echo "No hay cambios nuevos que publicar."
+              echo "published=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            git -C "$publish_dir" commit -m "chore: cloud refresh precacheo ${stamp}"
+            if git -C "$publish_dir" push origin HEAD:main; then
+              echo "published=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            echo "main avanzó durante la publicación; se reintentará sobre su última versión."
+          done
+
+          echo "No se pudo publicar después de tres intentos." >&2
+          exit 1
 
       - name: Resumen
         if: always()
