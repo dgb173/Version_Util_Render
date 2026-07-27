@@ -18,7 +18,7 @@ services:
       - key: SQL_BOOTSTRAP_MODE
         value: "partial"
       - key: SQL_BOOTSTRAP_ONLY_BUCKETS
-        value: "data_precacheo.json,data_pending_results.json"
+        value: "data_cloud_league.json,data_precacheo.json,data_pending_results.json"
       - key: APP_SQLITE_PATH
         value: "/tmp/app_data.db"
       - key: APP_SQLITE_BOOTSTRAP_LOCK

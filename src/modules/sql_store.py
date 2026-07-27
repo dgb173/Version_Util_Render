@@ -45,6 +45,7 @@ else:
     import fcntl
 
 MANAGED_BUCKETS = [
+    "data_cloud_league.json",
     "data_ah_0.json",
     "data_ah_0.5.json",
     "data_ah_1.5.json",
@@ -599,17 +600,25 @@ def _import_legacy_matches(
 ) -> int:
     imported = 0
 
-    # Historical first, then pending, then precacheo (highest precedence)
+    # General historical first, then live buckets. The explicit cloud archive
+    # is imported last so finished league extractions remain historical even
+    # when the same ID still lingers in a precache snapshot.
     ordered_files: List[str] = []
     requested_buckets = [b for b in (buckets or MANAGED_BUCKETS) if b in MANAGED_BUCKETS]
 
     for bucket in requested_buckets:
-        if bucket not in ("data_pending_results.json", "data_precacheo.json"):
+        if bucket not in (
+            "data_cloud_league.json",
+            "data_pending_results.json",
+            "data_precacheo.json",
+        ):
             ordered_files.append(bucket)
     if "data_pending_results.json" in requested_buckets:
         ordered_files.append("data_pending_results.json")
     if "data_precacheo.json" in requested_buckets:
         ordered_files.append("data_precacheo.json")
+    if "data_cloud_league.json" in requested_buckets:
+        ordered_files.append("data_cloud_league.json")
 
     for bucket in ordered_files:
         path = data_dir / bucket

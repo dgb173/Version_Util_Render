@@ -1,0 +1,161 @@
+name: Extraer liga en la nube
+
+run-name: >-
+  Liga ${{ inputs.league_reference }} · ${{ inputs.season || 'temporada automática' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_reference:
+        description: URL completa o ID de liga NowGoal
+        required: true
+        type: string
+      season:
+        description: Temporada (vacío = automática)
+        required: false
+        default: ""
+        type: string
+      match_status:
+        description: Partidos que se analizarán
+        required: true
+        default: finished
+        type: choice
+        options:
+          - finished
+          - all
+          - upcoming
+      ah:
+        description: AH visible exacto (vacío = todos)
+        required: false
+        default: ""
+        type: string
+      label:
+        description: Nombre que aparecerá en Extraer liga
+        required: false
+        default: ""
+        type: string
+      workers:
+        description: Procesos simultáneos
+        required: true
+        default: "5"
+        type: choice
+        options:
+          - "3"
+          - "5"
+          - "8"
+      max_matches:
+        description: 0 = liga completa; usa otro número solo para pruebas
+        required: true
+        default: 0
+        type: number
+      force:
+        description: Volver a analizar partidos ya guardados
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: datos-cloud-main
+  cancel-in-progress: false
+
+jobs:
+  extraer:
+    name: Analizar, publicar y desplegar
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data_cloud.db
+      APP_SQLITE_BOOTSTRAP_LOCK: ${{ github.workspace }}/data/app_data_cloud_bootstrap.lock
+      DATA_LEGACY_SYNC: "0"
+      SQL_BOOTSTRAP_MODE: partial
+      SQL_BOOTSTRAP_ONLY_BUCKETS: data_cloud_league.json,data_precacheo.json,data_pending_results.json
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Descargar la versión de Render
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Extraer liga
+        env:
+          LEAGUE_REFERENCE: ${{ inputs.league_reference }}
+          SEASON: ${{ inputs.season }}
+          MATCH_STATUS: ${{ inputs.match_status }}
+          TARGET_AH: ${{ inputs.ah }}
+          LABEL: ${{ inputs.label }}
+          WORKERS: ${{ inputs.workers }}
+          MAX_MATCHES: ${{ inputs.max_matches }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=(
+            --league-reference "$LEAGUE_REFERENCE"
+            --season "$SEASON"
+            --match-status "$MATCH_STATUS"
+            --ah "$TARGET_AH"
+            --label "$LABEL"
+            --workers "$WORKERS"
+            --max-matches "$MAX_MATCHES"
+          )
+          if [[ "$FORCE" == "true" ]]; then
+            args+=(--force)
+          fi
+          python scripts/cloud_extract_league.py "${args[@]}"
+
+      - name: Validar datos publicados
+        run: |
+          python -m json.tool data/data_cloud_league.json > /dev/null
+          python -m json.tool data/league_extractions.json > /dev/null
+          git status --short -- \
+            data/data_cloud_league.json \
+            data/league_extractions.json
+
+      - name: Publicar en main
+        id: publish
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data/data_cloud_league.json data/league_extractions.json
+
+          if git diff --cached --quiet; then
+            echo "No hay cambios nuevos que publicar."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
+          git commit -m "data: extracción cloud de liga ${stamp}"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "published=true" >> "$GITHUB_OUTPUT"
+
+      - name: Resumen
+        if: always()
+        run: |
+          {
+            echo "## Extracción cloud de liga"
+            echo
+            echo "- Liga solicitada: **${{ inputs.league_reference }}**"
+            echo "- Temporada: **${{ inputs.season || 'automática' }}**"
+            echo "- Estado: **${{ inputs.match_status }}**"
+            echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
+            echo
+            echo "Al publicarse el commit, Render se redespliega y carga el histórico cloud."
+          } >> "$GITHUB_STEP_SUMMARY"
