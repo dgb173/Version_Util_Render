@@ -291,18 +291,28 @@
                             {% else %}<p class="text-muted text-center">Datos de clasificación no disponibles.</p>{%
                             endif %}
                             <hr>
-                            <h6 class="text-center">Over/Under Odds % (Últ. {{ data.home_ou_stats.total }} partidos)
-                            </h6>
-                            {% if data.home_ou_stats.total > 0 %}
-                            <p class="text-center">
-                                <span style="color: green; font-weight: bold;">Over: {{
-                                    "%.1f"|format(data.home_ou_stats.over_pct) }}%</span> |
-                                <span style="color: red; font-weight: bold;">Under: {{
-                                    "%.1f"|format(data.home_ou_stats.under_pct) }}%</span> |
-                                <span style="color: grey;">Push: {{ "%.1f"|format(data.home_ou_stats.push_pct)
-                                    }}%</span>
-                                {% else %}
-                            <p class="text-muted text-center">No hay datos O/U.</p>{% endif %}
+                            {% set home_ou_specific = data.home_ou_stats_specific or data.home_ou_stats %}
+                            {% set home_ou_general = data.home_ou_stats_general or {} %}
+                            <h6 class="text-center">O/U · Local · misma liga ({{ home_ou_specific.total or 0 }})</h6>
+                            {% if home_ou_specific.total > 0 %}
+                            <p class="text-center mb-2">
+                                <span style="color: green; font-weight: bold;">Over: {{ "%.1f"|format(home_ou_specific.over_pct) }}%</span> |
+                                <span style="color: red; font-weight: bold;">Under: {{ "%.1f"|format(home_ou_specific.under_pct) }}%</span> |
+                                <span style="color: grey;">Push: {{ "%.1f"|format(home_ou_specific.push_pct) }}%</span>
+                            </p>
+                            {% else %}<p class="text-muted text-center mb-2">Sin O/U en condición local.</p>{% endif %}
+                            <div class="rounded p-2 {% if not home_ou_specific.total and home_ou_general.total %}border border-warning{% endif %}"
+                                {% if not home_ou_specific.total and home_ou_general.total %}style="background:#fff9c4;"{% endif %}>
+                                <h6 class="text-center mb-1">O/U · General · misma liga ({{ home_ou_general.total or 0 }})</h6>
+                                {% if home_ou_general.total > 0 %}
+                                <p class="text-center mb-0">
+                                    <span style="color: green; font-weight: bold;">Over: {{ "%.1f"|format(home_ou_general.over_pct) }}%</span> |
+                                    <span style="color: red; font-weight: bold;">Under: {{ "%.1f"|format(home_ou_general.under_pct) }}%</span> |
+                                    <span style="color: grey;">Push: {{ "%.1f"|format(home_ou_general.push_pct) }}%</span>
+                                    {% if not home_ou_specific.total %}<br><span class="badge bg-warning text-dark mt-1">RESPALDO UTILIZADO</span>{% endif %}
+                                </p>
+                                {% else %}<p class="text-muted text-center mb-0">No hay datos O/U en esta liga.</p>{% endif %}
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <h4 class="card-title text-center away-color">{{ data.away_name }}</h4>
@@ -322,18 +332,28 @@
                             {% else %}<p class="text-muted text-center">Datos de clasificación no disponibles.</p>{%
                             endif %}
                             <hr>
-                            <h6 class="text-center">Over/Under Odds % (Últ. {{ data.away_ou_stats.total }} partidos)
-                            </h6>
-                            {% if data.away_ou_stats.total > 0 %}
-                            <p class="text-center">
-                                <span style="color: green; font-weight: bold;">Over: {{
-                                    "%.1f"|format(data.away_ou_stats.over_pct) }}%</span> |
-                                <span style="color: red; font-weight: bold;">Under: {{
-                                    "%.1f"|format(data.away_ou_stats.under_pct) }}%</span> |
-                                <span style="color: grey;">Push: {{ "%.1f"|format(data.away_ou_stats.push_pct)
-                                    }}%</span>
-                                {% else %}
-                            <p class="text-muted text-center">No hay datos O/U.</p>{% endif %}
+                            {% set away_ou_specific = data.away_ou_stats_specific or data.away_ou_stats %}
+                            {% set away_ou_general = data.away_ou_stats_general or {} %}
+                            <h6 class="text-center">O/U · Visitante · misma liga ({{ away_ou_specific.total or 0 }})</h6>
+                            {% if away_ou_specific.total > 0 %}
+                            <p class="text-center mb-2">
+                                <span style="color: green; font-weight: bold;">Over: {{ "%.1f"|format(away_ou_specific.over_pct) }}%</span> |
+                                <span style="color: red; font-weight: bold;">Under: {{ "%.1f"|format(away_ou_specific.under_pct) }}%</span> |
+                                <span style="color: grey;">Push: {{ "%.1f"|format(away_ou_specific.push_pct) }}%</span>
+                            </p>
+                            {% else %}<p class="text-muted text-center mb-2">Sin O/U en condición visitante.</p>{% endif %}
+                            <div class="rounded p-2 {% if not away_ou_specific.total and away_ou_general.total %}border border-warning{% endif %}"
+                                {% if not away_ou_specific.total and away_ou_general.total %}style="background:#fff9c4;"{% endif %}>
+                                <h6 class="text-center mb-1">O/U · General · misma liga ({{ away_ou_general.total or 0 }})</h6>
+                                {% if away_ou_general.total > 0 %}
+                                <p class="text-center mb-0">
+                                    <span style="color: green; font-weight: bold;">Over: {{ "%.1f"|format(away_ou_general.over_pct) }}%</span> |
+                                    <span style="color: red; font-weight: bold;">Under: {{ "%.1f"|format(away_ou_general.under_pct) }}%</span> |
+                                    <span style="color: grey;">Push: {{ "%.1f"|format(away_ou_general.push_pct) }}%</span>
+                                    {% if not away_ou_specific.total %}<br><span class="badge bg-warning text-dark mt-1">RESPALDO UTILIZADO</span>{% endif %}
+                                </p>
+                                {% else %}<p class="text-muted text-center mb-0">No hay datos O/U en esta liga.</p>{% endif %}
+                            </div>
                         </div>
                     </div>
                     <!-- Bet365 Initial Odds Section -->
@@ -378,7 +398,7 @@
                     <h5 class="mb-3 text-muted">Historial inmediato</h5>
                     <div class="row immediate-history-row">
                         <div class="col-4 mb-3">
-                            <div class="card h-100">
+                            <div class="card h-100" {% if data.last_home_match and data.last_home_match.is_general_fallback %}style="background:#fff9c4;border-color:#f0ad4e;"{% endif %}>
                                 <div class="card-header">
                                     <h5 class="card-title">Último <span class="home-color">{{ data.home_name }}</span>
                                         (Local)</h5>
@@ -386,6 +406,7 @@
                                 <div class="card-body">
                                     {% if data.last_home_match %}
                                     {% set res = data.last_home_match %}
+                                    {% if res.is_general_fallback %}<div class="text-center mb-2"><span class="badge bg-warning text-dark">GENERAL · MISMA LIGA</span></div>{% endif %}
                                     <p>
                                         <span class="home-color">{{ res.home_team }}</span>
                                         {% if res.home_red %}<span class="badge bg-danger text-white ms-1"
@@ -398,6 +419,9 @@
                                     <p class="text-muted small mb-1">{{ res.date }}</p>
                                     <p><b>AH:</b> <span class="ah-value">{{ format_ah(res.handicap_line_raw,
                                             absolute=False) }}</span>
+                                    </p>
+                                    <p><b>O/U:</b> <span class="ah-value">{{ res.over_under_line_raw or 'N/A' }}</span>
+                                        {% if res.over_under_result and res.over_under_result != 'N/A' %}<span class="badge bg-light text-dark border ms-1">{{ res.over_under_result }}</span>{% endif %}
                                     </p>
                                     {% if data.last_home_match.stats_rows %}
                                     <h6 class="mt-3 text-muted" style="font-size: 0.8em;">Estadísticas</h6>
@@ -411,7 +435,7 @@
                             </div>
                         </div>
                         <div class="col-4 mb-3">
-                            <div class="card h-100">
+                            <div class="card h-100" {% if data.last_away_match and data.last_away_match.is_general_fallback %}style="background:#fff9c4;border-color:#f0ad4e;"{% endif %}>
                                 <div class="card-header">
                                     <h5 class="card-title">Último <span class="away-color">{{ data.away_name }}</span>
                                         (Fuera)</h5>
@@ -419,6 +443,7 @@
                                 <div class="card-body">
                                     {% if data.last_away_match %}
                                     {% set res = data.last_away_match %}
+                                    {% if res.is_general_fallback %}<div class="text-center mb-2"><span class="badge bg-warning text-dark">GENERAL · MISMA LIGA</span></div>{% endif %}
                                     <p>
                                         <span class="home-color">{{ res.home_team }}</span>
                                         {% if res.home_red %}<span class="badge bg-danger text-white ms-1"
@@ -431,6 +456,9 @@
                                     <p class="text-muted small mb-1">{{ res.date }}</p>
                                     <p><b>AH:</b> <span class="ah-value">{{ format_ah(res.handicap_line_raw,
                                             absolute=False) }}</span>
+                                    </p>
+                                    <p><b>O/U:</b> <span class="ah-value">{{ res.over_under_line_raw or 'N/A' }}</span>
+                                        {% if res.over_under_result and res.over_under_result != 'N/A' %}<span class="badge bg-light text-dark border ms-1">{{ res.over_under_result }}</span>{% endif %}
                                     </p>
                                     {% if data.last_away_match.stats_rows %}
                                     <h6 class="mt-3 text-muted" style="font-size: 0.8em;">Estadísticas</h6>

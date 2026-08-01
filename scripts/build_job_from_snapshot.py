@@ -69,6 +69,15 @@ def _looks_like_complete_precache(match):
         return False
     if match.get("error") or match.get("precache_placeholder"):
         return False
+    # Al subir el formato, el siguiente ciclo de GitHub reprocesa una sola vez
+    # los snapshots antiguos. Los nuevos, incluso sin historial disponible,
+    # conservan la versión y no entran en un bucle de reintentos cada 8 horas.
+    try:
+        history_data_version = int(match.get("history_data_version") or 0)
+    except (TypeError, ValueError):
+        history_data_version = 0
+    if history_data_version < 2:
+        return False
 
     heavyweight_fields = (
         match.get("historical_matches_html"),

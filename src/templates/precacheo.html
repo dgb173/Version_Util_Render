@@ -7699,10 +7699,12 @@
                     prevHomeHtml = `
                         <div class="d-flex flex-column">
                             ${lhmDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lhmDate}</div>` : ''}
+                            ${lhm.is_general_fallback ? '<div><span class="badge bg-warning text-dark" style="font-size:0.48rem;">GENERAL · MISMA LIGA</span></div>' : ''}
                             <div class="d-flex justify-content-between">
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lhm.score}</span>
                             </div>
+                            ${isValidValue(lhm.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lhm.over_under_line_raw} · ${lhm.over_under_result || '-'}</div>` : ''}
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
                             </div>
@@ -7742,10 +7744,12 @@
                     prevAwayHtml = `
                         <div class="d-flex flex-column">
                             ${lamDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lamDate}</div>` : ''}
+                            ${lam.is_general_fallback ? '<div><span class="badge bg-warning text-dark" style="font-size:0.48rem;">GENERAL · MISMA LIGA</span></div>' : ''}
                             <div class="d-flex justify-content-between">
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lam.score}</span>
                             </div>
+                            ${isValidValue(lam.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lam.over_under_line_raw} · ${lam.over_under_result || '-'}</div>` : ''}
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
                             </div>
@@ -8233,8 +8237,10 @@
                 };
 
                 // Helper para crear el HTML de una celda de stats completa con colores por grupo
-                const createStatBox = (title, data, isEmpty, colorClass, bgColor, isDiffLeague) => {
-                    const finalBg = isDiffLeague ? '#fff9c4' : bgColor;
+                const createStatBox = (title, data, isEmpty, colorClass, bgColor, highlightReason) => {
+                    const isHighlighted = Boolean(highlightReason);
+                    const isGeneralFallback = highlightReason === 'general';
+                    const finalBg = isHighlighted ? '#fff9c4' : bgColor;
                     if (isEmpty) {
                         return `
                             <div style="background: ${finalBg}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.6;">
@@ -8254,7 +8260,9 @@
                     ` : '';
 
                     // Fecha
-                    const diffLeagueLabel = isDiffLeague ? '<div class="text-warning fw-bold" style="font-size: 0.55rem;">(LIGA DIF.)</div>' : '';
+                    const diffLeagueLabel = isGeneralFallback
+                        ? '<div class="text-warning fw-bold" style="font-size: 0.55rem;">(GENERAL · MISMA LIGA)</div>'
+                        : (isHighlighted ? '<div class="text-warning fw-bold" style="font-size: 0.55rem;">(LIGA DIF.)</div>' : '');
                     const dateLine = data.date ? `<div class="text-muted text-center" style="font-size: 0.65rem; margin-bottom: 4px;">${data.date} ${diffLeagueLabel}</div>` : '';
 
                     // AH
@@ -8290,12 +8298,14 @@
                 // 1. Prev Home
                 const prevHomeData = prevHomeStats || null;
                 const isDiffLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_different_league);
-                statBoxes.push(createStatBox('Prev Home', prevHomeData, !prevHomeData, 'text-success', BG_PREV_HOME, isDiffLhm));
+                const isGeneralFallbackLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_general_fallback);
+                statBoxes.push(createStatBox('Prev Home', prevHomeData, !prevHomeData, 'text-success', BG_PREV_HOME, isGeneralFallbackLhm ? 'general' : isDiffLhm));
 
                 // 2. Prev Away
                 const prevAwayData = prevAwayStats || null;
                 const isDiffLam = !!(pc && pc.last_away_match && pc.last_away_match.is_different_league);
-                statBoxes.push(createStatBox('Prev Away', prevAwayData, !prevAwayData, 'text-danger', BG_PREV_AWAY, isDiffLam));
+                const isGeneralFallbackLam = !!(pc && pc.last_away_match && pc.last_away_match.is_general_fallback);
+                statBoxes.push(createStatBox('Prev Away', prevAwayData, !prevAwayData, 'text-danger', BG_PREV_AWAY, isGeneralFallbackLam ? 'general' : isDiffLam));
 
                 // 3. H2H Estadio
                 let h2hStadiumData = null;
@@ -8632,8 +8642,8 @@
                         ${pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${pc.main_match_odds.goals_linea}</div>` : ''}
                     </td>
                     <td class="text-center col-res">${ftHtml}</td>
-                    <td class="col-prev ${isDiffLhm ? 'cell-diff-league' : ''}">${prevHomeHtml}</td>
-                    <td class="col-prev ${isDiffLam ? 'cell-diff-league' : ''}">${prevAwayHtml}</td>
+                    <td class="col-prev ${(isDiffLhm || isGeneralFallbackLhm) ? 'cell-diff-league' : ''}">${prevHomeHtml}</td>
+                    <td class="col-prev ${(isDiffLam || isGeneralFallbackLam) ? 'cell-diff-league' : ''}">${prevAwayHtml}</td>
                     <td class="col-prev text-center">${h2hStadiumHtml}</td>
                     <td class="col-prev text-center">${h2hGeneralHtml}</td>
                     <td class="col-prev col-h2h-col3 text-center ${isDiffCol3 ? 'cell-diff-league' : ''}">${h2hCol3Html}</td>

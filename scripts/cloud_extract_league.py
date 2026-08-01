@@ -49,11 +49,25 @@ def _process_match(
 ) -> Dict[str, Any]:
     match_id = str(match.get("id") or "")
     existing = sql_store.get_match(match_id)
-    if isinstance(existing, dict) and not existing.get("error") and not force:
+    try:
+        history_data_version = int((existing or {}).get("history_data_version") or 0)
+    except (TypeError, ValueError):
+        history_data_version = 0
+    needs_history_upgrade = history_data_version < 2
+    if (
+        isinstance(existing, dict)
+        and not existing.get("error")
+        and not force
+        and not needs_history_upgrade
+    ):
         _store_in_cloud_bucket(match_id)
         return {"id": match_id, "status": "exists", "bucket": CLOUD_BUCKET}
 
-    result = scrape_match_to_sql(match, league_id, force=force)
+    result = scrape_match_to_sql(
+        match,
+        league_id,
+        force=force or needs_history_upgrade,
+    )
     if result.get("status") in {"saved", "exists"} and _store_in_cloud_bucket(match_id):
         result["bucket"] = CLOUD_BUCKET
     return result

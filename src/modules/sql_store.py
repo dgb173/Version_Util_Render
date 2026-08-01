@@ -304,9 +304,16 @@ def _compact_prev_match(raw: Any) -> Optional[Dict[str, Any]]:
         "match_id": raw.get("match_id"),
         "score": raw.get("score"),
         "handicap_line_raw": raw.get("handicap_line_raw"),
+        "over_under_line_raw": raw.get("over_under_line_raw"),
+        "over_under_result": raw.get("over_under_result"),
         "home_team": raw.get("home_team"),
         "away_team": raw.get("away_team"),
         "date": raw.get("date"),
+        "league_id_hist": raw.get("league_id_hist"),
+        "history_scope": raw.get("history_scope"),
+        "subject_is_home": raw.get("subject_is_home"),
+        "is_general_fallback": bool(raw.get("is_general_fallback")),
+        "is_different_league": bool(raw.get("is_different_league")),
         "stats_rows": raw.get("stats_rows") if isinstance(raw.get("stats_rows"), list) else [],
     }
 
@@ -367,6 +374,7 @@ def _compact_comparativas(raw: Any) -> Optional[Dict[str, Any]]:
 def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
         "match_id": match_data.get("match_id"),
+        "history_data_version": match_data.get("history_data_version"),
         "id": match_data.get("id"),
         "home_name": match_data.get("home_name"),
         "away_name": match_data.get("away_name"),
@@ -397,6 +405,12 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "comparativas_indirectas": _compact_comparativas(match_data.get("comparativas_indirectas")),
         "home_standings": match_data.get("home_standings"),
         "away_standings": match_data.get("away_standings"),
+        "home_ou_stats": match_data.get("home_ou_stats"),
+        "away_ou_stats": match_data.get("away_ou_stats"),
+        "home_ou_stats_specific": match_data.get("home_ou_stats_specific"),
+        "away_ou_stats_specific": match_data.get("away_ou_stats_specific"),
+        "home_ou_stats_general": match_data.get("home_ou_stats_general"),
+        "away_ou_stats_general": match_data.get("away_ou_stats_general"),
     }
     return payload
 
