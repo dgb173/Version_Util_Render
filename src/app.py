@@ -1409,6 +1409,17 @@ def _compact_precacheo_match_for_list(match, include_specialist_picks=False):
             continue
         if isinstance(value, str) and 'html' in key_l and len(value) > 500:
             continue
+        if key_l.startswith('recent_') and key_l.endswith(('matches', 'matches_all', 'specific', 'general')) and isinstance(value, list):
+            compact[key] = [
+                {
+                    'home': row.get('home'),
+                    'away': row.get('away'),
+                    'score': row.get('score') or row.get('score_raw'),
+                }
+                for row in value
+                if isinstance(row, dict)
+            ]
+            continue
         compact[key] = value
 
     # La columna Picks tiene una sola autoridad. Se descartan motores legacy

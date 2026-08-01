@@ -133,6 +133,41 @@
             font-size: 0.95rem;
         }
 
+        .team-form-compact {
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: .54rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .team-form-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        .team-form-label {
+            min-width: 29px;
+            color: #6c757d;
+            font-size: .48rem;
+        }
+
+        .team-form-pill {
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #fff;
+            white-space: nowrap;
+        }
+
+        .team-form-win { background: #198754; }
+        .team-form-over { background: #f59f00; color: #212529; }
+        .team-form-under { background: #0d6efd; }
+
         .col-prev {
             font-size: 0.85rem;
         }
@@ -7642,6 +7677,52 @@
                     }
                 }
 
+                const calculateTeamWins = (matches, teamName) => {
+                    const rows = Array.isArray(matches) ? matches : [];
+                    let wins = 0;
+                    let total = 0;
+                    rows.forEach(item => {
+                        const score = parseScoreValue(item && (item.score || item.score_raw));
+                        if (!score) return;
+                        const subjectHome = sameTeamName(item.home, teamName);
+                        const subjectAway = sameTeamName(item.away, teamName);
+                        if (!subjectHome && !subjectAway) return;
+                        total += 1;
+                        if ((subjectHome && score.home > score.away) || (subjectAway && score.away > score.home)) {
+                            wins += 1;
+                        }
+                    });
+                    return { wins, total };
+                };
+
+                const renderTeamFormRow = (label, teamName, matches, ouStats) => {
+                    const result = calculateTeamWins(matches, teamName);
+                    const ouTotal = Number(ouStats && ouStats.total) || 0;
+                    const total = result.total || ouTotal;
+                    if (!total) return '';
+                    const over = Number(ouStats && ouStats.over_pct) || 0;
+                    const under = Number(ouStats && ouStats.under_pct) || 0;
+                    return `
+                        <div class="team-form-row">
+                            <span class="team-form-label">${label}</span>
+                            <span class="team-form-pill team-form-win">V ${result.wins}/${result.total || total}</span>
+                            <span class="team-form-pill team-form-over">O ${over.toFixed(0)}%</span>
+                            <span class="team-form-pill team-form-under">U ${under.toFixed(0)}%</span>
+                        </div>`;
+                };
+
+                const homeTrendHtml = pc ? `
+                    <div class="team-form-compact">
+                        ${renderTeamFormRow('CASA', home, pc.recent_home_matches_same_league_specific || pc.recent_home_matches, pc.home_ou_stats_specific || pc.home_ou_stats)}
+                        ${renderTeamFormRow('TOTAL', home, pc.recent_home_matches_same_league_general || pc.recent_home_matches_all, pc.home_ou_stats_general)}
+                    </div>` : '';
+
+                const awayTrendHtml = pc ? `
+                    <div class="team-form-compact">
+                        ${renderTeamFormRow('FUERA', away, pc.recent_away_matches_same_league_specific || pc.recent_away_matches, pc.away_ou_stats_specific || pc.away_ou_stats)}
+                        ${renderTeamFormRow('TOTAL', away, pc.recent_away_matches_same_league_general || pc.recent_away_matches_all, pc.away_ou_stats_general)}
+                    </div>` : '';
+
                 // Format Date/Time
                 const fecha = formatMatchDateTime(m);
 
@@ -7668,12 +7749,6 @@
                 // Perspectiva Local: Negativo = Local Favorito, Positivo = Local Underdog
                 const currentAh = getLocalPerspectiveAh(m);
                 const localEsFavorito = !isNaN(currentAh) && currentAh > 0;
-
-                const ouMini = (stats) => {
-                    const total = Number(stats && stats.total) || 0;
-                    if (!total) return '-';
-                    return `${Number(stats.over_pct || 0).toFixed(0)}O/${Number(stats.under_pct || 0).toFixed(0)}U (${total})`;
-                };
 
                 // Prev Home
                 let prevHomeHtml = '<span class="text-muted">-</span>';
@@ -7711,11 +7786,6 @@
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lhm.score}</span>
                             </div>
-                              ${isValidValue(lhm.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lhm.over_under_line_raw} · ${lhm.over_under_result || '-'}</div>` : ''}
-                              <div style="font-size:0.52rem;line-height:1.15;margin-top:2px;">
-                                  <div><b>O/U CASA · LIGA:</b> ${ouMini(pc.home_ou_stats_specific || pc.home_ou_stats)}</div>
-                                  <div class="${!(Number((pc.home_ou_stats_specific || pc.home_ou_stats || {}).total) || 0) && Number((pc.home_ou_stats_general || {}).total) ? 'bg-warning-subtle' : ''}"><b>O/U TOTAL · LIGA:</b> ${ouMini(pc.home_ou_stats_general)}</div>
-                              </div>
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
                             </div>
@@ -7761,11 +7831,6 @@
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lam.score}</span>
                             </div>
-                              ${isValidValue(lam.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lam.over_under_line_raw} · ${lam.over_under_result || '-'}</div>` : ''}
-                              <div style="font-size:0.52rem;line-height:1.15;margin-top:2px;">
-                                  <div><b>O/U FUERA · LIGA:</b> ${ouMini(pc.away_ou_stats_specific || pc.away_ou_stats)}</div>
-                                  <div class="${!(Number((pc.away_ou_stats_specific || pc.away_ou_stats || {}).total) || 0) && Number((pc.away_ou_stats_general || {}).total) ? 'bg-warning-subtle' : ''}"><b>O/U TOTAL · LIGA:</b> ${ouMini(pc.away_ou_stats_general)}</div>
-                              </div>
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
                             </div>
@@ -8676,11 +8741,13 @@
                         <div>${home}</div>
                         ${homeRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${homeRank}</div>` : ''}
                         ${homeStatsHtml}
+                        ${homeTrendHtml}
                     </td>
                     <td class="col-team text-danger small" style="font-size: 0.8rem;">
                         <div>${away}</div>
                         ${awayRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${awayRank}</div>` : ''}
                         ${awayStatsHtml}
+                        ${awayTrendHtml}
                     </td>
                     <td class="col-ah">
                         ${formatAh(ah)}
