@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Iterable, Sequence
+from zoneinfo import ZoneInfo
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +51,74 @@ def _load_json(path: Path):
             return json.load(handle)
     except Exception as exc:
         raise RefreshError(f"JSON inválido o ilegible: {path}: {exc}") from exc
+
+
+def _parse_precache_date(value):
+    text = str(value or "").strip()
+    for pattern in ("%m/%d/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+        try:
+            return dt.datetime.strptime(text, pattern).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _stale_history_jobs(path: Path, days: int) -> list[dict]:
+    """Recupera snapshots recientes que quedaron con el historial antiguo.
+
+    NowGoal saca de ``upcoming`` un partido cuando empieza. Sin este paso, si
+    desplegamos una mejora de historial durante el día, esos partidos ya no se
+    vuelven a analizar y Render conserva el registro antiguo para siempre.
+    """
+    if days <= 0 or not path.is_file():
+        return []
+
+    payload = _load_json(path)
+    if not isinstance(payload, list):
+        return []
+
+    today = dt.datetime.now(ZoneInfo("Europe/Madrid")).date()
+    minimum_date = today - dt.timedelta(days=max(0, days - 1))
+    jobs = []
+    seen = set()
+    for match in payload:
+        if not isinstance(match, dict):
+            continue
+        try:
+            history_version = int(match.get("history_data_version") or 0)
+        except (TypeError, ValueError):
+            history_version = 0
+        if history_version >= 2:
+            continue
+
+        match_date = _parse_precache_date(match.get("match_date"))
+        match_id = str(match.get("match_id") or match.get("id") or "").strip()
+        if not match_id or match_id in seen or not match_date or match_date < minimum_date:
+            continue
+
+        main_odds = match.get("main_match_odds") or {}
+        jobs.append(
+            {
+                "id": match_id,
+                "ah": str(match.get("handicap") or main_odds.get("ah_linea") or "N/A"),
+                "season": "stale_history_upgrade",
+                "league_id": "stale_history_upgrade",
+            }
+        )
+        seen.add(match_id)
+    return jobs
+
+
+def _merge_jobs(primary: list[dict], extra: list[dict]) -> list[dict]:
+    merged = []
+    seen = set()
+    for job in [*primary, *extra]:
+        match_id = str((job or {}).get("id") or "").strip()
+        if not match_id or match_id in seen:
+            continue
+        seen.add(match_id)
+        merged.append(job)
+    return merged
 
 
 def _validate_outputs(max_json_bytes: int) -> dict:
@@ -103,6 +173,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--workers", type=int, default=10)
     parser.add_argument("--force-full", action="store_true")
+    parser.add_argument(
+        "--upgrade-stale-days",
+        type=int,
+        default=1,
+        help="Reanaliza snapshots recientes con una versión de historial antigua.",
+    )
     parser.add_argument("--job-file", type=Path, default=DEFAULT_JOB_FILE)
     parser.add_argument("--max-json-bytes", type=int, default=99_000_000)
     return parser.parse_args()
@@ -148,8 +224,18 @@ def main() -> int:
         if not isinstance(jobs, list):
             raise RefreshError("El archivo temporal de trabajos no es una lista JSON")
 
+        stale_jobs = _stale_history_jobs(PRECACHE_FILE, args.upgrade_stale_days)
+        jobs = _merge_jobs(jobs, stale_jobs)
+        if stale_jobs:
+            print(
+                f"\nAñadidos para actualizar historial antiguo del día: {len(stale_jobs)}; "
+                f"trabajos únicos totales: {len(jobs)}"
+            )
+            with job_file.open("w", encoding="utf-8") as handle:
+                json.dump(jobs, handle, ensure_ascii=False, indent=2)
+
         analysis_code = 0
-        if build_code == 4 or not jobs:
+        if not jobs:
             print("\nNo hay partidos nuevos que analizar; se conserva el precacheo vigente.")
         else:
             analysis_code = _run(

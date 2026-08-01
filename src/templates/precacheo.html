@@ -7669,6 +7669,12 @@
                 const currentAh = getLocalPerspectiveAh(m);
                 const localEsFavorito = !isNaN(currentAh) && currentAh > 0;
 
+                const ouMini = (stats) => {
+                    const total = Number(stats && stats.total) || 0;
+                    if (!total) return '-';
+                    return `${Number(stats.over_pct || 0).toFixed(0)}O/${Number(stats.under_pct || 0).toFixed(0)}U (${total})`;
+                };
+
                 // Prev Home
                 let prevHomeHtml = '<span class="text-muted">-</span>';
                 let prevHomeStats = null; // Para el botón global de stats
@@ -7686,15 +7692,16 @@
                     const lhmAwayName = lhm.away_team || '';
                     const lhmDate = lhm.date || '';
 
-                    // Guardar stats para el botón global
-                    if (lhm.stats_rows && Array.isArray(lhm.stats_rows) && lhm.stats_rows.length > 0) {
-                        prevHomeStats = {
-                            title: 'Prev Home',
-                            date: lhmDate,
-                            stats: lhm.stats_rows,
-                            match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score }
-                        };
-                    }
+                    // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
+                    prevHomeStats = {
+                        title: 'Prev Home',
+                        date: lhmDate,
+                        stats: Array.isArray(lhm.stats_rows) ? lhm.stats_rows : [],
+                        match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score },
+                        ouSpecific: pc.home_ou_stats_specific || pc.home_ou_stats || null,
+                        ouGeneral: pc.home_ou_stats_general || null,
+                        ouRoleLabel: 'CASA'
+                    };
 
                     prevHomeHtml = `
                         <div class="d-flex flex-column">
@@ -7704,7 +7711,11 @@
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lhm.score}</span>
                             </div>
-                            ${isValidValue(lhm.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lhm.over_under_line_raw} · ${lhm.over_under_result || '-'}</div>` : ''}
+                              ${isValidValue(lhm.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lhm.over_under_line_raw} · ${lhm.over_under_result || '-'}</div>` : ''}
+                              <div style="font-size:0.52rem;line-height:1.15;margin-top:2px;">
+                                  <div><b>O/U CASA · LIGA:</b> ${ouMini(pc.home_ou_stats_specific || pc.home_ou_stats)}</div>
+                                  <div class="${!(Number((pc.home_ou_stats_specific || pc.home_ou_stats || {}).total) || 0) && Number((pc.home_ou_stats_general || {}).total) ? 'bg-warning-subtle' : ''}"><b>O/U TOTAL · LIGA:</b> ${ouMini(pc.home_ou_stats_general)}</div>
+                              </div>
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
                             </div>
@@ -7731,15 +7742,16 @@
                     const lamAwayName = lam.away_team || '';
                     const lamDate = lam.date || '';
 
-                    // Guardar stats para el botón global
-                    if (lam.stats_rows && Array.isArray(lam.stats_rows) && lam.stats_rows.length > 0) {
-                        prevAwayStats = {
-                            title: 'Prev Away',
-                            date: lamDate,
-                            stats: lam.stats_rows,
-                            match: { home: lamHomeName, away: lamAwayName, score: lam.score }
-                        };
-                    }
+                    // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
+                    prevAwayStats = {
+                        title: 'Prev Away',
+                        date: lamDate,
+                        stats: Array.isArray(lam.stats_rows) ? lam.stats_rows : [],
+                        match: { home: lamHomeName, away: lamAwayName, score: lam.score },
+                        ouSpecific: pc.away_ou_stats_specific || pc.away_ou_stats || null,
+                        ouGeneral: pc.away_ou_stats_general || null,
+                        ouRoleLabel: 'FUERA'
+                    };
 
                     prevAwayHtml = `
                         <div class="d-flex flex-column">
@@ -7749,7 +7761,11 @@
                                 <span class="fw-bold small">${ahVal}</span>
                                 <span class="fw-bold ${wdlClass}">${lam.score}</span>
                             </div>
-                            ${isValidValue(lam.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lam.over_under_line_raw} · ${lam.over_under_result || '-'}</div>` : ''}
+                              ${isValidValue(lam.over_under_line_raw) ? `<div style="font-size:0.55rem;">O/U ${lam.over_under_line_raw} · ${lam.over_under_result || '-'}</div>` : ''}
+                              <div style="font-size:0.52rem;line-height:1.15;margin-top:2px;">
+                                  <div><b>O/U FUERA · LIGA:</b> ${ouMini(pc.away_ou_stats_specific || pc.away_ou_stats)}</div>
+                                  <div class="${!(Number((pc.away_ou_stats_specific || pc.away_ou_stats || {}).total) || 0) && Number((pc.away_ou_stats_general || {}).total) ? 'bg-warning-subtle' : ''}"><b>O/U TOTAL · LIGA:</b> ${ouMini(pc.away_ou_stats_general)}</div>
+                              </div>
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
                             </div>
@@ -8236,6 +8252,25 @@
                     return `<table class="table table-sm stat-table mb-0"><tbody>${rows}</tbody></table>`;
                 };
 
+                const renderOuLine = (label, stats, isFallback = false) => {
+                    const total = Number(stats && stats.total) || 0;
+                    if (!total) {
+                        return `<div class="text-muted" style="font-size:0.68rem;">O/U ${label} · MISMA LIGA: sin datos</div>`;
+                    }
+                    const over = Number(stats.over_pct || 0).toFixed(1);
+                    const under = Number(stats.under_pct || 0).toFixed(1);
+                    const push = Number(stats.push_pct || 0).toFixed(1);
+                    return `
+                        <div class="${isFallback ? 'rounded px-1' : ''}" ${isFallback ? 'style="background:#fff3a3;"' : ''}>
+                            <div class="fw-bold" style="font-size:0.66rem;">O/U ${label} · MISMA LIGA (${total})</div>
+                            <div style="font-size:0.68rem;">
+                                <span class="text-success fw-bold">Over ${over}%</span> ·
+                                <span class="text-danger fw-bold">Under ${under}%</span> ·
+                                <span class="text-muted">Push ${push}%</span>
+                            </div>
+                        </div>`;
+                };
+
                 // Helper para crear el HTML de una celda de stats completa con colores por grupo
                 const createStatBox = (title, data, isEmpty, colorClass, bgColor, highlightReason) => {
                     const isHighlighted = Boolean(highlightReason);
@@ -8275,12 +8310,22 @@
                         </div>
                     ` : '';
 
+                    const ouSpecificTotal = Number(data.ouSpecific && data.ouSpecific.total) || 0;
+                    const ouGeneralTotal = Number(data.ouGeneral && data.ouGeneral.total) || 0;
+                    const ouHtml = (data.ouSpecific || data.ouGeneral) ? `
+                        <div style="margin-top:6px;border-top:1px solid rgba(0,0,0,0.1);padding-top:6px;text-align:center;">
+                            ${renderOuLine(data.ouRoleLabel || 'ROL', data.ouSpecific)}
+                            <div class="mt-1">${renderOuLine('TOTAL', data.ouGeneral, !ouSpecificTotal && !!ouGeneralTotal)}</div>
+                        </div>
+                    ` : '';
+
                     return `
                         <div style="background: ${finalBg}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             <div class="fw-bold ${colorClass} text-uppercase text-center" style="font-size: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 6px; margin-bottom: 8px;">${title}</div>
                             ${matchLine}
                             ${dateLine}
                             ${ahLine}
+                            ${ouHtml}
                             ${statsHtml}
                         </div>
                     `;

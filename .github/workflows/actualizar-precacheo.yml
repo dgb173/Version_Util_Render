@@ -34,6 +34,7 @@ jobs:
       SQL_BOOTSTRAP_MODE: partial
       SQL_BOOTSTRAP_ONLY_BUCKETS: data_precacheo.json,data_pending_results.json
       PRECACHEO_PENDING_MAX_AGE_DAYS: "1"
+      PRECACHEO_HISTORY_UPGRADE_DAYS: "1"
       PYTHONUNBUFFERED: "1"
 
     steps:
@@ -60,7 +61,7 @@ jobs:
         env:
           FORCE_FULL: ${{ inputs.force_full || false }}
         run: |
-          args=(--workers 10)
+          args=(--workers 10 --upgrade-stale-days "$PRECACHEO_HISTORY_UPGRADE_DAYS")
           if [[ "$FORCE_FULL" == "true" ]]; then
             args+=(--force-full)
           fi
