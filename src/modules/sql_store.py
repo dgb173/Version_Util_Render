@@ -371,6 +371,21 @@ def _compact_comparativas(raw: Any) -> Optional[Dict[str, Any]]:
     return {"left": left, "right": right}
 
 
+def _compact_recent_matches(raw: Any) -> List[Dict[str, Any]]:
+    """Conserva solo lo necesario para calcular V/O/U en los listados."""
+    if not isinstance(raw, list):
+        return []
+    return [
+        {
+            "home": row.get("home"),
+            "away": row.get("away"),
+            "score": row.get("score") or row.get("score_raw"),
+        }
+        for row in raw
+        if isinstance(row, dict)
+    ]
+
+
 def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
         "match_id": match_data.get("match_id"),
@@ -411,6 +426,18 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "away_ou_stats_specific": match_data.get("away_ou_stats_specific"),
         "home_ou_stats_general": match_data.get("home_ou_stats_general"),
         "away_ou_stats_general": match_data.get("away_ou_stats_general"),
+        "recent_home_matches_same_league_specific": _compact_recent_matches(
+            match_data.get("recent_home_matches_same_league_specific")
+        ),
+        "recent_away_matches_same_league_specific": _compact_recent_matches(
+            match_data.get("recent_away_matches_same_league_specific")
+        ),
+        "recent_home_matches_same_league_general": _compact_recent_matches(
+            match_data.get("recent_home_matches_same_league_general")
+        ),
+        "recent_away_matches_same_league_general": _compact_recent_matches(
+            match_data.get("recent_away_matches_same_league_general")
+        ),
     }
     return payload
 

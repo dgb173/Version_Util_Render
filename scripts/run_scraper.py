@@ -1,6 +1,8 @@
 import asyncio
+import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -68,6 +70,50 @@ def filter_youth_matches(matches):
         print(f"  -> Filtrados {removed} partidos U19/U21")
     return filtered
 
+
+def sync_cloud_precacheo_to_local():
+    """Actualiza SQL local con el precacheo publicado por GitHub/Render."""
+    if os.getenv('GITHUB_ACTIONS') or os.getenv('RENDER'):
+        return
+
+    print("Sincronizando precacheo cloud con la base local...")
+    try:
+        subprocess.run(
+            ['git', 'fetch', 'origin', 'main', '--depth=1'],
+            cwd=PROJECT_ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        raw = subprocess.check_output(
+            ['git', 'show', 'origin/main:data/data_precacheo.json'],
+            cwd=PROJECT_ROOT,
+            text=True,
+            encoding='utf-8',
+        )
+        rows = json.loads(raw)
+        fresh_rows = [
+            row for row in rows
+            if isinstance(row, dict)
+            and int(row.get('history_data_version') or 0) >= 2
+        ]
+
+        conn = sql_store._connect()
+        try:
+            for row in fresh_rows:
+                sql_store._upsert_match(
+                    conn,
+                    row,
+                    bucket='data_precacheo.json',
+                    state='precacheo',
+                )
+            conn.commit()
+        finally:
+            conn.close()
+        print(f"Precacheo cloud sincronizado en local: {len(fresh_rows)} partidos.")
+    except Exception as exc:
+        print(f"[AVISO] No se pudo sincronizar el precacheo cloud: {exc}")
+
 async def main():
     """
     Función principal que ejecuta ambos scrapers y combina los resultados.
@@ -103,3 +149,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+    sync_cloud_precacheo_to_local()

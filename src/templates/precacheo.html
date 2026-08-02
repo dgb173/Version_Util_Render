@@ -164,9 +164,10 @@
             white-space: nowrap;
         }
 
-        .team-form-win { background: #198754; }
-        .team-form-over { background: #f59f00; color: #212529; }
-        .team-form-under { background: #0d6efd; }
+        .team-form-win { background: #0d6efd; }
+        .team-form-neutral { background: #eef1f4; color: #5f6872; }
+        .team-form-over-win { background: #198754; }
+        .team-form-under-win { background: #dc3545; }
 
         .col-prev {
             font-size: 0.85rem;
@@ -7697,17 +7698,32 @@
 
                 const renderTeamFormRow = (label, teamName, matches, ouStats) => {
                     const result = calculateTeamWins(matches, teamName);
-                    const ouTotal = Number(ouStats && ouStats.total) || 0;
+                    const overCount = Number(ouStats && ouStats.over) || 0;
+                    const underCount = Number(ouStats && ouStats.under) || 0;
+                    const decidedOu = overCount + underCount;
+                    const rawOverPct = Number(ouStats && ouStats.over_pct) || 0;
+                    const rawUnderPct = Number(ouStats && ouStats.under_pct) || 0;
+                    const decidedPct = rawOverPct + rawUnderPct;
+                    const ouTotal = decidedOu || Number(ouStats && ouStats.total) || 0;
                     const total = result.total || ouTotal;
                     if (!total) return '';
-                    const over = Number(ouStats && ouStats.over_pct) || 0;
-                    const under = Number(ouStats && ouStats.under_pct) || 0;
+                    const over = decidedOu
+                        ? (overCount * 100 / decidedOu)
+                        : (decidedPct ? rawOverPct * 100 / decidedPct : 0);
+                    const under = decidedOu
+                        ? (underCount * 100 / decidedOu)
+                        : (decidedPct ? rawUnderPct * 100 / decidedPct : 0);
+                    const overClass = over > under ? 'team-form-over-win' : 'team-form-neutral';
+                    const underClass = under > over ? 'team-form-under-win' : 'team-form-neutral';
+                    const winsHtml = result.total
+                        ? `<span class="team-form-pill team-form-win">V ${result.wins}/${result.total}</span>`
+                        : '';
                     return `
                         <div class="team-form-row">
                             <span class="team-form-label">${label}</span>
-                            <span class="team-form-pill team-form-win">V ${result.wins}/${result.total || total}</span>
-                            <span class="team-form-pill team-form-over">O ${over.toFixed(0)}%</span>
-                            <span class="team-form-pill team-form-under">U ${under.toFixed(0)}%</span>
+                            ${winsHtml}
+                            <span class="team-form-pill ${overClass}">O ${over.toFixed(0)}%</span>
+                            <span class="team-form-pill ${underClass}">U ${under.toFixed(0)}%</span>
                         </div>`;
                 };
 
