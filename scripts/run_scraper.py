@@ -92,15 +92,33 @@ def sync_cloud_precacheo_to_local():
             encoding='utf-8',
         )
         rows = json.loads(raw)
-        fresh_rows = [
+        cloud_rows = [
             row for row in rows
             if isinstance(row, dict)
-            and int(row.get('history_data_version') or 0) >= 2
+            and (row.get('match_id') or row.get('id')) not in (None, '')
         ]
+        cloud_ids = {
+            str(row.get('match_id') or row.get('id'))
+            for row in cloud_rows
+        }
 
         conn = sql_store._connect()
         try:
-            for row in fresh_rows:
+            local_rows = conn.execute(
+                "SELECT match_id FROM matches WHERE bucket = ?",
+                ('data_precacheo.json',),
+            ).fetchall()
+            stale_ids = [
+                str(row['match_id']) for row in local_rows
+                if str(row['match_id']) not in cloud_ids
+            ]
+            if stale_ids:
+                conn.executemany(
+                    "DELETE FROM matches WHERE bucket = ? AND match_id = ?",
+                    [('data_precacheo.json', match_id) for match_id in stale_ids],
+                )
+
+            for row in cloud_rows:
                 sql_store._upsert_match(
                     conn,
                     row,
@@ -110,7 +128,10 @@ def sync_cloud_precacheo_to_local():
             conn.commit()
         finally:
             conn.close()
-        print(f"Precacheo cloud sincronizado en local: {len(fresh_rows)} partidos.")
+        print(
+            f"Precacheo cloud sincronizado en local: {len(cloud_rows)} partidos; "
+            f"{len(stale_ids)} obsoletos eliminados."
+        )
     except Exception as exc:
         print(f"[AVISO] No se pudo sincronizar el precacheo cloud: {exc}")
 
@@ -148,5 +169,5 @@ async def main():
         cleanup_precacheo_stale("POST")
 
 if __name__ == "__main__":
-    asyncio.run(main())
     sync_cloud_precacheo_to_local()
+    asyncio.run(main())
