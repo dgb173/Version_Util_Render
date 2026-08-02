@@ -9165,21 +9165,79 @@
             // Fallback clásico usando un textarea temporal
             const textarea = document.createElement("textarea");
             textarea.value = text;
+            textarea.setAttribute("readonly", "");
+            textarea.setAttribute("aria-hidden", "true");
             textarea.style.position = "fixed";
-            textarea.style.left = "-999999px";
-            textarea.style.top = "-999999px";
+            textarea.style.left = "0";
+            textarea.style.top = "0";
+            textarea.style.width = "1px";
+            textarea.style.height = "1px";
+            textarea.style.opacity = "0";
+            textarea.style.fontSize = "16px";
             document.body.appendChild(textarea);
-            textarea.focus();
+            try {
+                textarea.focus({ preventScroll: true });
+            } catch (_) {
+                textarea.focus();
+            }
             textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
             try {
                 const successful = document.execCommand("copy");
-                document.body.removeChild(textarea);
                 if (successful) return true;
                 throw new Error("execCommand copy devolvió false");
             } catch (err) {
-                document.body.removeChild(textarea);
                 throw new Error("No se pudo copiar al portapapeles: " + err.message);
+            } finally {
+                textarea.remove();
             }
+        }
+
+        // En Safari/Chrome móvil el permiso de copiar puede caducar mientras
+        // esperamos la respuesta de Render. Iniciamos la escritura durante el
+        // toque y resolvemos su contenido cuando termina la petición bulk.
+        function beginDeferredClipboardWrite() {
+            let resolveText;
+            let rejectText;
+            let settled = false;
+            const textPromise = new Promise((resolve, reject) => {
+                resolveText = resolve;
+                rejectText = reject;
+            });
+            textPromise.catch(() => {});
+            let writeAttempt = null;
+
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.write && window.ClipboardItem) {
+                try {
+                    const item = new ClipboardItem({
+                        'text/plain': textPromise.then(value => new Blob([value], { type: 'text/plain' }))
+                    });
+                    writeAttempt = navigator.clipboard.write([item])
+                        .then(() => true)
+                        .catch(error => {
+                            console.warn('Deferred clipboard failed, trying fallback:', error);
+                            return false;
+                        });
+                } catch (error) {
+                    console.warn('Deferred clipboard is unavailable:', error);
+                }
+            }
+
+            return {
+                async finish(text) {
+                    if (!settled) {
+                        settled = true;
+                        resolveText(text);
+                    }
+                    if (writeAttempt && await writeAttempt) return true;
+                    return copyToClipboard(text);
+                },
+                cancel(error) {
+                    if (settled) return;
+                    settled = true;
+                    rejectText(error || new Error('Copia cancelada'));
+                }
+            };
         }
 
         // Fetch and copy LLM prompt
@@ -9227,6 +9285,7 @@
         }
 
         async function copyAllPrecachePrompts(btnElement) {
+            const deferredClipboard = beginDeferredClipboardWrite();
             const rows = Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
                 .filter(row => row.style.display !== 'none');
             const matchIds = Array.from(new Set(rows
@@ -9234,6 +9293,7 @@
                 .filter(Boolean)));
 
             if (!matchIds.length) {
+                deferredClipboard.cancel(new Error('No hay partidos visibles'));
                 alert('No hay partidos filtrados visibles para copiar.');
                 return;
             }
@@ -9251,11 +9311,12 @@
                 if (!response.ok || !data.success || !Array.isArray(data.prompts)) {
                     throw new Error(data.error || 'No se pudieron generar los prompts');
                 }
-                await copyToClipboard(data.prompts.join('\n\n---\n\n'));
+                await deferredClipboard.finish(data.prompts.join('\n\n---\n\n'));
                 btnElement.classList.remove('btn-outline-primary');
                 btnElement.classList.add('btn-success');
                 btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> Copiados ${data.prompts.length}`;
             } catch (err) {
+                deferredClipboard.cancel(err);
                 alert('Error al copiar todos los partidos: ' + err.message);
             } finally {
                 setTimeout(() => {
