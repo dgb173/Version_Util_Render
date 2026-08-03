@@ -6533,6 +6533,33 @@
             const preferredMatches = Array.isArray(preferredMatchesRaw) ? preferredMatchesRaw : [];
             const fallbackMatches = Array.isArray(fallbackMatchesRaw) ? fallbackMatchesRaw : [];
             let currentLeague = String(pc?.league_id ?? '').trim();
+            const legacyHistoryRows = [
+                pc?.recent_home_matches,
+                pc?.recent_home_matches_all,
+                pc?.recent_away_matches,
+                pc?.recent_away_matches_all,
+            ].flatMap(rows => Array.isArray(rows) ? rows : []);
+            if (!currentLeague) {
+                const sameLeagueMarkers = [pc?.last_home_match, pc?.last_away_match]
+                    .filter(marker => marker && marker.is_different_league === false);
+                for (const marker of sameLeagueMarkers) {
+                    const markerScore = parseScoreValue(marker?.score || marker?.result);
+                    const matched = legacyHistoryRows.find(item => {
+                        const itemScore = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                        const scoreMatches = markerScore && itemScore
+                            && markerScore.home === itemScore.home && markerScore.away === itemScore.away;
+                        const homeMatches = sameTeamName(marker?.home_team ?? marker?.home, item?.home ?? item?.home_team);
+                        const awayMatches = sameTeamName(marker?.away_team ?? marker?.away, item?.away ?? item?.away_team);
+                        const dateMatches = !marker?.date || !item?.date || String(marker.date) === String(item.date);
+                        return scoreMatches && homeMatches && awayMatches && dateMatches;
+                    });
+                    const matchedLeague = String(matched?.league_id_hist ?? matched?.league_id ?? '').trim();
+                    if (matchedLeague) {
+                        currentLeague = matchedLeague;
+                        break;
+                    }
+                }
+            }
             if (!currentLeague) {
                 const leagueCounts = new Map();
                 [
@@ -6554,7 +6581,13 @@
                 const historicalLeague = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
                 return currentLeague && historicalLeague && currentLeague === historicalLeague;
             });
-            const matches = preferredMatches.length ? preferredMatches : filteredFallback;
+            const usingPreferredMatches = preferredMatches.length > 0;
+            let matches = usingPreferredMatches ? preferredMatches : filteredFallback;
+            if (specific && !usingPreferredMatches) {
+                matches = matches.filter(item => side === 'home'
+                    ? sameTeamName(item?.home ?? item?.home_team, teamName)
+                    : sameTeamName(item?.away ?? item?.away_team, teamName));
+            }
             let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0, total = 0;
             matches.forEach(item => {
                 const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
@@ -6643,15 +6676,6 @@
             };
         }
 
-        function buildTeamOuCardStats(pc, teamName, side, scope) {
-            const stats = summarizeTeamSimpleLeagueStats(pc, teamName, side, scope);
-            return {
-                total: stats.ouTotal || 0,
-                over_pct: Number.isFinite(stats.overPct) ? stats.overPct : 0,
-                under_pct: Number.isFinite(stats.underPct) ? stats.underPct : 0,
-            };
-        }
-
         function renderTeamGeneralStats(pc, teamName, side) {
             const localStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'specific');
             const globalStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'general');
@@ -6662,8 +6686,11 @@
                 const wins = parseNumericValue(standings[`${prefix}_v`]);
                 const draws = parseNumericValue(standings[`${prefix}_e`]);
                 const losses = parseNumericValue(standings[`${prefix}_d`]);
-                if (wins !== null && draws !== null && losses !== null) return `${wins}-${draws}-${losses}`;
-                return stats.total ? `${stats.wins}-${stats.draws}-${stats.losses}` : 'N/D';
+                if (wins !== null && draws !== null && losses !== null) {
+                    const played = parseNumericValue(standings[`${prefix}_pj`]);
+                    return `${wins}-${draws}-${losses}${played ? ` (${played})` : ''}`;
+                }
+                return stats.total ? `${stats.wins}-${stats.draws}-${stats.losses} (${stats.total})` : 'N/D';
             };
             const ouValues = stats => {
                 const valid = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct)
@@ -6671,7 +6698,7 @@
                 if (!valid) return '<span class="team-cell-ou-muted">N/D</span>';
                 const overClass = valid && stats.overPct > stats.underPct ? 'team-cell-ou-over' : 'team-cell-ou-muted';
                 const underClass = valid && stats.underPct > stats.overPct ? 'team-cell-ou-under' : 'team-cell-ou-muted';
-                return `<span class="${overClass}">O ${ou(stats.overPct)}</span><span class="team-cell-ou-muted">·</span><span class="${underClass}">U ${ou(stats.underPct)}</span>`;
+                return `<span class="${overClass}">O ${ou(stats.overPct)}</span><span class="team-cell-ou-muted">·</span><span class="${underClass}">U ${ou(stats.underPct)}</span><span class="team-cell-ou-muted">(${stats.ouTotal || 0})</span>`;
             };
             const specificLabel = side === 'home' ? 'LOCAL' : 'VISIT.';
             return `
@@ -8391,10 +8418,7 @@
                         title: 'Prev Home',
                         date: lhmDate,
                         stats: Array.isArray(lhm.stats_rows) ? lhm.stats_rows : [],
-                        match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score },
-                        ouSpecific: buildTeamOuCardStats(pc, home, 'home', 'specific'),
-                        ouGeneral: buildTeamOuCardStats(pc, home, 'home', 'general'),
-                        ouRoleLabel: 'CASA'
+                        match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score }
                     };
 
                     prevHomeHtml = `
@@ -8436,10 +8460,7 @@
                         title: 'Prev Away',
                         date: lamDate,
                         stats: Array.isArray(lam.stats_rows) ? lam.stats_rows : [],
-                        match: { home: lamHomeName, away: lamAwayName, score: lam.score },
-                        ouSpecific: buildTeamOuCardStats(pc, away, 'away', 'specific'),
-                        ouGeneral: buildTeamOuCardStats(pc, away, 'away', 'general'),
-                        ouRoleLabel: 'FUERA'
+                        match: { home: lamHomeName, away: lamAwayName, score: lam.score }
                     };
 
                     prevAwayHtml = `
@@ -8936,23 +8957,6 @@
                     return `<table class="table table-sm stat-table mb-0"><tbody>${rows}</tbody></table>`;
                 };
 
-                const renderOuLine = (label, stats, isFallback = false) => {
-                    const total = Number(stats && stats.total) || 0;
-                    if (!total) {
-                        return `<div class="text-muted" style="font-size:0.68rem;">O/U ${label} · MISMA LIGA: sin datos</div>`;
-                    }
-                    const over = Number(stats.over_pct || 0).toFixed(1);
-                    const under = Number(stats.under_pct || 0).toFixed(1);
-                    return `
-                        <div class="${isFallback ? 'rounded px-1' : ''}" ${isFallback ? 'style="background:#fff3a3;"' : ''}>
-                            <div class="fw-bold" style="font-size:0.66rem;">O/U ${label} · MISMA LIGA (${total})</div>
-                            <div style="font-size:0.68rem;">
-                                <span class="text-success fw-bold">Over ${over}%</span> ·
-                                <span class="text-danger fw-bold">Under ${under}%</span>
-                            </div>
-                        </div>`;
-                };
-
                 // Helper para crear el HTML de una celda de stats completa con colores por grupo
                 const createStatBox = (title, data, isEmpty, colorClass, bgColor, highlightReason) => {
                     const isHighlighted = Boolean(highlightReason);
@@ -8992,22 +8996,12 @@
                         </div>
                     ` : '';
 
-                    const ouSpecificTotal = Number(data.ouSpecific && data.ouSpecific.total) || 0;
-                    const ouGeneralTotal = Number(data.ouGeneral && data.ouGeneral.total) || 0;
-                    const ouHtml = (data.ouSpecific || data.ouGeneral) ? `
-                        <div style="margin-top:6px;border-top:1px solid rgba(0,0,0,0.1);padding-top:6px;text-align:center;">
-                            ${renderOuLine(data.ouRoleLabel || 'ROL', data.ouSpecific)}
-                            <div class="mt-1">${renderOuLine('TOTAL', data.ouGeneral, !ouSpecificTotal && !!ouGeneralTotal)}</div>
-                        </div>
-                    ` : '';
-
                     return `
                         <div style="background: ${finalBg}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                             <div class="fw-bold ${colorClass} text-uppercase text-center" style="font-size: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 6px; margin-bottom: 8px;">${title}</div>
                             ${matchLine}
                             ${dateLine}
                             ${ahLine}
-                            ${ouHtml}
                             ${statsHtml}
                         </div>
                     `;
