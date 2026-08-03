@@ -6524,13 +6524,32 @@
 
         function summarizeTeamSimpleLeagueStats(pc, teamName, side, scope = 'general') {
             const specific = scope === 'specific';
-            const preferredMatches = side === 'home'
+            const preferredMatchesRaw = side === 'home'
                 ? (specific ? (pc?.recent_home_matches_same_league_specific || []) : (pc?.recent_home_matches_same_league_general || []))
                 : (specific ? (pc?.recent_away_matches_same_league_specific || []) : (pc?.recent_away_matches_same_league_general || []));
-            const fallbackMatches = side === 'home'
+            const fallbackMatchesRaw = side === 'home'
                 ? (specific ? (pc?.recent_home_matches || []) : (pc?.recent_home_matches_all || pc?.recent_home_matches || []))
                 : (specific ? (pc?.recent_away_matches || []) : (pc?.recent_away_matches_all || pc?.recent_away_matches || []));
-            const currentLeague = String(pc?.league_id ?? '').trim();
+            const preferredMatches = Array.isArray(preferredMatchesRaw) ? preferredMatchesRaw : [];
+            const fallbackMatches = Array.isArray(fallbackMatchesRaw) ? fallbackMatchesRaw : [];
+            let currentLeague = String(pc?.league_id ?? '').trim();
+            if (!currentLeague) {
+                const leagueCounts = new Map();
+                [
+                    pc?.recent_home_matches,
+                    pc?.recent_home_matches_all,
+                    pc?.recent_away_matches,
+                    pc?.recent_away_matches_all,
+                ].forEach(rows => {
+                    if (!Array.isArray(rows)) return;
+                    rows.forEach(item => {
+                        const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                        if (leagueId) leagueCounts.set(leagueId, (leagueCounts.get(leagueId) || 0) + 1);
+                    });
+                });
+                currentLeague = Array.from(leagueCounts.entries())
+                    .sort((left, right) => right[1] - left[1])[0]?.[0] || '';
+            }
             const filteredFallback = fallbackMatches.filter(item => {
                 const historicalLeague = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
                 return currentLeague && historicalLeague && currentLeague === historicalLeague;
@@ -6538,10 +6557,10 @@
             const matches = preferredMatches.length ? preferredMatches : filteredFallback;
             let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0, total = 0;
             matches.forEach(item => {
-                const score = parseScoreValue(item?.score || item?.score_raw);
+                const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
                 if (!score) return;
-                const subjectHome = sameTeamName(item?.home, teamName);
-                const subjectAway = sameTeamName(item?.away, teamName);
+                const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                const subjectAway = sameTeamName(item?.away ?? item?.away_team, teamName);
                 if (!subjectHome && !subjectAway) return;
                 const own = subjectHome ? score.home : score.away;
                 const rival = subjectHome ? score.away : score.home;
@@ -6572,17 +6591,29 @@
                 }
             }
 
-            const ouStats = side === 'home'
+            const scopedOuStats = side === 'home'
                 ? (specific ? pc?.home_ou_stats_specific : pc?.home_ou_stats_general)
                 : (specific ? pc?.away_ou_stats_specific : pc?.away_ou_stats_general);
+            const legacyOuStats = specific
+                ? (side === 'home' ? pc?.home_ou_stats : pc?.away_ou_stats)
+                : null;
+            const ouStats = scopedOuStats || legacyOuStats || {};
             const overCount = parseNumericValue(ouStats?.over);
             const underCount = parseNumericValue(ouStats?.under);
             let decided = (overCount ?? 0) + (underCount ?? 0);
             let calculatedOvers = 0, calculatedUnders = 0;
             if (!decided) {
+                const currentOuLine = parseNumericValue(
+                    pc?.main_match_odds?.goals_linea
+                    ?? pc?.goal_line
+                    ?? pc?.goals_line
+                );
                 matches.forEach(item => {
-                    const score = parseScoreValue(item?.score || item?.score_raw);
-                    const line = parseNumericValue(item?.ouLine ?? item?.ou_line ?? item?.over_under_line);
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const historicalOuLine = parseNumericValue(
+                        item?.ouLine ?? item?.ou_line ?? item?.over_under_line ?? item?.ouLine_raw
+                    );
+                    const line = historicalOuLine ?? currentOuLine;
                     if (!score || line === null) return;
                     const residual = score.total - line;
                     if (residual >= .25) calculatedOvers += 1;
