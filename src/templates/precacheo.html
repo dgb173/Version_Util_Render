@@ -6601,7 +6601,7 @@
             const overCount = parseNumericValue(ouStats?.over);
             const underCount = parseNumericValue(ouStats?.under);
             let decided = (overCount ?? 0) + (underCount ?? 0);
-            let calculatedOvers = 0, calculatedUnders = 0;
+            let calculatedOvers = 0, calculatedUnders = 0, calculatedPushes = 0;
             if (!decided) {
                 const currentOuLine = parseNumericValue(
                     pc?.main_match_odds?.goals_linea
@@ -6618,6 +6618,7 @@
                     const residual = score.total - line;
                     if (residual >= .25) calculatedOvers += 1;
                     else if (residual <= -.25) calculatedUnders += 1;
+                    else calculatedPushes += 1;
                 });
                 decided = calculatedOvers + calculatedUnders;
             }
@@ -6630,11 +6631,24 @@
                 overPct = (overPct ?? 0) * 100 / pctTotal;
                 underPct = (underPct ?? 0) * 100 / pctTotal;
             }
+            const storedOuTotal = parseNumericValue(ouStats?.total);
+            const ouTotal = storedOuTotal && storedOuTotal > 0
+                ? storedOuTotal
+                : calculatedOvers + calculatedUnders + calculatedPushes;
             return {
                 total, wins, draws, losses,
                 goalsFor: total ? goalsFor / total : null,
                 goalsAgainst: total ? goalsAgainst / total : null,
-                overPct, underPct,
+                overPct, underPct, ouTotal,
+            };
+        }
+
+        function buildTeamOuCardStats(pc, teamName, side, scope) {
+            const stats = summarizeTeamSimpleLeagueStats(pc, teamName, side, scope);
+            return {
+                total: stats.ouTotal || 0,
+                over_pct: Number.isFinite(stats.overPct) ? stats.overPct : 0,
+                under_pct: Number.isFinite(stats.underPct) ? stats.underPct : 0,
             };
         }
 
@@ -8378,8 +8392,8 @@
                         date: lhmDate,
                         stats: Array.isArray(lhm.stats_rows) ? lhm.stats_rows : [],
                         match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score },
-                        ouSpecific: pc.home_ou_stats_specific || pc.home_ou_stats || null,
-                        ouGeneral: pc.home_ou_stats_general || null,
+                        ouSpecific: buildTeamOuCardStats(pc, home, 'home', 'specific'),
+                        ouGeneral: buildTeamOuCardStats(pc, home, 'home', 'general'),
                         ouRoleLabel: 'CASA'
                     };
 
@@ -8423,8 +8437,8 @@
                         date: lamDate,
                         stats: Array.isArray(lam.stats_rows) ? lam.stats_rows : [],
                         match: { home: lamHomeName, away: lamAwayName, score: lam.score },
-                        ouSpecific: pc.away_ou_stats_specific || pc.away_ou_stats || null,
-                        ouGeneral: pc.away_ou_stats_general || null,
+                        ouSpecific: buildTeamOuCardStats(pc, away, 'away', 'specific'),
+                        ouGeneral: buildTeamOuCardStats(pc, away, 'away', 'general'),
                         ouRoleLabel: 'FUERA'
                     };
 
@@ -8929,14 +8943,12 @@
                     }
                     const over = Number(stats.over_pct || 0).toFixed(1);
                     const under = Number(stats.under_pct || 0).toFixed(1);
-                    const push = Number(stats.push_pct || 0).toFixed(1);
                     return `
                         <div class="${isFallback ? 'rounded px-1' : ''}" ${isFallback ? 'style="background:#fff3a3;"' : ''}>
                             <div class="fw-bold" style="font-size:0.66rem;">O/U ${label} · MISMA LIGA (${total})</div>
                             <div style="font-size:0.68rem;">
                                 <span class="text-success fw-bold">Over ${over}%</span> ·
-                                <span class="text-danger fw-bold">Under ${under}%</span> ·
-                                <span class="text-muted">Push ${push}%</span>
+                                <span class="text-danger fw-bold">Under ${under}%</span>
                             </div>
                         </div>`;
                 };
