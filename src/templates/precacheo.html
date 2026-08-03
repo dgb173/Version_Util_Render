@@ -171,10 +171,11 @@
 
         .team-general-stats {
             margin-top: 5px;
-            padding: 4px;
+            padding: 0;
             border: 1px solid #d9e2ec;
             border-radius: 6px;
-            background: #f7f9fc;
+            overflow: hidden;
+            background: #fff;
             color: #334155;
             font-size: .49rem;
             line-height: 1.05;
@@ -210,30 +211,52 @@
             white-space: nowrap;
         }
 
-        .team-simple-summary-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2px;
-            margin-top: 3px;
+        .team-league-title {
+            padding: 4px 3px;
+            background: #edf4fb;
+            border-bottom: 1px solid #cbd5e1;
+            color: #245a91;
+            text-align: center;
+            font-size: .46rem;
+            font-weight: 900;
+            letter-spacing: .02em;
         }
 
-        .team-simple-chip {
-            flex: 1 1 auto;
-            min-width: 0;
-            padding: 3px 4px;
-            border-radius: 4px;
-            background: #eef1f4;
-            color: #5f6872;
+        .team-league-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            background: #fff;
+            font-size: .53rem;
+            line-height: 1.1;
+        }
+
+        .team-league-table th,
+        .team-league-table td {
+            padding: 3px 1px;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
             text-align: center;
             white-space: nowrap;
         }
 
-        .team-simple-chip.is-win,
-        .team-simple-chip.is-over { background: #e8f6ee; color: #16834b; }
-        .team-simple-chip.is-draw { background: #fff4e5; color: #9a5b00; }
-        .team-simple-chip.is-loss,
-        .team-simple-chip.is-under { background: #fdebec; color: #b4232f; }
-        .team-simple-chip.is-goals { background: #edf5ff; color: #245a91; }
+        .team-league-table tr:last-child th,
+        .team-league-table tr:last-child td { border-bottom: 0; }
+        .team-league-table th:last-child,
+        .team-league-table td:last-child { border-right: 0; }
+        .team-league-table thead th { background: #f1f5f9; color: #64748b; font-weight: 900; }
+        .team-league-table .team-league-scope { width: 28%; padding-left: 4px; text-align: left; color: #334155; }
+        .team-league-metric-label { margin-right: 2px; color: #64748b; font-size: .45rem; font-weight: 800; }
+        .team-league-table tbody .team-league-scope { background: #f8fafc; }
+        .team-league-table .is-win { color: #16834b; font-weight: 900; }
+        .team-league-table .is-draw { color: #a16207; font-weight: 900; }
+        .team-league-table .is-loss { color: #dc3545; font-weight: 900; }
+        .team-league-table .is-gf { color: #16834b; font-weight: 900; }
+        .team-league-table .is-gc { color: #dc3545; font-weight: 900; }
+        .team-league-table .is-over { background: #e8f6ee; color: #16834b; font-weight: 900; }
+        .team-league-table .is-under { background: #fdebec; color: #b4232f; font-weight: 900; }
+        .team-league-table .is-over-text { color: #16834b; font-weight: 900; }
+        .team-league-table .is-under-text { color: #b4232f; font-weight: 900; }
 
         .team-general-stats-grid {
             display: grid;
@@ -6463,10 +6486,20 @@
                 </div>`;
         }
 
-        function summarizeTeamSimpleLeagueStats(pc, teamName, side) {
-            const matches = side === 'home'
-                ? (pc?.recent_home_matches_same_league_general || [])
-                : (pc?.recent_away_matches_same_league_general || []);
+        function summarizeTeamSimpleLeagueStats(pc, teamName, side, scope = 'general') {
+            const specific = scope === 'specific';
+            const preferredMatches = side === 'home'
+                ? (specific ? (pc?.recent_home_matches_same_league_specific || []) : (pc?.recent_home_matches_same_league_general || []))
+                : (specific ? (pc?.recent_away_matches_same_league_specific || []) : (pc?.recent_away_matches_same_league_general || []));
+            const fallbackMatches = side === 'home'
+                ? (specific ? (pc?.recent_home_matches || []) : (pc?.recent_home_matches_all || pc?.recent_home_matches || []))
+                : (specific ? (pc?.recent_away_matches || []) : (pc?.recent_away_matches_all || pc?.recent_away_matches || []));
+            const currentLeague = String(pc?.league_id ?? '').trim();
+            const filteredFallback = fallbackMatches.filter(item => {
+                const historicalLeague = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                return currentLeague && historicalLeague && currentLeague === historicalLeague;
+            });
+            const matches = preferredMatches.length ? preferredMatches : filteredFallback;
             let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0, total = 0;
             matches.forEach(item => {
                 const score = parseScoreValue(item?.score || item?.score_raw);
@@ -6484,12 +6517,47 @@
                 else draws += 1;
             });
 
-            const ouStats = side === 'home' ? pc?.home_ou_stats_general : pc?.away_ou_stats_general;
+            if (!total) {
+                const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
+                const prefix = specific ? 'specific' : 'total';
+                const playedTable = parseNumericValue(standings[`${prefix}_pj`]);
+                const winsTable = parseNumericValue(standings[`${prefix}_v`]);
+                const drawsTable = parseNumericValue(standings[`${prefix}_e`]);
+                const lossesTable = parseNumericValue(standings[`${prefix}_d`]);
+                const gfTable = parseNumericValue(standings[`${prefix}_gf`]);
+                const gcTable = parseNumericValue(standings[`${prefix}_gc`]);
+                if (playedTable !== null && playedTable > 0) {
+                    total = playedTable;
+                    wins = winsTable ?? 0;
+                    draws = drawsTable ?? 0;
+                    losses = lossesTable ?? 0;
+                    goalsFor = gfTable ?? 0;
+                    goalsAgainst = gcTable ?? 0;
+                }
+            }
+
+            const ouStats = side === 'home'
+                ? (specific ? pc?.home_ou_stats_specific : pc?.home_ou_stats_general)
+                : (specific ? pc?.away_ou_stats_specific : pc?.away_ou_stats_general);
             const overCount = parseNumericValue(ouStats?.over);
             const underCount = parseNumericValue(ouStats?.under);
-            const decided = (overCount ?? 0) + (underCount ?? 0);
-            let overPct = decided ? (overCount ?? 0) * 100 / decided : parseNumericValue(ouStats?.over_pct);
-            let underPct = decided ? (underCount ?? 0) * 100 / decided : parseNumericValue(ouStats?.under_pct);
+            let decided = (overCount ?? 0) + (underCount ?? 0);
+            let calculatedOvers = 0, calculatedUnders = 0;
+            if (!decided) {
+                matches.forEach(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw);
+                    const line = parseNumericValue(item?.ouLine ?? item?.ou_line ?? item?.over_under_line);
+                    if (!score || line === null) return;
+                    const residual = score.total - line;
+                    if (residual >= .25) calculatedOvers += 1;
+                    else if (residual <= -.25) calculatedUnders += 1;
+                });
+                decided = calculatedOvers + calculatedUnders;
+            }
+            const effectiveOvers = (overCount ?? 0) || calculatedOvers;
+            const effectiveUnders = (underCount ?? 0) || calculatedUnders;
+            let overPct = decided ? effectiveOvers * 100 / decided : parseNumericValue(ouStats?.over_pct);
+            let underPct = decided ? effectiveUnders * 100 / decided : parseNumericValue(ouStats?.under_pct);
             const pctTotal = (overPct ?? 0) + (underPct ?? 0);
             if (!decided && pctTotal > 0) {
                 overPct = (overPct ?? 0) * 100 / pctTotal;
@@ -6504,28 +6572,29 @@
         }
 
         function renderTeamGeneralStats(pc, teamName, side) {
-            const stats = summarizeTeamSimpleLeagueStats(pc, teamName, side);
-            const pct = value => stats.total ? `${Math.round(value * 100 / stats.total)}%` : 'N/D';
+            const localStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'specific');
+            const globalStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'general');
             const avg = value => Number.isFinite(value) ? value.toFixed(1) : 'N/D';
             const ou = value => Number.isFinite(value) ? `${Math.round(value)}%` : 'N/D';
-            const overClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.overPct > stats.underPct ? 'is-over' : '';
-            const underClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.underPct > stats.overPct ? 'is-under' : '';
+            const row = (label, stats) => {
+                const overClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.overPct > stats.underPct ? 'is-over-text' : '';
+                const underClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.underPct > stats.overPct ? 'is-under-text' : '';
+                return `<tr>
+                    <th class="team-league-scope" rowspan="2">${label}</th>
+                    <td><span class="team-league-metric-label">PJ</span>${stats.total}</td>
+                    <td><span class="team-league-metric-label">V-E-D</span><span class="is-win">${stats.wins}</span>-<span class="is-draw">${stats.draws}</span>-<span class="is-loss">${stats.losses}</span></td>
+                </tr><tr>
+                    <td><span class="team-league-metric-label">GF-GC</span><span class="is-gf">${avg(stats.goalsFor)}</span>-<span class="is-gc">${avg(stats.goalsAgainst)}</span></td>
+                    <td><span class="team-league-metric-label">O-U</span><span class="${overClass}">${ou(stats.overPct)}</span>-<span class="${underClass}">${ou(stats.underPct)}</span></td>
+                </tr>`;
+            };
+            const specificLabel = side === 'home' ? 'LOCAL' : 'VISIT.';
             return `
                 <div class="team-general-stats">
-                    <div class="team-general-stats-head"><span>STATS GENERALES</span><span class="team-general-scope">&#10003; MISMA LIGA</span></div>
-                    <div class="team-simple-summary-row">
-                        <span class="team-simple-chip is-win">V ${stats.wins} (${pct(stats.wins)})</span>
-                        <span class="team-simple-chip is-draw">E ${stats.draws} (${pct(stats.draws)})</span>
-                        <span class="team-simple-chip is-loss">D ${stats.losses} (${pct(stats.losses)})</span>
-                    </div>
-                    <div class="team-simple-summary-row">
-                        <span class="team-simple-chip is-goals">GF ${avg(stats.goalsFor)}</span>
-                        <span class="team-simple-chip is-goals">GC ${avg(stats.goalsAgainst)}</span>
-                    </div>
-                    <div class="team-simple-summary-row">
-                        <span class="team-simple-chip ${overClass}">OVER ${ou(stats.overPct)}</span>
-                        <span class="team-simple-chip ${underClass}">UNDER ${ou(stats.underPct)}</span>
-                    </div>
+                    <div class="team-league-title">FORMA · MISMA LIGA</div>
+                    <table class="team-league-table">
+                        <tbody>${row(specificLabel, localStats)}${row('GLOBAL', globalStats)}</tbody>
+                    </table>
                 </div>`;
         }
 
@@ -8131,6 +8200,10 @@
                             </div>`;
                     }
                 }
+
+                // La mini tabla ya integra forma local/visitante y global.
+                homeStatsHtml = '';
+                awayStatsHtml = '';
 
                 const calculateTeamWins = (matches, teamName) => {
                     const rows = Array.isArray(matches) ? matches : [];
