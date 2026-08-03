@@ -312,8 +312,8 @@ def _compact_prev_match(raw: Any) -> Optional[Dict[str, Any]]:
         "league_id_hist": raw.get("league_id_hist"),
         "history_scope": raw.get("history_scope"),
         "subject_is_home": raw.get("subject_is_home"),
-        "is_general_fallback": bool(raw.get("is_general_fallback")),
-        "is_different_league": bool(raw.get("is_different_league")),
+        "is_general_fallback": raw.get("is_general_fallback"),
+        "is_different_league": raw.get("is_different_league"),
         "stats_rows": raw.get("stats_rows") if isinstance(raw.get("stats_rows"), list) else [],
     }
 
@@ -357,6 +357,12 @@ def _compact_indirect_side(raw: Any) -> Optional[Dict[str, Any]]:
         "home_team": raw.get("home_team"),
         "away_team": raw.get("away_team"),
         "cover_status": raw.get("cover_status"),
+        "league_id_hist": raw.get("league_id_hist"),
+        "league_id": raw.get("league_id"),
+        "history_scope": raw.get("history_scope"),
+        "same_league": raw.get("same_league"),
+        "is_general_fallback": bool(raw.get("is_general_fallback")),
+        "is_different_league": raw.get("is_different_league"),
         "stats_rows": raw.get("stats_rows") if isinstance(raw.get("stats_rows"), list) else [],
     }
 

@@ -169,6 +169,85 @@
         .team-form-over-win { background: #198754; }
         .team-form-under-win { background: #dc3545; }
 
+        .team-general-stats {
+            margin-top: 5px;
+            padding: 4px;
+            border: 1px solid #d9e2ec;
+            border-radius: 6px;
+            background: #f7f9fc;
+            color: #334155;
+            font-size: .49rem;
+            line-height: 1.05;
+            font-weight: 700;
+        }
+
+        .team-general-stats-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 3px;
+            padding-bottom: 3px;
+            margin-bottom: 3px;
+            border-bottom: 1px solid #d9e2ec;
+            color: #475569;
+            font-size: .48rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .team-general-stats .team-form-compact {
+            margin: 0 0 3px;
+        }
+
+        .team-general-scope {
+            display: inline-block;
+            margin: 0 0 3px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background: #e8f6ee;
+            color: #16834b;
+            font-size: .45rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .team-general-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 2px;
+        }
+
+        .team-general-stat {
+            display: flex;
+            justify-content: space-between;
+            gap: 2px;
+            min-width: 0;
+            padding: 2px 3px;
+            border-radius: 4px;
+            background: #fff;
+            border: 1px solid #e7edf3;
+            white-space: nowrap;
+        }
+
+        .team-general-stat-label { color: #64748b; }
+        .team-general-stat-value { color: #0f172a; font-weight: 900; }
+        .team-general-stat-value.is-good { color: #16834b; }
+        .team-general-stat-value.is-bad { color: #dc3545; }
+        .team-general-stat-value.is-warn { color: #b7791f; }
+
+        .team-general-alert {
+            margin-top: 3px;
+            padding: 2px 3px;
+            border-radius: 4px;
+            background: #fff4e5;
+            color: #9a5b00;
+            text-align: center;
+            font-size: .46rem;
+            font-weight: 900;
+        }
+
+        .team-general-alert.is-good { background: #e8f6ee; color: #16834b; }
+        .team-general-alert.is-bad { background: #fdebec; color: #b4232f; }
+
         .col-prev {
             font-size: 0.85rem;
         }
@@ -6075,6 +6154,290 @@
             };
         }
 
+        function generalStatsMetricKey(label) {
+            const normalized = String(label || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim();
+            if (normalized.includes('tiros a puerta') || normalized.includes('shots on goal')) return 'sot';
+            if (normalized.includes('ataques peligrosos') || normalized.includes('dangerous attacks')) return 'danger';
+            if (normalized === 'tiros' || normalized === 'shots' || normalized.includes('total shots')) return 'shots';
+            if (normalized === 'ataques' || normalized === 'attacks') return 'attacks';
+            return '';
+        }
+
+        function isVerifiedSameLeague(pc, block) {
+            if (!pc || !block || typeof block !== 'object') return false;
+            if (block.is_different_league === true || block.is_general_fallback === true) return false;
+            const currentLeague = String(pc.league_id ?? '').trim();
+            const historicalLeague = String(block.league_id_hist ?? block.league_id ?? '').trim();
+            if (currentLeague && historicalLeague) return currentLeague === historicalLeague;
+            return block.is_different_league === false || block.same_league === true || block.history_scope === 'same_league';
+        }
+
+        function buildGeneralStatsSample(block, teamName, fallbackOuLine) {
+            if (!block || !teamName) return null;
+            const teamIsHome = teamIsHomeInBlock(block.home, block.away, teamName);
+            const score = parseScoreValue(block.score);
+            if (teamIsHome === null || !score) return null;
+
+            const ownGoals = teamIsHome ? score.home : score.away;
+            const rivalGoals = teamIsHome ? score.away : score.home;
+            const homeAh = parseNumericValue(block.ah);
+            const teamPressure = pressureForTeamFromHomeLine(homeAh, teamIsHome);
+            const margin = ownGoals - rivalGoals;
+            const ahResidual = teamPressure === null ? null : margin - teamPressure;
+            const cover = ahResidual === null ? 'UNKNOWN' : residualLabel(ahResidual);
+            const ouLine = parseNumericValue(block.ou) ?? parseNumericValue(fallbackOuLine);
+            const ouResidual = ouLine === null ? null : score.total - ouLine;
+            const ou = ouResidual === null ? 'UNKNOWN' : overUnderLabel(ouResidual);
+
+            const metrics = { shots: null, sot: null, attacks: null, danger: null, rivalSot: null };
+            for (const row of Array.isArray(block.stats) ? block.stats : []) {
+                const key = generalStatsMetricKey(row?.label || row?.name);
+                if (!key) continue;
+                const homeValue = parseNumericValue(row?.home);
+                const awayValue = parseNumericValue(row?.away);
+                if (homeValue === null || awayValue === null) continue;
+                metrics[key] = teamIsHome ? homeValue : awayValue;
+                if (key === 'sot') metrics.rivalSot = teamIsHome ? awayValue : homeValue;
+            }
+
+            return {
+                ownGoals,
+                rivalGoals,
+                won: ownGoals > rivalGoals,
+                lost: ownGoals < rivalGoals,
+                cover,
+                ou,
+                ...metrics,
+            };
+        }
+
+        function collectTeamGeneralStats(pc, teamName, side, fallbackOuLine) {
+            if (!pc) return [];
+            const market = pc.market_analysis_data || {};
+            const samples = [];
+            const add = block => {
+                if (!isVerifiedSameLeague(pc, block)) return;
+                const sample = buildGeneralStatsSample(block, teamName, fallbackOuLine);
+                if (sample) samples.push(sample);
+            };
+
+            if (side === 'home') {
+                const previous = pc.last_home_match || {};
+                add({
+                    ...previous,
+                    home: previous.home_team,
+                    away: previous.away_team,
+                    score: previous.score,
+                    ah: previous.handicap_line_raw,
+                    ou: previous.over_under_line_raw,
+                    stats: previous.stats_rows,
+                });
+
+                const raw = pc.h2h_stadium || {};
+                const stadium = market.stadium || {};
+                const stadiumMovement = parseH2HMovement(stadium.movement || '');
+                add({
+                    home: pc.home_name || pc.home_team,
+                    away: pc.away_name || pc.away_team,
+                    score: stadium.result || raw.res1 || raw.res1_raw,
+                    ah: raw.ah1 ?? stadiumMovement.start,
+                    ou: extractOuLineFromBlock(raw) ?? extractOuLineFromBlock(stadium),
+                    stats: raw.stats_rows || stadium.stats_rows,
+                    league_id_hist: raw.league_id_hist,
+                    is_different_league: raw.is_different_league,
+                    history_scope: raw.history_scope,
+                });
+
+                const indirect = (pc.comparativas_indirectas || {}).left || {};
+                add({
+                    ...indirect,
+                    home: indirect.home_team,
+                    away: indirect.away_team,
+                    score: indirect.score,
+                    ah: indirect.ah_line ?? indirect.ah,
+                    ou: extractOuLineFromBlock(indirect),
+                    stats: indirect.stats_rows,
+                });
+            } else {
+                const previous = pc.last_away_match || {};
+                add({
+                    ...previous,
+                    home: previous.home_team,
+                    away: previous.away_team,
+                    score: previous.score,
+                    ah: previous.handicap_line_raw,
+                    ou: previous.over_under_line_raw,
+                    stats: previous.stats_rows,
+                });
+
+                const raw = pc.h2h_general || {};
+                const general = market.general || {};
+                const generalMovement = parseH2HMovement(general.movement || '');
+                add({
+                    home: raw.h2h_gen_home || general.home_team,
+                    away: raw.h2h_gen_away || general.away_team,
+                    score: general.result || raw.res6 || raw.res6_raw,
+                    ah: raw.ah6 ?? raw.ah1 ?? generalMovement.start,
+                    ou: extractOuLineFromBlock(raw) ?? extractOuLineFromBlock(general),
+                    stats: raw.stats_rows || general.stats_rows,
+                    league_id_hist: raw.league_id_hist,
+                    is_different_league: raw.is_different_league,
+                    history_scope: raw.history_scope,
+                });
+
+                const indirect = (pc.comparativas_indirectas || {}).right || {};
+                add({
+                    ...indirect,
+                    home: indirect.home_team,
+                    away: indirect.away_team,
+                    score: indirect.score,
+                    ah: indirect.ah_line ?? indirect.ah,
+                    ou: extractOuLineFromBlock(indirect),
+                    stats: indirect.stats_rows,
+                });
+            }
+            return samples;
+        }
+
+        function summarizeTeamGeneralStats(pc, teamName, side, fallbackOuLine) {
+            const samples = collectTeamGeneralStats(pc, teamName, side, fallbackOuLine);
+            const sameLeagueHistory = side === 'home'
+                ? (pc?.recent_home_matches_same_league_general || [])
+                : (pc?.recent_away_matches_same_league_general || []);
+            let historyWins = 0;
+            let historyTotal = 0;
+            sameLeagueHistory.forEach(item => {
+                const score = parseScoreValue(item?.score || item?.score_raw);
+                if (!score) return;
+                const subjectHome = sameTeamName(item?.home, teamName);
+                const subjectAway = sameTeamName(item?.away, teamName);
+                if (!subjectHome && !subjectAway) return;
+                historyTotal += 1;
+                if ((subjectHome && score.home > score.away) || (subjectAway && score.away > score.home)) historyWins += 1;
+            });
+            const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
+            const winsTable = parseNumericValue(standings.total_v);
+            const drawsTable = parseNumericValue(standings.total_e);
+            const points = winsTable === null || drawsTable === null ? null : winsTable * 3 + drawsTable;
+            const mean = key => {
+                const values = samples.map(sample => sample[key]).filter(Number.isFinite);
+                return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+            };
+            const covers = samples.filter(sample => sample.cover === 'COVER').length;
+            const coverFails = samples.filter(sample => sample.cover === 'FAIL').length;
+            const coverTotal = covers + coverFails;
+            const coverPct = coverTotal ? covers * 100 / coverTotal : null;
+            const ouStats = side === 'home' ? pc?.home_ou_stats_general : pc?.away_ou_stats_general;
+            const statsOvers = parseNumericValue(ouStats?.over);
+            const statsUnders = parseNumericValue(ouStats?.under);
+            const overs = statsOvers !== null ? statsOvers : samples.filter(sample => sample.ou === 'OVER').length;
+            const unders = statsUnders !== null ? statsUnders : samples.filter(sample => sample.ou === 'UNDER').length;
+            const ouTotal = overs + unders;
+            const overPct = ouTotal ? overs * 100 / ouTotal : null;
+            const detailWins = samples.filter(sample => sample.won).length;
+            const wins = historyTotal ? historyWins : detailWins;
+            const losses = samples.filter(sample => sample.lost).length;
+
+            let offensiveGoals = 0;
+            let offensiveSot = 0;
+            let defensiveGoals = 0;
+            let defensiveSot = 0;
+            samples.forEach(sample => {
+                if (Number.isFinite(sample.sot) && sample.sot > 0) {
+                    offensiveGoals += sample.ownGoals;
+                    offensiveSot += sample.sot;
+                }
+                if (Number.isFinite(sample.rivalSot) && sample.rivalSot > 0) {
+                    defensiveGoals += sample.rivalGoals;
+                    defensiveSot += sample.rivalSot;
+                }
+            });
+
+            const avgGoalsFor = mean('ownGoals');
+            const avgGoalsAgainst = mean('rivalGoals');
+            let alert = 'DATOS EQUILIBRADOS';
+            let alertClass = '';
+            if (avgGoalsAgainst !== null && avgGoalsAgainst > 2) {
+                alert = '⚠ DEFENSA FRÁGIL';
+                alertClass = 'is-bad';
+            } else if (avgGoalsFor !== null && avgGoalsFor < 1) {
+                alert = '● POBRE ATAQUE';
+                alertClass = 'is-bad';
+            } else if (samples.length && losses / samples.length > .6) {
+                alert = '⚠ MAL MOMENTO';
+                alertClass = 'is-bad';
+            } else if (samples.length && detailWins / samples.length > .6) {
+                alert = '✓ BUEN MOMENTO';
+                alertClass = 'is-good';
+            }
+
+            return {
+                samples: historyTotal || samples.length,
+                wins,
+                points,
+                coverPct,
+                coverText: coverTotal ? `${covers}/${coverTotal}` : 'N/A',
+                overPct,
+                ouText: ouTotal ? `${overs}O/${unders}U` : 'N/A',
+                shots: mean('shots'),
+                sot: mean('sot'),
+                attacks: mean('attacks'),
+                danger: mean('danger'),
+                efficiencyFor: offensiveSot ? offensiveGoals / offensiveSot : null,
+                efficiencyAgainst: defensiveSot ? defensiveGoals / defensiveSot : null,
+                alert,
+                alertClass,
+            };
+        }
+
+        function renderTeamGeneralStats(pc, teamName, side, fallbackOuLine, formRowsHtml) {
+            const stats = summarizeTeamGeneralStats(pc, teamName, side, fallbackOuLine);
+            const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : 'N/A';
+            const tone = (value, type) => {
+                if (!Number.isFinite(value)) return '';
+                if (type === 'ah') return value >= 60 ? 'is-good' : (value < 40 ? 'is-bad' : 'is-warn');
+                if (type === 'ou') return value >= 60 ? 'is-good' : (value <= 40 ? 'is-bad' : 'is-warn');
+                return '';
+            };
+            const metric = (label, value, className = '') => `
+                <span class="team-general-stat">
+                    <span class="team-general-stat-label">${label}</span>
+                    <span class="team-general-stat-value ${className}">${value}</span>
+                </span>`;
+            const headerMeta = [
+                stats.samples ? `V ${stats.wins}/${stats.samples}` : '',
+                Number.isFinite(stats.points) ? `${stats.points} PTS` : '',
+            ].filter(Boolean).join(' · ') || 'N/A';
+            const ahValue = Number.isFinite(stats.coverPct)
+                ? `${fmt(stats.coverPct, 0)}% ${stats.coverText}`
+                : 'N/A';
+            const ouValue = Number.isFinite(stats.overPct)
+                ? `${fmt(stats.overPct, 0)}%O ${stats.ouText}`
+                : 'N/A';
+
+            return `
+                <div class="team-general-stats">
+                    <div class="team-general-stats-head"><span>STATS GENERALES</span><span>${headerMeta}</span></div>
+                    <span class="team-general-scope">&#10003; MISMA LIGA</span>
+                    ${formRowsHtml ? `<div class="team-form-compact">${formRowsHtml}</div>` : ''}
+                    <div class="team-general-stats-grid">
+                        ${metric('AH', ahValue, tone(stats.coverPct, 'ah'))}
+                        ${metric('O/U', ouValue, tone(stats.overPct, 'ou'))}
+                        ${metric('T', fmt(stats.shots))}
+                        ${metric('TP', fmt(stats.sot))}
+                        ${metric('A', fmt(stats.attacks))}
+                        ${metric('AP', fmt(stats.danger))}
+                        ${metric('EF+', fmt(stats.efficiencyFor, 2))}
+                        ${metric('EF-', fmt(stats.efficiencyAgainst, 2))}
+                    </div>
+                    <div class="team-general-alert ${stats.alertClass}">${stats.alert}</div>
+                </div>`;
+        }
+
         function mcEscape(value) {
             const div = document.createElement('div');
             div.textContent = value === undefined || value === null ? '' : String(value);
@@ -7727,17 +8090,19 @@
                         </div>`;
                 };
 
-                const homeTrendHtml = pc ? `
-                    <div class="team-form-compact">
-                        ${renderTeamFormRow('CASA', home, pc.recent_home_matches_same_league_specific || pc.recent_home_matches, pc.home_ou_stats_specific || pc.home_ou_stats)}
-                        ${renderTeamFormRow('TOTAL', home, pc.recent_home_matches_same_league_general || pc.recent_home_matches_all, pc.home_ou_stats_general)}
-                    </div>` : '';
+                const homeFormRows = pc ? `
+                    ${renderTeamFormRow('CASA', home, pc.recent_home_matches_same_league_specific || [], pc.home_ou_stats_specific)}
+                    ${renderTeamFormRow('TOTAL', home, pc.recent_home_matches_same_league_general || [], pc.home_ou_stats_general)}` : '';
+                const homeTrendHtml = pc
+                    ? renderTeamGeneralStats(pc, home, 'home', currentOu, homeFormRows)
+                    : '';
 
-                const awayTrendHtml = pc ? `
-                    <div class="team-form-compact">
-                        ${renderTeamFormRow('FUERA', away, pc.recent_away_matches_same_league_specific || pc.recent_away_matches, pc.away_ou_stats_specific || pc.away_ou_stats)}
-                        ${renderTeamFormRow('TOTAL', away, pc.recent_away_matches_same_league_general || pc.recent_away_matches_all, pc.away_ou_stats_general)}
-                    </div>` : '';
+                const awayFormRows = pc ? `
+                    ${renderTeamFormRow('FUERA', away, pc.recent_away_matches_same_league_specific || [], pc.away_ou_stats_specific)}
+                    ${renderTeamFormRow('TOTAL', away, pc.recent_away_matches_same_league_general || [], pc.away_ou_stats_general)}` : '';
+                const awayTrendHtml = pc
+                    ? renderTeamGeneralStats(pc, away, 'away', currentOu, awayFormRows)
+                    : '';
 
                 // Format Date/Time
                 const fecha = formatMatchDateTime(m);

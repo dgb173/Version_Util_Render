@@ -60,3 +60,27 @@ def test_explorer_payload_keeps_progression_stats_and_reference_ids():
     assert payload["stats_rows"][0]["label"] == "Ataques Peligrosos"
     assert payload["last_home_match"]["match_id"] == "99"
     assert payload["comparativas_indirectas"]["left"]["match_id"] == "98"
+
+
+def test_explorer_payload_preserves_same_league_provenance():
+    payload = _build_explorer_payload({
+        "match_id": "100",
+        "last_home_match": {
+            "match_id": "99",
+            "league_id_hist": "136",
+            "history_scope": "same_league",
+            "is_different_league": False,
+        },
+        "comparativas_indirectas": {
+            "left": {
+                "match_id": "98",
+                "league_id_hist": "136",
+                "history_scope": "same_league",
+                "is_different_league": False,
+            },
+        },
+    })
+    assert payload["last_home_match"]["league_id_hist"] == "136"
+    assert payload["last_home_match"]["is_different_league"] is False
+    assert payload["comparativas_indirectas"]["left"]["history_scope"] == "same_league"
+    assert payload["comparativas_indirectas"]["left"]["is_different_league"] is False
