@@ -6621,7 +6621,9 @@
                 return stats.total ? `${stats.wins}-${stats.draws}-${stats.losses}` : 'N/D';
             };
             const ouValues = stats => {
-                const valid = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct);
+                const valid = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct)
+                    && (stats.overPct + stats.underPct) > 0;
+                if (!valid) return '<span class="team-cell-ou-muted">N/D</span>';
                 const overClass = valid && stats.overPct > stats.underPct ? 'team-cell-ou-over' : 'team-cell-ou-muted';
                 const underClass = valid && stats.underPct > stats.overPct ? 'team-cell-ou-under' : 'team-cell-ou-muted';
                 return `<span class="${overClass}">O ${ou(stats.overPct)}</span><span class="team-cell-ou-muted">·</span><span class="${underClass}">U ${ou(stats.underPct)}</span>`;
