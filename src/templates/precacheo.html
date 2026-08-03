@@ -131,6 +131,8 @@
         .col-team {
             font-weight: 600;
             font-size: 0.95rem;
+            min-width: 165px;
+            width: 165px;
         }
 
         .team-form-compact {
@@ -170,15 +172,15 @@
         .team-form-under-win { background: #dc3545; }
 
         .team-general-stats {
-            margin-top: 5px;
+            margin-top: 7px;
             padding: 0;
             border: 1px solid #d9e2ec;
             border-radius: 6px;
             overflow: hidden;
             background: #fff;
             color: #334155;
-            font-size: .49rem;
-            line-height: 1.05;
+            font-size: .65rem;
+            line-height: 1.15;
             font-weight: 700;
         }
 
@@ -212,12 +214,12 @@
         }
 
         .team-league-title {
-            padding: 4px 3px;
+            padding: 5px 3px;
             background: #edf4fb;
             border-bottom: 1px solid #cbd5e1;
             color: #245a91;
             text-align: center;
-            font-size: .46rem;
+            font-size: .58rem;
             font-weight: 900;
             letter-spacing: .02em;
         }
@@ -227,13 +229,13 @@
             border-collapse: collapse;
             table-layout: fixed;
             background: #fff;
-            font-size: .53rem;
-            line-height: 1.1;
+            font-size: .65rem;
+            line-height: 1.15;
         }
 
         .team-league-table th,
         .team-league-table td {
-            padding: 3px 1px;
+            padding: 4px 2px;
             border-right: 1px solid #e2e8f0;
             border-bottom: 1px solid #e2e8f0;
             text-align: center;
@@ -245,9 +247,19 @@
         .team-league-table th:last-child,
         .team-league-table td:last-child { border-right: 0; }
         .team-league-table thead th { background: #f1f5f9; color: #64748b; font-weight: 900; }
-        .team-league-table .team-league-scope { width: 28%; padding-left: 4px; text-align: left; color: #334155; }
-        .team-league-metric-label { margin-right: 2px; color: #64748b; font-size: .45rem; font-weight: 800; }
-        .team-league-table tbody .team-league-scope { background: #f8fafc; }
+        .team-league-table .team-league-scope { width: 31%; padding-left: 5px; text-align: left; color: #334155; }
+        .team-league-table .team-league-subhead th {
+            padding-top: 3px;
+            padding-bottom: 3px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: .54rem;
+            font-weight: 900;
+        }
+        .team-league-table .team-league-values th { background: #f8fafc; }
+        .team-league-table .team-league-detail td { background: #fff; }
+        .team-league-table .team-league-separator th,
+        .team-league-table .team-league-separator td { border-top: 2px solid #cbd5e1; }
         .team-league-table .is-win { color: #16834b; font-weight: 900; }
         .team-league-table .is-draw { color: #a16207; font-weight: 900; }
         .team-league-table .is-loss { color: #dc3545; font-weight: 900; }
@@ -6579,13 +6591,20 @@
             const row = (label, stats) => {
                 const overClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.overPct > stats.underPct ? 'is-over-text' : '';
                 const underClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.underPct > stats.overPct ? 'is-under-text' : '';
-                return `<tr>
-                    <th class="team-league-scope" rowspan="2">${label}</th>
-                    <td><span class="team-league-metric-label">PJ</span>${stats.total}</td>
-                    <td><span class="team-league-metric-label">V-E-D</span><span class="is-win">${stats.wins}</span>-<span class="is-draw">${stats.draws}</span>-<span class="is-loss">${stats.losses}</span></td>
-                </tr><tr>
-                    <td><span class="team-league-metric-label">GF-GC</span><span class="is-gf">${avg(stats.goalsFor)}</span>-<span class="is-gc">${avg(stats.goalsAgainst)}</span></td>
-                    <td><span class="team-league-metric-label">O-U</span><span class="${overClass}">${ou(stats.overPct)}</span>-<span class="${underClass}">${ou(stats.underPct)}</span></td>
+                const separatorClass = label === 'GLOBAL' ? ' team-league-separator' : '';
+                return `<tr class="team-league-subhead${separatorClass}">
+                    <th class="team-league-scope"></th><th>PJ</th><th>V</th><th>E</th><th>D</th>
+                </tr>
+                <tr class="team-league-values">
+                    <th class="team-league-scope">${label}</th>
+                    <td>${stats.total}</td><td class="is-win">${stats.wins}</td><td class="is-draw">${stats.draws}</td><td class="is-loss">${stats.losses}</td>
+                </tr>
+                <tr class="team-league-subhead">
+                    <th class="team-league-scope"></th><th>GF</th><th>GC</th><th>O</th><th>U</th>
+                </tr>
+                <tr class="team-league-detail">
+                    <th class="team-league-scope"></th>
+                    <td class="is-gf">${avg(stats.goalsFor)}</td><td class="is-gc">${avg(stats.goalsAgainst)}</td><td class="${overClass}">${ou(stats.overPct)}</td><td class="${underClass}">${ou(stats.underPct)}</td>
                 </tr>`;
             };
             const specificLabel = side === 'home' ? 'LOCAL' : 'VISIT.';
