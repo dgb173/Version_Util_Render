@@ -131,9 +131,33 @@
         .col-team {
             font-weight: 600;
             font-size: 0.95rem;
-            min-width: 165px;
-            width: 165px;
         }
+
+        .team-cell-league-stats {
+            margin-top: 5px;
+            color: #64748b;
+            font-size: .66rem;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .team-cell-league-row {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .team-cell-league-label {
+            min-width: 34px;
+            color: #475569;
+            font-weight: 900;
+        }
+
+        .team-cell-league-form { color: #334155; }
+        .team-cell-ou-over { color: #16834b; font-weight: 900; }
+        .team-cell-ou-under { color: #c92a3a; font-weight: 900; }
+        .team-cell-ou-muted { color: #94a3b8; font-weight: 700; }
 
         .team-form-compact {
             margin-top: 4px;
@@ -6586,34 +6610,29 @@
         function renderTeamGeneralStats(pc, teamName, side) {
             const localStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'specific');
             const globalStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'general');
-            const avg = value => Number.isFinite(value) ? value.toFixed(1) : 'N/D';
+            const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
             const ou = value => Number.isFinite(value) ? `${Math.round(value)}%` : 'N/D';
-            const row = (label, stats) => {
-                const overClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.overPct > stats.underPct ? 'is-over-text' : '';
-                const underClass = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct) && stats.underPct > stats.overPct ? 'is-under-text' : '';
-                const separatorClass = label === 'GLOBAL' ? ' team-league-separator' : '';
-                return `<tr class="team-league-subhead${separatorClass}">
-                    <th class="team-league-scope"></th><th>PJ</th><th>V</th><th>E</th><th>D</th>
-                </tr>
-                <tr class="team-league-values">
-                    <th class="team-league-scope">${label}</th>
-                    <td>${stats.total}</td><td class="is-win">${stats.wins}</td><td class="is-draw">${stats.draws}</td><td class="is-loss">${stats.losses}</td>
-                </tr>
-                <tr class="team-league-subhead">
-                    <th class="team-league-scope"></th><th>GF</th><th>GC</th><th>O</th><th>U</th>
-                </tr>
-                <tr class="team-league-detail">
-                    <th class="team-league-scope"></th>
-                    <td class="is-gf">${avg(stats.goalsFor)}</td><td class="is-gc">${avg(stats.goalsAgainst)}</td><td class="${overClass}">${ou(stats.overPct)}</td><td class="${underClass}">${ou(stats.underPct)}</td>
-                </tr>`;
+            const form = (scope, stats) => {
+                const prefix = scope === 'global' ? 'total' : 'specific';
+                const wins = parseNumericValue(standings[`${prefix}_v`]);
+                const draws = parseNumericValue(standings[`${prefix}_e`]);
+                const losses = parseNumericValue(standings[`${prefix}_d`]);
+                if (wins !== null && draws !== null && losses !== null) return `${wins}-${draws}-${losses}`;
+                return stats.total ? `${stats.wins}-${stats.draws}-${stats.losses}` : 'N/D';
+            };
+            const ouValues = stats => {
+                const valid = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct);
+                const overClass = valid && stats.overPct > stats.underPct ? 'team-cell-ou-over' : 'team-cell-ou-muted';
+                const underClass = valid && stats.underPct > stats.overPct ? 'team-cell-ou-under' : 'team-cell-ou-muted';
+                return `<span class="${overClass}">O ${ou(stats.overPct)}</span><span class="team-cell-ou-muted">·</span><span class="${underClass}">U ${ou(stats.underPct)}</span>`;
             };
             const specificLabel = side === 'home' ? 'LOCAL' : 'VISIT.';
             return `
-                <div class="team-general-stats">
-                    <div class="team-league-title">FORMA · MISMA LIGA</div>
-                    <table class="team-league-table">
-                        <tbody>${row(specificLabel, localStats)}${row('GLOBAL', globalStats)}</tbody>
-                    </table>
+                <div class="team-cell-league-stats" title="Estadísticas de la misma liga">
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">G:</span><span class="team-cell-league-form">${form('global', globalStats)}</span></div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">${specificLabel === 'LOCAL' ? 'L:' : 'V:'}</span><span class="team-cell-league-form">${form('specific', localStats)}</span></div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">O/U G:</span>${ouValues(globalStats)}</div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">O/U ${specificLabel === 'LOCAL' ? 'L:' : 'V:'}</span>${ouValues(localStats)}</div>
                 </div>`;
         }
 
@@ -8220,9 +8239,9 @@
                     }
                 }
 
-                // La mini tabla ya integra forma local/visitante y global.
-                homeStatsHtml = '';
-                awayStatsHtml = '';
+                // Completa la forma ausente con el histórico de la misma liga e integra el O/U.
+                homeStatsHtml = pc ? renderTeamGeneralStats(pc, home, 'home') : homeStatsHtml;
+                awayStatsHtml = pc ? renderTeamGeneralStats(pc, away, 'away') : awayStatsHtml;
 
                 const calculateTeamWins = (matches, teamName) => {
                     const rows = Array.isArray(matches) ? matches : [];
@@ -8273,8 +8292,8 @@
                         </div>`;
                 };
 
-                const homeTrendHtml = pc ? renderTeamGeneralStats(pc, home, 'home') : '';
-                const awayTrendHtml = pc ? renderTeamGeneralStats(pc, away, 'away') : '';
+                const homeTrendHtml = '';
+                const awayTrendHtml = '';
 
                 // Format Date/Time
                 const fecha = formatMatchDateTime(m);
