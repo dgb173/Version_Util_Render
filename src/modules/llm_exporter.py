@@ -168,14 +168,11 @@ def generate_notebooklm_match_format(payload):
     
     md = []
     md.append(f"# Partido: {home} vs {away}")
-    md.append(f"- **ID**: {payload.get('match_id') or payload.get('id')}")
     md.append(f"- **Liga**: {league}")
     md.append(f"- **Fecha**: {date}")
     md.append(f"- **Hándicap Inicial**: {handicap}")
     md.append(f"- **Línea de Goles**: {goal_line}")
     md.append(f"- **Resultado FT**: {score}")
-    md.append(f"- **Estado**: {clean_value(payload.get('state') or 'precacheo')}")
-    md.append(f"- **Bucket**: {clean_value(payload.get('bucket') or 'data_precacheo.json')}")
     
     # Standings
     home_std = payload.get("home_standings") or {}
@@ -258,10 +255,10 @@ def generate_notebooklm_match_format(payload):
         he_cover_str = ""
         if he_cover:
             he_cover_upper = str(he_cover).upper()
-            if "CUBIERTO" in he_cover_upper or "CUBRIÓ" in he_cover_upper or "CUBRIO" in he_cover_upper:
-                he_cover_str = "CUBRIÓ"
-            elif "NO CUBIERTO" in he_cover_upper or "FALLÓ" in he_cover_upper or "FALLO" in he_cover_upper or "NO CUBRIÓ" in he_cover_upper or "NO CUBRIO" in he_cover_upper:
+            if "NO CUBIERTO" in he_cover_upper or "FALLÓ" in he_cover_upper or "FALLO" in he_cover_upper or "NO CUBRIÓ" in he_cover_upper or "NO CUBRIO" in he_cover_upper:
                 he_cover_str = "NO CUBRIÓ"
+            elif "CUBIERTO" in he_cover_upper or "CUBRIÓ" in he_cover_upper or "CUBRIO" in he_cover_upper:
+                he_cover_str = "CUBRIÓ"
             elif "PUSH" in he_cover_upper or "IGUALÓ" in he_cover_upper or "IGUALO" in he_cover_upper:
                 he_cover_str = "PUSH (Igualó)"
                 
@@ -309,10 +306,10 @@ def generate_notebooklm_match_format(payload):
         hg_cover_str = ""
         if hg_cover:
             hg_cover_upper = str(hg_cover).upper()
-            if "CUBIERTO" in hg_cover_upper or "CUBRIÓ" in hg_cover_upper or "CUBRIO" in hg_cover_upper:
-                hg_cover_str = "CUBRIÓ"
-            elif "NO CUBIERTO" in hg_cover_upper or "FALLÓ" in hg_cover_upper or "FALLO" in hg_cover_upper or "NO CUBRIÓ" in hg_cover_upper or "NO CUBRIO" in hg_cover_upper:
+            if "NO CUBIERTO" in hg_cover_upper or "FALLÓ" in hg_cover_upper or "FALLO" in hg_cover_upper or "NO CUBRIÓ" in hg_cover_upper or "NO CUBRIO" in hg_cover_upper:
                 hg_cover_str = "NO CUBRIÓ"
+            elif "CUBIERTO" in hg_cover_upper or "CUBRIÓ" in hg_cover_upper or "CUBRIO" in hg_cover_upper:
+                hg_cover_str = "CUBRIÓ"
             elif "PUSH" in hg_cover_upper or "IGUALÓ" in hg_cover_upper or "IGUALO" in hg_cover_upper:
                 hg_cover_str = "PUSH (Igualó)"
                 
@@ -402,10 +399,51 @@ def generate_notebooklm_match_format(payload):
 def _plain_clipboard_text(text):
     return text.replace("*", "")
 
+
+def _analysis_instructions(match):
+    goal_line = (
+        match.get("goal_line")
+        or (match.get("main_match_odds") or {}).get("goals_linea")
+        or "N/A"
+    )
+    return f"""
+
+---
+
+ANÁLISIS SOLICITADO
+
+Actúa como analista de datos deportivos. Usa exclusivamente los datos anteriores y no inventes valores. Si falta un dato, escribe N/A.
+
+Genera primero esta tabla Markdown compacta:
+
+| Equipo | Pos | Registro | Pts | AH cubierto | Tendencia O/U | Tiros | Tiros a puerta | Ataques | Ataques peligrosos | Eficiencia ofensiva | Eficiencia defensiva | Alerta |
+|---|---:|---|---:|---|---|---:|---:|---:|---:|---:|---:|---|
+
+REGLAS DE CÁLCULO
+
+1. Puntos: victorias × 3 + empates.
+2. AH cubierto: calcula CUBRIÓ / (CUBRIÓ + NO CUBRIÓ). Excluye PUSH, desconocidos y partidos sin hándicap. Marca 🟢 si es >=60%, 🔴 si es <40% y 🟡 en el resto.
+3. Over/Under: suma los goles de cada partido. Usa su línea O/U cuando esté indicada; si no aparece, compara con la línea actual {goal_line}. Excluye pushes del porcentaje. Marca 🟢 OVER si Over >=60%, 🔴 UNDER si Over <=40% y 🟡 EQUILIBRADO en el resto.
+4. Promedios: calcula tiros, tiros a puerta, ataques y ataques peligrosos usando solo partidos que tengan esa estadística. Respeta siempre qué equipo es local o visitante en cada encuentro.
+5. Eficiencia ofensiva: goles marcados / tiros a puerta propios. Eficiencia defensiva: goles recibidos / tiros a puerta del rival. Si el denominador es 0 o no existe, usa N/A.
+6. Alerta: más de 60% derrotas = ⚠️ MAL MOMENTO; más de 60% victorias = 🏆 BUEN MOMENTO; más de 2 goles recibidos de media = ⚠️ DEFENSA FRÁGIL; menos de 1 gol marcado de media = 🔴 POBRE ATAQUE.
+
+DEBAJO DE LA TABLA
+
+- Resume los goles medios de ambos equipos.
+- Compara sus porcentajes de cobertura AH.
+- Resume los H2H disponibles.
+- Avisa si ambos superan 55% Over o 55% Under.
+- Sugiere una apuesta AH y otra O/U con una justificación breve. Si no hay evidencia suficiente, indica NO BET.
+
+No muestres IDs, buckets, nombres de tablas ni referencias internas del sistema.
+"""
+
 def generate_llm_prompt(match):
     """
     Generates a structured prompt designed to be copy-pasted into an LLM
     like NotebookLM or ChatGPT to get predictions.
     Uses the same structured sections, returned as plain text for clipboard use.
     """
-    return _plain_clipboard_text(generate_notebooklm_match_format(match))
+    data_text = generate_notebooklm_match_format(match)
+    return _plain_clipboard_text(data_text + _analysis_instructions(match))

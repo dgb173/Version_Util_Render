@@ -1608,7 +1608,7 @@ def api_export_prompts_bulk():
                 prompt = llm_exporter.generate_llm_prompt(match_data)
                 prompts.append(prompt)
             else:
-                prompts.append(f"# Partido ID: {mid}\n- **Error**: No se pudieron cargar los datos del partido.")
+                prompts.append("# Partido no disponible\n- Error: No se pudieron cargar los datos del partido.")
 
         return jsonify({"success": True, "prompts": prompts})
     except Exception as e:
