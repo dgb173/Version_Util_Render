@@ -329,6 +329,64 @@
             font-weight: 900;
         }
 
+        .pre-context-panel {
+            margin: 2px 0 10px;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .pre-context-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 7px;
+            border-bottom: 2px solid #dbe5ef;
+        }
+
+        .pre-context-title { font-size: .82rem; font-weight: 900; color: #1e3a5f; }
+        .pre-context-note { font-size: .65rem; font-weight: 700; color: #64748b; }
+        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+        .pre-context-copy { padding: 4px 8px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .62rem; font-weight: 900; white-space: nowrap; }
+        .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
+        .pre-context-moment-head { padding: 7px 9px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
+        .pre-context-moment-title { font-size: .7rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
+        .pre-context-moment-meta { margin-top: 2px; font-size: .61rem; font-weight: 700; color: #64748b; }
+        .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .pre-context-team { min-width: 0; }
+        .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
+        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 6px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .64rem; font-weight: 900; }
+        .pre-context-role { flex: 0 0 auto; padding: 1px 4px; border-radius: 4px; font-size: .5rem; font-weight: 900; }
+        .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
+        .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .57rem; }
+        .pre-context-table th, .pre-context-table td { padding: 3px 4px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .5rem; font-weight: 900; }
+        .pre-context-table .ctx-date { width: 25%; }
+        .pre-context-table .ctx-score { width: 18%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-ah { width: 17%; text-align: right; }
+        .pre-context-result-W { color: #16834b; background: #eef9f2; }
+        .pre-context-result-D { color: #9a6700; background: #fff9e8; }
+        .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
+        .pre-context-summary { display: flex; justify-content: center; gap: 8px; padding: 5px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .59rem; font-weight: 900; }
+        .pre-context-summary .is-win { color: #16834b; }
+        .pre-context-summary .is-draw { color: #9a6700; }
+        .pre-context-summary .is-loss { color: #c92a3a; }
+        .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .65rem; font-weight: 700; }
+
+        @media (max-width: 900px) {
+            .pre-context-moments { grid-template-columns: 1fr; }
+            .pre-context-panel { min-width: 620px; }
+            .pre-context-note { display: none; }
+        }
+
         .team-general-alert.is-good { background: #e8f6ee; color: #16834b; }
         .team-general-alert.is-bad { background: #fdebec; color: #b4232f; }
 
@@ -6522,6 +6580,159 @@
                 </div>`;
         }
 
+        async function copyPreMatchContext(button) {
+            const encoded = button?.dataset?.context || '';
+            const value = decodeURIComponent(encoded);
+            if (!value) return;
+            try {
+                await navigator.clipboard.writeText(value);
+            } catch (_) {
+                const area = document.createElement('textarea');
+                area.value = value;
+                area.style.position = 'fixed';
+                area.style.opacity = '0';
+                document.body.appendChild(area);
+                area.select();
+                document.execCommand('copy');
+                area.remove();
+            }
+            const original = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copiado';
+            button.classList.add('btn-success');
+            setTimeout(() => { button.innerHTML = original; button.classList.remove('btn-success'); }, 1600);
+        }
+
+        function renderPreMatchContext(pc, currentHome, currentAway) {
+            const esc = value => String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const asRows = value => Array.isArray(value) ? value : [];
+            const context = pc?.pre_match_context || {};
+            const current = context.current || {
+                date: pc?.match_date || pc?.date || '',
+                home_name: currentHome,
+                away_name: currentAway,
+                league_name: pc?.league_name || '',
+                home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
+                away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
+            };
+
+            const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
+            let previous = context.previous || null;
+            if (!previous && rawH2h?.match6_id) {
+                const cutoff = String(rawH2h.date6 || '');
+                const historyFor = team => sameTeamName(team, currentHome)
+                    ? asRows(pc?.recent_home_matches_same_league_general || pc?.recent_home_matches_all || pc?.recent_home_matches)
+                    : asRows(pc?.recent_away_matches_same_league_general || pc?.recent_away_matches_all || pc?.recent_away_matches);
+                const olderAtVenue = (team, role) => historyFor(team).filter(item => {
+                    const correctRole = role === 'home'
+                        ? sameTeamName(item?.home ?? item?.home_team, team)
+                        : sameTeamName(item?.away ?? item?.away_team, team);
+                    return correctRole && (!cutoff || !item?.date || String(item.date) < cutoff);
+                }).slice(0, 10);
+                const previousHome = rawH2h.h2h_gen_home || currentHome;
+                const previousAway = rawH2h.h2h_gen_away || currentAway;
+                previous = {
+                    date: rawH2h.date6,
+                    score: rawH2h.res6,
+                    ah_line: rawH2h.ah6,
+                    home_name: previousHome,
+                    away_name: previousAway,
+                    home_matches: olderAtVenue(previousHome, 'home'),
+                    away_matches: olderAtVenue(previousAway, 'away'),
+                };
+            }
+
+            const renderTeam = (teamName, role, matches) => {
+                let wins = 0, draws = 0, losses = 0;
+                const rows = asRows(matches).slice(0, 10).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    const result = own === null ? '' : (own > rivalGoals ? 'W' : (own < rivalGoals ? 'L' : 'D'));
+                    if (result === 'W') wins += 1;
+                    else if (result === 'D') draws += 1;
+                    else if (result === 'L') losses += 1;
+                    const rival = subjectHome
+                        ? (item?.away ?? item?.away_team ?? '')
+                        : (item?.home ?? item?.home_team ?? '');
+                    return `<tr class="pre-context-result-${result}">
+                        <td class="ctx-date">${esc(item?.date || '-')}</td>
+                        <td title="${esc(rival)}">${esc(rival || '-')}</td>
+                        <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
+                        <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
+                    </tr>`;
+                }).join('');
+                return `<div class="pre-context-team">
+                    <div class="pre-context-team-head">
+                        <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
+                        <span class="pre-context-role is-${role}">${role === 'home' ? 'CASA' : 'FUERA'}</span>
+                    </div>
+                    ${rows ? `<table class="pre-context-table">
+                        <thead><tr><th class="ctx-date">Fecha</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="pre-context-summary"><span class="is-win">V ${wins}</span><span class="is-draw">E ${draws}</span><span class="is-loss">D ${losses}</span></div>`
+                    : '<div class="pre-context-empty">Sin historial previo en esta localía</div>'}
+                </div>`;
+            };
+
+            const renderMoment = (title, moment, isPrevious = false) => {
+                if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
+                const momentHome = moment.home_name || currentHome;
+                const momentAway = moment.away_name || currentAway;
+                const reversed = isPrevious && sameTeamName(momentHome, currentAway);
+                const meta = isPrevious
+                    ? `${esc(moment.date || 'Fecha N/D')} · ${esc(momentHome)} ${esc(moment.score || '-')} ${esc(momentAway)}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
+                    : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · MISMA LIGA`;
+                return `<section class="pre-context-moment">
+                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta">${meta}</div></div>
+                    <div class="pre-context-team-grid">
+                        ${renderTeam(momentHome, 'home', moment.home_matches)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches)}
+                    </div>
+                </section>`;
+            };
+
+            const teamText = (teamName, role, matches) => {
+                let wins = 0, draws = 0, losses = 0;
+                const lines = asRows(matches).slice(0, 10).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    if (own !== null) {
+                        if (own > rivalGoals) wins += 1;
+                        else if (own < rivalGoals) losses += 1;
+                        else draws += 1;
+                    }
+                    return `${item?.date || '-'} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                });
+                return `${role === 'home' ? 'CASA' : 'FUERA'} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo en esta localía'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
+            };
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches)}`;
+            let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            if (previous) {
+                const previousHome = previous.home_name || currentHome;
+                const previousAway = previous.away_name || currentAway;
+                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches)}\n\n${teamText(previousAway, 'away', previous.away_matches)}`;
+            }
+            const copyText = `CONTEXTO PREVIO (CASA VS FUERA · MISMA LIGA)\n\n${currentText}\n\n${previousText}`;
+
+            return `<div class="pre-context-panel">
+                <div class="pre-context-head">
+                    <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
+                    <div class="pre-context-actions"><div class="pre-context-note">Cómo llegaban ambos equipos, siempre en casa vs fuera</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this)"><i class="fa-regular fa-copy me-1"></i>Copiar contexto</button></div>
+                </div>
+                <div class="pre-context-moments">
+                    ${renderMoment('Partido actual', current)}
+                    ${renderMoment('Último enfrentamiento entre ellos', previous, true)}
+                </div>
+            </div>`;
+        }
+
         function summarizeTeamSimpleLeagueStats(pc, teamName, side, scope = 'general') {
             const specific = scope === 'specific';
             const preferredMatchesRaw = side === 'home'
@@ -9164,6 +9375,7 @@
                     <div class="d-flex gap-2 w-100" style="padding: 8px 0;">
                         ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
                     </div>
+                    ${renderPreMatchContext(pc, home, away)}
                 `;
 
                 tr.setAttribute('data-has-stats', 'true');

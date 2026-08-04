@@ -392,6 +392,48 @@ def _compact_recent_matches(raw: Any) -> List[Dict[str, Any]]:
     ]
 
 
+def _compact_context_matches(raw: Any) -> List[Dict[str, Any]]:
+    """Filas minimas para pintar el contexto previo en local y en Render."""
+    if not isinstance(raw, list):
+        return []
+    return [
+        {
+            "date": row.get("date"),
+            "home": row.get("home"),
+            "away": row.get("away"),
+            "score": row.get("score") or row.get("score_raw"),
+            "ahLine": row.get("ahLine") or row.get("ahLine_raw"),
+            "league_id_hist": row.get("league_id_hist"),
+        }
+        for row in raw
+        if isinstance(row, dict)
+    ]
+
+
+def _compact_pre_match_context(raw: Any) -> Dict[str, Any]:
+    if not isinstance(raw, dict):
+        return {}
+
+    def compact_moment(moment: Any) -> Optional[Dict[str, Any]]:
+        if not isinstance(moment, dict):
+            return None
+        return {
+            key: moment.get(key)
+            for key in (
+                "match_id", "date", "home_name", "away_name", "score",
+                "ah_line", "league_id", "league_name",
+            )
+        } | {
+            "home_matches": _compact_context_matches(moment.get("home_matches")),
+            "away_matches": _compact_context_matches(moment.get("away_matches")),
+        }
+
+    return {
+        "current": compact_moment(raw.get("current")),
+        "previous": compact_moment(raw.get("previous")),
+    }
+
+
 def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
         "match_id": match_data.get("match_id"),
@@ -432,6 +474,7 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "away_ou_stats_specific": match_data.get("away_ou_stats_specific"),
         "home_ou_stats_general": match_data.get("home_ou_stats_general"),
         "away_ou_stats_general": match_data.get("away_ou_stats_general"),
+        "pre_match_context": _compact_pre_match_context(match_data.get("pre_match_context")),
         "recent_home_matches_same_league_specific": _compact_recent_matches(
             match_data.get("recent_home_matches_same_league_specific")
         ),

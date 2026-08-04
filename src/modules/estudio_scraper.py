@@ -1366,6 +1366,44 @@ def extract_recent_matches(soup, table_id, team_name, league_id, is_home_game, o
     return matches[:limit]
 
 
+def extract_previous_h2h_context(h2h_data):
+    """Obtiene la forma casa/fuera anterior al ultimo H2H, respetando sus localias."""
+    previous_match_id = "".join(filter(str.isdigit, str((h2h_data or {}).get("match6_id") or "")))
+    if not previous_match_id:
+        return None
+
+    try:
+        previous_soup = _load_main_match_soup(previous_match_id)
+        _, _, previous_league_id, previous_home, previous_away, previous_league = get_team_league_info_from_script_of(previous_soup)
+        if not previous_home or not previous_away:
+            return None
+
+        previous_odds_map = extract_vs_market_odds(previous_soup)
+        home_history = extract_recent_matches(
+            previous_soup, "table_v1", previous_home, previous_league_id, True,
+            previous_odds_map, limit=10,
+        )
+        away_history = extract_recent_matches(
+            previous_soup, "table_v2", previous_away, previous_league_id, False,
+            previous_odds_map, limit=10,
+        )
+        return {
+            "match_id": previous_match_id,
+            "date": (h2h_data or {}).get("date6") or "N/A",
+            "home_name": previous_home,
+            "away_name": previous_away,
+            "score": (h2h_data or {}).get("res6") or "N/A",
+            "ah_line": (h2h_data or {}).get("ah6") or "N/A",
+            "league_id": previous_league_id,
+            "league_name": previous_league,
+            "home_matches": home_history,
+            "away_matches": away_history,
+        }
+    except Exception as exc:
+        print(f"Warning extracting previous H2H context {previous_match_id}: {exc}")
+        return None
+
+
 def calculate_over_under_stats(matches, source):
     """Resume O/U de filas históricas que incluyen línea y resultado calculado."""
     counts = {"OVER": 0, "UNDER": 0, "PUSH": 0}
@@ -2076,7 +2114,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
 
     if not force_refresh:
         cached_payload = _get_cached_analysis(main_match_id)
-        if cached_payload:
+        if cached_payload and int(cached_payload.get("history_data_version") or 0) >= 3:
             return cached_payload
 
     start_time = time.time()
@@ -2161,6 +2199,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         )
         
         h2h_data = extract_h2h_data_of(soup_completo, home_name, away_name, None, odds_map)
+        previous_h2h_context = extract_previous_h2h_context(h2h_data)
         comp_L_vs_UV_A = extract_comparative_match_of(soup_completo, "table_v1", home_name, (last_away_match or {}).get('home_team'), league_id, True, odds_map)
         comp_V_vs_UL_H = extract_comparative_match_of(soup_completo, "table_v2", away_name, (last_home_match or {}).get('away_team'), league_id, False, odds_map)
         main_match_odds_data = extract_bet365_initial_odds_of(soup_completo, main_match_id)
@@ -2256,7 +2295,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
 
     results = {
         "match_id": main_match_id,
-        "history_data_version": 2,
+        "history_data_version": 3,
         "home_name": home_name,
         "away_name": away_name,
         "league_name": league_name,
@@ -2281,6 +2320,17 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         "market_analysis_html": market_analysis_html,
         "market_analysis_data": market_analysis_data,
         "historical_matches_html": historical_matches_html,
+        "pre_match_context": {
+            "current": {
+                "date": match_date,
+                "home_name": home_name,
+                "away_name": away_name,
+                "league_name": league_name,
+                "home_matches": recent_home_specific,
+                "away_matches": recent_away_specific,
+            },
+            "previous": previous_h2h_context,
+        },
         "last_home_match": {**last_home_match, "stats_rows": last_home_match_stats} if last_home_match else None,
         "last_away_match": {**last_away_match, "stats_rows": last_away_match_stats} if last_away_match else None,
         "h2h_col3": {
