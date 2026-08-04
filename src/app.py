@@ -5341,8 +5341,8 @@ def api_precacheo_scrape():
         if not match_id:
             return jsonify({'error': 'Falta match_id'}), 400
         
-        # Scrape the match
-        match_data = analizar_partido_completo(str(match_id))
+        # Es una accion manual: siempre consulta de nuevo la fuente.
+        match_data = analizar_partido_completo(str(match_id), force_refresh=True)
         
         if not match_data or match_data.get('error'):
             return jsonify({'error': match_data.get('error', 'No se pudo scrapear')}), 500

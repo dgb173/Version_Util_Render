@@ -9398,10 +9398,10 @@
                 preContextBtn = isScraped ? `
                     <button class="btn btn-outline-primary btn-sm p-0 d-flex align-items-center justify-content-center"
                         type="button"
-                        onclick="showPreMatchContext('${globalStatsId}')"
+                        onclick="scrapeAndShowPreMatchContext('${matchId}', this)"
                         style="width: 22px; height: 22px; border-radius: 50%;"
-                        title="Ver contexto previo"
-                        aria-label="Ver contexto previo">
+                        title="Scrapear y ver contexto previo"
+                        aria-label="Scrapear y ver contexto previo">
                         <i class="fa-solid fa-clock-rotate-left" style="font-size: 11px;"></i>
                     </button>
                 ` : '';
@@ -9790,31 +9790,50 @@
             }
         }
 
-        function scrapeMatch(matchId) {
-            // Fire and forget - don't await, don't block
-            fetch('/api/precacheo_scrape', {
+        async function requestPrecacheoScrape(matchId) {
+            const response = await fetch('/api/precacheo_scrape', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ match_id: matchId })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) {
-                        console.error('Error scraping:', data.error);
-                    } else {
-                        mergePrecacheoRow(matchId, data.match);
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || 'No se pudo scrapear el partido');
+            mergePrecacheoRow(matchId, data.match);
+            renderTableWithPagination();
+            return data.match;
+        }
 
-                        // Keep pagination/sorting/filter behavior consistent with initial load.
-                        renderTableWithPagination();
-                    }
-                })
-                .catch(err => console.error('Error scraping:', err));
+        function scrapeMatch(matchId) {
+            requestPrecacheoScrape(matchId).catch(err => {
+                console.error('Error scraping:', err);
+                const currentBtn = document.querySelector(`button[onclick="scrapeMatch('${matchId}')"]`);
+                if (currentBtn) {
+                    currentBtn.innerHTML = '<i class="fas fa-sync"></i>';
+                    currentBtn.disabled = false;
+                }
+            });
 
             // Immediately change button to show it's being scraped
             const btn = document.querySelector(`button[onclick="scrapeMatch('${matchId}')"]`);
             if (btn) {
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 btn.disabled = true;
+            }
+        }
+
+        async function scrapeAndShowPreMatchContext(matchId, button) {
+            if (!button || button.disabled) return;
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:11px;"></i>';
+            try {
+                await requestPrecacheoScrape(matchId);
+                requestAnimationFrame(() => showPreMatchContext(`global-stats-${matchId}`));
+            } catch (err) {
+                console.error('Error scraping context:', err);
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                alert(`No se pudo actualizar el contexto: ${err.message || err}`);
             }
         }
 
