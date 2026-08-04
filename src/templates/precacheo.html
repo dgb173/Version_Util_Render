@@ -336,6 +336,12 @@
             border-radius: 9px;
             background: #f8fafc;
             color: #334155;
+            transition: box-shadow .2s ease, border-color .2s ease;
+        }
+
+        .pre-context-panel.is-focused {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
         }
 
         .pre-context-head {
@@ -6580,6 +6586,24 @@
                 </div>`;
         }
 
+        function showPreMatchContext(statsId) {
+            const collapseElement = document.getElementById(statsId);
+            if (!collapseElement) return;
+            const reveal = () => {
+                const panel = collapseElement.querySelector('.pre-context-panel');
+                if (!panel) return;
+                panel.classList.add('is-focused');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                setTimeout(() => panel.classList.remove('is-focused'), 1400);
+            };
+            if (collapseElement.classList.contains('show')) {
+                reveal();
+                return;
+            }
+            collapseElement.addEventListener('shown.bs.collapse', reveal, { once: true });
+            bootstrap.Collapse.getOrCreateInstance(collapseElement, { toggle: false }).show();
+        }
+
         async function copyPreMatchContext(button) {
             const encoded = button?.dataset?.context || '';
             const value = decodeURIComponent(encoded);
@@ -9356,6 +9380,7 @@
 
                 // Boton compacto de estadisticas: conserva tiros, ataques y ataques peligrosos.
                 let globalStatsBtn = '';
+                let preContextBtn = '';
                 let globalStatsId = '';
                 let globalStatsHtmlContent = '';
 
@@ -9370,6 +9395,16 @@
                         <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
                     </button>
                 `;
+                preContextBtn = isScraped ? `
+                    <button class="btn btn-outline-primary btn-sm p-0 d-flex align-items-center justify-content-center"
+                        type="button"
+                        onclick="showPreMatchContext('${globalStatsId}')"
+                        style="width: 22px; height: 22px; border-radius: 50%;"
+                        title="Ver contexto previo"
+                        aria-label="Ver contexto previo">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 11px;"></i>
+                    </button>
+                ` : '';
 
                 globalStatsHtmlContent = `
                     <div class="d-flex gap-2 w-100" style="padding: 8px 0;">
@@ -9525,11 +9560,11 @@
                 let actionButtonsHtml = '';
                 const actionsMode = String(PRECACHEO_ACTIONS_MODE || '').toLowerCase();
                 if (actionsMode === 'ai_stats_only') {
-                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${aiBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
                 } else if (actionsMode === 'minimal' || !PRECACHEO_ENABLE_HEAVY_ACTIONS) {
-                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
                 } else {
-                    actionButtonsHtml = `${globalStatsBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}${leagueTableBtnHtml}`;
                 }
 
 
