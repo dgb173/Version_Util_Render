@@ -1350,6 +1350,11 @@
                     <i class="fa-solid fa-copy me-1"></i> Copiar Todos los Partidos
                     <span class="badge bg-primary ms-1" id="copy-all-precache-count">0</span>
                 </button>
+                <button class="btn btn-outline-success btn-sm" id="btn-download-all-precache"
+                    onclick="downloadAllPrecacheTxt(this)" title="Descargar hasta 100 partidos con contexto previo y prompt LLM">
+                    <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar TXT completo
+                    <span class="badge bg-success ms-1" id="download-all-precache-count">0</span>
+                </button>
                 <button class="btn btn-success btn-sm" onclick="scrapeResultsPending()"
                     title="Scrapear solo resultados de partidos +2h sin score">
                     <i class="fa-solid fa-clock-rotate-left me-1"></i> Buscar Resultados (+2h)
@@ -10154,25 +10159,37 @@
             }
         }
 
+        function getVisiblePrecacheMatchIds(limit = 100) {
+            const rows = Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
+                .filter(row => row.style.display !== 'none');
+            return Array.from(new Set(rows
+                .map(row => String(row.getAttribute('data-match-id') || '').trim())
+                .filter(Boolean)))
+                .slice(0, Math.max(1, Number(limit) || 100));
+        }
+
         function updateCopyAllPrecacheButton(visibleCount = null) {
             const button = document.getElementById('btn-copy-all-precache');
             const badge = document.getElementById('copy-all-precache-count');
-            if (!button || !badge) return;
+            const downloadButton = document.getElementById('btn-download-all-precache');
+            const downloadBadge = document.getElementById('download-all-precache-count');
+            if ((!button || !badge) && (!downloadButton || !downloadBadge)) return;
             const count = Number.isFinite(Number(visibleCount))
-                ? Number(visibleCount)
-                : Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
-                    .filter(row => row.style.display !== 'none').length;
-            badge.textContent = String(count);
-            button.disabled = count <= 0;
+                ? Math.min(100, Number(visibleCount))
+                : getVisiblePrecacheMatchIds(100).length;
+            if (badge && button) {
+                badge.textContent = String(count);
+                button.disabled = count <= 0;
+            }
+            if (downloadBadge && downloadButton) {
+                downloadBadge.textContent = String(count);
+                downloadButton.disabled = count <= 0;
+            }
         }
 
         async function copyAllPrecachePrompts(btnElement) {
             const deferredClipboard = beginDeferredClipboardWrite();
-            const rows = Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
-                .filter(row => row.style.display !== 'none');
-            const matchIds = Array.from(new Set(rows
-                .map(row => String(row.getAttribute('data-match-id') || '').trim())
-                .filter(Boolean)));
+            const matchIds = getVisiblePrecacheMatchIds(100);
 
             if (!matchIds.length) {
                 deferredClipboard.cancel(new Error('No hay partidos visibles'));
@@ -10205,6 +10222,56 @@
                     btnElement.innerHTML = originalHtml;
                     btnElement.classList.remove('btn-success');
                     btnElement.classList.add('btn-outline-primary');
+                    btnElement.disabled = false;
+                    updateCopyAllPrecacheButton();
+                }, 2200);
+            }
+        }
+
+        async function downloadAllPrecacheTxt(btnElement) {
+            const matchIds = getVisiblePrecacheMatchIds(100);
+            if (!matchIds.length) {
+                alert('No hay partidos filtrados visibles para descargar.');
+                return;
+            }
+
+            const originalHtml = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> Preparando TXT 0/${matchIds.length}`;
+            try {
+                const response = await fetch('/api/export_context_prompts_txt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchIds })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'No se pudo generar el TXT');
+                }
+
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+                const filename = filenameMatch?.[1] || 'precacheo_contexto_prompt.txt';
+                const downloadUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+                btnElement.classList.remove('btn-outline-success');
+                btnElement.classList.add('btn-success');
+                btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> TXT descargado (${matchIds.length})`;
+            } catch (error) {
+                alert('Error al descargar el TXT completo: ' + error.message);
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-success');
+                    btnElement.classList.add('btn-outline-success');
                     btnElement.disabled = false;
                     updateCopyAllPrecacheButton();
                 }, 2200);

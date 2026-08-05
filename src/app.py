@@ -1617,6 +1617,67 @@ def api_export_prompts_bulk():
         traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
 
+
+@app.route('/api/export_context_prompts_txt', methods=['POST'])
+def api_export_context_prompts_txt():
+    """Descarga hasta 100 partidos con contexto previo y prompt LLM."""
+    try:
+        payload = request.json or {}
+        raw_ids = payload.get('match_ids', [])
+        if not isinstance(raw_ids, list) or not raw_ids:
+            return jsonify({"success": False, "error": "Falta la lista de match_ids"}), 400
+
+        match_ids = []
+        seen = set()
+        for raw_id in raw_ids:
+            match_id = ''.join(filter(str.isdigit, str(raw_id or '')))
+            if not match_id or match_id in seen:
+                continue
+            seen.add(match_id)
+            match_ids.append(match_id)
+            if len(match_ids) >= 100:
+                break
+        if not match_ids:
+            return jsonify({"success": False, "error": "No hay IDs de partido válidos"}), 400
+
+        from modules import context_txt_exporter, llm_exporter
+
+        matches = []
+        for match_id in match_ids:
+            stored = sql_store.get_match(match_id)
+            if isinstance(stored, dict) and 'error' not in stored:
+                matches.append(stored)
+
+        if not matches:
+            return jsonify({"success": False, "error": "No hay partidos analizados para exportar"}), 404
+
+        total = len(matches)
+        bundles = []
+        for index, stored in enumerate(matches, start=1):
+            try:
+                prompt = llm_exporter.generate_llm_prompt(stored)
+            except Exception as exc:
+                prompt = f"PROMPT NO DISPONIBLE: {exc}"
+            bundles.append(context_txt_exporter.format_match_bundle(stored, prompt, index, total))
+
+        generated = datetime.datetime.now(ZoneInfo('Europe/Madrid'))
+        header = '\n'.join([
+            'PRECACHEO COMPLETO · CONTEXTO PREVIO + PROMPT LLM',
+            f"GENERADO: {generated.strftime('%Y-%m-%d %H:%M:%S Europe/Madrid')}",
+            f"PARTIDOS: {total}",
+            '',
+        ])
+        text_payload = '\ufeff' + header + ('\n\n\n' + ('#' * 96) + '\n\n\n').join(bundles)
+        filename = f"precacheo_contexto_prompt_{generated.strftime('%Y%m%d_%H%M')}.txt"
+        response = app.response_class(text_payload, mimetype='text/plain')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Exported-Matches'] = str(total)
+        return response
+    except Exception as exc:
+        logging.exception('Error exportando contexto + prompts TXT')
+        return jsonify({"success": False, "error": str(exc)}), 500
+
 @app.route('/api/matches')
 def api_matches():
     try:
