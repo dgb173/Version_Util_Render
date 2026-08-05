@@ -387,6 +387,17 @@
         .pre-context-summary .is-loss { color: #c92a3a; }
         .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .65rem; font-weight: 700; }
 
+        .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 7px; }
+        .pre-context-ah-title { margin-bottom: 5px; color: #475569; font-size: .57rem; font-weight: 900; text-transform: uppercase; }
+        .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+        .pre-context-ah-team { padding: 5px; border: 1px solid #dbe3ec; border-radius: 5px; background: #fff; font-size: .56rem; line-height: 1.35; }
+        .pre-context-ah-team strong { color: #1e3a5f; }
+        .pre-context-correlation { margin-top: 6px; padding: 5px 7px; border-radius: 5px; text-align: center; font-size: .59rem; font-weight: 900; }
+        .pre-context-correlation.is-home { color: #137047; background: #e4f5eb; }
+        .pre-context-correlation.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-correlation.is-balanced { color: #9a6700; background: #fff7d6; }
+        .pre-context-correlation.is-insufficient { color: #64748b; background: #edf2f7; }
+
         @media (max-width: 900px) {
             .pre-context-moments { grid-template-columns: 1fr; }
             .pre-context-panel { min-width: 620px; }
@@ -6702,6 +6713,29 @@
                 </div>`;
             };
 
+            const formatAhNumber = value => Number.isFinite(Number(value))
+                ? `${Number(value) > 0 ? '+' : ''}${Number(value)}`
+                : 'N/D';
+            const renderSimilarAh = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return '';
+                const summary = (label, data) => {
+                    const samples = Number(data?.samples) || 0;
+                    const cover = Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D';
+                    const gf = Number.isFinite(Number(data?.goals_for_avg)) ? Number(data.goals_for_avg).toFixed(1) : 'N/D';
+                    const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
+                    return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
+                };
+                const correlation = analysis.correlation || {};
+                const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
+                const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
+                return `<div class="pre-context-ah-analysis">
+                    <div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div>
+                    <div class="pre-context-ah-grid">${summary('CASA', analysis.home)}${summary('FUERA', analysis.away)}</div>
+                    <div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div>
+                </div>`;
+            };
+
             const renderMoment = (title, moment, isPrevious = false) => {
                 if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
                 const momentHome = moment.home_name || currentHome;
@@ -6716,6 +6750,7 @@
                         ${renderTeam(momentHome, 'home', moment.home_matches)}
                         ${renderTeam(momentAway, 'away', moment.away_matches)}
                     </div>
+                    ${renderSimilarAh(moment)}
                 </section>`;
             };
 
@@ -6735,13 +6770,19 @@
                 });
                 return `${role === 'home' ? 'CASA' : 'FUERA'} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo en esta localía'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
             };
-            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches)}`;
+            const similarAhText = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
+                const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
+                return `HÁNDICAPS SIMILARES\n${row('CASA', analysis.home)}\n${row('FUERA', analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
+            };
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
             if (previous) {
                 const previousHome = previous.home_name || currentHome;
                 const previousAway = previous.away_name || currentAway;
                 const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
-                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches)}\n\n${teamText(previousAway, 'away', previous.away_matches)}`;
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches)}\n\n${teamText(previousAway, 'away', previous.away_matches)}\n\n${similarAhText(previous)}`;
             }
             const copyText = `CONTEXTO PREVIO (CASA VS FUERA · MISMA LIGA)\n\n${currentText}\n\n${previousText}`;
 
@@ -9803,6 +9844,24 @@
             return data.match;
         }
 
+        async function requestPrecacheoContextFast(matchId) {
+            const response = await fetch('/api/precacheo_context_fast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || 'No se pudo cargar el contexto');
+            mergePrecacheoRow(matchId, {
+                id: String(matchId),
+                match_id: String(matchId),
+                pre_match_context: data.context,
+                context_scraped_at: data.context?.generated_at,
+            });
+            renderTableWithPagination();
+            return data;
+        }
+
         function scrapeMatch(matchId) {
             requestPrecacheoScrape(matchId).catch(err => {
                 console.error('Error scraping:', err);
@@ -9827,7 +9886,7 @@
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:11px;"></i>';
             try {
-                await requestPrecacheoScrape(matchId);
+                await requestPrecacheoContextFast(matchId);
                 requestAnimationFrame(() => showPreMatchContext(`global-stats-${matchId}`));
             } catch (err) {
                 console.error('Error scraping context:', err);

@@ -1404,6 +1404,219 @@ def extract_previous_h2h_context(h2h_data):
         return None
 
 
+def _parse_context_score(raw_score):
+    match = re.search(r"(\d+)\s*[:-]\s*(\d+)", str(raw_score or ""))
+    return (int(match.group(1)), int(match.group(2))) if match else None
+
+
+def _summarize_similar_handicaps(matches, team_name, target_line, goal_line=None):
+    """Compara AH desde la perspectiva del equipo: positivo=favorito."""
+    if target_line is None:
+        return {"target_line": None, "threshold": None, "samples": 0, "matches": []}
+
+    candidates = []
+    team_key = str(team_name or "").strip().lower()
+    for item in matches or []:
+        if not isinstance(item, dict):
+            continue
+        home = str(item.get("home") or item.get("home_team") or "")
+        away = str(item.get("away") or item.get("away_team") or "")
+        subject_home = bool(team_key and team_key in home.lower())
+        subject_away = bool(team_key and team_key in away.lower())
+        if not subject_home and not subject_away:
+            continue
+        raw_line = parse_ah_to_number_of(str(
+            item.get("ahLine") or item.get("ahLine_raw") or item.get("ah_line") or ""
+        ))
+        score = _parse_context_score(item.get("score") or item.get("score_raw"))
+        if raw_line is None or score is None:
+            continue
+        team_line = raw_line if subject_home else -raw_line
+        own_goals, rival_goals = (score if subject_home else (score[1], score[0]))
+        candidates.append((abs(team_line - target_line), item, team_line, own_goals, rival_goals))
+
+    threshold = 0.25
+    selected = [row for row in candidates if row[0] <= threshold + 1e-9]
+    if len(selected) < 3:
+        threshold = 0.5
+        selected = [row for row in candidates if row[0] <= threshold + 1e-9]
+    selected.sort(key=lambda row: (row[0], str(row[1].get("date") or "")), reverse=False)
+
+    wins = draws = losses = covers = pushes = fails = overs = unders = 0
+    goals_for = goals_against = 0
+    public_rows = []
+    for difference, item, team_line, own_goals, rival_goals in selected:
+        margin = own_goals - rival_goals
+        ah_residual = margin - team_line
+        if own_goals > rival_goals:
+            wins += 1
+        elif own_goals < rival_goals:
+            losses += 1
+        else:
+            draws += 1
+        if ah_residual > 1e-9:
+            cover = "COVER"
+            covers += 1
+        elif ah_residual < -1e-9:
+            cover = "FAIL"
+            fails += 1
+        else:
+            cover = "PUSH"
+            pushes += 1
+        total_goals = own_goals + rival_goals
+        if goal_line is not None:
+            if total_goals > goal_line:
+                overs += 1
+            elif total_goals < goal_line:
+                unders += 1
+        goals_for += own_goals
+        goals_against += rival_goals
+        public_rows.append({
+            "date": item.get("date"),
+            "home": item.get("home") or item.get("home_team"),
+            "away": item.get("away") or item.get("away_team"),
+            "score": item.get("score") or item.get("score_raw"),
+            "historical_line": round(team_line, 2),
+            "line_difference": round(difference, 2),
+            "cover": cover,
+        })
+
+    samples = len(selected)
+    decided = covers + fails
+    return {
+        "target_line": round(target_line, 2),
+        "threshold": threshold,
+        "samples": samples,
+        "wins": wins,
+        "draws": draws,
+        "losses": losses,
+        "covers": covers,
+        "pushes": pushes,
+        "fails": fails,
+        "cover_pct": round(covers * 100 / decided, 1) if decided else None,
+        "goals_for_avg": round(goals_for / samples, 2) if samples else None,
+        "goals_against_avg": round(goals_against / samples, 2) if samples else None,
+        "overs": overs,
+        "unders": unders,
+        "matches": public_rows,
+    }
+
+
+def _correlate_home_away_handicaps(home_summary, away_summary):
+    home_samples = int((home_summary or {}).get("samples") or 0)
+    away_samples = int((away_summary or {}).get("samples") or 0)
+    if home_samples < 3 or away_samples < 3:
+        return {
+            "status": "INSUFFICIENT",
+            "label": "Muestra insuficiente",
+            "confidence": "BAJA",
+            "detail": "Se necesitan al menos 3 partidos similares por equipo.",
+        }
+
+    def strength(summary):
+        samples = max(1, int(summary.get("samples") or 0))
+        cover_pct = summary.get("cover_pct")
+        cover_component = float(cover_pct) if cover_pct is not None else 50.0
+        non_loss_pct = (int(summary.get("wins") or 0) + int(summary.get("draws") or 0)) * 100 / samples
+        return 0.65 * cover_component + 0.35 * non_loss_pct
+
+    home_strength = strength(home_summary)
+    away_strength = strength(away_summary)
+    gap = home_strength - away_strength
+    confidence = "SOLIDA" if min(home_samples, away_samples) >= 6 else "ORIENTATIVA"
+    if gap >= 12:
+        status, label = "HOME", "Correlación favorable al local"
+    elif gap <= -12:
+        status, label = "AWAY", "Correlación favorable al visitante"
+    else:
+        status, label = "BALANCED", "Correlación equilibrada o contradictoria"
+    return {
+        "status": status,
+        "label": label,
+        "confidence": confidence,
+        "gap": round(gap, 1),
+        "home_strength": round(home_strength, 1),
+        "away_strength": round(away_strength, 1),
+        "detail": "Compara cover AH (65%) y no perder (35%) en la misma localía.",
+    }
+
+
+def _attach_similar_handicap_context(moment, home_line, goal_line=None):
+    if not isinstance(moment, dict):
+        return moment
+    home_summary = _summarize_similar_handicaps(
+        moment.get("home_matches"), moment.get("home_name"), home_line, goal_line,
+    )
+    away_summary = _summarize_similar_handicaps(
+        moment.get("away_matches"), moment.get("away_name"),
+        -home_line if home_line is not None else None, goal_line,
+    )
+    moment["similar_ah"] = {
+        "home": home_summary,
+        "away": away_summary,
+        "correlation": _correlate_home_away_handicaps(home_summary, away_summary),
+    }
+    return moment
+
+
+def analizar_contexto_previo_rapido(match_id, current_ah=None, current_goal_line=None):
+    """Scrape ligero: dos paginas H2H y ninguna estadistica avanzada."""
+    main_match_id = "".join(filter(str.isdigit, str(match_id)))
+    if not main_match_id:
+        return {"error": "ID de partido invalido"}
+    started = time.time()
+    try:
+        soup = _load_main_match_soup(main_match_id)
+        _, _, league_id, home_name, away_name, league_name = get_team_league_info_from_script_of(soup)
+        odds_parser = globals().get("extract_vs_market_odds") or globals().get("extract_vs_odds")
+        odds_map = odds_parser(soup) if odds_parser else {}
+        home_matches = extract_recent_matches(
+            soup, "table_v1", home_name, league_id, True, odds_map, limit=10,
+        )
+        away_matches = extract_recent_matches(
+            soup, "table_v2", away_name, league_id, False, odds_map, limit=10,
+        )
+        h2h_data = extract_h2h_data_of(soup, home_name, away_name, None, odds_map)
+        previous = extract_previous_h2h_context(h2h_data)
+
+        home_line = parse_ah_to_number_of(str(current_ah or ""))
+        goal_line = parse_ah_to_number_of(str(current_goal_line or ""))
+        if home_line is None or goal_line is None:
+            page_odds = extract_bet365_initial_odds_of(soup, None)
+            if home_line is None:
+                home_line = parse_ah_to_number_of(str(page_odds.get("ah_linea_raw") or ""))
+            if goal_line is None:
+                goal_line = parse_ah_to_number_of(str(page_odds.get("goals_linea_raw") or ""))
+
+        current = {
+            "match_id": main_match_id,
+            "date": extract_match_date_of(soup),
+            "home_name": home_name,
+            "away_name": away_name,
+            "league_id": league_id,
+            "league_name": league_name,
+            "ah_line": home_line,
+            "goal_line": goal_line,
+            "home_matches": home_matches,
+            "away_matches": away_matches,
+        }
+        _attach_similar_handicap_context(current, home_line, goal_line)
+        if previous:
+            previous_line = parse_ah_to_number_of(str(previous.get("ah_line") or ""))
+            _attach_similar_handicap_context(previous, previous_line, goal_line)
+
+        return {
+            "current": current,
+            "previous": previous,
+            "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "generated_at_epoch": int(time.time()),
+            "cache_ttl_hours": 8,
+            "elapsed_seconds": round(time.time() - started, 2),
+        }
+    except Exception as exc:
+        return {"error": str(exc), "elapsed_seconds": round(time.time() - started, 2)}
+
+
 def calculate_over_under_stats(matches, source):
     """Resume O/U de filas históricas que incluyen línea y resultado calculado."""
     counts = {"OVER": 0, "UNDER": 0, "PUSH": 0}

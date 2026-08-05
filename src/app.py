@@ -42,6 +42,7 @@ from modules import history_manager
 # ¡Importante! Importa tu nuevo módulo de scraping
 from modules.estudio_scraper import (
     analizar_partido_completo, 
+    analizar_contexto_previo_rapido,
     get_match_progression_stats_data,
     _df_to_rows,
     format_ah_as_decimal_string_of,
@@ -5370,6 +5371,59 @@ def api_precacheo_scrape():
     except Exception as e:
         print(f"Error scraping for precacheo: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/precacheo_context_fast', methods=['POST'])
+def api_precacheo_context_fast():
+    """Actualiza solo casa/fuera + ultimo H2H y reutiliza el resultado durante 8 horas."""
+    try:
+        payload = request.json or {}
+        match_id = "".join(filter(str.isdigit, str(payload.get('match_id') or '')))
+        if not match_id:
+            return jsonify({'error': 'Falta match_id'}), 400
+
+        existing = data_manager.get_precacheo_match(match_id) or {}
+        cached_context = existing.get('pre_match_context') if isinstance(existing, dict) else None
+        generated_epoch = float((cached_context or {}).get('generated_at_epoch') or 0)
+        cache_age = time.time() - generated_epoch if generated_epoch else None
+        if cached_context and cache_age is not None and 0 <= cache_age < 8 * 3600 and not payload.get('force'):
+            return jsonify({
+                'status': 'success',
+                'context': cached_context,
+                'cached': True,
+                'elapsed_seconds': 0,
+            })
+
+        main_odds = existing.get('main_match_odds') or {}
+        context = analizar_contexto_previo_rapido(
+            match_id,
+            current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
+            current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
+        )
+        if not context or context.get('error'):
+            return jsonify({'error': (context or {}).get('error', 'No se pudo generar el contexto')}), 500
+
+        current = context.get('current') or {}
+        merged = dict(existing)
+        merged.update({
+            'match_id': match_id,
+            'home_name': merged.get('home_name') or current.get('home_name'),
+            'away_name': merged.get('away_name') or current.get('away_name'),
+            'league_name': merged.get('league_name') or current.get('league_name'),
+            'pre_match_context': context,
+            'context_scraped_at': context.get('generated_at'),
+        })
+        data_manager.save_precacheo_match(merged)
+        return jsonify({
+            'status': 'success',
+            'context': context,
+            'cached': False,
+            'elapsed_seconds': context.get('elapsed_seconds'),
+        })
+    except Exception as exc:
+        logging.exception('Error en /api/precacheo_context_fast')
+        return jsonify({'error': str(exc)}), 500
+
+
 
 @app.route('/api/precacheo_scrape_background', methods=['POST'])
 def api_precacheo_scrape_background():

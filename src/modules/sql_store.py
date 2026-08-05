@@ -426,11 +426,16 @@ def _compact_pre_match_context(raw: Any) -> Dict[str, Any]:
         } | {
             "home_matches": _compact_context_matches(moment.get("home_matches")),
             "away_matches": _compact_context_matches(moment.get("away_matches")),
+            "similar_ah": moment.get("similar_ah") if isinstance(moment.get("similar_ah"), dict) else None,
         }
 
     return {
         "current": compact_moment(raw.get("current")),
         "previous": compact_moment(raw.get("previous")),
+        "generated_at": raw.get("generated_at"),
+        "generated_at_epoch": raw.get("generated_at_epoch"),
+        "cache_ttl_hours": raw.get("cache_ttl_hours"),
+        "elapsed_seconds": raw.get("elapsed_seconds"),
     }
 
 
