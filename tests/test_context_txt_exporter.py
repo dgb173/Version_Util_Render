@@ -38,9 +38,9 @@ def _match():
 def test_formats_complete_context_as_plain_text():
     text = format_pre_match_context(_match())
 
-    assert "CONTEXTO PREVIO (CASA VS FUERA · MISMA LIGA)" in text
+    assert "CONTEXTO PREVIO (CASA VS FUERA · TODAS LAS LIGAS)" in text
     assert "PARTIDO ACTUAL — Equipo Casa vs Equipo Fuera — 2026-08-05" in text
-    assert "2026-08-01 | Equipo Casa 2:0 Rival A | AH 0.5" in text
+    assert "2026-08-01 | Liga ID - | Equipo Casa 2:0 Rival A | AH 0.5" in text
     assert "Resumen: V 1 | E 0 | D 0" in text
     assert "HÁNDICAPS SIMILARES" in text
     assert "LOCALÍAS INVERTIDAS" in text
@@ -52,3 +52,17 @@ def test_bundle_puts_llm_prompt_below_context():
     assert "PARTIDO 1/100 · ID 123" in text
     assert text.index("CONTEXTO PREVIO") < text.index("PROMPT LLM COMPLETO")
     assert text.index("PROMPT LLM COMPLETO") < text.index("MI PROMPT LLM")
+
+
+def test_neutral_context_labels_all_venues_and_keeps_league_ids():
+    match = _match()
+    current = match["pre_match_context"]["current"]
+    current["is_neutral_venue"] = True
+    current["home_matches"][0]["league_id_hist"] = "1635"
+
+    text = format_pre_match_context(match)
+
+    assert "CONTEXTO PREVIO (TODAS LAS LOCALÍAS · TODAS LAS LIGAS)" in text
+    assert "TODAS LAS LOCALÍAS — Equipo Casa" in text
+    assert "Liga ID 1635" in text
+    assert "EQUIPO 1 AH" in text

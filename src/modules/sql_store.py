@@ -421,7 +421,7 @@ def _compact_pre_match_context(raw: Any) -> Dict[str, Any]:
             key: moment.get(key)
             for key in (
                 "match_id", "date", "home_name", "away_name", "score",
-                "ah_line", "league_id", "league_name",
+                "ah_line", "league_id", "league_name", "is_neutral_venue",
             )
         } | {
             "home_matches": _compact_context_matches(moment.get("home_matches")),
@@ -430,6 +430,7 @@ def _compact_pre_match_context(raw: Any) -> Dict[str, Any]:
         }
 
     return {
+        "context_data_version": raw.get("context_data_version"),
         "current": compact_moment(raw.get("current")),
         "previous": compact_moment(raw.get("previous")),
         "generated_at": raw.get("generated_at"),

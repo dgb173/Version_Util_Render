@@ -371,12 +371,14 @@
         .pre-context-role { flex: 0 0 auto; padding: 1px 4px; border-radius: 4px; font-size: .5rem; font-weight: 900; }
         .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
         .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-role.is-all { color: #245a91; background: #e7f1fb; }
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .57rem; }
         .pre-context-table th, .pre-context-table td { padding: 3px 4px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .5rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 25%; }
-        .pre-context-table .ctx-score { width: 18%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-ah { width: 17%; text-align: right; }
+        .pre-context-table .ctx-date { width: 20%; }
+        .pre-context-table .ctx-league { width: 13%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-score { width: 15%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-ah { width: 14%; text-align: right; }
         .pre-context-result-W { color: #16834b; background: #eef9f2; }
         .pre-context-result-D { color: #9a6700; background: #fff9e8; }
         .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
@@ -6662,6 +6664,7 @@
                 home_name: currentHome,
                 away_name: currentAway,
                 league_name: pc?.league_name || '',
+                is_neutral_venue: !!pc?.is_neutral_venue,
                 home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
                 away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
             };
@@ -6678,7 +6681,7 @@
                         ? sameTeamName(item?.home ?? item?.home_team, team)
                         : sameTeamName(item?.away ?? item?.away_team, team);
                     return correctRole && (!cutoff || !item?.date || String(item.date) < cutoff);
-                }).slice(0, 10);
+                });
                 const previousHome = rawH2h.h2h_gen_home || currentHome;
                 const previousAway = rawH2h.h2h_gen_away || currentAway;
                 previous = {
@@ -6692,9 +6695,9 @@
                 };
             }
 
-            const renderTeam = (teamName, role, matches) => {
+            const renderTeam = (teamName, role, matches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
-                const rows = asRows(matches).slice(0, 10).map(item => {
+                const rows = asRows(matches).map(item => {
                     const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
                     const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
                     const own = score ? (subjectHome ? score.home : score.away) : null;
@@ -6706,8 +6709,10 @@
                     const rival = subjectHome
                         ? (item?.away ?? item?.away_team ?? '')
                         : (item?.home ?? item?.home_team ?? '');
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
                     return `<tr class="pre-context-result-${result}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
+                        <td class="ctx-league">${esc(leagueId)}</td>
                         <td title="${esc(rival)}">${esc(rival || '-')}</td>
                         <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
                         <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
@@ -6716,10 +6721,10 @@
                 return `<div class="pre-context-team">
                     <div class="pre-context-team-head">
                         <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
-                        <span class="pre-context-role is-${role}">${role === 'home' ? 'CASA' : 'FUERA'}</span>
+                        <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                     </div>
                     ${rows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                     <div class="pre-context-summary"><span class="is-win">V ${wins}</span><span class="is-draw">E ${draws}</span><span class="is-loss">D ${losses}</span></div>`
@@ -6743,9 +6748,11 @@
                 const correlation = analysis.correlation || {};
                 const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
                 const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
                 return `<div class="pre-context-ah-analysis">
                     <div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div>
-                    <div class="pre-context-ah-grid">${summary('CASA', analysis.home)}${summary('FUERA', analysis.away)}</div>
+                    <div class="pre-context-ah-grid">${summary(homeLabel, analysis.home)}${summary(awayLabel, analysis.away)}</div>
                     <div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div>
                 </div>`;
             };
@@ -6754,23 +6761,26 @@
                 if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
                 const momentHome = moment.home_name || currentHome;
                 const momentAway = moment.away_name || currentAway;
+                const allVenues = !!moment.is_neutral_venue;
                 const reversed = isPrevious && sameTeamName(momentHome, currentAway);
                 const meta = isPrevious
                     ? `${esc(moment.date || 'Fecha N/D')} · ${esc(momentHome)} ${esc(moment.score || '-')} ${esc(momentAway)}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
-                    : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · MISMA LIGA`;
+                    : (allVenues
+                        ? `${esc(momentHome)} + ${esc(momentAway)} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
+                        : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · TODAS LAS LIGAS`);
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta">${meta}</div></div>
                     <div class="pre-context-team-grid">
-                        ${renderTeam(momentHome, 'home', moment.home_matches)}
-                        ${renderTeam(momentAway, 'away', moment.away_matches)}
+                        ${renderTeam(momentHome, 'home', moment.home_matches, allVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, allVenues)}
                     </div>
                     ${renderSimilarAh(moment)}
                 </section>`;
             };
 
-            const teamText = (teamName, role, matches) => {
+            const teamText = (teamName, role, matches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
-                const lines = asRows(matches).slice(0, 10).map(item => {
+                const lines = asRows(matches).map(item => {
                     const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
                     const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
                     const own = score ? (subjectHome ? score.home : score.away) : null;
@@ -6780,30 +6790,38 @@
                         else if (own < rivalGoals) losses += 1;
                         else draws += 1;
                     }
-                    return `${item?.date || '-'} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
                 });
-                return `${role === 'home' ? 'CASA' : 'FUERA'} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo en esta localía'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
+                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
             };
             const similarAhText = moment => {
                 const analysis = moment?.similar_ah;
                 if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
                 const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
-                return `HÁNDICAPS SIMILARES\n${row('CASA', analysis.home)}\n${row('FUERA', analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
             };
-            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches)}\n\n${similarAhText(current)}`;
+            const currentNeutral = !!current.is_neutral_venue;
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
             if (previous) {
                 const previousHome = previous.home_name || currentHome;
                 const previousAway = previous.away_name || currentAway;
+                const previousNeutral = !!previous.is_neutral_venue;
                 const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
-                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches)}\n\n${teamText(previousAway, 'away', previous.away_matches)}\n\n${similarAhText(previous)}`;
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
             }
-            const copyText = `CONTEXTO PREVIO (CASA VS FUERA · MISMA LIGA)\n\n${currentText}\n\n${previousText}`;
+            const contextScope = currentNeutral
+                ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
+                : 'CASA VS FUERA · TODAS LAS LIGAS';
+            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
 
             return `<div class="pre-context-panel">
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
-                    <div class="pre-context-actions"><div class="pre-context-note">Cómo llegaban ambos equipos, siempre en casa vs fuera</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button></div>
+                    <div class="pre-context-actions"><div class="pre-context-note">${currentNeutral ? 'Historial completo de ambos equipos' : 'Local en casa y visitante fuera, con todas las ligas'}</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button></div>
                 </div>
                 <div class="pre-context-moments">
                     ${renderMoment('Partido actual', current)}

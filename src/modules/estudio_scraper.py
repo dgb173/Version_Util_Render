@@ -1366,6 +1366,23 @@ def extract_recent_matches(soup, table_id, team_name, league_id, is_home_game, o
     return matches[:limit]
 
 
+def _is_neutral_league(league_name):
+    """Indica si el usuario marcó la competición como campo neutral."""
+    if not league_name:
+        return False
+    try:
+        config = sql_store.get_json_state('app_favoritas_config_v1', default={}) or {}
+        neutral_names = {
+            str(name).strip().casefold()
+            for name in config.get('neutras_nombres', [])
+            if str(name).strip()
+        }
+        return str(league_name).strip().casefold() in neutral_names
+    except Exception as exc:
+        print(f"Warning checking neutral league: {exc}")
+        return False
+
+
 def extract_previous_h2h_context(h2h_data):
     """Obtiene la forma casa/fuera anterior al ultimo H2H, respetando sus localias."""
     previous_match_id = "".join(filter(str.isdigit, str((h2h_data or {}).get("match6_id") or "")))
@@ -1379,13 +1396,14 @@ def extract_previous_h2h_context(h2h_data):
             return None
 
         previous_odds_map = extract_vs_market_odds(previous_soup)
+        is_neutral_venue = _is_neutral_league(previous_league)
         home_history = extract_recent_matches(
-            previous_soup, "table_v1", previous_home, previous_league_id, True,
-            previous_odds_map, limit=10,
+            previous_soup, "table_v1", previous_home, None, True,
+            previous_odds_map, limit=100, is_neutral_venue=is_neutral_venue,
         )
         away_history = extract_recent_matches(
-            previous_soup, "table_v2", previous_away, previous_league_id, False,
-            previous_odds_map, limit=10,
+            previous_soup, "table_v2", previous_away, None, False,
+            previous_odds_map, limit=100, is_neutral_venue=is_neutral_venue,
         )
         return {
             "match_id": previous_match_id,
@@ -1396,6 +1414,7 @@ def extract_previous_h2h_context(h2h_data):
             "ah_line": (h2h_data or {}).get("ah6") or "N/A",
             "league_id": previous_league_id,
             "league_name": previous_league,
+            "is_neutral_venue": is_neutral_venue,
             "home_matches": home_history,
             "away_matches": away_history,
         }
@@ -1537,7 +1556,7 @@ def _correlate_home_away_handicaps(home_summary, away_summary):
         "gap": round(gap, 1),
         "home_strength": round(home_strength, 1),
         "away_strength": round(away_strength, 1),
-        "detail": "Compara cover AH (65%) y no perder (35%) en la misma localía.",
+        "detail": "Compara cover AH (65%) y no perder (35%) en el historial seleccionado.",
     }
 
 
@@ -1559,7 +1578,12 @@ def _attach_similar_handicap_context(moment, home_line, goal_line=None):
     return moment
 
 
-def analizar_contexto_previo_rapido(match_id, current_ah=None, current_goal_line=None):
+def analizar_contexto_previo_rapido(
+    match_id,
+    current_ah=None,
+    current_goal_line=None,
+    is_neutral_venue=None,
+):
     """Scrape ligero: dos paginas H2H y ninguna estadistica avanzada."""
     main_match_id = "".join(filter(str.isdigit, str(match_id)))
     if not main_match_id:
@@ -1568,13 +1592,17 @@ def analizar_contexto_previo_rapido(match_id, current_ah=None, current_goal_line
     try:
         soup = _load_main_match_soup(main_match_id)
         _, _, league_id, home_name, away_name, league_name = get_team_league_info_from_script_of(soup)
+        configured_neutral = _is_neutral_league(league_name)
+        is_neutral_venue = bool(is_neutral_venue) or configured_neutral
         odds_parser = globals().get("extract_vs_market_odds") or globals().get("extract_vs_odds")
         odds_map = odds_parser(soup) if odds_parser else {}
         home_matches = extract_recent_matches(
-            soup, "table_v1", home_name, league_id, True, odds_map, limit=10,
+            soup, "table_v1", home_name, None, True, odds_map,
+            limit=100, is_neutral_venue=is_neutral_venue,
         )
         away_matches = extract_recent_matches(
-            soup, "table_v2", away_name, league_id, False, odds_map, limit=10,
+            soup, "table_v2", away_name, None, False, odds_map,
+            limit=100, is_neutral_venue=is_neutral_venue,
         )
         h2h_data = extract_h2h_data_of(soup, home_name, away_name, None, odds_map)
         previous = extract_previous_h2h_context(h2h_data)
@@ -1595,6 +1623,7 @@ def analizar_contexto_previo_rapido(match_id, current_ah=None, current_goal_line
             "away_name": away_name,
             "league_id": league_id,
             "league_name": league_name,
+            "is_neutral_venue": is_neutral_venue,
             "ah_line": home_line,
             "goal_line": goal_line,
             "home_matches": home_matches,
@@ -1606,6 +1635,7 @@ def analizar_contexto_previo_rapido(match_id, current_ah=None, current_goal_line
             _attach_similar_handicap_context(previous, previous_line, goal_line)
 
         return {
+            "context_data_version": 2,
             "current": current,
             "previous": previous,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -2345,14 +2375,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
                 return {"error": "No valid AH odds found", "skipped": True}
         
         # --- LIGA NEUTRA LOGIC ---
-        is_neutral_venue = False
-        try:
-            data_cfg = sql_store.get_json_state('app_favoritas_config_v1', default={}) or {}
-            neutras_cfg = [n.lower() for n in data_cfg.get('neutras_nombres', [])]
-            if league_name and league_name.lower() in neutras_cfg:
-                is_neutral_venue = True
-        except Exception as e:
-            print(f"Warning checking neutral league: {e}")
+        is_neutral_venue = _is_neutral_league(league_name)
             
         home_standings = extract_standings_data_from_h2h_page_of(soup_completo, home_name)
         away_standings = extract_standings_data_from_h2h_page_of(soup_completo, away_name)
@@ -2387,6 +2410,17 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         recent_home_matches = recent_home_specific or recent_home_general
         recent_away_matches = recent_away_specific or recent_away_general
         recent_away_matches_all = recent_away_general
+
+        # El contexto previo usa todas las competiciones. En liga normal mantiene
+        # la localía; en liga neutral incluye casa y fuera para cada equipo.
+        context_home_matches = extract_recent_matches(
+            soup_completo, "table_v1", home_name, None, True, odds_map,
+            limit=100, is_neutral_venue=is_neutral_venue,
+        )
+        context_away_matches = extract_recent_matches(
+            soup_completo, "table_v2", away_name, None, False, odds_map,
+            limit=100, is_neutral_venue=is_neutral_venue,
+        )
 
         home_ou_stats_specific = calculate_over_under_stats(
             recent_home_specific, "same_league_home",
@@ -2512,6 +2546,7 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         "home_name": home_name,
         "away_name": away_name,
         "league_name": league_name,
+        "is_neutral_venue": is_neutral_venue,
         "final_score": final_score,
         "time": match_time,
         "match_date": match_date,
@@ -2534,13 +2569,15 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         "market_analysis_data": market_analysis_data,
         "historical_matches_html": historical_matches_html,
         "pre_match_context": {
+            "context_data_version": 2,
             "current": {
                 "date": match_date,
                 "home_name": home_name,
                 "away_name": away_name,
                 "league_name": league_name,
-                "home_matches": recent_home_specific,
-                "away_matches": recent_away_specific,
+                "is_neutral_venue": is_neutral_venue,
+                "home_matches": context_home_matches,
+                "away_matches": context_away_matches,
             },
             "previous": previous_h2h_context,
         },

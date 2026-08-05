@@ -35,6 +35,7 @@ jobs:
       SQL_BOOTSTRAP_ONLY_BUCKETS: data_precacheo.json,data_pending_results.json
       PRECACHEO_PENDING_MAX_AGE_DAYS: "1"
       PRECACHEO_HISTORY_UPGRADE_DAYS: "1"
+      PRECACHEO_RENDER_URL: "https://nowgoal-app-v8fw.onrender.com"
       PYTHONUNBUFFERED: "1"
 
     steps:

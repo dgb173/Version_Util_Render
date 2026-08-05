@@ -34,6 +34,7 @@ def _fallback_context(match):
         "home_name": home,
         "away_name": away,
         "league_name": match.get("league_name") or match.get("league") or "",
+        "is_neutral_venue": bool(match.get("is_neutral_venue")),
         "home_matches": (
             match.get("recent_home_matches_same_league_specific")
             or match.get("recent_home_matches")
@@ -92,10 +93,11 @@ def _fallback_context(match):
     return {"current": current, "previous": previous}
 
 
-def _team_history_text(team_name, role, matches):
+def _team_history_text(team_name, role, matches, all_venues=False):
     wins = draws = losses = 0
-    lines = [f"{'CASA' if role == 'home' else 'FUERA'} — {team_name}"]
-    for item in _rows(matches)[:10]:
+    scope = "TODAS LAS LOCALÍAS" if all_venues else ("CASA" if role == "home" else "FUERA")
+    lines = [f"{scope} — {team_name}"]
+    for item in _rows(matches):
         home = item.get("home") or item.get("home_team") or "-"
         away = item.get("away") or item.get("away_team") or "-"
         raw_score = item.get("score") or item.get("score_raw") or item.get("result") or "-"
@@ -114,7 +116,11 @@ def _team_history_text(team_name, role, matches):
             ah = item.get("ahLine_raw")
         if ah in (None, ""):
             ah = item.get("ah_line")
-        lines.append(f"{item.get('date') or '-'} | {home} {raw_score} {away} | AH {ah if ah not in (None, '') else '-'}")
+        league_id = item.get("league_id_hist") or item.get("league_id") or "-"
+        lines.append(
+            f"{item.get('date') or '-'} | Liga ID {league_id} | "
+            f"{home} {raw_score} {away} | AH {ah if ah not in (None, '') else '-'}"
+        )
     if len(lines) == 1:
         lines.append("Sin historial previo en esta localía")
     lines.append(f"Resumen: V {wins} | E {draws} | D {losses}")
@@ -147,10 +153,12 @@ def _similar_handicaps_text(moment):
         )
 
     correlation = analysis.get("correlation") if isinstance(analysis.get("correlation"), dict) else {}
+    home_label = "EQUIPO 1" if (moment or {}).get("is_neutral_venue") else "CASA"
+    away_label = "EQUIPO 2" if (moment or {}).get("is_neutral_venue") else "FUERA"
     return "\n".join([
         "HÁNDICAPS SIMILARES",
-        row("CASA", analysis.get("home")),
-        row("FUERA", analysis.get("away")),
+        row(home_label, analysis.get("home")),
+        row(away_label, analysis.get("away")),
         f"CORRELACIÓN: {correlation.get('label', 'Muestra insuficiente')} · confianza {correlation.get('confidence', 'BAJA')}",
     ])
 
@@ -163,13 +171,19 @@ def format_pre_match_context(match):
 
     home = current.get("home_name") or match.get("home_name") or match.get("home_team") or "Local N/D"
     away = current.get("away_name") or match.get("away_name") or match.get("away_team") or "Visitante N/D"
+    current_neutral = bool(current.get("is_neutral_venue"))
+    scope = (
+        "TODAS LAS LOCALÍAS · TODAS LAS LIGAS"
+        if current_neutral
+        else "CASA VS FUERA · TODAS LAS LIGAS"
+    )
     blocks = [
-        "CONTEXTO PREVIO (CASA VS FUERA · MISMA LIGA)",
+        f"CONTEXTO PREVIO ({scope})",
         "",
         f"PARTIDO ACTUAL — {home} vs {away} — {current.get('date') or 'fecha N/D'}",
-        _team_history_text(home, "home", current.get("home_matches")),
+        _team_history_text(home, "home", current.get("home_matches"), current_neutral),
         "",
-        _team_history_text(away, "away", current.get("away_matches")),
+        _team_history_text(away, "away", current.get("away_matches"), current_neutral),
         "",
         _similar_handicaps_text(current),
     ]
@@ -178,13 +192,14 @@ def format_pre_match_context(match):
     if previous:
         previous_home = previous.get("home_name") or home
         previous_away = previous.get("away_name") or away
+        previous_neutral = bool(previous.get("is_neutral_venue"))
         venue = "LOCALÍAS INVERTIDAS" if _same_team(previous_home, away) else "MISMAS LOCALÍAS"
         blocks.extend([
             f"ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — {previous_home} {previous.get('score') or '-'} {previous_away} — {previous.get('date') or 'fecha N/D'} — {venue}",
             "Cómo llegaban antes de ese partido:",
-            _team_history_text(previous_home, "home", previous.get("home_matches")),
+            _team_history_text(previous_home, "home", previous.get("home_matches"), previous_neutral),
             "",
-            _team_history_text(previous_away, "away", previous.get("away_matches")),
+            _team_history_text(previous_away, "away", previous.get("away_matches"), previous_neutral),
             "",
             _similar_handicaps_text(previous),
         ])

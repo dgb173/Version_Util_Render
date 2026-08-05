@@ -9,6 +9,7 @@ def _cached(match_id, generated_at, with_context=True):
     row = {"match_id": match_id, "main_match_odds": {"ah_linea": "-0.5"}}
     if with_context:
         row["pre_match_context"] = {
+            "context_data_version": 2,
             "generated_at_epoch": generated_at,
             "current": {"home_matches": [], "away_matches": []},
         }
@@ -20,6 +21,13 @@ def test_context_cache_is_reusable_for_eight_hours():
 
     assert _context_is_reusable(row, now_epoch=10_000 + 7 * 3600, ttl_hours=8)
     assert not _context_is_reusable(row, now_epoch=10_000 + 8 * 3600, ttl_hours=8)
+
+
+def test_old_context_version_is_forced_to_refresh():
+    row = _cached("1", generated_at=10_000)
+    row["pre_match_context"]["context_data_version"] = 1
+
+    assert not _context_is_reusable(row, now_epoch=10_100, ttl_hours=8)
 
 
 def test_selects_only_cached_upcoming_with_missing_or_expired_context():

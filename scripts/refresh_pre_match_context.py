@@ -5,9 +5,12 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import os
 import sys
 import time
 from pathlib import Path
+
+import requests
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -31,6 +34,11 @@ def _context_is_reusable(match, now_epoch=None, ttl_hours=8):
     context = (match or {}).get("pre_match_context")
     if not isinstance(context, dict):
         return False
+    try:
+        if int(context.get("context_data_version") or 0) < 2:
+            return False
+    except (TypeError, ValueError):
+        return False
     current = context.get("current")
     if not isinstance(current, dict):
         return False
@@ -43,6 +51,25 @@ def _context_is_reusable(match, now_epoch=None, ttl_hours=8):
     now_value = float(now_epoch if now_epoch is not None else time.time())
     age = now_value - generated
     return generated > 0 and 0 <= age < max(1, int(ttl_hours)) * 3600
+
+
+def _sync_neutral_config_from_render():
+    """Permite que el runner de GitHub respete las ligas neutrales de Render."""
+    base_url = str(os.getenv("PRECACHEO_RENDER_URL") or "").strip().rstrip("/")
+    if not base_url:
+        return False
+    try:
+        response = requests.get(f"{base_url}/api/ligas_favoritas_config", timeout=45)
+        response.raise_for_status()
+        config = response.json()
+        if not isinstance(config, dict) or not isinstance(config.get("neutras_nombres"), list):
+            raise ValueError("La configuración neutral recibida no es válida")
+        sql_store.set_json_state("app_favoritas_config_v1", config)
+        print(f"Ligas neutrales sincronizadas desde Render: {len(config['neutras_nombres'])}")
+        return True
+    except Exception as exc:
+        print(f"AVISO: no se pudo sincronizar la configuración neutral de Render: {exc}")
+        return False
 
 
 def _select_context_jobs(snapshot, cached_by_id, force=False, now_epoch=None, ttl_hours=8):
@@ -70,6 +97,7 @@ def _scrape_context(match):
         match_id,
         current_ah=main_odds.get("ah_linea") or match.get("handicap"),
         current_goal_line=main_odds.get("goals_linea") or match.get("goal_line"),
+        is_neutral_venue=True if match.get("is_neutral_venue") is True else None,
     )
     if not isinstance(context, dict) or context.get("error"):
         return match_id, None, (context or {}).get("error", "contexto vacío")
@@ -77,6 +105,7 @@ def _scrape_context(match):
 
 
 def refresh_contexts(workers=6, force=False, ttl_hours=8):
+    _sync_neutral_config_from_render()
     snapshot = sql_store.get_json_state(SNAPSHOT_KEY, {})
     if not isinstance(snapshot, dict):
         snapshot = {}
