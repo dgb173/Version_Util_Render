@@ -257,6 +257,23 @@ def main() -> int:
                     "los análisis completados correctamente."
                 )
 
+        context_command = [
+            python,
+            "scripts/refresh_pre_match_context.py",
+            "--workers",
+            str(min(workers, 6)),
+            "--ttl-hours",
+            "8",
+        ]
+        if args.force_full:
+            context_command.append("--force")
+        context_code = _run(context_command, allowed_codes=(0, 1))
+        if context_code == 1:
+            print(
+                "\nAVISO: algunos contextos previos fallaron; se conservan los "
+                "partidos y contextos completados correctamente."
+            )
+
         _run((python, "scripts/export_precacheo_json.py", "--include-pending"))
         summary = _validate_outputs(max_json_bytes=max(1, args.max_json_bytes))
 
@@ -268,6 +285,7 @@ def main() -> int:
         print(f"Pendientes: {summary['pending']}")
         print(f"Tamaño data_precacheo.json: {summary['precache_bytes']} bytes")
         print(f"Resultado del análisis: {analysis_code}")
+        print(f"Resultado del contexto previo: {context_code}")
         return 0
     except RefreshError as exc:
         print(f"\nERROR CLOUD PRECACHEO: {exc}", file=sys.stderr)

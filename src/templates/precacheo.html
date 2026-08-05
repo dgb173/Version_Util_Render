@@ -7,7 +7,6 @@
     <title>Pre-Cacheo ⚽</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='league_table_modal.css') }}">
     <style>
         body {
             background-color: #f7f9fc;
@@ -6615,26 +6614,36 @@
             bootstrap.Collapse.getOrCreateInstance(collapseElement, { toggle: false }).show();
         }
 
-        async function copyPreMatchContext(button) {
+        async function copyPreMatchContext(button, matchId) {
             const encoded = button?.dataset?.context || '';
-            const value = decodeURIComponent(encoded);
-            if (!value) return;
-            try {
-                await navigator.clipboard.writeText(value);
-            } catch (_) {
-                const area = document.createElement('textarea');
-                area.value = value;
-                area.style.position = 'fixed';
-                area.style.opacity = '0';
-                document.body.appendChild(area);
-                area.select();
-                document.execCommand('copy');
-                area.remove();
-            }
+            const contextText = decodeURIComponent(encoded);
+            if (!contextText || !matchId) return;
             const original = button.innerHTML;
-            button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Copiado';
-            button.classList.add('btn-success');
-            setTimeout(() => { button.innerHTML = original; button.classList.remove('btn-success'); }, 1600);
+            const deferredClipboard = beginDeferredClipboardWrite();
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando';
+            try {
+                const response = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
+                const data = await response.json();
+                if (!response.ok || !data.success || !data.prompt) {
+                    throw new Error(data.error || 'No se pudo generar el prompt LLM');
+                }
+                const divider = '='.repeat(72);
+                const combined = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
+                await deferredClipboard.finish(combined);
+                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
+                button.classList.add('btn-success');
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.classList.remove('btn-success');
+                    button.disabled = false;
+                }, 1800);
+            } catch (error) {
+                deferredClipboard.cancel(error);
+                button.innerHTML = original;
+                button.disabled = false;
+                alert('Error al preparar contexto + prompt LLM: ' + error.message);
+            }
         }
 
         function renderPreMatchContext(pc, currentHome, currentAway) {
@@ -6789,7 +6798,7 @@
             return `<div class="pre-context-panel">
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
-                    <div class="pre-context-actions"><div class="pre-context-note">Cómo llegaban ambos equipos, siempre en casa vs fuera</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this)"><i class="fa-regular fa-copy me-1"></i>Copiar contexto</button></div>
+                    <div class="pre-context-actions"><div class="pre-context-note">Cómo llegaban ambos equipos, siempre en casa vs fuera</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button></div>
                 </div>
                 <div class="pre-context-moments">
                     ${renderMoment('Partido actual', current)}
@@ -9441,9 +9450,9 @@
                         type="button"
                         onclick="scrapeAndShowPreMatchContext('${matchId}', this)"
                         style="width: 22px; height: 22px; border-radius: 50%;"
-                        title="Scrapear y ver contexto previo"
-                        aria-label="Scrapear y ver contexto previo">
-                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 11px;"></i>
+                        title="Actualizar y ver contexto previo"
+                        aria-label="Actualizar y ver contexto previo">
+                        <i class="fa-solid fa-book-open" style="font-size: 11px;"></i>
                     </button>
                 ` : '';
 
@@ -9506,53 +9515,6 @@
                             <i class="fas fa-eye"></i>
                        </a>`;
 
-                const leagueFavoriteSide = favoriteSideFromAh(ah);
-                const leagueFavoriteName = leagueFavoriteSide === 'HOME' ? home
-                    : (leagueFavoriteSide === 'AWAY' ? away : '');
-                const leagueCurrentOpponent = leagueFavoriteSide === 'HOME' ? away
-                    : (leagueFavoriteSide === 'AWAY' ? home : '');
-                const leagueFavoriteLastMatch = leagueFavoriteSide === 'HOME'
-                    ? (pc && pc.last_home_match)
-                    : (leagueFavoriteSide === 'AWAY' ? (pc && pc.last_away_match) : null);
-                const leagueFavoriteWasHome = !!(
-                    leagueFavoriteLastMatch
-                    && sameTeamName(leagueFavoriteLastMatch.home_team, leagueFavoriteName)
-                );
-                const leagueFavoriteWasAway = !!(
-                    leagueFavoriteLastMatch
-                    && sameTeamName(leagueFavoriteLastMatch.away_team, leagueFavoriteName)
-                );
-                const leagueFavoriteLastRival = leagueFavoriteWasHome
-                    ? (leagueFavoriteLastMatch.away_team || '')
-                    : (leagueFavoriteWasAway ? (leagueFavoriteLastMatch.home_team || '') : '');
-                const leagueFavoriteLastVenue = leagueFavoriteWasHome ? 'home'
-                    : (leagueFavoriteWasAway ? 'away' : '');
-                const leagueLastRivalVenue = leagueFavoriteWasHome ? 'away'
-                    : (leagueFavoriteWasAway ? 'home' : '');
-
-                const leagueTableBtnHtml = home !== '-' && away !== '-'
-                    ? `<button type="button"
-                            class="btn btn-sm league-table-trigger league-table-trigger--compact"
-                            data-home-name="${escapeDataAttr(home)}"
-                            data-away-name="${escapeDataAttr(away)}"
-                            data-league-name="${escapeDataAttr(league)}"
-                            data-match-date="${escapeDataAttr((pc && pc.match_date) || m.match_date || m.date || '')}"
-                            data-goal-line="${escapeDataAttr((pc && pc.main_match_odds && pc.main_match_odds.goals_linea) || m.goal_line || '2.5')}"
-                            data-handicap="${escapeDataAttr(ah)}"
-                            data-favorite-side="${escapeDataAttr(leagueFavoriteSide)}"
-                            data-favorite-name="${escapeDataAttr(leagueFavoriteName)}"
-                            data-current-opponent="${escapeDataAttr(leagueCurrentOpponent)}"
-                            data-favorite-last-rival="${escapeDataAttr(leagueFavoriteLastRival)}"
-                            data-favorite-last-score="${escapeDataAttr((leagueFavoriteLastMatch && leagueFavoriteLastMatch.score) || '')}"
-                            data-favorite-last-venue="${escapeDataAttr(leagueFavoriteLastVenue)}"
-                            data-last-rival-venue="${escapeDataAttr(leagueLastRivalVenue)}"
-                            data-last-rival-different-league="${leagueFavoriteLastMatch && leagueFavoriteLastMatch.is_different_league ? '1' : '0'}"
-                            title="Lectura de liga, hándicap, localía y Over/Under"
-                            aria-label="Ver liga">
-                            <i class="fa-solid fa-chart-column"></i>
-                       </button>`
-                    : '';
-
                 const advancedBtnsHtml = isScraped
                     ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
                             <i class="fas fa-search"></i>
@@ -9601,11 +9563,11 @@
                 let actionButtonsHtml = '';
                 const actionsMode = String(PRECACHEO_ACTIONS_MODE || '').toLowerCase();
                 if (actionsMode === 'ai_stats_only') {
-                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${aiBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}${bookieBtnHtml}${preContextBtn}`;
                 } else if (actionsMode === 'minimal' || !PRECACHEO_ENABLE_HEAVY_ACTIONS) {
-                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}${preContextBtn}`;
                 } else {
-                    actionButtonsHtml = `${globalStatsBtn}${preContextBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}${leagueTableBtnHtml}`;
+                    actionButtonsHtml = `${globalStatsBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}${preContextBtn}`;
                 }
 
 
@@ -14335,33 +14297,6 @@
             </div>
         </div>
     </div>
-
-    <div class="modal fade league-table-modal" id="leagueTableModal" tabindex="-1"
-        aria-labelledby="leagueTableModalTitle" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div>
-                        <h5 class="modal-title mb-1" id="leagueTableModalTitle">Clasificación de liga</h5>
-                        <div class="small opacity-75" id="leagueTableModalSubtitle"></div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Cerrar"></button>
-                </div>
-                <div class="league-table-tabs" id="leagueTableTabs"></div>
-                <div class="modal-body p-0" id="leagueTableModalBody"></div>
-                <div class="league-source-note d-flex justify-content-between gap-3 flex-wrap">
-                    <span>PJ: partidos · GF: goles a favor · GC: goles en contra · DG: diferencia</span>
-                    <span class="d-flex gap-3">
-                        <a id="leagueFlashscoreLink" class="d-none" href="#" target="_blank" rel="noopener noreferrer">Ver O/U en Flashscore</a>
-                        <a href="https://www.sofascore.com/" target="_blank" rel="noopener noreferrer">Datos: SofaScore</a>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/league_table_modal.js') }}?v=7"></script>
 
     <!-- Mobile View Handler Script -->
     <script src="{{ url_for('static', filename='mobile_view_handler.js') }}"></script>

@@ -57,7 +57,7 @@ jobs:
           python -m pip install playwright==1.55.0
           python -m playwright install --with-deps chromium
 
-      - name: Generar data y precacheo
+      - name: Generar data, precacheo y contexto previo
         env:
           FORCE_FULL: ${{ inputs.force_full || false }}
         run: |
@@ -143,6 +143,7 @@ jobs:
             echo "- Horario automático: **04:00, 12:00 y 20:00 Europe/Madrid**"
             echo "- Ejecución: **${{ github.event_name }}**"
             echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
+            echo "- Contexto previo: **incremental, caché de 8 horas**"
             echo
             echo "Si se publicó un commit, Render recibe automáticamente el push de main."
           } >> "$GITHUB_STEP_SUMMARY"
