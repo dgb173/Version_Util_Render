@@ -1,6 +1,7 @@
 name: Cachear partidos terminados en GitHub
 
-run-name: Cacheo de terminados (${{ inputs.handicap || 'all' }} / ${{ inputs.ou || 'all' }})
+run-name: >-
+  Cacheo de terminados (${{ github.event_name == 'schedule' && 'automático 05:00 Madrid' || inputs.handicap || 'all' }})
 
 on:
   workflow_dispatch:
@@ -25,6 +26,9 @@ on:
         required: false
         default: "5"
         type: string
+  schedule:
+    # 05:00 AM hora de Madrid (UTC+2 en verano = 03:00 UTC)
+    - cron: "0 3 * * *"
 
 permissions:
   contents: write
@@ -66,13 +70,20 @@ jobs:
 
       - name: Ejecutar cacheo de partidos terminados
         run: |
-          python scripts/cache_finished_matches.py "${{ inputs.handicap }}" "${{ inputs.ou }}" "${{ inputs.workers }}" "${{ inputs.flush_every }}"
+          handicap="${{ inputs.handicap || 'all' }}"
+          ou="${{ inputs.ou || 'all' }}"
+          workers="${{ inputs.workers || '10' }}"
+          flush_every="${{ inputs.flush_every || '5' }}"
+          python scripts/cache_finished_matches.py "$handicap" "$ou" "$workers" "$flush_every"
 
-      - name: Publicar cambios en main
+      - name: Publicar cambios livianos (JSONs) en main (EXCLUYENDO app_data.db para no llenar espacio)
         id: publish
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Asegurar que NUNCA se sube el archivo binario pesado app_data.db a GitHub
+          git rm --cached data/app_data.db 2>/dev/null || true
 
           git add -- \
             data.json \
@@ -81,8 +92,7 @@ jobs:
             data/data_pending_results.json \
             data/data_ah_*.json \
             data/data_minus_ah_*.json \
-            data/league_extractions.json \
-            data/app_data.db || true
+            data/league_extractions.json || true
 
           if git diff --cached --quiet; then
             echo "No hay cambios nuevos que publicar."
@@ -101,8 +111,10 @@ jobs:
           {
             echo "## Cacheo de partidos terminados finalizado"
             echo
-            echo "- Handicap: **${{ inputs.handicap }}**"
-            echo "- Over/Under: **${{ inputs.ou }}**"
-            echo "- Workers: **${{ inputs.workers }}**"
-            echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
+            echo "- Programación: **05:00 AM Madrid** (o manual)"
+            echo "- Handicap: **${{ inputs.handicap || 'all' }}**"
+            echo "- Over/Under: **${{ inputs.ou || 'all' }}**"
+            echo "- Workers: **${{ inputs.workers || '10' }}**"
+            echo "- Commit de JSONs publicado: **${{ steps.publish.outputs.published || 'false' }}**"
+            echo "- **Nota de espacio:** app_data.db se excluye de Git para no ocupar espacio en GitHub."
           } >> "$GITHUB_STEP_SUMMARY"
