@@ -1,195 +1,109 @@
 #!/usr/bin/env python
-"""Extrae una liga en GitHub Actions y publica un histórico ligero para Render."""
+# -*- coding: utf-8 -*-
+"""
+Script de Extracción de Liga en la Nube (GitHub Actions).
+Scrapea una liga completa por ID o URL y guarda los JSONs actualizados.
+"""
 
 from __future__ import annotations
 
 import argparse
-import json
+import concurrent.futures
+import datetime
+import os
 import sys
-from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict
 
+# Paths
+script_dir = Path(__file__).resolve().parent
+project_dir = script_dir.parent
+src_dir = project_dir / 'src'
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SRC_DIR = PROJECT_ROOT / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+sys.path.insert(0, str(src_dir))
+sys.path.insert(0, str(project_dir))
 
-from modules import league_extraction_registry, sql_store  # noqa: E402
-from modules.league_handicap_scraper import (  # noqa: E402
-    preview_league_handicap,
-    sanitize_selected_matches,
-    scrape_match_to_sql,
-)
+os.chdir(project_dir)
 
+from modules import data_manager, league_extraction_registry, league_handicap_scraper, sql_store
 
-CLOUD_BUCKET = "data_cloud_league.json"
-MAX_GITHUB_FILE_BYTES = 95 * 1024 * 1024
+def parse_args():
+    parser = argparse.ArgumentParser(description="Extraer liga en la nube (GitHub Actions)")
+    parser.add_argument("--league", required=True, help="ID o URL de la liga (ej: 36)")
+    parser.add_argument("--season", default="", help="Temporada opcional (ej: 2025-2026)")
+    parser.add_argument("--company-id", type=int, default=8, help="ID casa de apuestas")
+    parser.add_argument("--workers", type=int, default=10, help="Número de hilos de extracción")
+    parser.add_argument("--force", action="store_true", help="Forzar reanálisis de partidos existentes")
+    return parser.parse_args()
 
-
-def _optional_float(value: str) -> float | None:
-    cleaned = str(value or "").strip()
-    return None if not cleaned else float(cleaned)
-
-
-def _store_in_cloud_bucket(match_id: str) -> bool:
-    stored = sql_store.get_match(match_id)
-    if not isinstance(stored, dict) or stored.get("error"):
-        return False
-    sql_store.upsert_match(stored, bucket=CLOUD_BUCKET, state="historical")
-    return True
-
-
-def _process_match(
-    match: Dict[str, Any],
-    league_id: str,
-    force: bool,
-) -> Dict[str, Any]:
-    match_id = str(match.get("id") or "")
-    existing = sql_store.get_match(match_id)
-    try:
-        history_data_version = int((existing or {}).get("history_data_version") or 0)
-    except (TypeError, ValueError):
-        history_data_version = 0
-    needs_history_upgrade = history_data_version < 2
-    if (
-        isinstance(existing, dict)
-        and not existing.get("error")
-        and not force
-        and not needs_history_upgrade
-    ):
-        _store_in_cloud_bucket(match_id)
-        return {"id": match_id, "status": "exists", "bucket": CLOUD_BUCKET}
-
-    result = scrape_match_to_sql(
-        match,
-        league_id,
-        force=force or needs_history_upgrade,
-    )
-    if result.get("status") in {"saved", "exists"} and _store_in_cloud_bucket(match_id):
-        result["bucket"] = CLOUD_BUCKET
-    return result
-
-
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Extrae una liga y conserva los análisis en data_cloud_league.json."
-    )
-    parser.add_argument("--league-reference", required=True, help="URL o ID de liga NowGoal")
-    parser.add_argument("--season", default="", help="Temporada; vacía para autodetectar")
-    parser.add_argument("--ah", default="", help="AH visible exacto; vacío para todos")
-    parser.add_argument("--company-id", type=int, default=8)
-    parser.add_argument(
-        "--match-status",
-        choices=("finished", "all", "upcoming"),
-        default="finished",
-    )
-    parser.add_argument("--workers", type=int, default=5)
-    parser.add_argument("--label", default="")
-    parser.add_argument("--force", action="store_true")
-    parser.add_argument(
-        "--max-matches",
-        type=int,
-        default=0,
-        help="0 procesa todos; un valor positivo limita esta ejecución",
-    )
-    return parser
-
-
-def main() -> int:
-    args = _build_parser().parse_args()
-    workers = max(1, min(10, args.workers))
-    target_ah = _optional_float(args.ah)
-
-    print("Consultando calendario y cuotas de la liga...", flush=True)
-    preview = preview_league_handicap(
-        league_reference=args.league_reference,
-        target_ah=target_ah,
+def main():
+    args = parse_args()
+    print(f"🚀 Iniciando extracción cloud para liga '{args.league}' (Temporada: '{args.season or 'actual'}')...")
+    
+    # 1. Previsualizar/Obtener partidos de la liga
+    preview = league_handicap_scraper.preview_league_handicap(
+        league_reference=args.league,
         season=args.season,
         company_id=args.company_id,
-        match_status=args.match_status,
+        match_status="all",
+        competition_type="league"
     )
-    registered_matches = sanitize_selected_matches(
-        preview.get("matches") or [],
-        args.company_id,
-    )
-    if not registered_matches:
-        raise RuntimeError("La consulta no devolvió partidos con esos filtros.")
-    matches = (
-        registered_matches[: args.max_matches]
-        if args.max_matches > 0
-        else registered_matches
-    )
+    
+    matches = preview.get("matches", [])
+    league_id = preview.get("league_id", args.league)
+    season = preview.get("season", args.season)
+    league_name = preview.get("league_name", f"Liga {league_id}")
+    
+    print(f"📋 Encontrados {len(matches)} partidos para {league_name} ({season}).")
+    if not matches:
+        print("⚠️ No se encontraron partidos para procesar.")
+        return
 
-    extraction = league_extraction_registry.register_existing_league(
-        league_id=preview["league_id"],
-        league_name=preview["league_name"],
-        season=preview["season"],
-        company_id=preview["company_id"],
-        target_ah=preview["target_ah"],
-        matches=registered_matches,
-        label=args.label,
+    # 2. Crear o recuperar registro de extracción
+    sanitized = league_handicap_scraper.sanitize_selected_matches(matches, company_id=args.company_id)
+    extraction = league_extraction_registry.create_extraction(
+        league_id=league_id,
+        season=season,
+        matches=sanitized,
+        league_name=league_name,
+        company_id=args.company_id
     )
-    extraction_id = extraction["extraction_id"]
+    extraction_id = extraction["id"]
+    print(f"🆔 ID de Registro de Extracción: {extraction_id}")
+
     league_extraction_registry.update_extraction_status(extraction_id, "running")
 
-    counts: Counter[str] = Counter()
-    print(
-        f"Analizando {len(matches)} partidos de {preview['league_name']} "
-        f"({preview['season']}) con {workers} workers...",
-        flush=True,
-    )
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {
-            pool.submit(_process_match, match, preview["league_id"], args.force): match
-            for match in matches
-        }
-        for index, future in enumerate(as_completed(futures), start=1):
-            source = futures[future]
+    # 3. Scrapear en paralelo con ThreadPoolExecutor
+    processed = 0
+    total = len(sanitized)
+    
+    def scrape_single(match):
+        return league_handicap_scraper.scrape_match_to_sql(match, league_id, args.force)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = {executor.submit(scrape_single, match): match for match in sanitized}
+        for future in concurrent.futures.as_completed(futures):
+            source_match = futures[future]
             try:
-                result = future.result()
+                res = future.result()
             except Exception as exc:
-                result = {
-                    "id": str(source.get("id") or ""),
-                    "status": "error",
-                    "error": str(exc),
-                }
-            counts[str(result.get("status") or "error")] += 1
-            league_extraction_registry.update_match(
-                extraction_id,
-                str(result.get("id") or source.get("id") or ""),
-                result,
-            )
-            print(
-                f"[{index}/{len(matches)}] {result.get('id')}: "
-                f"{result.get('status')} {result.get('error') or ''}",
-                flush=True,
-            )
+                res = {"id": source_match.get("id"), "status": "error", "error": str(exc)}
+            
+            res["round"] = str(source_match.get("round") or "")
+            league_extraction_registry.update_match(extraction_id, str(source_match.get("id") or ""), res)
+            
+            processed += 1
+            if processed % 10 == 0 or processed == total:
+                print(f"⏳ Progreso: {processed}/{total} partidos procesados ({res.get('status')})")
 
-    output_path = sql_store.export_bucket_to_json(CLOUD_BUCKET)
-    if output_path.stat().st_size > MAX_GITHUB_FILE_BYTES:
-        raise RuntimeError(
-            f"{output_path.name} supera 95 MB. Reduce el lote antes de publicarlo."
-        )
+    league_extraction_registry.update_extraction_status(extraction_id, "completed")
+    print("✅ Extracción de liga completada con éxito.")
 
-    final_status = "completed" if len(matches) == len(registered_matches) else "registered"
-    league_extraction_registry.update_extraction_status(extraction_id, final_status)
-    summary = {
-        "extraction_id": extraction_id,
-        "league_id": preview["league_id"],
-        "league_name": preview["league_name"],
-        "season": preview["season"],
-        "registered": len(registered_matches),
-        "processed": len(matches),
-        "counts": dict(counts),
-        "cloud_matches": len(sql_store.fetch_matches(bucket=CLOUD_BUCKET)),
-        "cloud_file_mb": round(output_path.stat().st_size / 1024 / 1024, 2),
-    }
-    print("\n" + json.dumps(summary, ensure_ascii=False, indent=2), flush=True)
-    return 0
-
+    # 4. Exportar JSONs para sincronizar con local
+    try:
+        data_manager.export_precacheo_json()
+        print("💾 data_precacheo.json exportado correctamente.")
+    except Exception as exc:
+        print(f"⚠️ Aviso al exportar precacheo: {exc}")
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

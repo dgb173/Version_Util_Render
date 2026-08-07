@@ -1,0 +1,81 @@
+name: Extraer Liga en la Nube (GitHub Actions)
+
+run-name: >-
+  Extracción Liga ${{ inputs.league_id }} (${{ inputs.season || 'Temporada actual' }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      league_id:
+        description: 'ID o URL de la liga (ej: 36 para Premier, 31 para La Liga, 34 para Serie A)'
+        required: true
+        type: string
+        default: '36'
+      season:
+        description: 'Temporada (opcional, ej: 2025-2026)'
+        required: false
+        type: string
+        default: ''
+      workers:
+        description: 'Número de hilos de extracción paralela'
+        required: false
+        type: string
+        default: '10'
+
+permissions:
+  contents: write
+
+jobs:
+  extraer-liga:
+    name: Scrapear Liga completa en la Nube
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
+      DATA_LEGACY_SYNC: "0"
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Ejecutar Extracción de Liga
+        run: |
+          python scripts/cloud_extract_league.py \
+            --league "${{ inputs.league_id }}" \
+            --season "${{ inputs.season }}" \
+            --workers ${{ inputs.workers }}
+
+      - name: Publicar resultados JSON en GitHub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -- \
+            data.json \
+            data/data.json \
+            data/data_precacheo.json \
+            data/league_extractions.json
+
+          if git diff --cached --quiet; then
+            echo "No hay cambios nuevos de la liga."
+            exit 0
+          fi
+
+          git commit -m "chore: extracción de liga ${{ inputs.league_id }} generada en GitHub Cloud [skip ci]"
+          git push origin main
