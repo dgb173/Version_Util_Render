@@ -5,30 +5,16 @@ set "PYTHONUTF8=1"
 cd /d "%~dp0.."
 
 echo ========================================================
-echo CACHEAR PARTIDOS TERMINADOS
-echo (Misma metodologia que Analisis Previo desde JSON)
+echo   CACHEAR / SINCRONIZAR PARTIDOS TERMINADOS
 echo ========================================================
 echo.
+echo Selecciona la opcion deseada:
+echo   [1] Descargar y sincronizar desde GitHub (RECOMENDADO - 0%% uso de CPU/RAM de tu PC)
+echo   [2] Scrapear localmente en este ordenador (10 workers Playwright)
+echo.
 
-if "%~1"=="" (
-    set /p WORKERS=Workers para cachear terminados [10]: 
-    if "%WORKERS%"=="" set "WORKERS=10"
-) else (
-    set "WORKERS=%~1"
-)
-
-if "%~2"=="" (
-    set /p FLUSH_EVERY=Flush incremental cada N partidos [5]: 
-    if "%FLUSH_EVERY%"=="" set "FLUSH_EVERY=5"
-) else (
-    set "FLUSH_EVERY=%~2"
-)
-
-for /f "delims=0123456789" %%A in ("%WORKERS%") do set "WORKERS=10"
-if %WORKERS% LSS 1 set "WORKERS=10"
-
-for /f "delims=0123456789" %%A in ("%FLUSH_EVERY%") do set "FLUSH_EVERY=5"
-if %FLUSH_EVERY% LSS 1 set "FLUSH_EVERY=5"
+set /p MOPC=Opcion [1]: 
+if "%MOPC%"=="" set "MOPC=1"
 
 if exist ".venv\Scripts\python.exe" (
     set "PYTHON_CMD=.venv\Scripts\python.exe"
@@ -52,31 +38,27 @@ pause
 exit /b 1
 
 :FOUND_PYTHON
-echo Usando interprete: %PYTHON_CMD%
-echo.
-echo Configuracion:
-echo   - Workers: %WORKERS%
-echo   - Flush incremental: cada %FLUSH_EVERY% partidos
-echo.
-echo Ejecutando cacheo de terminados...
-
-if not exist "scripts\cache_finished_matches.py" (
-    echo ERROR: No existe scripts\cache_finished_matches.py
-    pause
-    exit /b 1
+if "%MOPC%"=="1" (
+    echo.
+    echo Ejecutando sincronizacion rapida desde GitHub...
+    "%PYTHON_CMD%" "scripts\sync_cloud_to_local.py"
+    goto :FIN
 )
 
-"%PYTHON_CMD%" -u "scripts\cache_finished_matches.py" all all %WORKERS% %FLUSH_EVERY%
-set "RUN_EXIT=%ERRORLEVEL%"
+echo.
+echo Ejecutando cacheo local en tu PC...
+"%PYTHON_CMD%" -u "scripts\cache_finished_matches.py" all all 10 5
 
+:FIN
+set "RUN_EXIT=%ERRORLEVEL%"
 if not "%RUN_EXIT%"=="0" (
     echo.
-    echo ERROR: El proceso de cachear terminados termino con error.
+    echo ERROR en el proceso.
     pause
     exit /b %RUN_EXIT%
 )
 
 echo.
-echo Cachear terminados finalizado correctamente.
+echo Proceso finalizado correctamente.
 pause
 exit /b 0
