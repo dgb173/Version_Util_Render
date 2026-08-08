@@ -1,669 +1,21 @@
 {
   "upcoming_matches": [
     {
-      "id": "3023432",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Estoril",
-      "away_team": "FC Famalicao",
-      "handicap": "0",
-      "goal_line": "2.25",
-      "time": "20:15"
-    },
-    {
-      "id": "2939030",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Cobh Ramblers",
-      "away_team": "Treaty United",
+      "id": "3039730",
+      "time_obj": "2026-08-08T03:45:00",
+      "home_team": "Island Bay United",
+      "away_team": "Upper Hutt City",
       "handicap": "0.25",
-      "goal_line": "2.25",
-      "time": "20:15"
-    },
-    {
-      "id": "2931268",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Afturelding",
-      "away_team": "Grindavik",
-      "handicap": "1.5",
-      "goal_line": "3.75",
-      "time": "20:15"
-    },
-    {
-      "id": "2931269",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Leiknir Reykjavik",
-      "away_team": "Fylkir",
-      "handicap": "-1",
       "goal_line": "3.25",
-      "time": "20:15"
-    },
-    {
-      "id": "2924720",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Valur (W)",
-      "away_team": "Vikingur Reykjavik (W)",
-      "handicap": "0",
-      "goal_line": "3.25",
-      "time": "20:15"
-    },
-    {
-      "id": "3057569",
-      "time_obj": "2026-08-07T19:15:00",
-      "home_team": "Ulfarnir",
-      "away_team": "Ellidi",
-      "handicap": "0.5",
-      "goal_line": "4.25",
-      "time": "20:15"
-    },
-    {
-      "id": "3056549",
-      "time_obj": "2026-08-07T19:30:00",
-      "home_team": "Independiente Luque",
-      "away_team": "Resistencia SC",
-      "handicap": "0.25",
-      "goal_line": "2.5",
-      "time": "20:30"
-    },
-    {
-      "id": "3057619",
-      "time_obj": "2026-08-07T20:00:00",
-      "home_team": "Panama U21(N)",
-      "away_team": "Colombia U21",
-      "handicap": "-1.5",
-      "goal_line": "3",
-      "time": "21:00"
-    },
-    {
-      "id": "3057570",
-      "time_obj": "2026-08-07T20:00:00",
-      "home_team": "IH Hafnarfjordur",
-      "away_team": "Hamar Hveragerdi",
-      "handicap": "-2",
-      "goal_line": "5",
-      "time": "21:00"
-    },
-    {
-      "id": "3009988",
-      "time_obj": "2026-08-07T20:15:00",
-      "home_team": "Comerciantes Unidos",
-      "away_team": "Cusco FC",
-      "handicap": "0",
-      "goal_line": "2.5",
-      "time": "21:15"
-    },
-    {
-      "id": "3050154",
-      "time_obj": "2026-08-07T20:15:00",
-      "home_team": "Deportivo Union Comercio",
-      "away_team": "Academia Deportiva Cantolao",
-      "handicap": "1.5",
-      "goal_line": "2.75",
-      "time": "21:15"
-    },
-    {
-      "id": "3057076",
-      "time_obj": "2026-08-07T21:00:00",
-      "home_team": "Costa Rica U20(N)",
-      "away_team": "USA U20",
-      "handicap": "-1.5",
-      "goal_line": "3",
-      "time": "22:00"
-    },
-    {
-      "id": "3057807",
-      "time_obj": "2026-08-07T21:00:00",
-      "home_team": "Herediano U20",
-      "away_team": "Alajuelense U20",
-      "handicap": "",
-      "goal_line": "",
-      "time": "22:00"
-    },
-    {
-      "id": "3057759",
-      "time_obj": "2026-08-07T21:00:00",
-      "home_team": "CD Cacahuatique (W)",
-      "away_team": "Fuerte San Francisco (W)",
-      "handicap": "-0.25",
-      "goal_line": "3.25",
-      "time": "22:00"
-    },
-    {
-      "id": "3057506",
-      "time_obj": "2026-08-07T21:00:00",
-      "home_team": "San Francisco Reserves",
-      "away_team": "CA Independiente de la Chorrera Reserves",
-      "handicap": "-0.25",
-      "goal_line": "2.75",
-      "time": "22:00"
-    },
-    {
-      "id": "3045766",
-      "time_obj": "2026-08-07T21:15:00",
-      "home_team": "Academia del Balompie Boliviano",
-      "away_team": "Club Guabira",
-      "handicap": "1",
-      "goal_line": "3.5",
-      "time": "22:15"
-    },
-    {
-      "id": "3055808",
-      "time_obj": "2026-08-07T21:30:00",
-      "home_team": "Rubio nu",
-      "away_team": "Deportivo Recoleta",
-      "handicap": "0.25",
-      "goal_line": "2.5",
-      "time": "22:30"
-    },
-    {
-      "id": "3057083",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "Cerro Largo",
-      "away_team": "CA Juventud",
-      "handicap": "0",
-      "goal_line": "2",
-      "time": "23:00"
-    },
-    {
-      "id": "2926273",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "Union Espanola",
-      "away_team": "CSD Antofagasta",
-      "handicap": "0.25",
-      "goal_line": "2.5",
-      "time": "23:00"
-    },
-    {
-      "id": "2934730",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "Comunicaciones BsAs",
-      "away_team": "Villa San Carlos",
-      "handicap": "0.5",
-      "goal_line": "2",
-      "time": "23:00"
-    },
-    {
-      "id": "2934736",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "Ituzaingo",
-      "away_team": "Deportivo Camioneros",
-      "handicap": "-0.5",
-      "goal_line": "2",
-      "time": "23:00"
-    },
-    {
-      "id": "3056550",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "12 de Junio VH",
-      "away_team": "Deportivo Santani",
-      "handicap": "0.25",
-      "goal_line": "2",
-      "time": "23:00"
-    },
-    {
-      "id": "3050119",
-      "time_obj": "2026-08-07T22:00:00",
-      "home_team": "Tanabi SP (Youth)",
-      "away_team": "Palmeiras (Youth)",
-      "handicap": "-2.5",
-      "goal_line": "3.5",
-      "time": "23:00"
-    },
-    {
-      "id": "2962558",
-      "time_obj": "2026-08-07T22:30:00",
-      "home_team": "Rosario Central",
-      "away_team": "Aldosivi Mar del Plata",
-      "handicap": "1",
-      "goal_line": "2",
-      "time": "23:30"
-    },
-    {
-      "id": "2940113",
-      "time_obj": "2026-08-07T22:30:00",
-      "home_team": "Operario Ferroviario PR",
-      "away_team": "Sao Bernardo",
-      "handicap": "0.5",
-      "goal_line": "2.25",
-      "time": "23:30"
-    },
-    {
-      "id": "2916587",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "Ferrocarril Midland",
-      "away_team": "Deportivo Maipu",
-      "handicap": "0.5",
-      "goal_line": "2",
-      "time": "00:00"
-    },
-    {
-      "id": "2957000",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "Orlando Pride (W)",
-      "away_team": "Racing Louisville (W)",
-      "handicap": "0.75",
-      "goal_line": "2.75",
-      "time": "00:00"
-    },
-    {
-      "id": "3057498",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "We United FC",
-      "away_team": "Mighty Avengers",
-      "handicap": "0.75",
-      "goal_line": "3.5",
-      "time": "00:00"
-    },
-    {
-      "id": "2937585",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "Forge FC",
-      "away_team": "Vancouver FC",
-      "handicap": "0.75",
-      "goal_line": "2.5",
-      "time": "00:00"
-    },
-    {
-      "id": "3050098",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "International Miami B",
-      "away_team": "Crown Legacy FC",
-      "handicap": "-1.25",
-      "goal_line": "3.5",
-      "time": "00:00"
-    },
-    {
-      "id": "3057584",
-      "time_obj": "2026-08-07T23:00:00",
-      "home_team": "Montreal Roses FC (W)",
-      "away_team": "Halifax Tides FC (W)",
-      "handicap": "0.75",
-      "goal_line": "2.5",
-      "time": "00:00"
-    },
-    {
-      "id": "2940108",
-      "time_obj": "2026-08-07T23:30:00",
-      "home_team": "Ceara",
-      "away_team": "Ponte Preta",
-      "handicap": "1.25",
-      "goal_line": "2.5",
-      "time": "00:30"
-    },
-    {
-      "id": "3045767",
-      "time_obj": "2026-08-07T23:30:00",
-      "home_team": "Real Tomayapo",
-      "away_team": "Real Oruro",
-      "handicap": "0.5",
-      "goal_line": "3.5",
-      "time": "00:30"
-    },
-    {
-      "id": "2961733",
-      "time_obj": "2026-08-07T23:30:00",
-      "home_team": "Charlotte FC",
-      "away_team": "Atlas",
-      "handicap": "0.5",
-      "goal_line": "2.5",
-      "time": "00:30"
-    },
-    {
-      "id": "2961734",
-      "time_obj": "2026-08-07T23:30:00",
-      "home_team": "Columbus Crew",
-      "away_team": "Pachuca",
-      "handicap": "0.25",
-      "goal_line": "3",
-      "time": "00:30"
-    },
-    {
-      "id": "3052486",
-      "time_obj": "2026-08-07T23:45:00",
-      "home_team": "Sportivo Belgrano",
-      "away_team": "CA 9 de Julio Rafaela",
-      "handicap": "0.75",
-      "goal_line": "2",
-      "time": "00:45"
-    },
-    {
-      "id": "2937879",
-      "time_obj": "2026-08-08T00:00:00",
-      "home_team": "Liga Dep. Universitaria Quito",
-      "away_team": "Independiente del Valle",
-      "handicap": "-0.25",
-      "goal_line": "2.5",
-      "time": "01:00"
-    },
-    {
-      "id": "2956997",
-      "time_obj": "2026-08-08T00:00:00",
-      "home_team": "Gotham FC (W)",
-      "away_team": "San Diego Wave (W)",
-      "handicap": "0.25",
-      "goal_line": "2.25",
-      "time": "01:00"
-    },
-    {
-      "id": "3057620",
-      "time_obj": "2026-08-08T00:00:00",
-      "home_team": "Mexico U21(N)",
-      "away_team": "Venezuela U21",
-      "handicap": "0.75",
-      "goal_line": "3",
-      "time": "01:00"
-    },
-    {
-      "id": "2961735",
-      "time_obj": "2026-08-08T00:00:00",
-      "home_team": "FC Cincinnati",
-      "away_team": "Pumas U.N.A.M.",
-      "handicap": "0.5",
-      "goal_line": "3.5",
-      "time": "01:00"
-    },
-    {
-      "id": "2921207",
-      "time_obj": "2026-08-08T00:30:00",
-      "home_team": "Univ Catolica",
-      "away_team": "Cobresal",
-      "handicap": "1.5",
-      "goal_line": "3.25",
-      "time": "01:30"
-    },
-    {
-      "id": "2926266",
-      "time_obj": "2026-08-08T00:30:00",
-      "home_team": "Deportes Santa Cruz",
-      "away_team": "Puerto Montt",
-      "handicap": "0.25",
-      "goal_line": "2.25",
-      "time": "01:30"
-    },
-    {
-      "id": "3012137",
-      "time_obj": "2026-08-08T00:30:00",
-      "home_team": "Deportes Quindio",
-      "away_team": "Inter Palmira",
-      "handicap": "0.25",
-      "goal_line": "2.25",
-      "time": "01:30"
-    },
-    {
-      "id": "2939259",
-      "time_obj": "2026-08-08T00:30:00",
-      "home_team": "Botafogo RJ(W)",
-      "away_team": "Fluminense RJ (W)",
-      "handicap": "-1",
-      "goal_line": "2.5",
-      "time": "01:30"
-    },
-    {
-      "id": "2962556",
-      "time_obj": "2026-08-08T00:45:00",
-      "home_team": "Independiente Rivadavia",
-      "away_team": "Estudiantes Rio Cuarto",
-      "handicap": "1",
-      "goal_line": "2.25",
-      "time": "01:45"
-    },
-    {
-      "id": "3041871",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "A.D. Isidro Metapan",
-      "away_team": "Aguila",
-      "handicap": "0",
-      "goal_line": "2.25",
-      "time": "02:00"
-    },
-    {
-      "id": "3024404",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "CD Alacranes de Durango",
-      "away_team": "Piratas",
-      "handicap": "0.25",
-      "goal_line": "2.25",
-      "time": "02:00"
-    },
-    {
-      "id": "3024409",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Tepatitlan de Morelos",
-      "away_team": "Atletico La Paz",
-      "handicap": "0.25",
-      "goal_line": "2.75",
-      "time": "02:00"
-    },
-    {
-      "id": "3057576",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Adelaide Raiders SC Reserve",
-      "away_team": "The Cove FC Reserves",
-      "handicap": "0.5",
-      "goal_line": "3.5",
-      "time": "02:00"
-    },
-    {
-      "id": "3057491",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Mitsubishi Nagasaki",
-      "away_team": "KMG Holdings",
-      "handicap": "0",
-      "goal_line": "2.75",
-      "time": "02:00"
-    },
-    {
-      "id": "3031311",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Real Esteli",
-      "away_team": "Walter Ferretti",
-      "handicap": "0.25",
-      "goal_line": "2.5",
-      "time": "02:00"
-    },
-    {
-      "id": "2961736",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Tigres UANL(N)",
-      "away_team": "Minnesota United FC",
-      "handicap": "0.25",
-      "goal_line": "2.75",
-      "time": "02:00"
-    },
-    {
-      "id": "3052480",
-      "time_obj": "2026-08-08T01:00:00",
-      "home_team": "Juventud Antoniana",
-      "away_team": "Alvarado Mar del Plata",
-      "handicap": "0.5",
-      "goal_line": "1.75",
-      "time": "02:00"
-    },
-    {
-      "id": "3045972",
-      "time_obj": "2026-08-08T01:05:00",
-      "home_team": "Atlas (W)",
-      "away_team": "Pachuca (W)",
-      "handicap": "-1.5",
-      "goal_line": "3.25",
-      "time": "02:05"
-    },
-    {
-      "id": "3009983",
-      "time_obj": "2026-08-08T01:30:00",
-      "home_team": "Universitario De Deportes",
-      "away_team": "Sporting Cristal",
-      "handicap": "0.5",
-      "goal_line": "2.5",
-      "time": "02:30"
-    },
-    {
-      "id": "3036159",
-      "time_obj": "2026-08-08T01:30:00",
-      "home_team": "San Francisco FC",
-      "away_team": "Herrera FC",
-      "handicap": "0.5",
-      "goal_line": "2.25",
-      "time": "02:30"
-    },
-    {
-      "id": "3057423",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Canada U20",
-      "away_team": "Mexico U20",
-      "handicap": "-1.25",
-      "goal_line": "3",
-      "time": "03:00"
-    },
-    {
-      "id": "3042531",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Cartagines Deportiva SA",
-      "away_team": "Sporting San Jose",
-      "handicap": "0.5",
-      "goal_line": "2.25",
-      "time": "03:00"
-    },
-    {
-      "id": "3011245",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Malacateco",
-      "away_team": "Xelaju MC",
-      "handicap": "0.5",
-      "goal_line": "2",
-      "time": "03:00"
-    },
-    {
-      "id": "3057473",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Dimas Escazu (W)",
-      "away_team": "Saprissa (W)",
-      "handicap": "-0.75",
-      "goal_line": "3.25",
-      "time": "03:00"
-    },
-    {
-      "id": "3057632",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Canberra Olympic U23",
-      "away_team": "Cooma Tigers U23",
-      "handicap": "-1",
-      "goal_line": "3.25",
-      "time": "03:00"
-    },
-    {
-      "id": "3057760",
-      "time_obj": "2026-08-08T02:00:00",
-      "home_team": "Laugu United",
-      "away_team": "Kossa FC",
-      "handicap": "-1.5",
-      "goal_line": "3.5",
-      "time": "03:00"
-    },
-    {
-      "id": "3057630",
-      "time_obj": "2026-08-08T02:15:00",
-      "home_team": "Devonport Strikers (W)",
-      "away_team": "Launceston City (W)",
-      "handicap": "4.5",
-      "goal_line": "5",
-      "time": "03:15"
-    },
-    {
-      "id": "3057554",
-      "time_obj": "2026-08-08T02:30:00",
-      "home_team": "Eastern United Reserves",
-      "away_team": "Adelaide Victory Reserves",
-      "handicap": "0.25",
-      "goal_line": "3.75",
-      "time": "03:30"
-    },
-    {
-      "id": "3039725",
-      "time_obj": "2026-08-08T02:30:00",
-      "home_team": "Miramar Rangers",
-      "away_team": "FC Western",
-      "handicap": "",
-      "goal_line": "",
-      "time": "03:30"
-    },
-    {
-      "id": "2961737",
-      "time_obj": "2026-08-08T02:30:00",
-      "home_team": "Vancouver Whitecaps",
-      "away_team": "FC Juarez",
-      "handicap": "1.5",
-      "goal_line": "3.5",
-      "time": "03:30"
-    },
-    {
-      "id": "3057550",
-      "time_obj": "2026-08-08T02:45:00",
-      "home_team": "Croydon Kings Reserve",
-      "away_team": "Sturt Lions Reserves",
-      "handicap": "-0.5",
-      "goal_line": "4",
-      "time": "03:45"
-    },
-    {
-      "id": "3057580",
-      "time_obj": "2026-08-08T02:45:00",
-      "home_team": "Adelaide City Reserve",
-      "away_team": "Playford Reserves",
-      "handicap": "1.5",
-      "goal_line": "4",
-      "time": "03:45"
-    },
-    {
-      "id": "3057549",
-      "time_obj": "2026-08-08T03:15:00",
-      "home_team": "Modbury Jets Reserves",
-      "away_team": "Adelaide Cobras Reserves",
-      "handicap": "1.25",
-      "goal_line": "3.5",
-      "time": "04:15"
-    },
-    {
-      "id": "3057553",
-      "time_obj": "2026-08-08T03:15:00",
-      "home_team": "Campbelltown City Reserve",
-      "away_team": "White City FK Beograd Reserves",
-      "handicap": "4.25",
-      "goal_line": "5",
-      "time": "04:15"
-    },
-    {
-      "id": "3057555",
-      "time_obj": "2026-08-08T03:15:00",
-      "home_team": "Fulham United FC Reserves",
-      "away_team": "Adelaide Blue Eagles Reserve",
-      "handicap": "-1",
-      "goal_line": "3.5",
-      "time": "04:15"
-    },
-    {
-      "id": "3050168",
-      "time_obj": "2026-08-08T03:15:00",
-      "home_team": "UNSW FC U20",
-      "away_team": "Sydney Olympic U20",
-      "handicap": "1.75",
-      "goal_line": "4",
-      "time": "04:15"
-    },
-    {
-      "id": "3057579",
-      "time_obj": "2026-08-08T03:30:00",
-      "home_team": "Melbourne Knights U23",
-      "away_team": "Bulleen Lions U23",
-      "handicap": "0",
-      "goal_line": "3.5",
-      "time": "04:30"
+      "time": "04:45"
     },
     {
       "id": "2944330",
       "time_obj": "2026-08-08T04:00:00",
       "home_team": "South Hobart",
       "away_team": "Riverside Olympic",
-      "handicap": "2.5",
-      "goal_line": "4.5",
+      "handicap": "2.25",
+      "goal_line": "4.25",
       "time": "05:00"
     },
     {
@@ -703,12 +55,21 @@
       "time": "05:00"
     },
     {
+      "id": "3057853",
+      "time_obj": "2026-08-08T04:00:00",
+      "home_team": "Honiara City FC",
+      "away_team": "Malaita Kingz",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "05:00"
+    },
+    {
       "id": "2944230",
       "time_obj": "2026-08-08T04:30:00",
       "home_team": "Canberra Olympic",
       "away_team": "Cooma Tigers",
       "handicap": "-1.25",
-      "goal_line": "3.5",
+      "goal_line": "3.75",
       "time": "05:30"
     },
     {
@@ -717,7 +78,7 @@
       "home_team": "Devonport City",
       "away_team": "Launceston City",
       "handicap": "1",
-      "goal_line": "4",
+      "goal_line": "3.75",
       "time": "05:30"
     },
     {
@@ -734,8 +95,8 @@
       "time_obj": "2026-08-08T04:30:00",
       "home_team": "Kingborough Lions",
       "away_team": "Hobart Zebras",
-      "handicap": "1.5",
-      "goal_line": "3.75",
+      "handicap": "1.25",
+      "goal_line": "4",
       "time": "05:30"
     },
     {
@@ -743,8 +104,8 @@
       "time_obj": "2026-08-08T04:30:00",
       "home_team": "Ulverstone FC",
       "away_team": "South East United FC",
-      "handicap": "-0.75",
-      "goal_line": "4",
+      "handicap": "-1",
+      "goal_line": "3.75",
       "time": "05:30"
     },
     {
@@ -752,7 +113,7 @@
       "time_obj": "2026-08-08T04:30:00",
       "home_team": "Heidelberg United(N)",
       "away_team": "Preston Lions",
-      "handicap": "0",
+      "handicap": "-0.25",
       "goal_line": "2.25",
       "time": "05:30"
     },
@@ -775,21 +136,12 @@
       "time": "06:00"
     },
     {
-      "id": "2944231",
-      "time_obj": "2026-08-08T05:00:00",
-      "home_team": "Brindabella Blues FC",
-      "away_team": "Tuggeranong United",
-      "handicap": "-1.5",
-      "goal_line": "3.75",
-      "time": "06:00"
-    },
-    {
       "id": "2944123",
       "time_obj": "2026-08-08T05:00:00",
       "home_team": "Edgeworth Eagles FC",
       "away_team": "Weston Workers FC",
       "handicap": "-0.25",
-      "goal_line": "3.5",
+      "goal_line": "3.25",
       "time": "06:00"
     },
     {
@@ -808,6 +160,24 @@
       "away_team": "South Melbourne (W)",
       "handicap": "0.75",
       "goal_line": "3",
+      "time": "06:00"
+    },
+    {
+      "id": "3039721",
+      "time_obj": "2026-08-08T05:00:00",
+      "home_team": "Birkenhead United",
+      "away_team": "Manukau United",
+      "handicap": "4",
+      "goal_line": "4.75",
+      "time": "06:00"
+    },
+    {
+      "id": "3039734",
+      "time_obj": "2026-08-08T05:00:00",
+      "home_team": "Northern AFC",
+      "away_team": "Dunedin City Royals",
+      "handicap": "0",
+      "goal_line": "3.25",
       "time": "06:00"
     },
     {
@@ -834,16 +204,7 @@
       "home_team": "NWS Spirit (W)",
       "away_team": "WS Wanderers B (W)",
       "handicap": "-0.5",
-      "goal_line": "3.5",
-      "time": "06:00"
-    },
-    {
-      "id": "2960841",
-      "time_obj": "2026-08-08T05:00:00",
-      "home_team": "Sydney Olympic FC (W)",
-      "away_team": "Northern Tigers FC (W)",
-      "handicap": "0.25",
-      "goal_line": "3",
+      "goal_line": "3.75",
       "time": "06:00"
     },
     {
@@ -860,7 +221,7 @@
       "time_obj": "2026-08-08T05:15:00",
       "home_team": "Eastern United",
       "away_team": "Adelaide Atletico",
-      "handicap": "-1",
+      "handicap": "-0.5",
       "goal_line": "2.75",
       "time": "06:15"
     },
@@ -898,6 +259,15 @@
       "away_team": "Adelaide Blue Eagles",
       "handicap": "0.25",
       "goal_line": "3",
+      "time": "06:30"
+    },
+    {
+      "id": "3039722",
+      "time_obj": "2026-08-08T05:30:00",
+      "home_team": "Western Springs AFC",
+      "away_team": "Melville United",
+      "handicap": "1",
+      "goal_line": "3.25",
       "time": "06:30"
     },
     {
@@ -951,7 +321,7 @@
       "home_team": "FC Bulleen Lions (W)",
       "away_team": "Box Hill (W)",
       "handicap": "0.25",
-      "goal_line": "3.25",
+      "goal_line": "3",
       "time": "07:00"
     },
     {
@@ -959,7 +329,7 @@
       "time_obj": "2026-08-08T06:00:00",
       "home_team": "Inglewood United",
       "away_team": "Joondalup City",
-      "handicap": "-0.25",
+      "handicap": "0.25",
       "goal_line": "3",
       "time": "07:00"
     },
@@ -995,7 +365,7 @@
       "time_obj": "2026-08-08T06:00:00",
       "home_team": "Fremantle City FC (W)",
       "away_team": "Perth SC (W)",
-      "handicap": "-0.25",
+      "handicap": "-0.5",
       "goal_line": "2.75",
       "time": "07:00"
     },
@@ -1050,7 +420,7 @@
       "home_team": "Kingborough Lions (W)",
       "away_team": "South Hobart (W)",
       "handicap": "-1",
-      "goal_line": "4",
+      "goal_line": "3.75",
       "time": "07:45"
     },
     {
@@ -1069,6 +439,15 @@
       "away_team": "Western Sydney Wanderers AM",
       "handicap": "0.25",
       "goal_line": "3.25",
+      "time": "08:00"
+    },
+    {
+      "id": "2956813",
+      "time_obj": "2026-08-08T07:00:00",
+      "home_team": "Setagaya Sfida (W)",
+      "away_team": "Yokohama FC Seagulls (W)",
+      "handicap": "0.5",
+      "goal_line": "2.5",
       "time": "08:00"
     },
     {
@@ -1103,8 +482,8 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "AC Carina",
       "away_team": "North Pine United",
-      "handicap": "3",
-      "goal_line": "4.25",
+      "handicap": "2.5",
+      "goal_line": "4.5",
       "time": "08:00"
     },
     {
@@ -1112,7 +491,7 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "Caboolture FC (W)",
       "away_team": "Moreton City Excelsior (W)",
-      "handicap": "2.5",
+      "handicap": "3.25",
       "goal_line": "4.5",
       "time": "08:00"
     },
@@ -1121,7 +500,7 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "Virginia United SC (W)",
       "away_team": "The Gap NPL (W)",
-      "handicap": "-1",
+      "handicap": "-0.5",
       "goal_line": "3.5",
       "time": "08:00"
     },
@@ -1130,7 +509,7 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "Mitchelton (W)",
       "away_team": "North Lakes United (W)",
-      "handicap": "-0.75",
+      "handicap": "-1.5",
       "goal_line": "3.75",
       "time": "08:00"
     },
@@ -1148,7 +527,7 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "Peninsula Power (W)",
       "away_team": "Logan Lightning (W)",
-      "handicap": "1",
+      "handicap": "1.5",
       "goal_line": "4",
       "time": "08:00"
     },
@@ -1158,7 +537,16 @@
       "home_team": "Cumberland United Reserves",
       "away_team": "Adelaide Olympic Reserve",
       "handicap": "0",
-      "goal_line": "3.25",
+      "goal_line": "3.5",
+      "time": "08:00"
+    },
+    {
+      "id": "3057854",
+      "time_obj": "2026-08-08T07:00:00",
+      "home_team": "Toho Titanium",
+      "away_team": "Tokyo United",
+      "handicap": "0.5",
+      "goal_line": "2.25",
       "time": "08:00"
     },
     {
@@ -1175,7 +563,7 @@
       "time_obj": "2026-08-08T07:00:00",
       "home_team": "New Lambton FC (W)",
       "away_team": "Lake Macquarie (W)",
-      "handicap": "1.5",
+      "handicap": "1.25",
       "goal_line": "3.75",
       "time": "08:00"
     },
@@ -1194,7 +582,7 @@
       "home_team": "Sutherland Sharks",
       "away_team": "Sydney FC (Youth)",
       "handicap": "0.5",
-      "goal_line": "3",
+      "goal_line": "2.75",
       "time": "08:30"
     },
     {
@@ -1202,7 +590,7 @@
       "time_obj": "2026-08-08T07:30:00",
       "home_team": "Canberra FC",
       "away_team": "OConnor Knights",
-      "handicap": "2.75",
+      "handicap": "2.25",
       "goal_line": "4",
       "time": "08:30"
     },
@@ -1211,7 +599,7 @@
       "time_obj": "2026-08-08T07:45:00",
       "home_team": "Monaro Panthers",
       "away_team": "Belconnen United",
-      "handicap": "3",
+      "handicap": "2.5",
       "goal_line": "4",
       "time": "08:45"
     },
@@ -1221,7 +609,7 @@
       "home_team": "Brisbane City",
       "away_team": "Gold Coast United",
       "handicap": "0.75",
-      "goal_line": "3.5",
+      "goal_line": "3.25",
       "time": "09:00"
     },
     {
@@ -1247,7 +635,7 @@
       "time_obj": "2026-08-08T08:00:00",
       "home_team": "Magic United TFA",
       "away_team": "Rochedale Rovers",
-      "handicap": "-0.5",
+      "handicap": "-0.25",
       "goal_line": "3.5",
       "time": "09:00"
     },
@@ -1263,10 +651,10 @@
     {
       "id": "3052490",
       "time_obj": "2026-08-08T08:00:00",
-      "home_team": "Elche",
+      "home_team": "Elche(N)",
       "away_team": "Toulouse",
       "handicap": "0",
-      "goal_line": "2.75",
+      "goal_line": "2.5",
       "time": "09:00"
     },
     {
@@ -1281,10 +669,10 @@
     {
       "id": "3057095",
       "time_obj": "2026-08-08T08:00:00",
-      "home_team": "Albacete",
+      "home_team": "Albacete(N)",
       "away_team": "Real Murcia",
-      "handicap": "1.25",
-      "goal_line": "3",
+      "handicap": "1",
+      "goal_line": "2.75",
       "time": "09:00"
     },
     {
@@ -1310,8 +698,8 @@
       "time_obj": "2026-08-08T08:00:00",
       "home_team": "Redcliffe PCYC",
       "away_team": "Logan Roos",
-      "handicap": "-1.25",
-      "goal_line": "4.5",
+      "handicap": "-0.5",
+      "goal_line": "4.25",
       "time": "09:00"
     },
     {
@@ -1337,8 +725,8 @@
       "time_obj": "2026-08-08T08:00:00",
       "home_team": "FCM Targu Mures",
       "away_team": "Cetate Suceava",
-      "handicap": "1.25",
-      "goal_line": "2.75",
+      "handicap": "1.5",
+      "goal_line": "3",
       "time": "09:00"
     },
     {
@@ -1355,7 +743,7 @@
       "time_obj": "2026-08-08T08:00:00",
       "home_team": "AFC Metalul Buzau",
       "away_team": "Afumati",
-      "handicap": "0.5",
+      "handicap": "0.75",
       "goal_line": "2.5",
       "time": "09:00"
     },
@@ -1365,7 +753,7 @@
       "home_team": "Gloria Popesti-Leordeni",
       "away_team": "FC Bacau",
       "handicap": "0",
-      "goal_line": "2.5",
+      "goal_line": "2.25",
       "time": "09:00"
     },
     {
@@ -1373,7 +761,7 @@
       "time_obj": "2026-08-08T08:00:00",
       "home_team": "ACS Viitorul Selimbar",
       "away_team": "FC Politehnica Timisoara",
-      "handicap": "-1",
+      "handicap": "-0.75",
       "goal_line": "2.25",
       "time": "09:00"
     },
@@ -1454,8 +842,71 @@
       "time_obj": "2026-08-08T08:15:00",
       "home_team": "Newmarket SFC",
       "away_team": "Yeronga Eagles",
-      "handicap": "2",
+      "handicap": "1.75",
       "goal_line": "4.25",
+      "time": "09:15"
+    },
+    {
+      "id": "3057951",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "SK Petrin Plzen",
+      "away_team": "Jiskra Domazlice B",
+      "handicap": "1.25",
+      "goal_line": "3.75",
+      "time": "09:15"
+    },
+    {
+      "id": "3057956",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "FK Banik Sokolov",
+      "away_team": "FK Usti nad Labem B",
+      "handicap": "0.75",
+      "goal_line": "3",
+      "time": "09:15"
+    },
+    {
+      "id": "3057957",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "FC Kurim",
+      "away_team": "Chotebor",
+      "handicap": "1.25",
+      "goal_line": "3",
+      "time": "09:15"
+    },
+    {
+      "id": "3057958",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "Slavoj Cesky Krumlov",
+      "away_team": "Spartak Sobeslav",
+      "handicap": "-0.25",
+      "goal_line": "3.25",
+      "time": "09:15"
+    },
+    {
+      "id": "3057960",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "FC Vratimov",
+      "away_team": "Rymarov",
+      "handicap": "0.75",
+      "goal_line": "3.25",
+      "time": "09:15"
+    },
+    {
+      "id": "3057963",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "SK Mondi Steti",
+      "away_team": "Slovan Velvary",
+      "handicap": "0.5",
+      "goal_line": "3.25",
+      "time": "09:15"
+    },
+    {
+      "id": "3057987",
+      "time_obj": "2026-08-08T08:15:00",
+      "home_team": "Cechie Vykan",
+      "away_team": "MFK Chrudim B",
+      "handicap": "1",
+      "goal_line": "3.25",
       "time": "09:15"
     },
     {
@@ -1499,8 +950,8 @@
       "time_obj": "2026-08-08T08:30:00",
       "home_team": "UCAM Murcia",
       "away_team": "Orihuela CF",
-      "handicap": "0.75",
-      "goal_line": "2.75",
+      "handicap": "0.5",
+      "goal_line": "2.5",
       "time": "09:30"
     },
     {
@@ -1522,12 +973,66 @@
       "time": "09:30"
     },
     {
+      "id": "3057950",
+      "time_obj": "2026-08-08T08:30:00",
+      "home_team": "FK Prepere",
+      "away_team": "SK Kosmonosy",
+      "handicap": "0.75",
+      "goal_line": "3.25",
+      "time": "09:30"
+    },
+    {
+      "id": "3057952",
+      "time_obj": "2026-08-08T08:30:00",
+      "home_team": "FC Sparta Brno",
+      "away_team": "FS Trebic",
+      "handicap": "0.75",
+      "goal_line": "3.25",
+      "time": "09:30"
+    },
+    {
+      "id": "3057992",
+      "time_obj": "2026-08-08T08:30:00",
+      "home_team": "Komarov",
+      "away_team": "Taborsko B",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "09:30"
+    },
+    {
+      "id": "3057603",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "NS Mura (W)",
+      "away_team": "ZNK Hajduk Split (W)",
+      "handicap": "0.75",
+      "goal_line": "3",
+      "time": "10:00"
+    },
+    {
+      "id": "2998885",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "AC Nagano Parceiro",
+      "away_team": "Renofa Yamaguchi",
+      "handicap": "-0.25",
+      "goal_line": "2.25",
+      "time": "10:00"
+    },
+    {
+      "id": "2998888",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "SC Sagamihara",
+      "away_team": "Roasso Kumamoto",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "10:00"
+    },
+    {
       "id": "3057680",
       "time_obj": "2026-08-08T09:00:00",
       "home_team": "G. Segoviana",
       "away_team": "Atletico de Madrid B",
-      "handicap": "-1",
-      "goal_line": "2.75",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
       "time": "10:00"
     },
     {
@@ -1535,7 +1040,7 @@
       "time_obj": "2026-08-08T09:00:00",
       "home_team": "Renate AC",
       "away_team": "ASD Citta Di Varese",
-      "handicap": "0.75",
+      "handicap": "1",
       "goal_line": "2.5",
       "time": "10:00"
     },
@@ -1564,6 +1069,69 @@
       "away_team": "Gladesville Ryde Magic",
       "handicap": "1.5",
       "goal_line": "3.25",
+      "time": "10:00"
+    },
+    {
+      "id": "3057852",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Yazaki Valente FC",
+      "away_team": "FC Kariya",
+      "handicap": "-1",
+      "goal_line": "2.75",
+      "time": "10:00"
+    },
+    {
+      "id": "3057859",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Atletico Suzuka",
+      "away_team": "Tokai FC",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "10:00"
+    },
+    {
+      "id": "3057843",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Lks Drama Zbroslawic",
+      "away_team": "LGKS 38 Podlesianka",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "10:00"
+    },
+    {
+      "id": "3057844",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Ursus Warszawa",
+      "away_team": "MKS Piaseczno",
+      "handicap": "0.25",
+      "goal_line": "3.5",
+      "time": "10:00"
+    },
+    {
+      "id": "3057829",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Ispe FC U20",
+      "away_team": "Yangon City U20",
+      "handicap": "2.25",
+      "goal_line": "3.5",
+      "time": "10:00"
+    },
+    {
+      "id": "3057875",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Bankstown City Lions U20",
+      "away_team": "Hurstville FC U20",
+      "handicap": "0.5",
+      "goal_line": "3.5",
+      "time": "10:00"
+    },
+    {
+      "id": "3057879",
+      "time_obj": "2026-08-08T09:00:00",
+      "home_team": "Hills United U20",
+      "away_team": "Canterbury Bankstown U20",
+      "handicap": "1.75",
+      "goal_line": "3.75",
       "time": "10:00"
     },
     {
@@ -1598,7 +1166,7 @@
       "time_obj": "2026-08-08T09:30:00",
       "home_team": "Real Union Irun",
       "away_team": "Eibar",
-      "handicap": "-0.75",
+      "handicap": "-1",
       "goal_line": "2.75",
       "time": "10:30"
     },
@@ -1607,8 +1175,8 @@
       "time_obj": "2026-08-08T09:30:00",
       "home_team": "UD Logrones",
       "away_team": "Eibar B",
-      "handicap": "1",
-      "goal_line": "2.75",
+      "handicap": "0.75",
+      "goal_line": "2.5",
       "time": "10:30"
     },
     {
@@ -1616,7 +1184,7 @@
       "time_obj": "2026-08-08T09:30:00",
       "home_team": "Cumberland United FC",
       "away_team": "Adelaide Olympic",
-      "handicap": "0.75",
+      "handicap": "0.5",
       "goal_line": "3",
       "time": "10:30"
     },
@@ -1639,12 +1207,39 @@
       "time": "10:30"
     },
     {
+      "id": "3057599",
+      "time_obj": "2026-08-08T09:30:00",
+      "home_team": "Mohammedan SC",
+      "away_team": "Calcutta Polica Club",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "10:30"
+    },
+    {
+      "id": "3057600",
+      "time_obj": "2026-08-08T09:30:00",
+      "home_team": "Wari AC",
+      "away_team": "Aryan",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "10:30"
+    },
+    {
+      "id": "3057601",
+      "time_obj": "2026-08-08T09:30:00",
+      "home_team": "Coal India",
+      "away_team": "Measures Club",
+      "handicap": "1",
+      "goal_line": "2.5",
+      "time": "10:30"
+    },
+    {
       "id": "2968219",
       "time_obj": "2026-08-08T09:30:00",
       "home_team": "Skedsmo",
       "away_team": "Fauske-Sprint",
       "handicap": "2",
-      "goal_line": "4.25",
+      "goal_line": "4.5",
       "time": "10:30"
     },
     {
@@ -1706,8 +1301,26 @@
       "time_obj": "2026-08-08T10:00:00",
       "home_team": "GD Chaves",
       "away_team": "Academica Coimbra",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "11:00"
+    },
+    {
+      "id": "3055907",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Oliveirense",
+      "away_team": "Louletano",
       "handicap": "0.5",
       "goal_line": "2.25",
+      "time": "11:00"
+    },
+    {
+      "id": "3057604",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Gintra Universitetas (W)",
+      "away_team": "Riga FC (W)",
+      "handicap": "-1",
+      "goal_line": "3",
       "time": "11:00"
     },
     {
@@ -1756,11 +1369,56 @@
       "time": "11:00"
     },
     {
+      "id": "2998882",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Gainare Tottori",
+      "away_team": "Osaka FC",
+      "handicap": "-0.25",
+      "goal_line": "2.25",
+      "time": "11:00"
+    },
+    {
+      "id": "2998883",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Kagoshima United",
+      "away_team": "Thespa Kusatsu",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "11:00"
+    },
+    {
+      "id": "2998884",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Kochi United",
+      "away_team": "Matsumoto Yamaga FC",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "11:00"
+    },
+    {
+      "id": "2957216",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Marupe",
+      "away_team": "Saldus SS/Leevon",
+      "handicap": "-0.5",
+      "goal_line": "3",
+      "time": "11:00"
+    },
+    {
       "id": "3055826",
       "time_obj": "2026-08-08T10:00:00",
       "home_team": "Osasuna B",
       "away_team": "Mirandes",
-      "handicap": "-1",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
+      "time": "11:00"
+    },
+    {
+      "id": "3056629",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Lyn (W)",
+      "away_team": "LSK Kvinner (W)",
+      "handicap": "1",
       "goal_line": "2.75",
       "time": "11:00"
     },
@@ -1819,6 +1477,24 @@
       "time": "11:00"
     },
     {
+      "id": "3057983",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "Silute",
+      "away_team": "FK Viltis Vilnius",
+      "handicap": "1.5",
+      "goal_line": "4",
+      "time": "11:00"
+    },
+    {
+      "id": "3057848",
+      "time_obj": "2026-08-08T10:00:00",
+      "home_team": "KKP Bydgoszcz (W)",
+      "away_team": "Polonia Sroda Wlkp (W)",
+      "handicap": "-2",
+      "goal_line": "3.5",
+      "time": "11:00"
+    },
+    {
       "id": "3039436",
       "time_obj": "2026-08-08T10:00:00",
       "home_team": "Lech Poznan (Youth)",
@@ -1841,7 +1517,7 @@
       "time_obj": "2026-08-08T10:15:00",
       "home_team": "Hiroshima Sanfrecce",
       "away_team": "JEF United Ichihara Chiba",
-      "handicap": "1",
+      "handicap": "1.25",
       "goal_line": "2.75",
       "time": "11:15"
     },
@@ -1877,7 +1553,7 @@
       "time_obj": "2026-08-08T10:30:00",
       "home_team": "University Azzurri FC",
       "away_team": "Darwin Olympics",
-      "handicap": "1.75",
+      "handicap": "1.5",
       "goal_line": "4.25",
       "time": "11:30"
     },
@@ -1949,7 +1625,7 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Ljungskile",
       "away_team": "IK Oddevold",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "2.5",
       "time": "12:00"
     },
@@ -1958,7 +1634,7 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Ariana",
       "away_team": "Trelleborgs FF",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "3",
       "time": "12:00"
     },
@@ -1985,7 +1661,7 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "FC Anyang",
       "away_team": "Daejeon Citizen",
-      "handicap": "0",
+      "handicap": "-0.25",
       "goal_line": "2.5",
       "time": "12:00"
     },
@@ -2030,8 +1706,8 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Junkeren",
       "away_team": "Follo",
-      "handicap": "",
-      "goal_line": "",
+      "handicap": "0.75",
+      "goal_line": "3.25",
       "time": "12:00"
     },
     {
@@ -2039,7 +1715,7 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Qingdao Manatee",
       "away_team": "Shanghai Shenhua",
-      "handicap": "-0.75",
+      "handicap": "-1",
       "goal_line": "3.25",
       "time": "12:00"
     },
@@ -2093,16 +1769,16 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Seongnam FC",
       "away_team": "Cheonan City",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.5",
       "time": "12:00"
     },
     {
       "id": "3056636",
       "time_obj": "2026-08-08T11:00:00",
-      "home_team": "Juventus",
+      "home_team": "Juventus(N)",
       "away_team": "Inter Milan",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "2.75",
       "time": "12:00"
     },
@@ -2152,6 +1828,15 @@
       "time": "12:00"
     },
     {
+      "id": "3046601",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "Bodens BK",
+      "away_team": "Taftea IK",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "12:00"
+    },
+    {
       "id": "2917079",
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Goteborg (W)",
@@ -2165,8 +1850,8 @@
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "FK Tauras Taurage",
       "away_team": "FK Neptunas Klaipeda",
-      "handicap": "0.75",
-      "goal_line": "3",
+      "handicap": "0.5",
+      "goal_line": "2.75",
       "time": "12:00"
     },
     {
@@ -2179,11 +1864,29 @@
       "time": "12:00"
     },
     {
+      "id": "3057838",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "Tampere Utd II",
+      "away_team": "Saaksjarven Loiske",
+      "handicap": "2.25",
+      "goal_line": "3.75",
+      "time": "12:00"
+    },
+    {
+      "id": "3057981",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "Virkia",
+      "away_team": "NIK",
+      "handicap": "1.25",
+      "goal_line": "3.75",
+      "time": "12:00"
+    },
+    {
       "id": "3053602",
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "KS CK Troszyn",
       "away_team": "Mazovia Minsk Mazowiecki",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "2.75",
       "time": "12:00"
     },
@@ -2197,11 +1900,38 @@
       "time": "12:00"
     },
     {
+      "id": "3057842",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "Tluchowia Tluchowo",
+      "away_team": "Pogon Mogilno",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "12:00"
+    },
+    {
+      "id": "3021120",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "Denbigh Town",
+      "away_team": "Bangor 1876",
+      "handicap": "0",
+      "goal_line": "3",
+      "time": "12:00"
+    },
+    {
+      "id": "3055839",
+      "time_obj": "2026-08-08T11:00:00",
+      "home_team": "HJS Akatemia W",
+      "away_team": "VIFK Vaasa (W)",
+      "handicap": "-0.75",
+      "goal_line": "3",
+      "time": "12:00"
+    },
+    {
       "id": "2967487",
       "time_obj": "2026-08-08T11:00:00",
       "home_team": "Lokomotiv Oslo",
       "away_team": "Grei",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "4.25",
       "time": "12:00"
     },
@@ -2211,7 +1941,7 @@
       "home_team": "Nordstrand",
       "away_team": "Frigg",
       "handicap": "-0.25",
-      "goal_line": "4.25",
+      "goal_line": "4",
       "time": "12:00"
     },
     {
@@ -2264,7 +1994,7 @@
       "time_obj": "2026-08-08T11:15:00",
       "home_team": "Bayer Leverkusen (W)",
       "away_team": "Feyenoord Rotterdam (W)",
-      "handicap": "0.75",
+      "handicap": "1",
       "goal_line": "3.25",
       "time": "12:15"
     },
@@ -2282,7 +2012,7 @@
       "time_obj": "2026-08-08T11:30:00",
       "home_team": "Nanjing City",
       "away_team": "Nantong Zhiyun",
-      "handicap": "-0.25",
+      "handicap": "-0.5",
       "goal_line": "2",
       "time": "12:30"
     },
@@ -2318,7 +2048,7 @@
       "time_obj": "2026-08-08T11:30:00",
       "home_team": "Shenzhen 2028",
       "away_team": "Ganzhou Ruishi",
-      "handicap": "1.75",
+      "handicap": "1.5",
       "goal_line": "2.75",
       "time": "12:30"
     },
@@ -2426,8 +2156,8 @@
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "HIFK",
       "away_team": "Puiu",
-      "handicap": "1.5",
-      "goal_line": "4",
+      "handicap": "1.25",
+      "goal_line": "3.75",
       "time": "13:00"
     },
     {
@@ -2435,7 +2165,7 @@
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "Bjarg",
       "away_team": "Sotra",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "2.75",
       "time": "13:00"
     },
@@ -2487,9 +2217,9 @@
     {
       "id": "3055828",
       "time_obj": "2026-08-08T12:00:00",
-      "home_team": "Chelsea",
+      "home_team": "Chelsea(N)",
       "away_team": "AC Milan",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "3.25",
       "time": "13:00"
     },
@@ -2516,8 +2246,8 @@
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "Oskarshamns AIK",
       "away_team": "IFK Karlshamn",
-      "handicap": "1",
-      "goal_line": "3.25",
+      "handicap": "1.25",
+      "goal_line": "3",
       "time": "13:00"
     },
     {
@@ -2534,7 +2264,7 @@
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "Kolos Kovalivka II",
       "away_team": "Ahrobiznes TSK Romny",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "2",
       "time": "13:00"
     },
@@ -2557,21 +2287,12 @@
       "time": "13:00"
     },
     {
-      "id": "2941022",
-      "time_obj": "2026-08-08T12:00:00",
-      "home_team": "FC Nomme United U21",
-      "away_team": "Tallinna FC Levadia B",
-      "handicap": "0",
-      "goal_line": "3.75",
-      "time": "13:00"
-    },
-    {
       "id": "2941069",
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "Elva",
       "away_team": "JK Welco Elekter",
-      "handicap": "-1",
-      "goal_line": "3.75",
+      "handicap": "-0.75",
+      "goal_line": "3.5",
       "time": "13:00"
     },
     {
@@ -2579,8 +2300,8 @@
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "FC Maardu",
       "away_team": "Viimsi MRJK",
-      "handicap": "-0.75",
-      "goal_line": "3.75",
+      "handicap": "-0.5",
+      "goal_line": "3.5",
       "time": "13:00"
     },
     {
@@ -2589,7 +2310,7 @@
       "home_team": "JK Tallinna Kalev",
       "away_team": "Tallinna FC Ararat TTU",
       "handicap": "1.25",
-      "goal_line": "3.5",
+      "goal_line": "4",
       "time": "13:00"
     },
     {
@@ -2602,11 +2323,29 @@
       "time": "13:00"
     },
     {
+      "id": "3057880",
+      "time_obj": "2026-08-08T12:00:00",
+      "home_team": "Minas Boca/MG Youth",
+      "away_team": "EC Villa Real U20",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "13:00"
+    },
+    {
       "id": "3057669",
       "time_obj": "2026-08-08T12:00:00",
       "home_team": "FC Hoyvik",
       "away_team": "FC Suduroy",
       "handicap": "-2.25",
+      "goal_line": "4",
+      "time": "13:00"
+    },
+    {
+      "id": "3057953",
+      "time_obj": "2026-08-08T12:00:00",
+      "home_team": "FC Pencin",
+      "away_team": "Zelezny Brod",
+      "handicap": "2.25",
       "goal_line": "4",
       "time": "13:00"
     },
@@ -2674,6 +2413,15 @@
       "time": "13:30"
     },
     {
+      "id": "3057608",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Young Boys (W)",
+      "away_team": "SeaSters Odessa (W)",
+      "handicap": "2",
+      "goal_line": "3.25",
+      "time": "13:30"
+    },
+    {
       "id": "3012480",
       "time_obj": "2026-08-08T12:30:00",
       "home_team": "FC Livyi Bereh",
@@ -2705,8 +2453,8 @@
       "time_obj": "2026-08-08T12:30:00",
       "home_team": "Excelsior Maassluis",
       "away_team": "Sparta Rotterdam Reserves",
-      "handicap": "-0.25",
-      "goal_line": "3",
+      "handicap": "0",
+      "goal_line": "2.75",
       "time": "13:30"
     },
     {
@@ -2714,7 +2462,7 @@
       "time_obj": "2026-08-08T12:30:00",
       "home_team": "IJsselmeervogels",
       "away_team": "EVV",
-      "handicap": "1",
+      "handicap": "1.25",
       "goal_line": "3",
       "time": "13:30"
     },
@@ -2733,6 +2481,51 @@
       "home_team": "Holstebro BK",
       "away_team": "Holbaek",
       "handicap": "-0.5",
+      "goal_line": "3",
+      "time": "13:30"
+    },
+    {
+      "id": "3057830",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Mafco",
+      "away_team": "Blue Eagles",
+      "handicap": "-0.25",
+      "goal_line": "2",
+      "time": "13:30"
+    },
+    {
+      "id": "3057834",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Creck SC",
+      "away_team": "Silver Strikers",
+      "handicap": "-1",
+      "goal_line": "2",
+      "time": "13:30"
+    },
+    {
+      "id": "3057860",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Moyale Barracks",
+      "away_team": "Be Forward Wanderers",
+      "handicap": "-0.75",
+      "goal_line": "2",
+      "time": "13:30"
+    },
+    {
+      "id": "3057862",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Ekhaya FC",
+      "away_team": "Dedza Dynamos",
+      "handicap": "1",
+      "goal_line": "2",
+      "time": "13:30"
+    },
+    {
+      "id": "3057921",
+      "time_obj": "2026-08-08T12:30:00",
+      "home_team": "Ceara (Youth)",
+      "away_team": "CEFAT Tirol U20",
+      "handicap": "0.75",
       "goal_line": "3",
       "time": "13:30"
     },
@@ -2759,7 +2552,7 @@
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "Thailand",
       "away_team": "Myanmar",
-      "handicap": "1.5",
+      "handicap": "1.25",
       "goal_line": "3",
       "time": "14:00"
     },
@@ -2813,8 +2606,8 @@
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "FK Arendal",
       "away_team": "Pors Grenland",
-      "handicap": "0.5",
-      "goal_line": "3",
+      "handicap": "0.75",
+      "goal_line": "2.75",
       "time": "14:00"
     },
     {
@@ -2822,7 +2615,7 @@
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "Jerv",
       "away_team": "Vidar",
-      "handicap": "1.75",
+      "handicap": "2",
       "goal_line": "3.75",
       "time": "14:00"
     },
@@ -2840,8 +2633,8 @@
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "Notodden FK",
       "away_team": "Sandvikens",
-      "handicap": "",
-      "goal_line": "",
+      "handicap": "1",
+      "goal_line": "2.75",
       "time": "14:00"
     },
     {
@@ -2883,7 +2676,7 @@
     {
       "id": "3052495",
       "time_obj": "2026-08-08T13:00:00",
-      "home_team": "Eintracht Frankfurt",
+      "home_team": "Eintracht Frankfurt(N)",
       "away_team": "Hull City",
       "handicap": "0.75",
       "goal_line": "2.75",
@@ -2903,7 +2696,7 @@
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "Lokeren",
       "away_team": "Umm Salal",
-      "handicap": "1.5",
+      "handicap": "1.25",
       "goal_line": "3.5",
       "time": "14:00"
     },
@@ -2941,6 +2734,15 @@
       "away_team": "Linkopings (W)",
       "handicap": "-0.75",
       "goal_line": "3",
+      "time": "14:00"
+    },
+    {
+      "id": "3053463",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "MTK Hungaria FC (W)",
+      "away_team": "Budapest Honved Woman's",
+      "handicap": "1.75",
+      "goal_line": "3.25",
       "time": "14:00"
     },
     {
@@ -2998,6 +2800,15 @@
       "time": "14:00"
     },
     {
+      "id": "3057972",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Ferencvarosi TC B",
+      "away_team": "Dunaharaszti MTK",
+      "handicap": "1",
+      "goal_line": "3",
+      "time": "14:00"
+    },
+    {
       "id": "2961596",
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "Bryne (W)",
@@ -3007,11 +2818,56 @@
       "time": "14:00"
     },
     {
+      "id": "3058042",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Goiania (Youth)",
+      "away_team": "Goias U20",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
+      "time": "14:00"
+    },
+    {
+      "id": "3057980",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Sveikata",
+      "away_team": "Vilnius Football Academy",
+      "handicap": "-0.25",
+      "goal_line": "3.5",
+      "time": "14:00"
+    },
+    {
+      "id": "3057923",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Portuguesa RJ U20",
+      "away_team": "CR Flamengo (RJ) (Youth)",
+      "handicap": "-1.25",
+      "goal_line": "3.25",
+      "time": "14:00"
+    },
+    {
+      "id": "3057924",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Nova Iguacu U20",
+      "away_team": "Fluminense RJ (Youth)",
+      "handicap": "-1.25",
+      "goal_line": "2.25",
+      "time": "14:00"
+    },
+    {
+      "id": "3057930",
+      "time_obj": "2026-08-08T13:00:00",
+      "home_team": "Real Brasil DF Youth",
+      "away_team": "FC Samambaia U20",
+      "handicap": "0.75",
+      "goal_line": "3",
+      "time": "14:00"
+    },
+    {
       "id": "3055874",
       "time_obj": "2026-08-08T13:00:00",
       "home_team": "HPS (W)",
       "away_team": "KuPs (W)",
-      "handicap": "-0.25",
+      "handicap": "-0.5",
       "goal_line": "3",
       "time": "14:00"
     },
@@ -3034,12 +2890,21 @@
       "time": "14:00"
     },
     {
+      "id": "3057589",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "HB Koge (W)",
+      "away_team": "Hearts (W)",
+      "handicap": "1",
+      "goal_line": "3.5",
+      "time": "14:30"
+    },
+    {
       "id": "3057609",
       "time_obj": "2026-08-08T13:30:00",
       "home_team": "SCU Torreense (W)",
       "away_team": "Apolonia Fier W",
-      "handicap": "3.75",
-      "goal_line": "4.25",
+      "handicap": "4.25",
+      "goal_line": "4.75",
       "time": "14:30"
     },
     {
@@ -3092,7 +2957,7 @@
       "time_obj": "2026-08-08T13:30:00",
       "home_team": "Bayer Leverkusen",
       "away_team": "Sevilla",
-      "handicap": "0.25",
+      "handicap": "0.5",
       "goal_line": "3.5",
       "time": "14:30"
     },
@@ -3101,7 +2966,7 @@
       "time_obj": "2026-08-08T13:30:00",
       "home_team": "FC Koln",
       "away_team": "Real Sociedad",
-      "handicap": "0",
+      "handicap": "-0.25",
       "goal_line": "2.75",
       "time": "14:30"
     },
@@ -3115,11 +2980,83 @@
       "time": "14:30"
     },
     {
+      "id": "3057846",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Stolem Gniewino",
+      "away_team": "KP Starogard Gdanski",
+      "handicap": "-0.25",
+      "goal_line": "3.25",
+      "time": "14:30"
+    },
+    {
+      "id": "3021364",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Aberystwyth Town",
+      "away_team": "Treowen Stars",
+      "handicap": "1",
+      "goal_line": "3.25",
+      "time": "14:30"
+    },
+    {
       "id": "3021365",
       "time_obj": "2026-08-08T13:30:00",
       "home_team": "Newport City",
       "away_team": "Carmarthen",
       "handicap": "-0.25",
+      "goal_line": "3",
+      "time": "14:30"
+    },
+    {
+      "id": "3021121",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Caersws",
+      "away_team": "Gresford",
+      "handicap": "1.25",
+      "goal_line": "3.5",
+      "time": "14:30"
+    },
+    {
+      "id": "3021122",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Guilsfield",
+      "away_team": "Mold Alexandra",
+      "handicap": "0.5",
+      "goal_line": "3",
+      "time": "14:30"
+    },
+    {
+      "id": "3021123",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Holyhead",
+      "away_team": "Brickfield Rangers",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "14:30"
+    },
+    {
+      "id": "3021124",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Llanuwchllyn",
+      "away_team": "Buckley Town",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "14:30"
+    },
+    {
+      "id": "3021125",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Newtown AFC",
+      "away_team": "Penrhyncoch",
+      "handicap": "1",
+      "goal_line": "3.25",
+      "time": "14:30"
+    },
+    {
+      "id": "3021126",
+      "time_obj": "2026-08-08T13:30:00",
+      "home_team": "Porthmadog",
+      "away_team": "Rhyl FC",
+      "handicap": "0.25",
       "goal_line": "3",
       "time": "14:30"
     },
@@ -3155,7 +3092,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Viking",
       "away_team": "Sarpsborg 08",
-      "handicap": "1.5",
+      "handicap": "1.25",
       "goal_line": "3.5",
       "time": "15:00"
     },
@@ -3182,7 +3119,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Bristol Rovers",
       "away_team": "Peterborough United",
-      "handicap": "0.25",
+      "handicap": "0",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -3210,7 +3147,7 @@
       "home_team": "Burton Albion",
       "away_team": "Blackburn Rovers",
       "handicap": "-0.25",
-      "goal_line": "2.5",
+      "goal_line": "2.25",
       "time": "15:00"
     },
     {
@@ -3227,7 +3164,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Crewe Alexandra",
       "away_team": "Accrington Stanley",
-      "handicap": "0.75",
+      "handicap": "0.5",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -3273,7 +3210,7 @@
       "home_team": "Leicester City",
       "away_team": "Northampton Town",
       "handicap": "1.75",
-      "goal_line": "3.25",
+      "goal_line": "3",
       "time": "15:00"
     },
     {
@@ -3353,7 +3290,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "West Ham United",
       "away_team": "Portsmouth",
-      "handicap": "1.25",
+      "handicap": "1",
       "goal_line": "3",
       "time": "15:00"
     },
@@ -3380,7 +3317,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Arbroath",
       "away_team": "Inverness",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "2.25",
       "time": "15:00"
     },
@@ -3389,7 +3326,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Dunfermline Athletic",
       "away_team": "Ayr United",
-      "handicap": "0.25",
+      "handicap": "0.5",
       "goal_line": "2.25",
       "time": "15:00"
     },
@@ -3407,7 +3344,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Stenhousemuir",
       "away_team": "Greenock Morton",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.5",
       "time": "15:00"
     },
@@ -3462,7 +3399,7 @@
       "home_team": "Dumbarton",
       "away_team": "Clyde",
       "handicap": "-0.5",
-      "goal_line": "2.5",
+      "goal_line": "2.75",
       "time": "15:00"
     },
     {
@@ -3479,7 +3416,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Kelty Hearts",
       "away_team": "Stirling Albion",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.5",
       "time": "15:00"
     },
@@ -3623,7 +3560,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Dorking",
       "away_team": "Dagenham Redbridge",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -3650,7 +3587,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Truro City",
       "away_team": "Maidenhead United",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -3767,7 +3704,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Marine",
       "away_team": "Macclesfield Town",
-      "handicap": "-0.25",
+      "handicap": "-0.5",
       "goal_line": "2.5",
       "time": "15:00"
     },
@@ -3786,7 +3723,7 @@
       "home_team": "Oxford City",
       "away_team": "Bedford Town",
       "handicap": "0.5",
-      "goal_line": "2.75",
+      "goal_line": "2.5",
       "time": "15:00"
     },
     {
@@ -3848,7 +3785,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Frome Town",
       "away_team": "Wimborne Town",
-      "handicap": "0.75",
+      "handicap": "0.5",
       "goal_line": "3",
       "time": "15:00"
     },
@@ -3867,7 +3804,7 @@
       "home_team": "Hanworth Villa",
       "away_team": "Taunton Town",
       "handicap": "0.5",
-      "goal_line": "3",
+      "goal_line": "2.75",
       "time": "15:00"
     },
     {
@@ -3911,7 +3848,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Yate Town",
       "away_team": "Gosport Borough",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "3",
       "time": "15:00"
     },
@@ -3921,7 +3858,7 @@
       "home_team": "Avro FC",
       "away_team": "Quorn",
       "handicap": "0.75",
-      "goal_line": "3",
+      "goal_line": "3.25",
       "time": "15:00"
     },
     {
@@ -4001,8 +3938,8 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Ashton United",
       "away_team": "Lancaster City",
-      "handicap": "0.25",
-      "goal_line": "2.75",
+      "handicap": "0",
+      "goal_line": "2.5",
       "time": "15:00"
     },
     {
@@ -4046,7 +3983,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Dulwich Hamlet",
       "away_team": "Maldon Tiptree",
-      "handicap": "0.25",
+      "handicap": "0.75",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -4064,7 +4001,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Ramsgate",
       "away_team": "Leatherhead",
-      "handicap": "1",
+      "handicap": "0.5",
       "goal_line": "3.25",
       "time": "15:00"
     },
@@ -4145,7 +4082,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Tvaakers IF",
       "away_team": "Atvidabergs",
-      "handicap": "-0.25",
+      "handicap": "0",
       "goal_line": "2.75",
       "time": "15:00"
     },
@@ -4218,7 +4155,7 @@
       "home_team": "Stabaek",
       "away_team": "Lyn Oslo",
       "handicap": "1.25",
-      "goal_line": "3.5",
+      "goal_line": "3.75",
       "time": "15:00"
     },
     {
@@ -4235,8 +4172,8 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "SK Trygg Lade",
       "away_team": "Grorud",
-      "handicap": "-1.5",
-      "goal_line": "3.5",
+      "handicap": "-1.25",
+      "goal_line": "3.25",
       "time": "15:00"
     },
     {
@@ -4244,7 +4181,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Hobro",
       "away_team": "AB Copenhagen",
-      "handicap": "0.25",
+      "handicap": "0",
       "goal_line": "2.5",
       "time": "15:00"
     },
@@ -4335,7 +4272,7 @@
       "home_team": "Lens",
       "away_team": "Sunderland A.F.C",
       "handicap": "0",
-      "goal_line": "3",
+      "goal_line": "2.75",
       "time": "15:00"
     },
     {
@@ -4343,7 +4280,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Brighton Hove Albion",
       "away_team": "AS Roma",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "3",
       "time": "15:00"
     },
@@ -4352,7 +4289,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Ipswich Town",
       "away_team": "Rayo Vallecano",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "3",
       "time": "15:00"
     },
@@ -4361,8 +4298,17 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Tottenham Hotspur",
       "away_team": "Getafe",
-      "handicap": "0.25",
+      "handicap": "0.5",
       "goal_line": "2.75",
+      "time": "15:00"
+    },
+    {
+      "id": "3002803",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "Inver Gordon",
+      "away_team": "Deveronvale",
+      "handicap": "0.25",
+      "goal_line": "3.25",
       "time": "15:00"
     },
     {
@@ -4406,7 +4352,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Storfors AIK",
       "away_team": "Team TG FF",
-      "handicap": "-0.25",
+      "handicap": "-0.5",
       "goal_line": "3.25",
       "time": "15:00"
     },
@@ -4433,8 +4379,17 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Neftchi Fargona",
       "away_team": "Qizilqum Zarafshon",
-      "handicap": "",
-      "goal_line": "",
+      "handicap": "2",
+      "goal_line": "3",
+      "time": "15:00"
+    },
+    {
+      "id": "3053465",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "Pecsi MFC (W)",
+      "away_team": "Diosgyori VTK (W)",
+      "handicap": "0",
+      "goal_line": "3",
       "time": "15:00"
     },
     {
@@ -4465,12 +4420,39 @@
       "time": "15:00"
     },
     {
+      "id": "3057982",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "KajHa",
+      "away_team": "Villan Pojat",
+      "handicap": "1.75",
+      "goal_line": "4.25",
+      "time": "15:00"
+    },
+    {
+      "id": "3057984",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "HauPa",
+      "away_team": "KaPa Kajaani",
+      "handicap": "-0.25",
+      "goal_line": "4",
+      "time": "15:00"
+    },
+    {
       "id": "3053619",
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Pogon Sokol Lubaczow",
       "away_team": "Moravia Morawica",
       "handicap": "1",
       "goal_line": "3",
+      "time": "15:00"
+    },
+    {
+      "id": "3057847",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "OKS Stomil Olsztyn",
+      "away_team": "Tecza Biskupiec",
+      "handicap": "1",
+      "goal_line": "3.5",
       "time": "15:00"
     },
     {
@@ -4488,7 +4470,7 @@
       "home_team": "FC Kosova Zurich",
       "away_team": "FC Mendrisio Stabio",
       "handicap": "0.25",
-      "goal_line": "3",
+      "goal_line": "2.75",
       "time": "15:00"
     },
     {
@@ -4496,7 +4478,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "KA Asvellir",
       "away_team": "UMF Sindri Hofn",
-      "handicap": "0",
+      "handicap": "0.25",
       "goal_line": "4",
       "time": "15:00"
     },
@@ -4505,7 +4487,7 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Ymir",
       "away_team": "UMF Vidir",
-      "handicap": "-0.75",
+      "handicap": "-1",
       "goal_line": "3.5",
       "time": "15:00"
     },
@@ -4514,8 +4496,17 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "DLR Waves (W)",
       "away_team": "Shamrock Rovers (W)",
-      "handicap": "-1.5",
+      "handicap": "-1.25",
       "goal_line": "2.75",
+      "time": "15:00"
+    },
+    {
+      "id": "3052353",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "FC Treaty United (W)",
+      "away_team": "Cork City (W)",
+      "handicap": "2",
+      "goal_line": "3",
       "time": "15:00"
     },
     {
@@ -4533,7 +4524,7 @@
       "home_team": "Anstey Nomads",
       "away_team": "Leiston FC",
       "handicap": "0",
-      "goal_line": "2.75",
+      "goal_line": "2.5",
       "time": "15:00"
     },
     {
@@ -4614,7 +4605,7 @@
       "home_team": "Stourbridge",
       "away_team": "Stamford",
       "handicap": "0.75",
-      "goal_line": "3.25",
+      "goal_line": "3.5",
       "time": "15:00"
     },
     {
@@ -4622,8 +4613,17 @@
       "time_obj": "2026-08-08T14:00:00",
       "home_team": "Stratford Town",
       "away_team": "Worcester City",
-      "handicap": "0.25",
+      "handicap": "0",
       "goal_line": "2.5",
+      "time": "15:00"
+    },
+    {
+      "id": "3057925",
+      "time_obj": "2026-08-08T14:00:00",
+      "home_team": "Marica RJ U20",
+      "away_team": "Vasco da Gama (Youth)",
+      "handicap": "-1.5",
+      "goal_line": "2.75",
       "time": "15:00"
     },
     {
@@ -4715,9 +4715,3028 @@
       "handicap": "2.75",
       "goal_line": "4",
       "time": "15:30"
+    },
+    {
+      "id": "3010607",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Grazer AK",
+      "away_team": "Austria Lustenau",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "16:00"
+    },
+    {
+      "id": "2914651",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "IFK Norrkoping FK",
+      "away_team": "IK Brage",
+      "handicap": "1",
+      "goal_line": "3.25",
+      "time": "16:00"
+    },
+    {
+      "id": "2921909",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "KaPa",
+      "away_team": "Ekenas IF Fotboll",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "16:00"
+    },
+    {
+      "id": "2921910",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "SJK Akatemia",
+      "away_team": "PK-35 Vantaa",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "16:00"
+    },
+    {
+      "id": "3012475",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "FC Bukovyna chernivtsi",
+      "away_team": "Obolon Kiev",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "16:00"
+    },
+    {
+      "id": "3039843",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Teplice",
+      "away_team": "FC Viktoria Plzen",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
+      "time": "16:00"
+    },
+    {
+      "id": "3039844",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Tescoma Zlin",
+      "away_team": "Bohemians 1905",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "16:00"
+    },
+    {
+      "id": "2997499",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Rijeka",
+      "away_team": "Dinamo Zagreb",
+      "handicap": "-0.25",
+      "goal_line": "2.5",
+      "time": "16:00"
+    },
+    {
+      "id": "2953330",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "FK Kaspyi Aktau",
+      "away_team": "Ulytau Zhezkazgan",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "16:00"
+    },
+    {
+      "id": "3024579",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Gandzasar Kapan",
+      "away_team": "FC Syunik",
+      "handicap": "",
+      "goal_line": "",
+      "time": "16:00"
+    },
+    {
+      "id": "3057004",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "VfB Stuttgart",
+      "away_team": "Everton",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "16:00"
+    },
+    {
+      "id": "3057011",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Manchester United(N)",
+      "away_team": "Paris Saint Germain (PSG)",
+      "handicap": "0.5",
+      "goal_line": "3.75",
+      "time": "16:00"
+    },
+    {
+      "id": "3057636",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Rennes",
+      "away_team": "Brentford",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "16:00"
+    },
+    {
+      "id": "2933101",
+      "time_obj": "2026-08-08T15:00:00",
+      "home_team": "Nasaf Qarshi",
+      "away_team": "Kuruvchi Kokand Qoqon",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "16:00"
+    },
+    {
+      "id": "2912231",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Mjallby AIF",
+      "away_team": "Elfsborg",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "16:30"
+    },
+    {
+      "id": "3017866",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "SV Austria Salzburg",
+      "away_team": "First Wien 1894",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "16:30"
+    },
+    {
+      "id": "3017867",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "SC Bregenz",
+      "away_team": "Kapfenberg",
+      "handicap": "0.5",
+      "goal_line": "3",
+      "time": "16:30"
+    },
+    {
+      "id": "3017872",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Sturm Graz (Youth)",
+      "away_team": "Floridsdorfer AC",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
+      "time": "16:30"
+    },
+    {
+      "id": "3003102",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Pogon Szczecin",
+      "away_team": "Motor Lublin",
+      "handicap": "0.5",
+      "goal_line": "3",
+      "time": "16:30"
+    },
+    {
+      "id": "3010380",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Farul Constanta",
+      "away_team": "FK Csikszereda Miercurea Ciuc",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "16:30"
+    },
+    {
+      "id": "3011376",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Kisvarda FC",
+      "away_team": "Ujpesti",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "16:30"
+    },
+    {
+      "id": "3057000",
+      "time_obj": "2026-08-08T15:30:00",
+      "home_team": "Angers",
+      "away_team": "Lorient",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "16:30"
+    },
+    {
+      "id": "3000786",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Lausanne Sports",
+      "away_team": "Young Boys",
+      "handicap": "-0.5",
+      "goal_line": "3.5",
+      "time": "17:00"
+    },
+    {
+      "id": "2913687",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Jaro",
+      "away_team": "Vaasa VPS",
+      "handicap": "-0.5",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "2912863",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Start Kristiansand",
+      "away_team": "Fredrikstad",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "3052449",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "SC Covilha",
+      "away_team": "UD Santarem",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "17:00"
+    },
+    {
+      "id": "2998925",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Radnicki Nis",
+      "away_team": "Partizan Belgrade",
+      "handicap": "-0.5",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "3003402",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Michalovce",
+      "away_team": "KFC Komarno",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "3003403",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "MFK Ruzomberok",
+      "away_team": "Sport Podbrezova",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "2994875",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Kauno Zalgiris",
+      "away_team": "Hegelmann Litauen",
+      "handicap": "",
+      "goal_line": "",
+      "time": "17:00"
+    },
+    {
+      "id": "3030092",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Sivasspor",
+      "away_team": "Erokspor",
+      "handicap": "-0.25",
+      "goal_line": "2.5",
+      "time": "17:00"
+    },
+    {
+      "id": "3030093",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Umraniyespor",
+      "away_team": "Mardin BB",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "17:00"
+    },
+    {
+      "id": "2998448",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Lokomotiv Sofia",
+      "away_team": "CSKA 1948 Sofia",
+      "handicap": "-0.25",
+      "goal_line": "2.5",
+      "time": "17:00"
+    },
+    {
+      "id": "2931416",
+      "time_obj": "2026-08-08T16:00:00",
+      "home_team": "Trans Narva",
+      "away_team": "Nomme JK Kalju",
+      "handicap": "-0.75",
+      "goal_line": "2.75",
+      "time": "17:00"
+    },
+    {
+      "id": "3003523",
+      "time_obj": "2026-08-08T16:15:00",
+      "home_team": "Standard Liege",
+      "away_team": "Cercle Brugge",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "17:15"
+    },
+    {
+      "id": "3009576",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "Cheltenham Town",
+      "away_team": "Charlton Athletic",
+      "handicap": "-0.75",
+      "goal_line": "2.75",
+      "time": "17:30"
+    },
+    {
+      "id": "3009577",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "Colchester United",
+      "away_team": "Southampton",
+      "handicap": "-1.5",
+      "goal_line": "3",
+      "time": "17:30"
+    },
+    {
+      "id": "3009591",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "Rotherham United",
+      "away_team": "West Bromwich(WBA)",
+      "handicap": "-1",
+      "goal_line": "2.75",
+      "time": "17:30"
+    },
+    {
+      "id": "3052451",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "CF Os Belenenses",
+      "away_team": "FC Caldas",
+      "handicap": "1",
+      "goal_line": "2.25",
+      "time": "17:30"
+    },
+    {
+      "id": "2926271",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "Union San Felipe",
+      "away_team": "Deportes Recoleta",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "17:30"
+    },
+    {
+      "id": "3057021",
+      "time_obj": "2026-08-08T16:30:00",
+      "home_team": "Coventry City",
+      "away_team": "RCD Espanyol",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "17:30"
+    },
+    {
+      "id": "2996100",
+      "time_obj": "2026-08-08T16:45:00",
+      "home_team": "Go Ahead Eagles",
+      "away_team": "Willem II",
+      "handicap": "0.75",
+      "goal_line": "3",
+      "time": "17:45"
+    },
+    {
+      "id": "3023439",
+      "time_obj": "2026-08-08T17:00:00",
+      "home_team": "Vitoria Guimaraes",
+      "away_team": "FC Arouca",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "18:00"
+    },
+    {
+      "id": "3023744",
+      "time_obj": "2026-08-08T17:00:00",
+      "home_team": "CD Tondela",
+      "away_team": "Amarante",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "18:00"
+    },
+    {
+      "id": "3057096",
+      "time_obj": "2026-08-08T17:00:00",
+      "home_team": "Ivory Coast (W)(N)",
+      "away_team": "Algeria (W)",
+      "handicap": "0.25",
+      "goal_line": "2",
+      "time": "18:00"
+    },
+    {
+      "id": "3010608",
+      "time_obj": "2026-08-08T17:30:00",
+      "home_team": "TSV Hartberg",
+      "away_team": "Sturm Graz",
+      "handicap": "-0.75",
+      "goal_line": "2.75",
+      "time": "18:30"
+    },
+    {
+      "id": "3001775",
+      "time_obj": "2026-08-08T17:30:00",
+      "home_team": "Hapoel Haifa",
+      "away_team": "Hapoel Kiryat Shmona",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "18:30"
+    },
+    {
+      "id": "3001776",
+      "time_obj": "2026-08-08T17:30:00",
+      "home_team": "Hapoel Bnei Sakhnin FC",
+      "away_team": "Maccabi Haifa",
+      "handicap": "-1.25",
+      "goal_line": "2.75",
+      "time": "18:30"
+    },
+    {
+      "id": "2962549",
+      "time_obj": "2026-08-08T17:45:00",
+      "home_team": "Atletico Tucuman",
+      "away_team": "Sarmiento Junin",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "18:45"
+    },
+    {
+      "id": "2962553",
+      "time_obj": "2026-08-08T17:45:00",
+      "home_team": "Deportivo Riestra",
+      "away_team": "Estudiantes La Plata",
+      "handicap": "0",
+      "goal_line": "1.75",
+      "time": "18:45"
+    },
+    {
+      "id": "2996101",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "PSV Eindhoven",
+      "away_team": "Fortuna Sittard",
+      "handicap": "2.25",
+      "goal_line": "4",
+      "time": "19:00"
+    },
+    {
+      "id": "3035863",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Lechia Zielona Gora",
+      "away_team": "Sokol Kleczew",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "19:00"
+    },
+    {
+      "id": "3039845",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Mlada Boleslav",
+      "away_team": "AC Sparta Prague",
+      "handicap": "-0.75",
+      "goal_line": "3",
+      "time": "19:00"
+    },
+    {
+      "id": "2998920",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Crvena Zvezda",
+      "away_team": "Novi Pazar",
+      "handicap": "2.5",
+      "goal_line": "3.75",
+      "time": "19:00"
+    },
+    {
+      "id": "2998924",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Radnicki 1923 Kragujevac",
+      "away_team": "Zemun",
+      "handicap": "1.5",
+      "goal_line": "2.5",
+      "time": "19:00"
+    },
+    {
+      "id": "3009985",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "UTC Cajamarca",
+      "away_team": "AD Tarma",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "19:00"
+    },
+    {
+      "id": "3008765",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Vicenza",
+      "away_team": "Catania",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "19:00"
+    },
+    {
+      "id": "3057085",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Liverpool URU",
+      "away_team": "Albion FC",
+      "handicap": "0.25",
+      "goal_line": "2",
+      "time": "19:00"
+    },
+    {
+      "id": "2916573",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Agropecuario de Carlos Casares",
+      "away_team": "Club Atletico Guemes",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "19:00"
+    },
+    {
+      "id": "2916575",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Almirante Brown",
+      "away_team": "Club Ciudad de Bolivar",
+      "handicap": "0.5",
+      "goal_line": "1.5",
+      "time": "19:00"
+    },
+    {
+      "id": "2916578",
+      "time_obj": "2026-08-08T18:00:00",
+      "home_team": "Estudiantes de Caseros",
+      "away_team": "Deportivo Madryn",
+      "handicap": "0.5",
+      "goal_line": "1.75",
+      "time": "19:00"
+    },
+    {
+      "id": "3003100",
+      "time_obj": "2026-08-08T18:15:00",
+      "home_team": "Korona Kielce",
+      "away_team": "Legia Warszawa",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "19:15"
+    },
+    {
+      "id": "3004938",
+      "time_obj": "2026-08-08T18:15:00",
+      "home_team": "Podbeskidzie Bielsko-Biala",
+      "away_team": "Lechia Gdansk",
+      "handicap": "1.75",
+      "goal_line": "3",
+      "time": "19:15"
+    },
+    {
+      "id": "2998446",
+      "time_obj": "2026-08-08T18:15:00",
+      "home_team": "FC Dunav Ruse",
+      "away_team": "FC Arda Kardzhali",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "19:15"
+    },
+    {
+      "id": "3005759",
+      "time_obj": "2026-08-08T18:15:00",
+      "home_team": "NK Publikum Celje",
+      "away_team": "NK Olimpija Ljubljana",
+      "handicap": "0.5",
+      "goal_line": "3",
+      "time": "19:15"
+    },
+    {
+      "id": "3019100",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "VfL Wolfsburg",
+      "away_team": "Kaiserslautern",
+      "handicap": "1",
+      "goal_line": "3",
+      "time": "19:30"
+    },
+    {
+      "id": "3000787",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Servette",
+      "away_team": "Grasshopper",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "19:30"
+    },
+    {
+      "id": "3010379",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Dinamo Bucuresti",
+      "away_team": "FC Voluntari",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "19:30"
+    },
+    {
+      "id": "3003404",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Trencin",
+      "away_team": "Slovan Bratislava",
+      "handicap": "-1",
+      "goal_line": "3",
+      "time": "19:30"
+    },
+    {
+      "id": "3003405",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Spartak Trnava",
+      "away_team": "Dukla Banska Bystrica",
+      "handicap": "1.5",
+      "goal_line": "2.5",
+      "time": "19:30"
+    },
+    {
+      "id": "3008763",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Ascoli",
+      "away_team": "Potenza",
+      "handicap": "0.75",
+      "goal_line": "2.5",
+      "time": "19:30"
+    },
+    {
+      "id": "3030085",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Antalyaspor",
+      "away_team": "Keciorengucu",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "19:30"
+    },
+    {
+      "id": "3057028",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Real Betis",
+      "away_team": "AFC Bournemouth",
+      "handicap": "0",
+      "goal_line": "3",
+      "time": "19:30"
+    },
+    {
+      "id": "3057040",
+      "time_obj": "2026-08-08T18:30:00",
+      "home_team": "Cagliari",
+      "away_team": "Nice",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "19:30"
+    },
+    {
+      "id": "2997672",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Boulogne",
+      "away_team": "Nancy",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "19:45"
+    },
+    {
+      "id": "2997673",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Clermont",
+      "away_team": "Reims",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "19:45"
+    },
+    {
+      "id": "2997674",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "USL Dunkerque",
+      "away_team": "Grenoble",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "2997675",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Metz",
+      "away_team": "Guingamp",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "2997676",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Montpellier",
+      "away_team": "Dijon",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "19:45"
+    },
+    {
+      "id": "2997677",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Nantes",
+      "away_team": "Red Star FC 93",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "19:45"
+    },
+    {
+      "id": "2997678",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Pau FC",
+      "away_team": "FC Annecy",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "2997679",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Rodez Aveyron",
+      "away_team": "Stade Lavallois MFC",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "2997680",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Sochaux",
+      "away_team": "Saint Etienne",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "19:45"
+    },
+    {
+      "id": "3003524",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Sint-Truidense",
+      "away_team": "KVSK Lommel",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "19:45"
+    },
+    {
+      "id": "3003525",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Westerlo",
+      "away_team": "Saint Gilloise",
+      "handicap": "-0.75",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "3057034",
+      "time_obj": "2026-08-08T18:45:00",
+      "home_team": "Genoa",
+      "away_team": "Deportivo La Coruna",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "19:45"
+    },
+    {
+      "id": "2996102",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "AZ Alkmaar",
+      "away_team": "ADO Den Haag",
+      "handicap": "1.25",
+      "goal_line": "3",
+      "time": "20:00"
+    },
+    {
+      "id": "2910843",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Gremio (RS)",
+      "away_team": "Sao Paulo",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "20:00"
+    },
+    {
+      "id": "3057598",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Juventus (W)",
+      "away_team": "Hammarby (W)",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "20:00"
+    },
+    {
+      "id": "2940114",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Vila Nova",
+      "away_team": "Sport Club do Recife",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "20:00"
+    },
+    {
+      "id": "3011796",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Independiente Santa Fe",
+      "away_team": "Boyaca Chico",
+      "handicap": "1.25",
+      "goal_line": "2.25",
+      "time": "20:00"
+    },
+    {
+      "id": "2997498",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "NK Lokomotiva Zagreb",
+      "away_team": "HNK Gorica",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "20:00"
+    },
+    {
+      "id": "3055809",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Sportivo Ameliano",
+      "away_team": "Cerro Porteno",
+      "handicap": "-0.25",
+      "goal_line": "2.25",
+      "time": "20:00"
+    },
+    {
+      "id": "2921205",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Huachipato",
+      "away_team": "Everton CD",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "20:00"
+    },
+    {
+      "id": "3045768",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "San Antonio Bulo Bulo",
+      "away_team": "Nacional Potosi",
+      "handicap": "0",
+      "goal_line": "3",
+      "time": "20:00"
+    },
+    {
+      "id": "2916577",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Atletico Rafaela",
+      "away_team": "Chacarita juniors",
+      "handicap": "0.25",
+      "goal_line": "1.75",
+      "time": "20:00"
+    },
+    {
+      "id": "2926272",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Santiago Wanderers",
+      "away_team": "San Marcos de Arica",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "20:00"
+    },
+    {
+      "id": "3052505",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Valencia",
+      "away_team": "Newcastle United",
+      "handicap": "-0.25",
+      "goal_line": "3",
+      "time": "20:00"
+    },
+    {
+      "id": "3052506",
+      "time_obj": "2026-08-08T19:00:00",
+      "home_team": "Napoli",
+      "away_team": "Celta Vigo",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "20:00"
+    },
+    {
+      "id": "3023433",
+      "time_obj": "2026-08-08T19:30:00",
+      "home_team": "Estrela da Amadora",
+      "away_team": "Sporting CP",
+      "handicap": "-1.75",
+      "goal_line": "3",
+      "time": "20:30"
+    },
+    {
+      "id": "3052459",
+      "time_obj": "2026-08-08T19:30:00",
+      "home_team": "AC Colina",
+      "away_team": "Deportes Rengo",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "20:30"
+    },
+    {
+      "id": "2962561",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Club Atletico Tigre",
+      "away_team": "River Plate",
+      "handicap": "-0.25",
+      "goal_line": "1.75",
+      "time": "21:00"
+    },
+    {
+      "id": "3057621",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Monagas SC",
+      "away_team": "Carabobo FC",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "21:00"
+    },
+    {
+      "id": "2956998",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Denver Summit W",
+      "away_team": "Utah Royals (W)",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "21:00"
+    },
+    {
+      "id": "3057097",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Morocco (W)",
+      "away_team": "South Africa (W)",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "21:00"
+    },
+    {
+      "id": "3052460",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Osorno",
+      "away_team": "Concon National",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "21:00"
+    },
+    {
+      "id": "2949372",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Botafogo PB",
+      "away_team": "Santa Cruz PE",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "21:00"
+    },
+    {
+      "id": "2949373",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Figueirense",
+      "away_team": "Ferroviaria SP",
+      "handicap": "0.25",
+      "goal_line": "2",
+      "time": "21:00"
+    },
+    {
+      "id": "3052465",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Sao Jose PoA RS",
+      "away_team": "SE do Gama",
+      "handicap": "-0.25",
+      "goal_line": "1.75",
+      "time": "21:00"
+    },
+    {
+      "id": "3052468",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Uberlandia MG",
+      "away_team": "Centro Sportivo Alagoano",
+      "handicap": "0",
+      "goal_line": "2",
+      "time": "21:00"
+    },
+    {
+      "id": "3052362",
+      "time_obj": "2026-08-08T20:00:00",
+      "home_team": "Portland Timbers Reserve",
+      "away_team": "Los Angeles FC II",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "21:00"
+    },
+    {
+      "id": "2908442",
+      "time_obj": "2026-08-08T20:30:00",
+      "home_team": "New England Revolution",
+      "away_team": "Houston Dynamo",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "21:30"
+    },
+    {
+      "id": "3009987",
+      "time_obj": "2026-08-08T20:30:00",
+      "home_team": "Juan Pablo II College",
+      "away_team": "Atletico Grau",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "21:30"
+    },
+    {
+      "id": "3041872",
+      "time_obj": "2026-08-08T21:00:00",
+      "home_team": "CD Platense Municipal Zacatecoluca",
+      "away_team": "CD INCA-Aruba",
+      "handicap": "0.75",
+      "goal_line": "2.5",
+      "time": "22:00"
+    },
+    {
+      "id": "3011241",
+      "time_obj": "2026-08-08T21:00:00",
+      "home_team": "Club Aurora",
+      "away_team": "C.S.D. Comunicaciones",
+      "handicap": "-0.25",
+      "goal_line": "2",
+      "time": "22:00"
+    },
+    {
+      "id": "3045769",
+      "time_obj": "2026-08-08T21:15:00",
+      "home_team": "The Strongest",
+      "away_team": "Independiente Petrolero",
+      "handicap": "2.25",
+      "goal_line": "3.75",
+      "time": "22:15"
+    },
+    {
+      "id": "3011792",
+      "time_obj": "2026-08-08T21:20:00",
+      "home_team": "Fortaleza F.C",
+      "away_team": "Cucuta",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "22:20"
+    },
+    {
+      "id": "2910845",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Remo Belem (PA)",
+      "away_team": "Atletico Mineiro",
+      "handicap": "-0.25",
+      "goal_line": "2.25",
+      "time": "22:30"
+    },
+    {
+      "id": "2940107",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Botafogo SP",
+      "away_team": "America MG",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "22:30"
+    },
+    {
+      "id": "3057086",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Montevideo City Torque",
+      "away_team": "CA Penarol",
+      "handicap": "-0.25",
+      "goal_line": "2.5",
+      "time": "22:30"
+    },
+    {
+      "id": "3055810",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "2 de Mayo PJC",
+      "away_team": "Olimpia Asuncion",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "22:30"
+    },
+    {
+      "id": "2921203",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Coquimbo Unido",
+      "away_team": "Deportes La Serena",
+      "handicap": "1",
+      "goal_line": "2.75",
+      "time": "22:30"
+    },
+    {
+      "id": "2926267",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Cobreloa",
+      "away_team": "Deportes Iquique",
+      "handicap": "0.75",
+      "goal_line": "2.5",
+      "time": "22:30"
+    },
+    {
+      "id": "2937877",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Sociedad Deportiva Aucas",
+      "away_team": "Leones del Norte",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "22:30"
+    },
+    {
+      "id": "3052466",
+      "time_obj": "2026-08-08T21:30:00",
+      "home_team": "Goiatuba",
+      "away_team": "ASA AL",
+      "handicap": "0.25",
+      "goal_line": "1.75",
+      "time": "22:30"
+    },
+    {
+      "id": "3052363",
+      "time_obj": "2026-08-08T22:00:00",
+      "home_team": "Columbus Crew B",
+      "away_team": "New York Red Bulls Reserves",
+      "handicap": "0",
+      "goal_line": "3.5",
+      "time": "23:00"
+    },
+    {
+      "id": "2962551",
+      "time_obj": "2026-08-08T22:15:00",
+      "home_team": "Boca Juniors",
+      "away_team": "Velez Sarsfield",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "23:15"
+    },
+    {
+      "id": "2956999",
+      "time_obj": "2026-08-08T22:30:00",
+      "home_team": "Washington Spirit (W)",
+      "away_team": "North Carolina (W)",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "23:30"
+    },
+    {
+      "id": "2949374",
+      "time_obj": "2026-08-08T22:30:00",
+      "home_team": "Inter de Limeira",
+      "away_team": "Volta Redonda",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "23:30"
+    },
+    {
+      "id": "2949376",
+      "time_obj": "2026-08-08T22:30:00",
+      "home_team": "Ituano SP",
+      "away_team": "Barra FC",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "23:30"
+    },
+    {
+      "id": "2961740",
+      "time_obj": "2026-08-08T22:30:00",
+      "home_team": "Orlando City",
+      "away_team": "Club Leon",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "23:30"
+    },
+    {
+      "id": "2942542",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Brooklyn FC",
+      "away_team": "Birmingham Legion",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "00:00"
+    },
+    {
+      "id": "2942545",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Lexington",
+      "away_team": "Phoenix Rising FC",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "00:00"
+    },
+    {
+      "id": "2942546",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Loudoun United",
+      "away_team": "Charleston Battery",
+      "handicap": "-0.5",
+      "goal_line": "2.75",
+      "time": "00:00"
+    },
+    {
+      "id": "2942548",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Miami FC",
+      "away_team": "Las Vegas Lights",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "00:00"
+    },
+    {
+      "id": "2942551",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Pittsburgh Riverhounds",
+      "away_team": "Sacramento Republic FC",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "00:00"
+    },
+    {
+      "id": "3024403",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Venados FC",
+      "away_team": "Club Chivas Tapatio",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "00:00"
+    },
+    {
+      "id": "3045974",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Queretaro (W)",
+      "away_team": "Santos Laguna (W)",
+      "handicap": "0",
+      "goal_line": "2.5",
+      "time": "00:00"
+    },
+    {
+      "id": "3052364",
+      "time_obj": "2026-08-08T23:00:00",
+      "home_team": "Chattanooga",
+      "away_team": "Atlanta United FC II",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "time": "00:00"
+    },
+    {
+      "id": "3011790",
+      "time_obj": "2026-08-08T23:25:00",
+      "home_team": "Deportes Tolima",
+      "away_team": "Internacional de Bogota",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "00:25"
+    },
+    {
+      "id": "2910840",
+      "time_obj": "2026-08-08T23:30:00",
+      "home_team": "Coritiba PR",
+      "away_team": "Chapecoense SC",
+      "handicap": "0.75",
+      "goal_line": "2.5",
+      "time": "00:30"
+    },
+    {
+      "id": "2942552",
+      "time_obj": "2026-08-08T23:30:00",
+      "home_team": "Rhode Island",
+      "away_team": "Colorado Springs Switchbacks FC",
+      "handicap": "0.5",
+      "goal_line": "2.5",
+      "time": "00:30"
+    },
+    {
+      "id": "2910838",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Botafogo RJ",
+      "away_team": "Fluminense RJ",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "01:00"
+    },
+    {
+      "id": "3042534",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Escorpiones Belen",
+      "away_team": "Perez Zeledon",
+      "handicap": "0.25",
+      "goal_line": "2.5",
+      "time": "01:00"
+    },
+    {
+      "id": "2926269",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Deportes Temuco",
+      "away_team": "CD Magallanes",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "01:00"
+    },
+    {
+      "id": "2942547",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Louisville City FC",
+      "away_team": "San Antonio",
+      "handicap": "1.25",
+      "goal_line": "2.75",
+      "time": "01:00"
+    },
+    {
+      "id": "2937881",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Barcelona SC(ECU)",
+      "away_team": "Macara",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "01:00"
+    },
+    {
+      "id": "2961739",
+      "time_obj": "2026-08-09T00:00:00",
+      "home_team": "Inter Miami CF",
+      "away_team": "Monterrey",
+      "handicap": "0.75",
+      "goal_line": "3.5",
+      "time": "01:00"
+    },
+    {
+      "id": "2962555",
+      "time_obj": "2026-08-09T00:30:00",
+      "home_team": "Independiente",
+      "away_team": "CA Platense",
+      "handicap": "0.5",
+      "goal_line": "2",
+      "time": "01:30"
+    },
+    {
+      "id": "2962557",
+      "time_obj": "2026-08-09T00:30:00",
+      "home_team": "Instituto AC Cordoba",
+      "away_team": "Gimnasia Mendoza",
+      "handicap": "0.75",
+      "goal_line": "2",
+      "time": "01:30"
+    },
+    {
+      "id": "2942544",
+      "time_obj": "2026-08-09T00:30:00",
+      "home_team": "FC Tulsa",
+      "away_team": "Detroit City",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "01:30"
     }
   ],
   "finished_matches": [
+    {
+      "id": "3009983",
+      "time_obj": "2026-08-08T01:30:00",
+      "home_team": "Universitario De Deportes",
+      "away_team": "Sporting Cristal",
+      "score": "1 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.50",
+      "time": "08/08 02:30"
+    },
+    {
+      "id": "3036159",
+      "time_obj": "2026-08-08T01:30:00",
+      "home_team": "San Francisco FC",
+      "away_team": "Herrera FC",
+      "score": "3 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "08/08 02:30"
+    },
+    {
+      "id": "2961736",
+      "time_obj": "2026-08-08T01:10:00",
+      "home_team": "Tigres UANL(N)",
+      "away_team": "Minnesota United FC",
+      "score": "0 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "08/08 02:10"
+    },
+    {
+      "id": "3045972",
+      "time_obj": "2026-08-08T01:05:00",
+      "home_team": "Atlas (W)",
+      "away_team": "Pachuca (W)",
+      "score": "1 - 1",
+      "handicap": "-1.75",
+      "goal_line": "3.25",
+      "time": "08/08 02:05"
+    },
+    {
+      "id": "3041871",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "A.D. Isidro Metapan",
+      "away_team": "Aguila",
+      "score": "2 - 1",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3024404",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "CD Alacranes de Durango",
+      "away_team": "Piratas",
+      "score": "0 - 3",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3024409",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "Tepatitlan de Morelos",
+      "away_team": "Atletico La Paz",
+      "score": "0 - 5",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3057576",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "Adelaide Raiders SC Reserve",
+      "away_team": "The Cove FC Reserves",
+      "score": "1 - 1",
+      "handicap": "0.25",
+      "goal_line": "3.50",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3057491",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "Mitsubishi Nagasaki",
+      "away_team": "KMG Holdings",
+      "score": "0 - 3",
+      "handicap": "-0.75",
+      "goal_line": "2.75",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3031311",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "Real Esteli",
+      "away_team": "Walter Ferretti",
+      "score": "4 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "3052480",
+      "time_obj": "2026-08-08T01:00:00",
+      "home_team": "Juventud Antoniana",
+      "away_team": "Alvarado Mar del Plata",
+      "score": "0 - 2",
+      "handicap": "0.5",
+      "goal_line": "1.75",
+      "time": "08/08 02:00"
+    },
+    {
+      "id": "2962556",
+      "time_obj": "2026-08-08T00:45:00",
+      "home_team": "Independiente Rivadavia",
+      "away_team": "Estudiantes Rio Cuarto",
+      "score": "2 - 1",
+      "handicap": "1",
+      "goal_line": "2.25",
+      "time": "08/08 01:45"
+    },
+    {
+      "id": "2921207",
+      "time_obj": "2026-08-08T00:30:00",
+      "home_team": "Univ Catolica",
+      "away_team": "Cobresal",
+      "score": "2 - 0",
+      "handicap": "1.5",
+      "goal_line": "3.00",
+      "time": "08/08 01:30"
+    },
+    {
+      "id": "2926266",
+      "time_obj": "2026-08-08T00:30:00",
+      "home_team": "Deportes Santa Cruz",
+      "away_team": "Puerto Montt",
+      "score": "0 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "08/08 01:30"
+    },
+    {
+      "id": "3012137",
+      "time_obj": "2026-08-08T00:30:00",
+      "home_team": "Deportes Quindio",
+      "away_team": "Inter Palmira",
+      "score": "1 - 1",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "08/08 01:30"
+    },
+    {
+      "id": "2961735",
+      "time_obj": "2026-08-08T00:25:00",
+      "home_team": "FC Cincinnati",
+      "away_team": "Pumas U.N.A.M.",
+      "score": "2 - 0",
+      "handicap": "0.5",
+      "goal_line": "3.50",
+      "time": "08/08 01:25"
+    },
+    {
+      "id": "2956997",
+      "time_obj": "2026-08-08T00:20:00",
+      "home_team": "Gotham FC (W)",
+      "away_team": "San Diego Wave (W)",
+      "score": "1 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "08/08 01:20"
+    },
+    {
+      "id": "2937879",
+      "time_obj": "2026-08-08T00:00:00",
+      "home_team": "Liga Dep. Universitaria Quito",
+      "away_team": "Independiente del Valle",
+      "score": "0 - 2",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "08/08 01:00"
+    },
+    {
+      "id": "3057620",
+      "time_obj": "2026-08-08T00:00:00",
+      "home_team": "Mexico U21(N)",
+      "away_team": "Venezuela U21",
+      "score": "2 - 2",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "08/08 01:00"
+    },
+    {
+      "id": "3052486",
+      "time_obj": "2026-08-07T23:45:00",
+      "home_team": "Sportivo Belgrano",
+      "away_team": "CA 9 de Julio Rafaela",
+      "score": "1 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.00",
+      "time": "08/08 00:45"
+    },
+    {
+      "id": "2961733",
+      "time_obj": "2026-08-07T23:40:00",
+      "home_team": "Charlotte FC",
+      "away_team": "Atlas",
+      "score": "2 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "08/08 00:40"
+    },
+    {
+      "id": "2961734",
+      "time_obj": "2026-08-07T23:40:00",
+      "home_team": "Columbus Crew",
+      "away_team": "Pachuca",
+      "score": "2 - 1",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "08/08 00:40"
+    },
+    {
+      "id": "2940108",
+      "time_obj": "2026-08-07T23:30:00",
+      "home_team": "Ceara",
+      "away_team": "Ponte Preta",
+      "score": "2 - 0",
+      "handicap": "1",
+      "goal_line": "2.50",
+      "time": "08/08 00:30"
+    },
+    {
+      "id": "3045767",
+      "time_obj": "2026-08-07T23:30:00",
+      "home_team": "Real Tomayapo",
+      "away_team": "Real Oruro",
+      "score": "1 - 2",
+      "handicap": "0.5",
+      "goal_line": "3.50",
+      "time": "08/08 00:30"
+    },
+    {
+      "id": "2916587",
+      "time_obj": "2026-08-07T23:10:00",
+      "home_team": "Ferrocarril Midland",
+      "away_team": "Deportivo Maipu",
+      "score": "2 - 0",
+      "handicap": "0.5",
+      "goal_line": "2.00",
+      "time": "08/08 00:10"
+    },
+    {
+      "id": "2937585",
+      "time_obj": "2026-08-07T23:10:00",
+      "home_team": "Forge FC",
+      "away_team": "Vancouver FC",
+      "score": "0 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.50",
+      "time": "08/08 00:10"
+    },
+    {
+      "id": "3057584",
+      "time_obj": "2026-08-07T23:10:00",
+      "home_team": "Montreal Roses FC (W)",
+      "away_team": "Halifax Tides FC (W)",
+      "score": "0 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.50",
+      "time": "08/08 00:10"
+    },
+    {
+      "id": "2957000",
+      "time_obj": "2026-08-07T23:00:00",
+      "home_team": "Orlando Pride (W)",
+      "away_team": "Racing Louisville (W)",
+      "score": "1 - 3",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "08/08 00:00"
+    },
+    {
+      "id": "3057498",
+      "time_obj": "2026-08-07T23:00:00",
+      "home_team": "We United FC",
+      "away_team": "Mighty Avengers",
+      "score": "2 - 0",
+      "handicap": "1.5",
+      "goal_line": "3.75",
+      "time": "08/08 00:00"
+    },
+    {
+      "id": "3050098",
+      "time_obj": "2026-08-07T23:00:00",
+      "home_team": "International Miami B",
+      "away_team": "Crown Legacy FC",
+      "score": "0 - 2",
+      "handicap": "-1.25",
+      "goal_line": "3.50",
+      "time": "08/08 00:00"
+    },
+    {
+      "id": "2962558",
+      "time_obj": "2026-08-07T22:30:00",
+      "home_team": "Rosario Central",
+      "away_team": "Aldosivi Mar del Plata",
+      "score": "2 - 1",
+      "handicap": "1",
+      "goal_line": "2.25",
+      "time": "07/08 23:30"
+    },
+    {
+      "id": "2940113",
+      "time_obj": "2026-08-07T22:30:00",
+      "home_team": "Operario Ferroviario PR",
+      "away_team": "Sao Bernardo",
+      "score": "1 - 3",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "07/08 23:30"
+    },
+    {
+      "id": "2934736",
+      "time_obj": "2026-08-07T22:30:00",
+      "home_team": "Ituzaingo",
+      "away_team": "Deportivo Camioneros",
+      "score": "0 - 1",
+      "handicap": "-0.5",
+      "goal_line": "2.00",
+      "time": "07/08 23:30"
+    },
+    {
+      "id": "3057083",
+      "time_obj": "2026-08-07T22:00:00",
+      "home_team": "Cerro Largo",
+      "away_team": "CA Juventud",
+      "score": "1 - 1",
+      "handicap": "0",
+      "goal_line": "2.00",
+      "time": "07/08 23:00"
+    },
+    {
+      "id": "2926273",
+      "time_obj": "2026-08-07T22:00:00",
+      "home_team": "Union Espanola",
+      "away_team": "CSD Antofagasta",
+      "score": "0 - 3",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 23:00"
+    },
+    {
+      "id": "2934730",
+      "time_obj": "2026-08-07T22:00:00",
+      "home_team": "Comunicaciones BsAs",
+      "away_team": "Villa San Carlos",
+      "score": "0 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.00",
+      "time": "07/08 23:00"
+    },
+    {
+      "id": "3056550",
+      "time_obj": "2026-08-07T22:00:00",
+      "home_team": "12 de Junio VH",
+      "away_team": "Deportivo Santani",
+      "score": "2 - 4",
+      "handicap": "0.25",
+      "goal_line": "2.00",
+      "time": "07/08 23:00"
+    },
+    {
+      "id": "3050119",
+      "time_obj": "2026-08-07T22:00:00",
+      "home_team": "Tanabi SP (Youth)",
+      "away_team": "Palmeiras (Youth)",
+      "score": "0 - 1",
+      "handicap": "-2.75",
+      "goal_line": "3.50",
+      "time": "07/08 23:00"
+    },
+    {
+      "id": "3055808",
+      "time_obj": "2026-08-07T21:30:00",
+      "home_team": "Rubio nu",
+      "away_team": "Deportivo Recoleta",
+      "score": "1 - 3",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "07/08 22:30"
+    },
+    {
+      "id": "3045766",
+      "time_obj": "2026-08-07T21:15:00",
+      "home_team": "Academia del Balompie Boliviano",
+      "away_team": "Club Guabira",
+      "score": "0 - 1",
+      "handicap": "1",
+      "goal_line": "3.75",
+      "time": "07/08 22:15"
+    },
+    {
+      "id": "3057076",
+      "time_obj": "2026-08-07T21:00:00",
+      "home_team": "Costa Rica U20(N)",
+      "away_team": "USA U20",
+      "score": "0 - 2",
+      "handicap": "-1.5",
+      "goal_line": "3.00",
+      "time": "07/08 22:00"
+    },
+    {
+      "id": "3057807",
+      "time_obj": "2026-08-07T21:00:00",
+      "home_team": "Herediano U20",
+      "away_team": "Alajuelense U20",
+      "score": "0 - 1",
+      "handicap": "0",
+      "goal_line": "3.00",
+      "time": "07/08 22:00"
+    },
+    {
+      "id": "3057759",
+      "time_obj": "2026-08-07T21:00:00",
+      "home_team": "CD Cacahuatique (W)",
+      "away_team": "Fuerte San Francisco (W)",
+      "score": "0 - 2",
+      "handicap": "-0.25",
+      "goal_line": "3.25",
+      "time": "07/08 22:00"
+    },
+    {
+      "id": "3057506",
+      "time_obj": "2026-08-07T21:00:00",
+      "home_team": "San Francisco Reserves",
+      "away_team": "CA Independiente de la Chorrera Reserves",
+      "score": "2 - 2",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "07/08 22:00"
+    },
+    {
+      "id": "3009988",
+      "time_obj": "2026-08-07T20:15:00",
+      "home_team": "Comerciantes Unidos",
+      "away_team": "Cusco FC",
+      "score": "3 - 1",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 21:15"
+    },
+    {
+      "id": "3050154",
+      "time_obj": "2026-08-07T20:15:00",
+      "home_team": "Deportivo Union Comercio",
+      "away_team": "Academia Deportiva Cantolao",
+      "score": "4 - 0",
+      "handicap": "1.5",
+      "goal_line": "2.75",
+      "time": "07/08 21:15"
+    },
+    {
+      "id": "3057619",
+      "time_obj": "2026-08-07T20:00:00",
+      "home_team": "Panama U21(N)",
+      "away_team": "Colombia U21",
+      "score": "1 - 1",
+      "handicap": "-1",
+      "goal_line": "2.75",
+      "time": "07/08 21:00"
+    },
+    {
+      "id": "3057570",
+      "time_obj": "2026-08-07T20:00:00",
+      "home_team": "IH Hafnarfjordur",
+      "away_team": "Hamar Hveragerdi",
+      "score": "1 - 7",
+      "handicap": "-2.25",
+      "goal_line": "5.00",
+      "time": "07/08 21:00"
+    },
+    {
+      "id": "3056549",
+      "time_obj": "2026-08-07T19:30:00",
+      "home_team": "Independiente Luque",
+      "away_team": "Resistencia SC",
+      "score": "1 - 1",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 20:30"
+    },
+    {
+      "id": "3023432",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Estoril",
+      "away_team": "FC Famalicao",
+      "score": "1 - 1",
+      "handicap": "-0.25",
+      "goal_line": "2.25",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "2939030",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Cobh Ramblers",
+      "away_team": "Treaty United",
+      "score": "2 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "2931268",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Afturelding",
+      "away_team": "Grindavik",
+      "score": "4 - 1",
+      "handicap": "1.5",
+      "goal_line": "3.75",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "2931269",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Leiknir Reykjavik",
+      "away_team": "Fylkir",
+      "score": "3 - 0",
+      "handicap": "-1",
+      "goal_line": "3.25",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "2924720",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Valur (W)",
+      "away_team": "Vikingur Reykjavik (W)",
+      "score": "1 - 0",
+      "handicap": "0",
+      "goal_line": "3.25",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "3057569",
+      "time_obj": "2026-08-07T19:15:00",
+      "home_team": "Ulfarnir",
+      "away_team": "Ellidi",
+      "score": "3 - 3",
+      "handicap": "0.5",
+      "goal_line": "4.25",
+      "time": "07/08 20:15"
+    },
+    {
+      "id": "3009586",
+      "time_obj": "2026-08-07T19:00:00",
+      "home_team": "Middlesbrough",
+      "away_team": "Wrexham",
+      "score": "1 - 0",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "07/08 20:00"
+    },
+    {
+      "id": "3050150",
+      "time_obj": "2026-08-07T19:00:00",
+      "home_team": "Paredes",
+      "away_team": "Vitoria Guimaraes B",
+      "score": "3 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "07/08 20:00"
+    },
+    {
+      "id": "2914385",
+      "time_obj": "2026-08-07T19:00:00",
+      "home_team": "Shamrock Rovers",
+      "away_team": "Dundalk",
+      "score": "3 - 2",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "07/08 20:00"
+    },
+    {
+      "id": "3003521",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Club Brugge",
+      "away_team": "Kortrijk",
+      "score": "3 - 0",
+      "handicap": "2",
+      "goal_line": "3.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3057652",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Kingstonian",
+      "away_team": "Hastings United",
+      "score": "4 - 1",
+      "handicap": "0.25",
+      "goal_line": "3.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3009598",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Wolves",
+      "away_team": "Port Vale",
+      "score": "3 - 0",
+      "handicap": "1.75",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3009599",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Wycombe Wanderers",
+      "away_team": "Stevenage Borough",
+      "score": "1 - 2",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019945",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Aubagne",
+      "away_team": "Thionville FC",
+      "score": "0 - 3",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019947",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Bourg Peronnas",
+      "away_team": "Villefranche",
+      "score": "3 - 2",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019948",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Caen",
+      "away_team": "Valenciennes",
+      "score": "4 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019949",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Concarneau",
+      "away_team": "Orleans US 45",
+      "score": "0 - 2",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019950",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Fleury Merogis U.S.",
+      "away_team": "Amiens",
+      "score": "0 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019951",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "La Roche VF",
+      "away_team": "Versailles 78",
+      "score": "3 - 2",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019952",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Paris 13 Atletico",
+      "away_team": "Quevilly",
+      "score": "1 - 0",
+      "handicap": "0",
+      "goal_line": "2.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019953",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "FC Rouen",
+      "away_team": "Cannes AS",
+      "score": "0 - 0",
+      "handicap": "0.5",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2914381",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Derry City",
+      "away_team": "Sligo Rovers",
+      "score": "2 - 0",
+      "handicap": "1.5",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2914382",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Galway United",
+      "away_team": "Drogheda United",
+      "score": "0 - 0",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2939028",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Athlone Town",
+      "away_team": "Longford Town",
+      "score": "2 - 1",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2939029",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Bray Wanderers",
+      "away_team": "Finn Harps",
+      "score": "5 - 0",
+      "handicap": "1.75",
+      "goal_line": "3.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2939031",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Cork City",
+      "away_team": "Kerry FC",
+      "score": "3 - 1",
+      "handicap": "1.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "2939032",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "UC Dublin",
+      "away_team": "Wexford (Youth)",
+      "score": "4 - 1",
+      "handicap": "0.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3011559",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Cliftonville",
+      "away_team": "Crusaders",
+      "score": "2 - 1",
+      "handicap": "1",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019465",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Airbus UK Broughton",
+      "away_team": "UWIC Inter Cardiff",
+      "score": "0 - 2",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019466",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Ammanford",
+      "away_team": "Colwyn Bay",
+      "score": "2 - 2",
+      "handicap": "-1.5",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019467",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Caernarfon",
+      "away_team": "Penybont FC",
+      "score": "1 - 2",
+      "handicap": "0.5",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019468",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Cambrian Clydach",
+      "away_team": "Briton Ferry Athletic",
+      "score": "1 - 1",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019469",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Flint Town",
+      "away_team": "Barry Town United",
+      "score": "2 - 3",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019470",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Holywell",
+      "away_team": "Connahs Quay Nomads FC",
+      "score": "1 - 3",
+      "handicap": "-1.75",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019471",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "The New Saints",
+      "away_team": "Haverfordwest County",
+      "score": "2 - 0",
+      "handicap": "2",
+      "goal_line": "3.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019472",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Trefelin",
+      "away_team": "Llandudno",
+      "score": "0 - 4",
+      "handicap": "-0.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3056481",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Monza",
+      "away_team": "Padova",
+      "score": "3 - 3",
+      "handicap": "1",
+      "goal_line": "2.50",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3050102",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Glentoran (W)",
+      "away_team": "Crusaders Newtownabbey Strikers (W)",
+      "score": "5 - 1",
+      "handicap": "4.25",
+      "goal_line": "5.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3021361",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Caerau Ely",
+      "away_team": "Ynyshir Albions",
+      "score": "1 - 1",
+      "handicap": "1.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3021362",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Sport in Caerphilly",
+      "away_team": "Cardiff Draconians FC",
+      "score": "0 - 0",
+      "handicap": "-0.25",
+      "goal_line": "3.25",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3021363",
+      "time_obj": "2026-08-07T18:45:00",
+      "home_team": "Llanelli",
+      "away_team": "Trey Thomas Drossel",
+      "score": "1 - 1",
+      "handicap": "-0.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:45"
+    },
+    {
+      "id": "3019092",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "VfL Bochum",
+      "away_team": "Hertha Berlin",
+      "score": "0 - 1",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3002237",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Partick Thistle",
+      "away_team": "Livingston",
+      "score": "2 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3017868",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "FC Blau Weiss Linz",
+      "away_team": "FC Wacker Innsbruck",
+      "score": "3 - 0",
+      "handicap": "0.75",
+      "goal_line": "3.00",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3003106",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Wisla Krakow",
+      "away_team": "Wisla Plock",
+      "score": "2 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3004940",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Polonia Warszawa",
+      "away_team": "Ruch Chorzow",
+      "score": "1 - 1",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3030088",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Boluspor",
+      "away_team": "Manisa BB Spor",
+      "score": "1 - 2",
+      "handicap": "-1.5",
+      "goal_line": "2.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3057505",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "UD Llanera",
+      "away_team": "CD Lealtad",
+      "score": "1 - 0",
+      "handicap": "0.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3057077",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Mid Ulster (W)",
+      "away_team": "Ballymoney United (W)",
+      "score": "2 - 1",
+      "handicap": "-0.25",
+      "goal_line": "4.00",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3057078",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Sion Swifts (W)",
+      "away_team": "Bangor (W)",
+      "score": "2 - 1",
+      "handicap": "3",
+      "goal_line": "4.75",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3021359",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Afan Lido",
+      "away_team": "Llantwit Major",
+      "score": "5 - 0",
+      "handicap": "0.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3021360",
+      "time_obj": "2026-08-07T18:30:00",
+      "home_team": "Pontypridd",
+      "away_team": "Pontardawe Town",
+      "score": "3 - 2",
+      "handicap": "0.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:30"
+    },
+    {
+      "id": "3000918",
+      "time_obj": "2026-08-07T18:15:00",
+      "home_team": "Aarau",
+      "away_team": "Stade Nyonnais",
+      "score": "2 - 1",
+      "handicap": "1.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:15"
+    },
+    {
+      "id": "3000919",
+      "time_obj": "2026-08-07T18:15:00",
+      "home_team": "Etoile Carouge",
+      "away_team": "Neuchatel Xamax",
+      "score": "0 - 1",
+      "handicap": "0",
+      "goal_line": "3.00",
+      "time": "07/08 19:15"
+    },
+    {
+      "id": "2998447",
+      "time_obj": "2026-08-07T18:15:00",
+      "home_team": "Levski Sofia",
+      "away_team": "Lokomotiv Plovdiv",
+      "score": "2 - 0",
+      "handicap": "1.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:15"
+    },
+    {
+      "id": "2996098",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "SC Cambuur",
+      "away_team": "Excelsior SBV",
+      "score": "0 - 4",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2996404",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Dordrecht",
+      "away_team": "Jong Ajax (Youth)",
+      "score": "2 - 1",
+      "handicap": "0.75",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2996405",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Emmen",
+      "away_team": "Roda JC",
+      "score": "1 - 0",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2996406",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "FC Oss",
+      "away_team": "NAC Breda",
+      "score": "1 - 2",
+      "handicap": "-1",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2996407",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "VVV Venlo",
+      "away_team": "Heracles Almelo",
+      "score": "3 - 4",
+      "handicap": "-0.25",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2996408",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Vitesse Arnhem",
+      "away_team": "RKC Waalwijk",
+      "score": "1 - 1",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3010385",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "UTA Arad",
+      "away_team": "Rapid Bucuresti",
+      "score": "0 - 0",
+      "handicap": "0",
+      "goal_line": "2.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3009986",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Sport Huancayo",
+      "away_team": "Los Chankas",
+      "score": "1 - 1",
+      "handicap": "1.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3026997",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "FK Zeljeznicar",
+      "away_team": "BSK Banja Luka",
+      "score": "2 - 1",
+      "handicap": "-0.25",
+      "goal_line": "2.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3004469",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "FK Mornar Bar",
+      "away_team": "Arsenal Tivat",
+      "score": "0 - 0",
+      "handicap": "0.75",
+      "goal_line": "2.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057781",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Algeciras",
+      "away_team": "CD Atletico Paso",
+      "score": "1 - 0",
+      "handicap": "1.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2924721",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Njardvik Grindavik (W)",
+      "away_team": "IBV Vestmannaeyjar (W)",
+      "score": "4 - 2",
+      "handicap": "0.25",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2924722",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Thor KA Akureyri (W)",
+      "away_team": "Fram Reykjavik  (W)",
+      "score": "2 - 0",
+      "handicap": "0.75",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "2935199",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "General Lamadrid",
+      "away_team": "Deportivo Espanol",
+      "score": "0 - 0",
+      "handicap": "0.25",
+      "goal_line": "1.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050128",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Reynir Sandgerdi",
+      "away_team": "Tindastoll Sauda",
+      "score": "5 - 0",
+      "handicap": "0",
+      "goal_line": "4.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050064",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Barracas Central Reserves",
+      "away_team": "Velez Sarsfield Reserves",
+      "score": "0 - 0",
+      "handicap": "-0.75",
+      "goal_line": "2.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050066",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Platense Reserves",
+      "away_team": "Estudiantes LP Reserves",
+      "score": "0 - 3",
+      "handicap": "-0.25",
+      "goal_line": "2.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057556",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Cruzeiro (Youth)",
+      "away_team": "Itabirito U20",
+      "score": "3 - 3",
+      "handicap": "1.5",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050062",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Guarani SP (Youth)",
+      "away_team": "Agua Santa SP Youth",
+      "score": "2 - 0",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050105",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Botafogo-SP (Youth)",
+      "away_team": "Santo Andre (Youth)",
+      "score": "4 - 1",
+      "handicap": "0.5",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050106",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "EC Sao Bernardo U20",
+      "away_team": "OSTO youth team",
+      "score": "2 - 2",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050107",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Ituano (Youth)",
+      "away_team": "RB Bragantino Youth",
+      "score": "0 - 3",
+      "handicap": "-1.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050108",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Mirassol FC Youth",
+      "away_team": "Itapirense Youth",
+      "score": "2 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050109",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Gremio Osasco Audax Youth",
+      "away_team": "Referencia SP Youth",
+      "score": "3 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050110",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Paulinense Youth",
+      "away_team": "Ibrachina Youth",
+      "score": "0 - 1",
+      "handicap": "-1.25",
+      "goal_line": "2.75",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050111",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "XV de Piracicaba (Youth)",
+      "away_team": "Velo Clube Youth",
+      "score": "0 - 0",
+      "handicap": "0.75",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050112",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Ponte Preta (Youth)",
+      "away_team": "Jabaquara SP U20",
+      "score": "1 - 4",
+      "handicap": "0.75",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050113",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Porto Ferreira U20",
+      "away_team": "Flamengo-SP (Youth)",
+      "score": "1 - 0",
+      "handicap": "-0.5",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050114",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Portuguesa Santista SP Youth",
+      "away_team": "Sertaozinho -SP (Youth)",
+      "score": "1 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050116",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Santos (Youth)",
+      "away_team": "Sao Bento SP (Youth)",
+      "score": "5 - 2",
+      "handicap": "1.75",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050118",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Sfera Youth",
+      "away_team": "XV de Jau (Youth)",
+      "score": "2 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050120",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Uniao Sao Joao (Youth)",
+      "away_team": "Bandeirante SP Youth",
+      "score": "2 - 0",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3050122",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "SC Aguai SP Youth",
+      "away_team": "Sao Paulo Youth",
+      "score": "0 - 3",
+      "handicap": "-2.25",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057489",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Barcelona EC SP U20",
+      "away_team": "Real Soccer Youth",
+      "score": "1 - 2",
+      "handicap": "-0.5",
+      "goal_line": "2.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057493",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Olimpia SP U20",
+      "away_team": "Barretos youth team U20",
+      "score": "0 - 2",
+      "handicap": "-1.5",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057494",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Paulista (Youth)",
+      "away_team": "Paulinia SP (Youth)",
+      "score": "3 - 1",
+      "handicap": "2",
+      "goal_line": "3.00",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057495",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Jacarei FC U20",
+      "away_team": "Uniao Mogi Youth",
+      "score": "1 - 1",
+      "handicap": "1",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057497",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Nacional AC SP (Youth)",
+      "away_team": "AD Centro Olimpico SP U20",
+      "score": "4 - 0",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057616",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Comercial SP Youth",
+      "away_team": "I9 Futebol Clube Youth",
+      "score": "1 - 1",
+      "handicap": "-0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057651",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Atlantida SC",
+      "away_team": "River Plate (PAR)",
+      "score": "1 - 0",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057548",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Nacional Potosi (W)",
+      "away_team": "Real Tomayapo (W)",
+      "score": "5 - 1",
+      "handicap": "2",
+      "goal_line": "3.25",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057615",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "CSA U20",
+      "away_team": "America RN (Youth)",
+      "score": "3 - 3",
+      "handicap": "0.25",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057504",
+      "time_obj": "2026-08-07T18:00:00",
+      "home_team": "Avai (Youth)",
+      "away_team": "Barra SC U20",
+      "score": "0 - 1",
+      "handicap": "0",
+      "goal_line": "2.50",
+      "time": "07/08 19:00"
+    },
+    {
+      "id": "3057803",
+      "time_obj": "2026-08-07T17:55:00",
+      "home_team": "UD Tomares",
+      "away_team": "Atletico Central",
+      "score": "0 - 0",
+      "handicap": "-0.25",
+      "goal_line": "2.50",
+      "time": "07/08 18:55"
+    },
+    {
+      "id": "3055805",
+      "time_obj": "2026-08-07T17:45:00",
+      "home_team": "Chiclana",
+      "away_team": "Xerez Deportivo",
+      "score": "0 - 1",
+      "handicap": "-0.75",
+      "goal_line": "2.75",
+      "time": "07/08 18:45"
+    },
+    {
+      "id": "3050079",
+      "time_obj": "2026-08-07T17:45:00",
+      "home_team": "Burgan SC",
+      "away_team": "Al-Salibikhaet",
+      "score": "0 - 0",
+      "handicap": "-0.75",
+      "goal_line": "2.50",
+      "time": "07/08 18:45"
+    },
+    {
+      "id": "3050081",
+      "time_obj": "2026-08-07T17:45:00",
+      "home_team": "Al-Yarmouk",
+      "away_team": "Khaitan",
+      "score": "0 - 0",
+      "handicap": "0.5",
+      "goal_line": "2.25",
+      "time": "07/08 18:45"
+    },
+    {
+      "id": "3010606",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Rheindorf Altach",
+      "away_team": "WSG Swarovski Tirol",
+      "score": "3 - 1",
+      "handicap": "0.75",
+      "goal_line": "2.50",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "2920094",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Enkoping",
+      "away_team": "Karlbergs BK",
+      "score": "2 - 1",
+      "handicap": "-0.25",
+      "goal_line": "3.00",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3000915",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Kriens",
+      "away_team": "Yverdon",
+      "score": "0 - 2",
+      "handicap": "-0.25",
+      "goal_line": "3.00",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3000916",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Stade Ouchy",
+      "away_team": "FC Rapperswil-Jona",
+      "score": "2 - 0",
+      "handicap": "1.25",
+      "goal_line": "3.25",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3000917",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Winterthur",
+      "away_team": "FC Wil 1900",
+      "score": "5 - 0",
+      "handicap": "0.5",
+      "goal_line": "3.00",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "2922057",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "07 Vestur Sorvagur",
+      "away_team": "EB Streymur",
+      "score": "3 - 2",
+      "handicap": "0",
+      "goal_line": "2.75",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3056480",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Hercules",
+      "away_team": "Castellon",
+      "score": "0 - 0",
+      "handicap": "-0.5",
+      "goal_line": "2.50",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3056565",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Racing Santander",
+      "away_team": "Alaves",
+      "score": "1 - 1",
+      "handicap": "-0.25",
+      "goal_line": "2.75",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "2926943",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Astorps FF",
+      "away_team": "Lindome GIF",
+      "score": "0 - 2",
+      "handicap": "0.5",
+      "goal_line": "3.50",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "2927131",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Rappe GOIF",
+      "away_team": "IFK Berga",
+      "score": "0 - 3",
+      "handicap": "-0.5",
+      "goal_line": "3.00",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "2967491",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Union Carl Berner",
+      "away_team": "Konnerud",
+      "score": "1 - 2",
+      "handicap": "1.5",
+      "goal_line": "4.00",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3020283",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "SV Horn",
+      "away_team": "SV Wienerberger",
+      "score": "3 - 0",
+      "handicap": "1.5",
+      "goal_line": "3.25",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3020284",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "SV Oberwart",
+      "away_team": "USV Scheiblingkirchen-Warth",
+      "score": "1 - 2",
+      "handicap": "1.75",
+      "goal_line": "3.50",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3020285",
+      "time_obj": "2026-08-07T17:30:00",
+      "home_team": "Traiskirchen",
+      "away_team": "SR Donaufeld Wien",
+      "score": "0 - 1",
+      "handicap": "0.5",
+      "goal_line": "3.50",
+      "time": "07/08 18:30"
+    },
+    {
+      "id": "3057782",
+      "time_obj": "2026-08-07T17:20:00",
+      "home_team": "Talleres Remedios U20",
+      "away_team": "Nueva Chicago U20",
+      "score": "1 - 2",
+      "handicap": "0.25",
+      "goal_line": "2.75",
+      "time": "07/08 18:20"
+    },
     {
       "id": "3020282",
       "time_obj": "2026-08-07T17:10:00",
@@ -4806,6 +7825,16 @@
       "score": "0 - 1",
       "handicap": "-0.75",
       "goal_line": "2.75",
+      "time": "07/08 18:00"
+    },
+    {
+      "id": "3050161",
+      "time_obj": "2026-08-07T17:00:00",
+      "home_team": "Albacete",
+      "away_team": "Eldense",
+      "score": "1 - 0",
+      "handicap": "0",
+      "goal_line": "2.50",
       "time": "07/08 18:00"
     },
     {
@@ -5591,7 +8620,7 @@
     {
       "id": "3005929",
       "time_obj": "2026-08-07T15:30:00",
-      "home_team": "Dren Vrhnika",
+      "home_team": "NK Dren Vrhnika",
       "away_team": "Triglav Gorenjska",
       "score": "0 - 1",
       "handicap": "-1.5",
@@ -6427,426 +9456,6 @@
       "handicap": "",
       "goal_line": "",
       "time": "07/08 08:00"
-    },
-    {
-      "id": "2999353",
-      "time_obj": "2026-08-07T03:00:00",
-      "home_team": "CD Motagua",
-      "away_team": "CD FAS",
-      "score": "1 - 0",
-      "handicap": "0.5",
-      "goal_line": "2.25",
-      "time": "07/08 04:00"
-    },
-    {
-      "id": "2961732",
-      "time_obj": "2026-08-07T02:40:00",
-      "home_team": "Portland Timbers",
-      "away_team": "Puebla",
-      "score": "5 - 2",
-      "handicap": "1.25",
-      "goal_line": "3.50",
-      "time": "07/08 03:40"
-    },
-    {
-      "id": "3029328",
-      "time_obj": "2026-08-07T02:10:00",
-      "home_team": "Club America",
-      "away_team": "San Diego FC",
-      "score": "3 - 1",
-      "handicap": "1.5",
-      "goal_line": "3.25",
-      "time": "07/08 03:10"
-    },
-    {
-      "id": "3012140",
-      "time_obj": "2026-08-07T01:10:00",
-      "home_team": "Real Cartagena",
-      "away_team": "Independiente Yumbo",
-      "score": "0 - 2",
-      "handicap": "1",
-      "goal_line": "2.50",
-      "time": "07/08 02:10"
-    },
-    {
-      "id": "2961728",
-      "time_obj": "2026-08-07T01:10:00",
-      "home_team": "Austin FC",
-      "away_team": "Club Tijuana",
-      "score": "2 - 0",
-      "handicap": "0",
-      "goal_line": "2.50",
-      "time": "07/08 02:10"
-    },
-    {
-      "id": "3024406",
-      "time_obj": "2026-08-07T01:00:00",
-      "home_team": "CSyD Dorados de Sinaloa",
-      "away_team": "Mineros de Zacatecas",
-      "score": "2 - 2",
-      "handicap": "-0.5",
-      "goal_line": "2.50",
-      "time": "07/08 02:00"
-    },
-    {
-      "id": "3024408",
-      "time_obj": "2026-08-07T01:00:00",
-      "home_team": "Leones Negros",
-      "away_team": "Correcaminos UAT",
-      "score": "1 - 3",
-      "handicap": "0.5",
-      "goal_line": "2.50",
-      "time": "07/08 02:00"
-    },
-    {
-      "id": "3057072",
-      "time_obj": "2026-08-07T01:00:00",
-      "home_team": "Veraguas FC Reserves",
-      "away_team": "La Familia FC",
-      "score": "1 - 1",
-      "handicap": "1",
-      "goal_line": "3.00",
-      "time": "07/08 02:00"
-    },
-    {
-      "id": "3057092",
-      "time_obj": "2026-08-07T01:00:00",
-      "home_team": "Champions FC Academy",
-      "away_team": "Sporting San Miguelito Reserves",
-      "score": "5 - 3",
-      "handicap": "-0.75",
-      "goal_line": "2.75",
-      "time": "07/08 02:00"
-    },
-    {
-      "id": "2999354",
-      "time_obj": "2026-08-07T01:00:00",
-      "home_team": "Hankook Verdes(N)",
-      "away_team": "CSD Municipal",
-      "score": "0 - 1",
-      "handicap": "-2",
-      "goal_line": "3.25",
-      "time": "07/08 02:00"
-    },
-    {
-      "id": "2961729",
-      "time_obj": "2026-08-07T00:40:00",
-      "home_team": "Chicago Fire",
-      "away_team": "Necaxa",
-      "score": "2 - 0",
-      "handicap": "1",
-      "goal_line": "3.25",
-      "time": "07/08 01:40"
-    },
-    {
-      "id": "2961730",
-      "time_obj": "2026-08-07T00:10:00",
-      "home_team": "CDSyC Cruz Azul(N)",
-      "away_team": "Philadelphia Union",
-      "score": "1 - 0",
-      "handicap": "0.25",
-      "goal_line": "3.00",
-      "time": "07/08 01:10"
-    },
-    {
-      "id": "3057069",
-      "time_obj": "2026-08-07T00:00:00",
-      "home_team": "Colombia (W)(N)",
-      "away_team": "Mexico (W)",
-      "score": "0 - 0",
-      "handicap": "0.25",
-      "goal_line": "2.00",
-      "time": "07/08 01:00"
-    },
-    {
-      "id": "3057064",
-      "time_obj": "2026-08-07T00:00:00",
-      "home_team": "RB do Norte Clube",
-      "away_team": "Atletico Clipper Clube",
-      "score": "3 - 1",
-      "handicap": "",
-      "goal_line": "",
-      "time": "07/08 01:00"
-    },
-    {
-      "id": "2961731",
-      "time_obj": "2026-08-06T23:40:00",
-      "home_team": "New York City FC",
-      "away_team": "Santos Laguna",
-      "score": "2 - 0",
-      "handicap": "0.75",
-      "goal_line": "3.00",
-      "time": "07/08 00:40"
-    },
-    {
-      "id": "2988378",
-      "time_obj": "2026-08-06T23:30:00",
-      "home_team": "Blooming",
-      "away_team": "Always Ready",
-      "score": "0 - 0",
-      "handicap": "0",
-      "goal_line": "3.00",
-      "time": "07/08 00:30"
-    },
-    {
-      "id": "2991120",
-      "time_obj": "2026-08-06T23:00:00",
-      "home_team": "Corinthians Paulista (SP)",
-      "away_team": "Internacional RS",
-      "score": "2 - 1",
-      "handicap": "0.75",
-      "goal_line": "2.00",
-      "time": "07/08 00:00"
-    },
-    {
-      "id": "2991124",
-      "time_obj": "2026-08-06T23:00:00",
-      "home_team": "Vitoria BA",
-      "away_team": "Atletico Paranaense",
-      "score": "4 - 0",
-      "handicap": "0.25",
-      "goal_line": "2.00",
-      "time": "07/08 00:00"
-    },
-    {
-      "id": "3050069",
-      "time_obj": "2026-08-06T23:00:00",
-      "home_team": "Guarani RS",
-      "away_team": "Brasil de Pelotas",
-      "score": "0 - 2",
-      "handicap": "-0.25",
-      "goal_line": "2.25",
-      "time": "07/08 00:00"
-    },
-    {
-      "id": "3055797",
-      "time_obj": "2026-08-06T22:30:00",
-      "home_team": "Academia Puerto Cabello",
-      "away_team": "Caracas FC",
-      "score": "3 - 1",
-      "handicap": "1",
-      "goal_line": "2.25",
-      "time": "06/08 23:30"
-    },
-    {
-      "id": "2962532",
-      "time_obj": "2026-08-06T22:00:00",
-      "home_team": "Club Atlético Unión",
-      "away_team": "Lanus",
-      "score": "2 - 1",
-      "handicap": "0",
-      "goal_line": "1.75",
-      "time": "06/08 23:00"
-    },
-    {
-      "id": "3024402",
-      "time_obj": "2026-08-06T22:00:00",
-      "home_team": "Tlaxcala",
-      "away_team": "Alebrijes de Oaxaca",
-      "score": "0 - 2",
-      "handicap": "0.75",
-      "goal_line": "2.75",
-      "time": "06/08 23:00"
-    },
-    {
-      "id": "3049959",
-      "time_obj": "2026-08-06T22:00:00",
-      "home_team": "Club Sando",
-      "away_team": "Broki",
-      "score": "2 - 1",
-      "handicap": "0.25",
-      "goal_line": "2.50",
-      "time": "06/08 23:00"
-    },
-    {
-      "id": "3012141",
-      "time_obj": "2026-08-06T21:30:00",
-      "home_team": "Bogota FC",
-      "away_team": "Leones",
-      "score": "0 - 1",
-      "handicap": "0.75",
-      "goal_line": "2.00",
-      "time": "06/08 22:30"
-    },
-    {
-      "id": "2959301",
-      "time_obj": "2026-08-06T21:30:00",
-      "home_team": "CD El Nacional",
-      "away_team": "9 de Octubre",
-      "score": "1 - 0",
-      "handicap": "-0.75",
-      "goal_line": "2.00",
-      "time": "06/08 22:30"
-    },
-    {
-      "id": "3012139",
-      "time_obj": "2026-08-06T21:00:00",
-      "home_team": "Atletico FC",
-      "away_team": "Real Santander",
-      "score": "2 - 2",
-      "handicap": "0.25",
-      "goal_line": "2.50",
-      "time": "06/08 22:00"
-    },
-    {
-      "id": "3056574",
-      "time_obj": "2026-08-06T21:00:00",
-      "home_team": "Tevi Cocle (W)",
-      "away_team": "Rayadas de Chiriqui (W)",
-      "score": "0 - 1",
-      "handicap": "-2",
-      "goal_line": "3.75",
-      "time": "06/08 22:00"
-    },
-    {
-      "id": "2959299",
-      "time_obj": "2026-08-06T20:30:00",
-      "home_team": "Atletico Futbol Club",
-      "away_team": "Deportivo Santo Domingo",
-      "score": "0 - 1",
-      "handicap": "0.75",
-      "goal_line": "1.75",
-      "time": "06/08 21:30"
-    },
-    {
-      "id": "2959302",
-      "time_obj": "2026-08-06T20:30:00",
-      "home_team": "CD Independiente Juniors",
-      "away_team": "22 de Julio",
-      "score": "2 - 0",
-      "handicap": "1.5",
-      "goal_line": "2.75",
-      "time": "06/08 21:30"
-    },
-    {
-      "id": "3009984",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Alianza Atletico Sullana",
-      "away_team": "Cienciano",
-      "score": "1 - 0",
-      "handicap": "0.25",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3055796",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Estudiantes Merida FC",
-      "away_team": "Zamora Barinas",
-      "score": "1 - 0",
-      "handicap": "0.25",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3037096",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Cape Verde (W)(N)",
-      "away_team": "Cameroon (W)",
-      "score": "1 - 1",
-      "handicap": "-1.5",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3037097",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Mali (W)(N)",
-      "away_team": "Ghana (W)",
-      "score": "1 - 1",
-      "handicap": "-0.75",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3057070",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Venezuela  (W)(N)",
-      "away_team": "El Salvador (W)",
-      "score": "1 - 2",
-      "handicap": "0.75",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3050068",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Talleres Cordoba Reserve",
-      "away_team": "San Lorenzo Reserves",
-      "score": "1 - 1",
-      "handicap": "0.5",
-      "goal_line": "2.25",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3056522",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Chorrillo",
-      "away_team": "Alianza FC Panama Reserves",
-      "score": "0 - 0",
-      "handicap": "0.75",
-      "goal_line": "2.50",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3057488",
-      "time_obj": "2026-08-06T20:00:00",
-      "home_team": "Universitario De Vinto (W)",
-      "away_team": "Astor FC (W)",
-      "score": "0 - 2",
-      "handicap": "-1",
-      "goal_line": "3.25",
-      "time": "06/08 21:00"
-    },
-    {
-      "id": "3055795",
-      "time_obj": "2026-08-06T19:30:00",
-      "home_team": "Deportivo Rayo Zuliano",
-      "away_team": "Academia Anzoategui",
-      "score": "0 - 1",
-      "handicap": "-0.25",
-      "goal_line": "2.25",
-      "time": "06/08 20:30"
-    },
-    {
-      "id": "2931267",
-      "time_obj": "2026-08-06T19:15:00",
-      "home_team": "IR Reykjavik",
-      "away_team": "KFR Aegir",
-      "score": "3 - 2",
-      "handicap": "1.25",
-      "goal_line": "3.75",
-      "time": "06/08 20:15"
-    },
-    {
-      "id": "2924719",
-      "time_obj": "2026-08-06T19:15:00",
-      "home_team": "Stjarnan Gardabaer (W)",
-      "away_team": "Trottur Reykjavik (W)",
-      "score": "1 - 1",
-      "handicap": "0",
-      "goal_line": "3.00",
-      "time": "06/08 20:15"
-    },
-    {
-      "id": "3056585",
-      "time_obj": "2026-08-06T19:15:00",
-      "home_team": "KF Hafnir",
-      "away_team": "Arborg",
-      "score": "2 - 5",
-      "handicap": "-2.25",
-      "goal_line": "3.75",
-      "time": "06/08 20:15"
-    },
-    {
-      "id": "2970046",
-      "time_obj": "2026-08-06T19:15:00",
-      "home_team": "KR Reykjavik (W)",
-      "away_team": "Grotta (W)",
-      "score": "0 - 0",
-      "handicap": "0.25",
-      "goal_line": "4.00",
-      "time": "06/08 20:15"
     }
   ]
 }
