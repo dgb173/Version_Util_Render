@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
     <title>Pre-Cacheo ⚽</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1535,10 +1536,49 @@
             }
         }
 
+        .table-zoom-toolbar {
+            display: none;
+        }
+
         /* En móvil se conserva la matriz de escritorio completa. Para este
            análisis comparativo es más útil desplazarse horizontalmente que
            convertir cada partido en una tarjeta aislada. */
         @media (max-width: 768px) {
+            .table-zoom-toolbar {
+                position: sticky;
+                top: 6px;
+                z-index: 1025;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                width: max-content;
+                max-width: 100%;
+                margin: 8px auto;
+                padding: 6px;
+                border: 1px solid #cbd5e1;
+                border-radius: 10px;
+                background: rgba(255, 255, 255, .96);
+                box-shadow: 0 3px 12px rgba(15, 23, 42, .12);
+            }
+
+            .table-zoom-toolbar .btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 42px;
+                min-height: 40px;
+                padding: 7px 10px !important;
+                font-size: .82rem !important;
+                font-weight: 800;
+                touch-action: manipulation;
+            }
+
+            #table-zoom-level {
+                min-width: 62px;
+                font-variant-numeric: tabular-nums;
+            }
+
             .main-content > .table-responsive {
                 display: block !important;
                 width: 100%;
@@ -1550,6 +1590,7 @@
                 border: 1px solid #dee2e6;
                 border-radius: 8px;
                 background: #fff;
+                touch-action: pan-x pan-y pinch-zoom;
             }
 
             .main-content > .table-responsive > .excel-table {
@@ -1773,6 +1814,23 @@
                 <!-- Javascript populates this -->
             </ul>
         </nav>
+
+        <div class="table-zoom-toolbar" id="table-zoom-toolbar" aria-label="Tamaño de la tabla">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="changePrecacheTableZoom(-0.1)"
+                title="Hacer la tabla más pequeña" aria-label="Hacer la tabla más pequeña">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-light btn-sm" id="table-zoom-level"
+                onclick="resetPrecacheTableZoom()" title="Restablecer al 100%">100%</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="changePrecacheTableZoom(0.1)"
+                title="Hacer la tabla más grande" aria-label="Hacer la tabla más grande">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="fitPrecacheTableZoom()"
+                title="Mostrar todas las columnas">
+                <i class="fa-solid fa-expand me-1"></i> Ajustar
+            </button>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-bordered table-sm excel-table" id="results-table">
@@ -14753,6 +14811,76 @@
             btn.disabled = false;
         }
     }
+    </script>
+
+    <script>
+        (() => {
+            const MIN_TABLE_ZOOM = 0.15;
+            const MAX_TABLE_ZOOM = 1.5;
+            const STORAGE_KEY = 'precache-table-zoom';
+            let tableZoom = 1;
+
+            function elements() {
+                const table = document.getElementById('results-table');
+                return {
+                    table,
+                    container: table?.closest('.table-responsive'),
+                    level: document.getElementById('table-zoom-level')
+                };
+            }
+
+            function clampZoom(value) {
+                return Math.min(MAX_TABLE_ZOOM, Math.max(MIN_TABLE_ZOOM, value));
+            }
+
+            function applyZoom(value, remember = true) {
+                const { table, level } = elements();
+                if (!table) return;
+
+                tableZoom = clampZoom(Math.round(value * 100) / 100);
+                table.style.zoom = String(tableZoom);
+                if (level) level.textContent = `${Math.round(tableZoom * 100)}%`;
+
+                if (remember) {
+                    try {
+                        localStorage.setItem(STORAGE_KEY, String(tableZoom));
+                    } catch (_) {
+                        // El zoom sigue funcionando aunque el almacenamiento esté bloqueado.
+                    }
+                }
+            }
+
+            window.changePrecacheTableZoom = delta => applyZoom(tableZoom + delta);
+
+            window.resetPrecacheTableZoom = () => {
+                const { container } = elements();
+                applyZoom(1);
+                if (container) container.scrollLeft = 0;
+            };
+
+            window.fitPrecacheTableZoom = () => {
+                const { table, container } = elements();
+                if (!table || !container) return;
+
+                table.style.zoom = '1';
+                const naturalWidth = Math.max(table.scrollWidth, 1900);
+                const availableWidth = Math.max(container.clientWidth - 2, 1);
+                applyZoom(availableWidth / naturalWidth);
+                container.scrollLeft = 0;
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                let savedZoom = null;
+                try {
+                    savedZoom = Number.parseFloat(localStorage.getItem(STORAGE_KEY));
+                } catch (_) {
+                    savedZoom = null;
+                }
+
+                if (Number.isFinite(savedZoom)) applyZoom(savedZoom, false);
+                else applyZoom(1, false);
+            });
+        })();
     </script>
 
     <!-- Modal SCAH v10.0 -->
