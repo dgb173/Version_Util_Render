@@ -1534,6 +1534,108 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* En móvil se conserva la matriz de escritorio completa. Para este
+           análisis comparativo es más útil desplazarse horizontalmente que
+           convertir cada partido en una tarjeta aislada. */
+        @media (max-width: 768px) {
+            .main-content > .table-responsive {
+                display: block !important;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto !important;
+                overflow-y: visible !important;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                background: #fff;
+            }
+
+            .main-content > .table-responsive > .excel-table {
+                display: table !important;
+                width: 1900px !important;
+                min-width: 1900px !important;
+                margin-bottom: 0;
+                table-layout: auto;
+                border: 0;
+                background: #fff;
+            }
+
+            .main-content .excel-table thead {
+                display: table-header-group !important;
+            }
+
+            .main-content .excel-table tbody {
+                display: table-row-group !important;
+            }
+
+            .main-content .excel-table thead tr,
+            .main-content .excel-table tbody tr {
+                display: table-row !important;
+                padding: 0 !important;
+                background: #fff;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                transform: none !important;
+            }
+
+            .main-content .excel-table thead th,
+            .main-content .excel-table tbody tr > td,
+            .main-content .excel-table tbody tr > td:nth-child(n) {
+                display: table-cell !important;
+                padding: 6px 8px !important;
+                border: 1px solid #dee2e6 !important;
+                vertical-align: middle !important;
+                font-size: inherit;
+                flex-direction: initial !important;
+                justify-content: initial !important;
+                gap: initial !important;
+            }
+
+            .main-content .excel-table tbody tr > td::before {
+                content: none !important;
+                display: none !important;
+            }
+
+            .main-content .excel-table tbody tr > td.col-team {
+                font-size: .8rem !important;
+            }
+
+            .main-content .excel-table tbody tr > td.col-ah {
+                background-color: #e8f5e9 !important;
+            }
+
+            .main-content .excel-table tbody tr > td.col-h2h-col3 {
+                background-color: #ffe4ec !important;
+            }
+
+            .main-content .excel-table tbody tr > td.cell-diff-league {
+                background-color: #fff9c4 !important;
+            }
+
+            .main-content .excel-table tbody tr > td.cell-no-data {
+                background-color: #ffcdd2 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:last-child .btn {
+                display: inline-flex !important;
+                width: 22px !important;
+                height: 22px !important;
+                min-height: 22px !important;
+                padding: 0 !important;
+                margin: 1px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                font-size: .7rem !important;
+            }
+
+            .mobile-cards-container {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -14670,8 +14772,6 @@
         </div>
     </div>
 
-    <!-- Mobile View Handler Script -->
-    <script src="{{ url_for('static', filename='mobile_view_handler.js', v='20260812-mobile-responsive') }}"></script>
 </body>
 
 </html>
