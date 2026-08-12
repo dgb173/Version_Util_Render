@@ -5719,6 +5719,39 @@ def api_precacheo_rival_handicap_samples():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/explorer_context_preview', methods=['POST'])
+def api_explorer_context_preview():
+    """Scrapea en tiempo real los factores y contexto previo para vista previa sin guardar en base de datos."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = str(payload.get('match_id') or '').strip()
+        if not match_id:
+            return jsonify({'status': 'error', 'error': 'Falta match_id'}), 400
+
+        # Obtener el contexto previo en vivo sin guardarlo en la base de datos.
+        pre_match_ctx = None
+        try:
+            existing = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id) or {}
+            main_odds = existing.get('main_match_odds') or {}
+            pre_match_ctx = analizar_contexto_previo_rapido(
+                match_id,
+                current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
+                current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
+                is_neutral_venue=True if existing.get('is_neutral_venue') is True else None,
+            )
+        except Exception as exc_pm:
+            logging.warning(f"No se pudo generar pre_match_context para preview {match_id}: {exc_pm}")
+
+        return jsonify({
+            'status': 'success',
+            'pre_match_context': pre_match_ctx,
+            'preview_only': True
+        })
+    except Exception as exc:
+        logging.exception("Error en /api/explorer_context_preview")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/precacheo_finalize/<match_id>', methods=['POST'])
 def api_precacheo_finalize(match_id):
     """Re-scrapea un partido finalizado y lo mueve al bucket oficial."""
