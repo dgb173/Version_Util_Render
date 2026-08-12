@@ -1,263 +1,243 @@
 /**
- * Mobile View Handler for Pre-Cacheo
- * Este archivo maneja la renderización de la vista móvil con tarjetas
+ * Vista móvil de Pre-Cacheo.
+ *
+ * La tabla sigue siendo la fuente de verdad para filtros, paginación y
+ * exportación. En móvil se refleja como tarjetas y se actualiza cuando la
+ * tabla cambia o cuando un filtro oculta/muestra filas.
  */
-
 class MobileViewHandler {
     constructor() {
-        this.isMobile = window.innerWidth <= 768;
+        this.mediaQuery = window.matchMedia('(max-width: 768px)');
+        this.tableContainer = document.querySelector('.main-content > .table-responsive');
+        this.tableBody = document.getElementById('table-body');
         this.mobileContainer = null;
+        this.refreshFrame = null;
+        this.observer = null;
+        this.hasRenderedMatches = false;
+        this.emptyStateTimer = null;
         this.init();
     }
 
     init() {
-        // Crear contenedor de tarjetas móviles si no existe
+        if (!this.tableContainer || !this.tableBody) return;
+
         this.createMobileContainer();
+        this.observeTable();
 
-        // Escuchar cambios de tamaño de ventana
-        window.addEventListener('resize', () => {
-            const wasMobile = this.isMobile;
-            this.isMobile = window.innerWidth <= 768;
+        const onBreakpointChange = () => this.handleViewChange();
+        if (this.mediaQuery.addEventListener) {
+            this.mediaQuery.addEventListener('change', onBreakpointChange);
+        } else {
+            this.mediaQuery.addListener(onBreakpointChange);
+        }
 
-            if (wasMobile !== this.isMobile) {
-                this.handleViewChange();
-            }
-        });
-
-        // Renderizar vista inicial
         this.handleViewChange();
     }
 
     createMobileContainer() {
-        // Buscar si ya existe
         this.mobileContainer = document.getElementById('mobile-cards-container');
+        if (this.mobileContainer) return;
 
-        if (!this.mobileContainer) {
-            // Crear contenedor nuevo
-            this.mobileContainer = document.createElement('div');
-            this.mobileContainer.id = 'mobile-cards-container';
-            this.mobileContainer.className = 'mobile-cards-container';
-            this.mobileContainer.style.display = 'none';
+        this.mobileContainer = document.createElement('section');
+        this.mobileContainer.id = 'mobile-cards-container';
+        this.mobileContainer.className = 'mobile-cards-container';
+        this.mobileContainer.setAttribute('aria-label', 'Partidos');
+        this.mobileContainer.hidden = true;
+        this.tableContainer.insertAdjacentElement('afterend', this.mobileContainer);
+    }
 
-            // Insertar después de la tabla
-            const tableContainer = document.querySelector('.table-responsive, #results-table')?.parentElement;
-            if (tableContainer) {
-                tableContainer.insertAdjacentElement('afterend', this.mobileContainer);
-            }
-        }
+    observeTable() {
+        this.observer = new MutationObserver(() => this.scheduleRefresh());
+        this.observer.observe(this.tableBody, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
     }
 
     handleViewChange() {
-        const table = document.querySelector('.table-responsive, #results-table')?.parentElement;
+        const isMobile = this.mediaQuery.matches;
+        this.tableContainer.classList.toggle('mobile-table-hidden', isMobile);
+        this.mobileContainer.hidden = !isMobile;
 
-        if (this.isMobile) {
-            // Mostrar vista móvil
-            if (table) table.style.display = 'none';
-            this.mobileContainer.style.display = 'block';
+        if (isMobile) this.scheduleRefresh();
+    }
+
+    scheduleRefresh() {
+        if (!this.mediaQuery.matches || this.refreshFrame !== null) return;
+
+        this.refreshFrame = window.requestAnimationFrame(() => {
+            this.refreshFrame = null;
             this.renderMobileView();
-        } else {
-            // Mostrar vista desktop
-            if (table) table.style.display = 'block';
-            this.mobileContainer.style.display = 'none';
-        }
+        });
     }
 
     renderMobileView() {
-        // Obtener datos actuales de la tabla
         const matches = this.extractMatchesFromTable();
 
-        if (matches.length === 0) {
+        if (!matches.length) {
+            const isInitialLoad = !this.hasRenderedMatches;
             this.mobileContainer.innerHTML = `
                 <div class="mobile-empty-state">
-                    <i class="fa-solid fa-inbox"></i>
-                    <p>No hay partidos que mostrar</p>
-                </div>
-            `;
+                    <i class="fa-solid ${isInitialLoad ? 'fa-spinner fa-spin' : 'fa-inbox'}"></i>
+                    <p>${isInitialLoad ? 'Cargando partidos…' : 'No hay partidos que mostrar con estos filtros.'}</p>
+                </div>`;
+
+            if (isInitialLoad && this.emptyStateTimer === null) {
+                this.emptyStateTimer = window.setTimeout(() => {
+                    this.emptyStateTimer = null;
+                    this.hasRenderedMatches = true;
+                    this.renderMobileView();
+                }, 8000);
+            }
             return;
         }
 
-        // Renderizar tarjetas
-        this.mobileContainer.innerHTML = matches.map(match => this.createMatchCard(match)).join('');
-
-        // Agregar event listeners a las tarjetas
-        this.attachCardEventListeners();
+        this.hasRenderedMatches = true;
+        if (this.emptyStateTimer !== null) {
+            window.clearTimeout(this.emptyStateTimer);
+            this.emptyStateTimer = null;
+        }
+        this.mobileContainer.innerHTML = matches
+            .map((match, index) => this.createMatchCard(match, index + 1, matches.length))
+            .join('');
     }
 
     extractMatchesFromTable() {
-        const matches = [];
-        const tbody = document.querySelector('#table-body, tbody');
+        return Array.from(this.tableBody.children)
+            .filter(row => row.matches('tr[data-match-id]'))
+            .filter(row => !row.hidden && row.style.display !== 'none')
+            .map(row => {
+                const cells = row.querySelectorAll(':scope > td');
+                if (cells.length < 14) return null;
 
-        if (!tbody) return matches;
-
-        const rows = tbody.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            if (row.style.display === 'none') return; // Skip hidden rows
-
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 10) return;
-
-            const match = {
-                id: row.dataset.matchId || `match-${Math.random()}`,
-                date: cells[0]?.textContent.trim() || '',
-                homeTeam: cells[1]?.textContent.trim() || '',
-                awayTeam: cells[2]?.textContent.trim() || '',
-                handicap: cells[3]?.textContent.trim() || '',
-                result: cells[4]?.textContent.trim() || '',
-                prevHome: cells[5]?.innerHTML || '',
-                prevAway: cells[6]?.innerHTML || '',
-                h2hStadium: cells[7]?.innerHTML || '',
-                h2hGeneral: cells[8]?.innerHTML || '',
-                h2hCol3: cells[9]?.innerHTML || '',
-                indLocal: cells[10]?.innerHTML || '',
-                indVisitante: cells[11]?.innerHTML || '',
-                pick: cells[12]?.innerHTML || '',
-                actions: cells[13]?.innerHTML || '',
-                row: row
-            };
-
-            matches.push(match);
-        });
-
-        return matches;
+                return {
+                    id: String(row.dataset.matchId || ''),
+                    date: this.cleanText(cells[0]?.textContent),
+                    homeTeam: cells[1]?.innerHTML || '',
+                    awayTeam: cells[2]?.innerHTML || '',
+                    handicap: this.cleanText(cells[3]?.textContent),
+                    result: this.cleanText(cells[4]?.textContent),
+                    prevHome: cells[5]?.innerHTML || '',
+                    prevAway: cells[6]?.innerHTML || '',
+                    h2hStadium: cells[7]?.innerHTML || '',
+                    h2hGeneral: cells[8]?.innerHTML || '',
+                    h2hCol3: cells[9]?.innerHTML || '',
+                    indLocal: cells[10]?.innerHTML || '',
+                    indVisitante: cells[11]?.innerHTML || '',
+                    pick: cells[12]?.innerHTML || '',
+                    actions: this.cleanActions(cells[13]?.innerHTML || '')
+                };
+            })
+            .filter(Boolean);
     }
 
-    createMatchCard(match) {
-        const handicapChip = match.handicap ? `<span class="chip chip-handicap">📊 ${match.handicap}</span>` : '';
-        const resultChip = match.result && match.result !== '-' ? `<span class="chip chip-ou">⚽ ${match.result}</span>` : '';
-        const pickChip = match.pick && match.pick.trim() ? `<span class="chip chip-pick">🎯 Pick</span>` : '';
+    createMatchCard(match, position, total) {
+        const safeId = this.escapeHtml(match.id);
+        const hasPick = this.htmlHasContent(match.pick);
+        const details = [
+            ['Prev. local', match.prevHome],
+            ['Prev. visitante', match.prevAway],
+            ['H2H estadio', match.h2hStadium],
+            ['H2H general', match.h2hGeneral],
+            ['H2H espejo', match.h2hCol3],
+            ['Indirecta local', match.indLocal],
+            ['Indirecta visitante', match.indVisitante]
+        ].map(([label, value]) => this.renderDetailRow(label, value)).join('');
 
         return `
-            <div class="match-card" data-match-id="${match.id}">
-                <div class="match-card-header">
-                    <span class="match-date">${this.formatDate(match.date)}</span>
+            <article class="match-card" data-mobile-match-id="${safeId}">
+                <header class="match-card-header mobile-match-meta">
+                    <span class="match-date">${this.escapeHtml(match.date)}</span>
+                    <span class="mobile-match-index">${position}/${total}</span>
+                </header>
+
+                <div class="mobile-team-grid">
+                    <section class="mobile-team-panel">
+                        <span class="mobile-team-label">Local</span>
+                        <div class="mobile-team-body">${match.homeTeam}</div>
+                    </section>
+                    <section class="mobile-team-panel">
+                        <span class="mobile-team-label">Visitante</span>
+                        <div class="mobile-team-body">${match.awayTeam}</div>
+                    </section>
                 </div>
 
-                <div class="match-teams">
-                    <div class="match-team">
-                        <span class="match-team-icon">🏠</span>
-                        <span>${match.homeTeam}</span>
-                    </div>
-                    <div class="match-vs">VS</div>
-                    <div class="match-team">
-                        <span class="match-team-icon">✈️</span>
-                        <span>${match.awayTeam}</span>
-                    </div>
+                <div class="mobile-market-grid">
+                    <div class="mobile-market-item">HA / O-U<br>${this.escapeHtml(match.handicap || 'N/D')}</div>
+                    <div class="mobile-market-item is-result">FT<br>${this.escapeHtml(match.result || '?:?')}</div>
                 </div>
 
-                <div class="match-chips">
-                    ${handicapChip}
-                    ${resultChip}
-                    ${pickChip}
-                </div>
+                ${hasPick ? `<div class="match-pick-display">${match.pick}</div>` : ''}
 
-                ${match.pick && match.pick.trim() ? `
-                    <div class="match-pick-display">
-                        ${match.pick}
-                    </div>
-                ` : ''}
+                <details class="mobile-analysis">
+                    <summary>Ver análisis completo</summary>
+                    <div class="mobile-analysis-content">${details}</div>
+                </details>
 
-                <button class="match-expand-toggle" onclick="mobileViewHandler.toggleCardExpansion('${match.id}')">
-                    <span>Ver Análisis Completo</span>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </button>
-
-                <div class="match-details" id="details-${match.id}">
-                    <div class="match-details-content">
-                        ${this.renderDetailRow('Prev Home', match.prevHome)}
-                        ${this.renderDetailRow('Prev Away', match.prevAway)}
-                        ${this.renderDetailRow('H2H Estadio', match.h2hStadium)}
-                        ${this.renderDetailRow('H2H General', match.h2hGeneral)}
-                        ${this.renderDetailRow('H2H Col3', match.h2hCol3)}
-                        ${this.renderDetailRow('Ind. Local', match.indLocal)}
-                        ${this.renderDetailRow('Ind. Visitante', match.indVisitante)}
-                    </div>
-                </div>
-
-                <div class="match-actions">
-                    ${match.actions}
-                </div>
-            </div>
-        `;
+                ${match.actions ? `<div class="match-actions">${match.actions}</div>` : ''}
+            </article>`;
     }
 
     renderDetailRow(label, value) {
-        if (!value || value.trim() === '' || value === 'N/A' || value === '-') {
-            return '';
-        }
-
+        if (!this.htmlHasContent(value)) return '';
         return `
             <div class="detail-row">
-                <span class="detail-label">${label}</span>
-                <span class="detail-value">${value}</span>
-            </div>
-        `;
+                <span class="detail-label">${this.escapeHtml(label)}</span>
+                <div class="detail-value">${value}</div>
+            </div>`;
     }
 
-    formatDate(dateStr) {
-        // Intentar hacer la fecha más legible
-        const parts = dateStr.split(' ');
-        if (parts.length >= 2) {
-            return `${parts[0]} • ${parts[1]}`;
-        }
-        return dateStr;
+    cleanActions(html) {
+        if (!html) return '';
+        const template = document.createElement('template');
+        template.innerHTML = html;
+
+        // El botón de estadísticas controla una fila collapse de la tabla
+        // de escritorio. En móvil esa información ya vive en "análisis".
+        template.content.querySelectorAll('[data-bs-toggle="collapse"]').forEach(node => node.remove());
+        return template.innerHTML.trim();
     }
 
-    toggleCardExpansion(matchId) {
-        const details = document.getElementById(`details-${matchId}`);
-        const toggle = details?.previousElementSibling;
-
-        if (details && toggle) {
-            const isExpanded = details.classList.contains('show');
-
-            if (isExpanded) {
-                details.classList.remove('show');
-                toggle.classList.remove('expanded');
-            } else {
-                details.classList.add('show');
-                toggle.classList.add('expanded');
-            }
-        }
+    htmlHasContent(html) {
+        if (!html) return false;
+        const template = document.createElement('template');
+        template.innerHTML = html;
+        const text = this.cleanText(template.content.textContent).toUpperCase();
+        return Boolean(text && text !== 'N/A' && text !== 'N/D' && text !== '-');
     }
 
-    attachCardEventListeners() {
-        // Los event listeners para botones de acción ya deberían funcionar
-        // ya que estamos copiando el HTML de las acciones directamente
+    cleanText(value) {
+        return String(value || '').replace(/\s+/g, ' ').trim();
+    }
 
-        // Asegurar que los botones de acciones funcionen
-        this.mobileContainer.querySelectorAll('.match-actions button').forEach(btn => {
-            const onclick = btn.getAttribute('onclick');
-            if (onclick) {
-                btn.addEventListener('click', function (e) {
-                    eval(onclick);
-                });
-            }
-        });
+    escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     refresh() {
-        if (this.isMobile) {
-            this.renderMobileView();
-        }
+        this.scheduleRefresh();
     }
 }
 
-// Instancia global
 let mobileViewHandler;
 
-// Inicializar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        mobileViewHandler = new MobileViewHandler();
-    });
-} else {
+function initMobileView() {
     mobileViewHandler = new MobileViewHandler();
 }
 
-// Hook para refrescar la vista móvil cuando se actualice la tabla
-// Esto debe ser llamado después de renderizar/filtrar la tabla
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileView, { once: true });
+} else {
+    initMobileView();
+}
+
 function refreshMobileView() {
-    if (mobileViewHandler) {
-        mobileViewHandler.refresh();
-    }
+    if (mobileViewHandler) mobileViewHandler.refresh();
 }
