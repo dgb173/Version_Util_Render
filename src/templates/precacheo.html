@@ -359,6 +359,9 @@
         .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         .pre-context-copy { padding: 4px 8px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .62rem; font-weight: 900; white-space: nowrap; }
         .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 3px 6px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #475569; font-size: .58rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
+        .pre-context-league-filter input { width: 12px; height: 12px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
+        .pre-context-filter-empty { padding: 12px 8px; text-align: center; color: #94a3b8; font-size: .58rem; font-weight: 800; }
         .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
         .pre-context-moment-head { padding: 7px 9px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
@@ -7095,6 +7098,51 @@
             }
         }
 
+        function togglePreMatchLeagueFilter(input) {
+            const panel = input?.closest('.pre-context-panel');
+            if (!panel) return;
+            const sameLeagueOnly = !!input.checked;
+
+            panel.querySelectorAll('tr[data-context-history-row]').forEach(row => {
+                row.hidden = sameLeagueOnly && row.dataset.sameLeague !== '1';
+            });
+
+            panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const rows = Array.from(team.querySelectorAll('tr[data-context-history-row]'));
+                if (!rows.length) return;
+                const visibleRows = rows.filter(row => !row.hidden);
+                const table = team.querySelector('.pre-context-table');
+                const summary = team.querySelector('.pre-context-summary');
+                const empty = team.querySelector('.pre-context-filter-empty');
+                const count = result => visibleRows.filter(row => row.dataset.result === result).length;
+
+                if (table) table.style.display = visibleRows.length ? 'table' : 'none';
+                if (summary) {
+                    summary.style.display = visibleRows.length ? 'flex' : 'none';
+                    const win = summary.querySelector('.is-win');
+                    const draw = summary.querySelector('.is-draw');
+                    const loss = summary.querySelector('.is-loss');
+                    if (win) win.textContent = `V ${count('W')}`;
+                    if (draw) draw.textContent = `E ${count('D')}`;
+                    if (loss) loss.textContent = `D ${count('L')}`;
+                }
+                if (empty) empty.hidden = visibleRows.length > 0;
+            });
+
+            panel.querySelectorAll('[data-all-text][data-same-league-text]').forEach(element => {
+                element.textContent = sameLeagueOnly
+                    ? element.dataset.sameLeagueText
+                    : element.dataset.allText;
+            });
+
+            const copyButton = panel.querySelector('.pre-context-copy');
+            if (copyButton) {
+                copyButton.dataset.context = sameLeagueOnly
+                    ? copyButton.dataset.sameLeagueContext
+                    : copyButton.dataset.allContext;
+            }
+        }
+
         function renderPreMatchContext(pc, currentHome, currentAway) {
             const esc = value => String(value ?? '')
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -7105,11 +7153,13 @@
                 date: pc?.match_date || pc?.date || '',
                 home_name: currentHome,
                 away_name: currentAway,
+                league_id: pc?.league_id || '',
                 league_name: pc?.league_name || '',
                 is_neutral_venue: !!pc?.is_neutral_venue,
                 home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
                 away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
             };
+            const currentLeagueId = String(current?.league_id ?? pc?.league_id ?? '').trim();
 
             const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
             let previous = context.previous || null;
@@ -7152,7 +7202,8 @@
                         ? (item?.away ?? item?.away_team ?? '')
                         : (item?.home ?? item?.home_team ?? '');
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    return `<tr class="pre-context-result-${result}">
+                    const sameLeague = !!currentLeagueId && String(leagueId) === currentLeagueId;
+                    return `<tr class="pre-context-result-${result}" data-context-history-row="1" data-result="${result}" data-league-id="${esc(leagueId)}" data-same-league="${sameLeague ? '1' : '0'}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
                         <td class="ctx-league">${esc(leagueId)}</td>
                         <td title="${esc(rival)}">${esc(rival || '-')}</td>
@@ -7169,7 +7220,8 @@
                         <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
-                    <div class="pre-context-summary"><span class="is-win">V ${wins}</span><span class="is-draw">E ${draws}</span><span class="is-loss">D ${losses}</span></div>`
+                    <div class="pre-context-summary"><span class="is-win">V ${wins}</span><span class="is-draw">E ${draws}</span><span class="is-loss">D ${losses}</span></div>
+                    <div class="pre-context-filter-empty" hidden>Sin partidos de la liga ID ${esc(currentLeagueId || '-')}</div>`
                     : '<div class="pre-context-empty">Sin historial previo en esta localía</div>'}
                 </div>`;
             };
@@ -7205,13 +7257,14 @@
                 const momentAway = moment.away_name || currentAway;
                 const allVenues = !!moment.is_neutral_venue;
                 const reversed = isPrevious && sameTeamName(momentHome, currentAway);
-                const meta = isPrevious
-                    ? `${esc(moment.date || 'Fecha N/D')} · ${esc(momentHome)} ${esc(moment.score || '-')} ${esc(momentAway)}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
+                const metaText = isPrevious
+                    ? `${moment.date || 'Fecha N/D'} · ${momentHome} ${moment.score || '-'} ${momentAway}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
                     : (allVenues
-                        ? `${esc(momentHome)} + ${esc(momentAway)} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
-                        : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · TODAS LAS LIGAS`);
+                        ? `${momentHome} + ${momentAway} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
+                        : `${momentHome} en casa · ${momentAway} fuera · TODAS LAS LIGAS`);
+                const filteredMetaText = `${isPrevious ? `${moment.date || 'Fecha N/D'} · ` : ''}LIGA ID ${currentLeagueId || 'N/D'}`;
                 return `<section class="pre-context-moment">
-                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta">${meta}</div></div>
+                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     <div class="pre-context-team-grid">
                         ${renderTeam(momentHome, 'home', moment.home_matches, allVenues)}
                         ${renderTeam(momentAway, 'away', moment.away_matches, allVenues)}
@@ -7245,25 +7298,39 @@
                 const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
                 return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
             };
+            const sameLeagueMatches = matches => asRows(matches).filter(item => {
+                const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                return !!currentLeagueId && leagueId === currentLeagueId;
+            });
             const currentNeutral = !!current.is_neutral_venue;
-            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            const buildCurrentText = sameLeagueOnly => `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', sameLeagueOnly ? sameLeagueMatches(current.home_matches) : current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', sameLeagueOnly ? sameLeagueMatches(current.away_matches) : current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            let previousSameLeagueText = previousText;
             if (previous) {
                 const previousHome = previous.home_name || currentHome;
                 const previousAway = previous.away_name || currentAway;
                 const previousNeutral = !!previous.is_neutral_venue;
                 const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
                 previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
+                previousSameLeagueText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', sameLeagueMatches(previous.home_matches), previousNeutral)}\n\n${teamText(previousAway, 'away', sameLeagueMatches(previous.away_matches), previousNeutral)}\n\n${similarAhText(previous)}`;
             }
             const contextScope = currentNeutral
                 ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
                 : 'CASA VS FUERA · TODAS LAS LIGAS';
-            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${buildCurrentText(false)}\n\n${previousText}`;
+            const sameLeagueScope = `LIGA ID ${currentLeagueId || 'N/D'} · ${currentNeutral ? 'TODAS LAS LOCALÍAS' : 'CASA VS FUERA'}`;
+            const sameLeagueCopyText = `CONTEXTO PREVIO (${sameLeagueScope})\n\n${buildCurrentText(true)}\n\n${previousSameLeagueText}`;
+            const noteAll = currentNeutral ? 'Historial completo de ambos equipos' : 'Local en casa y visitante fuera, con todas las ligas';
+            const noteSameLeague = `Solo liga ID ${currentLeagueId || 'N/D'}`;
 
             return `<div class="pre-context-panel">
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
-                    <div class="pre-context-actions"><div class="pre-context-note">${currentNeutral ? 'Historial completo de ambos equipos' : 'Local en casa y visitante fuera, con todas las ligas'}</div><button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button></div>
+                    <div class="pre-context-actions">
+                        <div class="pre-context-note" data-all-text="${esc(noteAll)}" data-same-league-text="${esc(noteSameLeague)}">${esc(noteAll)}</div>
+                        ${currentLeagueId ? `<label class="pre-context-league-filter" title="Mostrar y copiar únicamente partidos con la misma liga ID ${esc(currentLeagueId)}"><input type="checkbox" onchange="togglePreMatchLeagueFilter(this)"><span>Misma liga ${esc(currentLeagueId)}</span></label>` : ''}
+                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" data-all-context="${encodeURIComponent(copyText)}" data-same-league-context="${encodeURIComponent(sameLeagueCopyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
+                    </div>
                 </div>
                 <div class="pre-context-moments">
                     ${renderMoment('Partido actual', current)}
@@ -9895,7 +9962,6 @@
 
                 // Boton compacto de estadisticas: conserva tiros, ataques y ataques peligrosos.
                 let globalStatsBtn = '';
-                let preContextBtn = '';
                 let globalStatsId = '';
                 let globalStatsHtmlContent = '';
 
@@ -9910,17 +9976,6 @@
                         <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
                     </button>
                 `;
-                preContextBtn = isScraped ? `
-                    <button class="btn btn-outline-primary btn-sm p-0 d-flex align-items-center justify-content-center"
-                        type="button"
-                        onclick="scrapeAndShowPreMatchContext('${matchId}', this)"
-                        style="width: 22px; height: 22px; border-radius: 50%;"
-                        title="Actualizar y ver contexto previo"
-                        aria-label="Actualizar y ver contexto previo">
-                        <i class="fa-solid fa-book-open" style="font-size: 11px;"></i>
-                    </button>
-                ` : '';
-
                 globalStatsHtmlContent = `
                     <div class="d-flex gap-2 w-100" style="padding: 8px 0;">
                         ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
@@ -9960,80 +10015,12 @@
                     </div>
                 `;
 
-                const scrapeBtnHtml = !isScraped
-                    ? `<button class="btn btn-sm btn-primary" onclick="scrapeMatch('${matchId}')" title="Scrapear">
-                            <i class="fas fa-download"></i>
-                       </button>`
-                    : `<button class="btn btn-sm btn-outline-info" onclick="scrapeMatch('${matchId}')" title="Re-scrapear">
-                            <i class="fas fa-sync"></i>
-                       </button>`;
-
-                const finalizeBtnHtml = hasValidResult
-                    ? `<button class="btn btn-sm btn-success" onclick="finalizeMatch('${matchId}')" title="Finalizar y mover al Explorador">
-                            <i class="fas fa-check"></i>
-                       </button>`
-                    : '';
-
                 const viewBtnHtml = APP_PRECACHEO_ONLY
                     ? ''
                     : `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Estudio">
                             <i class="fas fa-eye"></i>
                        </a>`;
-
-                const advancedBtnsHtml = isScraped
-                    ? `<button class="btn btn-sm btn-outline-warning" onclick="searchPatterns('${matchId}', this)" title="Buscar Patrones Similares">
-                            <i class="fas fa-search"></i>
-                       </button>
-                       <button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
-                            <i class="fas fa-robot"></i>
-                       </button>
-                       <button class="btn btn-sm btn-outline-primary" onclick="copyLLMPrompt('${matchId}', this)" title="Copiar Prompt LLM">
-                            <i class="fas fa-copy"></i>
-                       </button>
-                       <button class="btn btn-sm btn-outline-dark" onclick="showLastGeneralContext('${matchId}', this)" title="Último General">
-                            <i class="fa-solid fa-brain"></i>
-                        </button>
-                       <button class="btn btn-sm" style="border-color:#7c3aed;color:#6d28d9;" onclick="showRivalHandicapSamples('${matchId}', this)" title="Muestras AH del rival (scraping manual)">
-                            <i class="fa-solid fa-diagram-project"></i>
-                       </button>
-                       `
-                    : '';
-
-                const aiBtnHtml = isScraped
-                    ? `<button class="btn btn-sm btn-outline-info" onclick="getAIPrediction('${matchId}', this)" title="Predicción IA">
-                            <i class="fas fa-robot"></i>
-                       </button>
-                       <button class="btn btn-sm btn-outline-primary" onclick="copyLLMPrompt('${matchId}', this)" title="Copiar Prompt LLM">
-                            <i class="fas fa-copy"></i>
-                       </button>
-                       <button class="btn btn-sm btn-outline-dark" onclick="showLastGeneralContext('${matchId}', this)" title="Último General">
-                            <i class="fa-solid fa-brain"></i>
-                        </button>
-                       <button class="btn btn-sm" style="border-color:#7c3aed;color:#6d28d9;" onclick="showRivalHandicapSamples('${matchId}', this)" title="Muestras AH del rival (scraping manual)">
-                            <i class="fa-solid fa-diagram-project"></i>
-                       </button>
-                       `
-                    : '';
-
-                const bookieBtnHtml = isScraped
-                    ? `<button class="btn btn-sm btn-outline-dark" onclick="showLastGeneralContext('${matchId}', this)" title="Último General">
-                            <i class="fa-solid fa-brain"></i>
-                        </button>
-                       <button class="btn btn-sm" style="border-color:#7c3aed;color:#6d28d9;" onclick="showRivalHandicapSamples('${matchId}', this)" title="Muestras AH del rival (scraping manual)">
-                            <i class="fa-solid fa-diagram-project"></i>
-                       </button>
-                       `
-                    : '';
-
-                let actionButtonsHtml = '';
-                const actionsMode = String(PRECACHEO_ACTIONS_MODE || '').toLowerCase();
-                if (actionsMode === 'ai_stats_only') {
-                    actionButtonsHtml = `${globalStatsBtn}${aiBtnHtml}${bookieBtnHtml}${preContextBtn}`;
-                } else if (actionsMode === 'minimal' || !PRECACHEO_ENABLE_HEAVY_ACTIONS) {
-                    actionButtonsHtml = `${globalStatsBtn}${finalizeBtnHtml}${viewBtnHtml}${bookieBtnHtml}${preContextBtn}`;
-                } else {
-                    actionButtonsHtml = `${globalStatsBtn}${scrapeBtnHtml}${finalizeBtnHtml}${viewBtnHtml}${advancedBtnsHtml}${preContextBtn}`;
-                }
+                const actionButtonsHtml = `${globalStatsBtn}${viewBtnHtml}`;
 
 
                 tr.innerHTML = `
