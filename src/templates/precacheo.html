@@ -767,18 +767,21 @@
                 gap: 8px !important;
             }
 
-            /* Ocultar filtros del header tradicional en móvil */
-            .main-content>.d-flex>.d-flex:last-child {
+            /* Los filtros de escritorio pasan al panel móvil. La barra de
+               exportación se mantiene siempre accesible. */
+            .desktop-inline-filter {
                 display: none !important;
             }
 
-            /* Badges y botones más grandes */
-            .btn-sm {
+            /* Controles táctiles más cómodos, limitados a la cabecera. */
+            .precache-header .btn-sm,
+            .mobile-filters-panel .btn-sm {
                 padding: 10px 14px !important;
                 font-size: 0.85rem !important;
             }
 
-            .badge {
+            .precache-header .badge,
+            .mobile-filters-panel .badge {
                 font-size: 0.8rem !important;
                 padding: 5px 8px !important;
             }
@@ -1256,6 +1259,281 @@
                 font-size: 0.75rem;
             }
         }
+
+        /* Cabecera responsive estable. Evita depender de selectores por
+           posición, que antes ocultaban también Copiar y Descargar TXT. */
+        .precache-primary-controls,
+        .precache-action-toolbar,
+        .precache-bulk-actions,
+        .precache-secondary-actions {
+            min-width: 0;
+        }
+
+        .precache-bulk-actions,
+        .precache-secondary-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-width: 992px) {
+            .precache-header {
+                align-items: stretch !important;
+                margin-bottom: 10px !important;
+            }
+
+            .precache-primary-controls {
+                width: 100%;
+                display: grid !important;
+                grid-template-columns: 44px minmax(0, 1fr) auto;
+                gap: 8px !important;
+                align-items: center !important;
+            }
+
+            .precache-primary-controls h4 {
+                min-width: 0;
+                white-space: nowrap;
+            }
+
+            .precache-view-controls {
+                grid-column: 1 / -1;
+                width: 100%;
+            }
+
+            .precache-view-controls .btn {
+                flex: 1 1 0;
+                min-width: 0;
+                white-space: normal;
+                line-height: 1.15;
+            }
+
+            #current-time-badge {
+                justify-self: end;
+                white-space: nowrap;
+            }
+
+            body .main-content > .precache-header > .precache-action-toolbar {
+                display: block !important;
+                width: 100%;
+            }
+
+            .precache-bulk-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+                gap: 8px;
+            }
+
+            .precache-bulk-actions .btn {
+                width: 100%;
+                min-height: 48px;
+                white-space: normal;
+                line-height: 1.15;
+                border-width: 1.5px;
+            }
+
+            .precache-secondary-actions {
+                display: none;
+            }
+
+            #pagination-nav-top .pagination {
+                justify-content: center !important;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .precache-primary-controls {
+                grid-template-columns: 42px minmax(0, 1fr) auto;
+            }
+
+            .precache-primary-controls h4 {
+                font-size: 1rem !important;
+            }
+
+            #current-time-badge {
+                font-size: .68rem !important;
+                padding: 6px !important;
+            }
+
+            .precache-bulk-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .precache-bulk-actions .btn {
+                min-height: 50px;
+                font-size: .84rem !important;
+            }
+
+            .mobile-filters-toggle {
+                right: 14px;
+                bottom: max(14px, env(safe-area-inset-bottom));
+            }
+
+            .mobile-filters-panel {
+                max-height: min(82vh, 720px);
+                padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+            }
+        }
+
+        .mobile-table-hidden {
+            display: none !important;
+        }
+
+        .mobile-cards-container[hidden] {
+            display: none !important;
+        }
+
+        .mobile-cards-container:not([hidden]) {
+            display: block;
+        }
+
+        .mobile-match-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .mobile-match-index {
+            flex: 0 0 auto;
+            color: #94a3b8;
+            font-size: .7rem;
+            font-weight: 800;
+        }
+
+        .mobile-team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .mobile-team-panel {
+            min-width: 0;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            overflow: hidden;
+        }
+
+        .mobile-team-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #64748b;
+            font-size: .62rem;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .mobile-team-body {
+            overflow-wrap: anywhere;
+        }
+
+        .mobile-market-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .mobile-market-item {
+            padding: 9px 10px;
+            border-radius: 9px;
+            background: #eef4ff;
+            color: #1e3a5f;
+            text-align: center;
+            font-size: .8rem;
+            font-weight: 800;
+        }
+
+        .mobile-market-item.is-result {
+            background: #ecfdf5;
+            color: #137047;
+        }
+
+        .mobile-analysis {
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .mobile-analysis > summary {
+            min-height: 46px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            font-size: .8rem;
+            font-weight: 800;
+            list-style: none;
+        }
+
+        .mobile-analysis > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .mobile-analysis > summary::after {
+            content: '\25BC';
+            float: right;
+            font-size: .65rem;
+            transition: transform .2s ease;
+        }
+
+        .mobile-analysis[open] > summary::after {
+            transform: rotate(180deg);
+        }
+
+        .mobile-analysis-content {
+            padding: 4px 12px 10px;
+        }
+
+        .mobile-analysis .detail-row {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .mobile-analysis .detail-label {
+            display: block;
+            min-width: 0;
+            margin-bottom: 6px;
+            color: #475569;
+            text-align: left;
+        }
+
+        .mobile-analysis .detail-value {
+            display: block;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .mobile-cards-container .match-actions {
+            flex-wrap: wrap;
+        }
+
+        .mobile-cards-container .match-actions .btn {
+            flex: 1 1 42px;
+            max-width: 54px;
+            min-width: 42px;
+            min-height: 42px;
+            padding: 8px !important;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 390px) {
+            .mobile-team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -1279,13 +1557,13 @@
 
     <!-- Main Content -->
     <div class="main-content expanded">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="precache-header d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="precache-primary-controls d-flex align-items-center gap-3 flex-wrap">
                 <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <h4 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Pre-Cacheo</h4>
-                <div class="btn-group" role="group">
+                <div class="precache-view-controls btn-group" role="group">
                     <button type="button" class="btn btn-outline-primary btn-sm active" id="btn-proximos"
                         onclick="setViewMode('proximos')">
                         <i class="fa-solid fa-hourglass-start me-1"></i> Próximos
@@ -1298,21 +1576,21 @@
                     {% endif %}
                 </div>
                 <span class="badge bg-info" id="current-time-badge">Hora España: --:--</span>
-                <div class="form-check ms-3">
+                <div class="desktop-inline-filter form-check ms-3">
                     <input class="form-check-input" type="checkbox" id="filter-only-with-history"
                         onchange="triggerSearch()">
                     <label class="form-check-label small" for="filter-only-with-history">
                         Solo con historial
                     </label>
                 </div>
-                <div class="form-check ms-2">
+                <div class="desktop-inline-filter form-check ms-2">
                     <input class="form-check-input" type="checkbox" id="filter-only-favorites"
                         onchange="applyFiltersVisually()">
                     <label class="form-check-label small" for="filter-only-favorites">
                         <i class="fa-solid fa-star text-warning"></i> Solo favoritas
                     </label>
                 </div>
-                <div class="d-flex align-items-center ms-3">
+                <div class="desktop-inline-filter d-flex align-items-center ms-3">
                     <label class="small me-2 mb-0" for="filter-strategies"><i
                             class="fa-solid fa-chess-knight text-purple"></i> Estrategia:</label>
                     <select class="form-select form-select-sm" id="filter-strategies" onchange="applyFiltersVisually()"
@@ -1345,41 +1623,45 @@
                     </select>
                 </div>
             </div>
-            <div class="d-flex gap-2 align-items-center flex-wrap">
+            <div class="precache-action-toolbar d-flex gap-2 align-items-center flex-wrap">
                 <div id="scraping-status" class="d-none"></div>
-                <button class="btn btn-outline-primary btn-sm" id="btn-copy-all-precache"
-                    onclick="copyAllPrecachePrompts(this)" title="Copiar los datos completos de todos los partidos filtrados visibles">
-                    <i class="fa-solid fa-copy me-1"></i> Copiar Todos los Partidos
-                    <span class="badge bg-primary ms-1" id="copy-all-precache-count">0</span>
-                </button>
-                <button class="btn btn-outline-success btn-sm" id="btn-download-all-precache"
-                    onclick="downloadAllPrecacheTxt(this)" title="Descargar hasta 100 partidos con contexto previo y prompt LLM">
-                    <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar TXT completo
-                    <span class="badge bg-success ms-1" id="download-all-precache-count">0</span>
-                </button>
-                <button class="btn btn-success btn-sm" onclick="scrapeResultsPending()"
-                    title="Scrapear solo resultados de partidos +2h sin score">
-                    <i class="fa-solid fa-clock-rotate-left me-1"></i> Buscar Resultados (+2h)
-                </button>
-                <button class="btn btn-primary btn-sm" onclick="scrapeAllPending()">
-                    <i class="fa-solid fa-cloud-download-alt me-1"></i> Scrapear Pendientes
-                </button>
-                <button class="btn btn-outline-dark btn-sm" onclick="scrapeLastGeneralForFiltered()"
-                    title="Scrapear Último General para los partidos filtrados visibles">
-                    <i class="fa-solid fa-brain me-1"></i> Último General Todos
-                </button>
-                <button class="btn btn-warning btn-sm" onclick="finalizeAllWithResults()">
-                    <i class="fa-solid fa-check-double me-1"></i> Finalizar Todos
-                </button>
-                <button class="btn btn-primary btn-sm" onclick="applyFiltersVisually()">
-                    <i class="fa-solid fa-filter me-1"></i> Aplicar Filtros
-                    <span id="active-filters-badge" class="badge bg-light text-dark ms-1"
-                        style="display: none;">0</span>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()"
-                    title="Limpiar todos los filtros">
-                    <i class="fa-solid fa-times me-1"></i> Limpiar
-                </button>
+                <div class="precache-bulk-actions" aria-label="Exportar partidos">
+                    <button class="btn btn-outline-primary btn-sm" id="btn-copy-all-precache"
+                        onclick="copyAllPrecachePrompts(this)" title="Copiar los datos completos de todos los partidos filtrados visibles">
+                        <i class="fa-solid fa-copy me-1"></i> Copiar todos los partidos
+                        <span class="badge bg-primary ms-1" id="copy-all-precache-count">0</span>
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" id="btn-download-all-precache"
+                        onclick="downloadAllPrecacheTxt(this)" title="Descargar hasta 100 partidos con contexto previo y prompt LLM">
+                        <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar TXT completo
+                        <span class="badge bg-success ms-1" id="download-all-precache-count">0</span>
+                    </button>
+                </div>
+                <div class="precache-secondary-actions">
+                    <button class="btn btn-success btn-sm" onclick="scrapeResultsPending()"
+                        title="Scrapear solo resultados de partidos +2h sin score">
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i> Buscar Resultados (+2h)
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="scrapeAllPending()">
+                        <i class="fa-solid fa-cloud-download-alt me-1"></i> Scrapear Pendientes
+                    </button>
+                    <button class="btn btn-outline-dark btn-sm" onclick="scrapeLastGeneralForFiltered()"
+                        title="Scrapear Último General para los partidos filtrados visibles">
+                        <i class="fa-solid fa-brain me-1"></i> Último General Todos
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="finalizeAllWithResults()">
+                        <i class="fa-solid fa-check-double me-1"></i> Finalizar Todos
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="applyFiltersVisually()">
+                        <i class="fa-solid fa-filter me-1"></i> Aplicar Filtros
+                        <span id="active-filters-badge" class="badge bg-light text-dark ms-1"
+                            style="display: none;">0</span>
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="clearAllFilters()"
+                        title="Limpiar todos los filtros">
+                        <i class="fa-solid fa-times me-1"></i> Limpiar
+                    </button>
+                </div>
             </div>
         </div>
 
