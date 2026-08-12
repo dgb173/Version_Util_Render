@@ -10474,9 +10474,14 @@
             const downloadButton = document.getElementById('btn-download-all-precache');
             const downloadBadge = document.getElementById('download-all-precache-count');
             if ((!button || !badge) && (!downloadButton || !downloadBadge)) return;
-            const count = Number.isFinite(Number(visibleCount))
-                ? Math.min(100, Number(visibleCount))
-                : getVisiblePrecacheMatchIds(100).length;
+            const domCount = getVisiblePrecacheMatchIds(100).length;
+            const suppliedCount = Number.isFinite(Number(visibleCount))
+                ? Math.min(100, Math.max(0, Number(visibleCount)))
+                : 0;
+            // Algunas recargas asíncronas pueden entregar temporalmente 0
+            // aunque las filas ya estén pintadas. El DOM manda porque es
+            // exactamente el conjunto que Copiar/Descargar va a exportar.
+            const count = Math.max(domCount, suppliedCount);
             if (badge && button) {
                 badge.textContent = String(count);
                 button.disabled = count <= 0;
