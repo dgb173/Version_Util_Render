@@ -3149,7 +3149,7 @@
             const onlyCurrentLeague = !!checkbox.checked;
 
             panel.querySelectorAll('.pre-context-team').forEach(team => {
-                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row]')];
+                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleRows = 0;
 
@@ -3160,6 +3160,7 @@
                         const normRow = normLeagueId(rawRowLeague);
                         visible = !!normCurrent && normRow === normCurrent;
                     }
+                    row.style.display = visible ? '' : 'none';
                     row.hidden = !visible;
                     if (visible) {
                         visibleRows += 1;
