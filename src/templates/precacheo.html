@@ -7228,7 +7228,6 @@
                 return !!currentLeagueId && leagueId === currentLeagueId;
             });
             const currentNeutral = !!current.is_neutral_venue;
-            const currentLeague = String(current.league_id ?? pc.league_id ?? currentLeagueId ?? '').trim();
             const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
             if (previous) {
