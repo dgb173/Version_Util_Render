@@ -39,7 +39,7 @@
         .result-list { max-height:220px; overflow:auto; }
         .hint { padding:12px 14px; color:#49606d; border-left:4px solid var(--mint); border-radius:8px; background:#effaf7; font-size:.88rem; }
         .archive-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
-        .archive-item { padding:13px 14px; text-align:left; border:1px solid var(--line); border-radius:12px; background:#f9fbfc; transition:.15s ease; }
+        .archive-item { display:block; padding:13px 14px; color:inherit; text-align:left; text-decoration:none; border:1px solid var(--line); border-radius:12px; background:#f9fbfc; transition:.15s ease; }
         .archive-item:hover { border-color:var(--mint); transform:translateY(-1px); }
         .archive-item .name { font-weight:900; color:var(--navy); }
         .analysis-card { margin-bottom:18px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 5px 15px rgba(24,49,63,.07); }
@@ -184,7 +184,10 @@
         <div id="analysisPanel" class="panel d-none"><div class="panel-body">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <div><h5 id="analysisTitle" class="mb-1">Partidos analizados</h5><div id="analysisSubtitle" class="small text-muted"></div></div>
-                <span class="badge bg-light text-dark border">Jornada guardada fuera de SQL</span>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="scrapeMissing" type="button" class="btn btn-outline-primary btn-sm d-none"><i class="fa-solid fa-rotate me-1"></i> Completar partidos pendientes</button>
+                    <a id="downloadLeague" class="btn btn-success btn-sm" href="#"><i class="fa-solid fa-download me-1"></i> Descargar liga entera</a>
+                </div>
             </div>
             <div id="roundNavigation" class="round-navigation d-none">
                 <button id="roundPrev" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
@@ -261,12 +264,11 @@
             if(!response.ok) throw new Error(data.error||'No se pudo leer el registro');
             const extractions=data.extractions||[];
             $('archiveList').innerHTML=extractions.length ? extractions.map(extraction=>`
-                <button type="button" class="archive-item" data-extraction-id="${escapeHtml(extraction.extraction_id)}">
+                <a class="archive-item" href="/extraer-liga?extraction_id=${encodeURIComponent(extraction.extraction_id)}" target="_blank" rel="noopener">
                     <div class="d-flex justify-content-between gap-2"><span class="name">${escapeHtml(extraction.label||extraction.league_name)}</span><span class="badge bg-light text-dark border">${escapeHtml(extraction.season||'—')}</span></div>
                     <div class="small text-muted mt-1">${escapeHtml(extraction.league_name)} · Liga ${escapeHtml(extraction.league_id)} · ${extraction.target_ah==null?'Todos los AH':`AH ${escapeHtml(extraction.target_ah)}`}</div>
-                    <div class="small mt-2">${escapeHtml(statusText(extraction))}</div>
-                </button>`).join('') : '<span class="text-muted">Todavía no hay ligas analizadas.</span>';
-            document.querySelectorAll('.archive-item').forEach(button=>button.addEventListener('click',()=>openExtraction(button.dataset.extractionId,'',true)));
+                    <div class="small mt-2">${escapeHtml(statusText(extraction))} · abrir en otra pestaña <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i></div>
+                </a>`).join('') : '<span class="text-muted">Todavía no hay ligas analizadas.</span>';
         } catch(error) {
             $('archiveList').innerHTML=`<span class="text-danger">${escapeHtml(error.message)}</span>`;
         }
@@ -400,6 +402,11 @@
             const current=activeRounds.find(round=>round.key===activeRoundKey);
             $('analysisTitle').textContent=`${extraction.league_name} · ${extraction.season||'Temporada sin nombre'}`;
             $('analysisSubtitle').textContent=`${data.total} partidos registrados · explorador histórico por jornadas`;
+            $('downloadLeague').href=`/api/league-extractions/${encodeURIComponent(extractionId)}/export-all-seasons`;
+            const missingCount=activeRounds.reduce((total,round)=>total+Math.max(0,Number(round.count||0)-Number(round.available||0)),0);
+            $('scrapeMissing').classList.toggle('d-none',missingCount<=0);
+            $('scrapeMissing').disabled=false;
+            $('scrapeMissing').innerHTML=`<i class="fa-solid fa-rotate me-1"></i> Completar pendientes (${missingCount})`;
             $('roundSelect').innerHTML=activeRounds.map(round=>`<option value="${escapeHtml(round.key)}" ${round.key===activeRoundKey?'selected':''}>${escapeHtml(round.label)} (${round.count})</option>`).join('');
             $('roundSummary').textContent=current?`${current.available}/${current.count} análisis disponibles en esta jornada`:'';
             $('roundNavigation').classList.toggle('d-none',!activeRounds.length);
@@ -471,10 +478,33 @@
     });
 
     $('refreshArchives').addEventListener('click',loadArchives);
+    $('scrapeMissing').addEventListener('click',async()=>{
+        if(!activeExtractionId)return;
+        $('scrapeMissing').disabled=true;
+        message('info','Preparando los partidos que faltan en la liga…');
+        try{
+            const response=await fetch(`/api/league-extractions/${encodeURIComponent(activeExtractionId)}/scrape-missing`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({limit:500,workers:$('workers').value})});
+            const data=await response.json();
+            if(!response.ok)throw new Error(data.error||'No se pudo reanudar la liga');
+            if(data.status==='completed'){
+                message('success',data.message||'La liga ya está completa.');
+                await openExtraction(activeExtractionId,'',false);
+                return;
+            }
+            $('progressPanel').classList.remove('d-none');
+            $('progressBar').classList.add('progress-bar-animated');
+            $('progressBar').style.width='0%';
+            $('results').innerHTML='';
+            message('info',`Analizando ${data.total} partidos. Después de este lote quedarán ${data.remaining_after_batch}.`);
+            poll(data.job_id);
+        }catch(error){message('danger',error.message);$('scrapeMissing').disabled=false;}
+    });
     $('roundSelect').addEventListener('change',event=>activeExtractionId&&openExtraction(activeExtractionId,event.target.value));
     $('roundPrev').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>0)openExtraction(activeExtractionId,activeRounds[index-1].key);});
     $('roundNext').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>=0&&index<activeRounds.length-1)openExtraction(activeExtractionId,activeRounds[index+1].key);});
     loadArchives();
+    const initialExtractionId=new URLSearchParams(window.location.search).get('extraction_id');
+    if(initialExtractionId)openExtraction(initialExtractionId,'',true);
 </script>
 </body>
 </html>

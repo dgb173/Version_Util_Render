@@ -406,7 +406,17 @@ def _analysis_instructions(match):
         or (match.get("main_match_odds") or {}).get("goals_linea")
         or "N/A"
     )
-    return f"""
+    mls_block = ""
+    try:
+        from . import mls_system
+        mls_res = mls_system.analyze_mls_match(match)
+        if mls_res.get('is_mls') and mls_res.get('recommended_picks'):
+            picks_str = "\n".join([f"  * [{p.get('rule_name')}] {p.get('pick')} ({p.get('confidence')} confianza) - {p.get('reason')}" for p in mls_res['recommended_picks']])
+            mls_block = f"\n\n========================================================================\nSISTEMA MLS (HÁNDICAP + OVER/UNDER DEDICADO)\n========================================================================\n{picks_str}\n"
+    except Exception as e:
+        mls_block = ""
+
+    return f"""{mls_block}
 
 ---
 
@@ -434,7 +444,8 @@ DEBAJO DE LA TABLA
 - Compara sus porcentajes de cobertura AH.
 - Resume los H2H disponibles.
 - Avisa si ambos superan 55% Over o 55% Under.
-- Sugiere una apuesta AH y otra O/U con una justificación breve. Si no hay evidencia suficiente, indica NO BET.
+- Sugiere obligatoriamente la mejor apuesta AH y la mejor apuesta O/U basándote en la tendencia de los datos, con una justificación breve. Queda PROHIBIDO responder NO BET.
+
 
 No muestres IDs, buckets, nombres de tablas ni referencias internas del sistema.
 """

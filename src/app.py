@@ -1416,6 +1416,7 @@ def _compact_precacheo_match_for_list(match, include_specialist_picks=False):
                     'home': row.get('home'),
                     'away': row.get('away'),
                     'score': row.get('score') or row.get('score_raw'),
+                    'stats_rows': row.get('stats_rows') or [],
                 }
                 for row in value
                 if isinstance(row, dict)
@@ -4806,10 +4807,10 @@ def api_explorer_search():
 
         # Allow deep analysis while keeping a hard safety ceiling.
         try:
-            req_limit = int(filters.get('limit', 10000))
+            req_limit = int(filters.get('limit', 1000))
         except (TypeError, ValueError):
-            req_limit = 10000
-        filters['limit'] = max(1, min(req_limit, 20000))
+            req_limit = 1000
+        filters['limit'] = max(1, min(req_limit, 3000))
 
         analyze_all = bool(filters.get('analyze_all', False))
         # Keep full stat rows available in explorer unless caller explicitly disables them.
@@ -4890,7 +4891,7 @@ def api_explorer_search():
         ).encode('utf-8')
         if 'gzip' in request.headers.get('Accept-Encoding', '').lower():
             response = app.response_class(
-                gzip.compress(response_payload, compresslevel=5),
+                gzip.compress(response_payload, compresslevel=1),
                 mimetype='application/json',
             )
             response.headers['Content-Encoding'] = 'gzip'
@@ -5719,7 +5720,47 @@ def api_precacheo_rival_handicap_samples():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/explorer_context_preview', methods=['POST'])
+def api_explorer_context_preview():
+    """Scrapea en tiempo real los factores y contexto previo para vista previa sin guardar en base de datos."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = str(payload.get('match_id') or '').strip()
+        force_refresh = bool(payload.get('force_refresh', True))
+        if not match_id:
+            return jsonify({'status': 'error', 'error': 'Falta match_id'}), 400
+
+        # 1. Obtener contexto de ultimo general + factores
+        last_gen_ctx, cached_lg = last_general_context.get_or_create(match_id, force_refresh=force_refresh)
+
+        # 2. Obtener contexto previo (analizar_contexto_previo_rapido) SIN guardar en DB
+        pre_match_ctx = None
+        try:
+            existing = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id) or {}
+            main_odds = existing.get('main_match_odds') or {}
+            pre_match_ctx = analizar_contexto_previo_rapido(
+                match_id,
+                current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
+                current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
+                is_neutral_venue=True if existing.get('is_neutral_venue') is True else None,
+            )
+        except Exception as exc_pm:
+            logging.warning(f"No se pudo generar pre_match_context para preview {match_id}: {exc_pm}")
+
+        return jsonify({
+            'status': 'success',
+            'cached': cached_lg,
+            'context': last_gen_ctx,
+            'pre_match_context': pre_match_ctx,
+            'preview_only': True
+        })
+    except Exception as exc:
+        logging.exception("Error en /api/explorer_context_preview")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/precacheo_finalize/<match_id>', methods=['POST'])
+
 def api_precacheo_finalize(match_id):
     """Re-scrapea un partido finalizado y lo mueve al bucket oficial."""
     try:
@@ -5869,7 +5910,16 @@ def _run_league_ah_job(job_id, extraction_id, matches, league_id, workers, force
             status='completed',
             completed_at=datetime.datetime.utcnow().isoformat(),
         )
-        league_extraction_registry.update_extraction_status(extraction_id, 'completed')
+        extraction = league_extraction_registry.get_extraction(extraction_id) or {}
+        still_missing = any(
+            not sql_store.get_match(str(item.get('id') or ''))
+            for item in extraction.get('matches', [])
+            if item.get('id')
+        )
+        league_extraction_registry.update_extraction_status(
+            extraction_id,
+            'registered' if still_missing else 'completed',
+        )
     except Exception as exc:
         _update_league_ah_job(
             job_id,
@@ -6153,6 +6203,172 @@ def api_league_extraction_detail(extraction_id):
             for match in selected_matches
         ],
     })
+
+
+@app.route('/api/league-extractions/<extraction_id>/scrape-missing', methods=['POST'])
+def api_league_extraction_scrape_missing(extraction_id):
+    """Reanuda una liga registrada procesando un lote de partidos ausentes."""
+    extraction = league_extraction_registry.get_extraction(extraction_id)
+    if extraction is None:
+        return jsonify({'error': 'Extraccion no encontrada'}), 404
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        limit = max(1, min(500, int(payload.get('limit') or 500)))
+        workers = max(1, min(10, int(payload.get('workers') or 4)))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Limite o numero de procesos no valido'}), 400
+
+    missing = [
+        match for match in extraction.get('matches', [])
+        if match.get('id') and not sql_store.get_match(str(match.get('id')))
+    ]
+    if not missing:
+        league_extraction_registry.update_extraction_status(extraction_id, 'completed')
+        return jsonify({
+            'status': 'completed',
+            'message': 'La liga ya esta completa',
+            'total': 0,
+            'remaining_before': 0,
+            'remaining_after_batch': 0,
+        })
+
+    selected = missing[:limit]
+    job_id = uuid.uuid4().hex
+    job = {
+        'job_id': job_id,
+        'extraction_id': extraction_id,
+        'status': 'queued',
+        'league_id': str(extraction.get('league_id') or ''),
+        'target_ah': extraction.get('target_ah'),
+        'company_id': int(extraction.get('company_id') or 8),
+        'total': len(selected),
+        'processed': 0,
+        'counts': {},
+        'results': [],
+        'created_at': datetime.datetime.utcnow().isoformat(),
+        'updated_at': datetime.datetime.utcnow().isoformat(),
+    }
+    with LEAGUE_AH_JOBS_LOCK:
+        LEAGUE_AH_JOBS[job_id] = job
+
+    thread = threading.Thread(
+        target=_run_league_ah_job,
+        args=(
+            job_id,
+            extraction_id,
+            selected,
+            str(extraction.get('league_id') or ''),
+            workers,
+            bool(payload.get('force')),
+        ),
+        daemon=True,
+        name=f'league-resume-{job_id[:8]}',
+    )
+    thread.start()
+    return jsonify({
+        'status': 'started',
+        'job_id': job_id,
+        'extraction_id': extraction_id,
+        'total': len(selected),
+        'remaining_before': len(missing),
+        'remaining_after_batch': max(0, len(missing) - len(selected)),
+    }), 202
+
+
+def _league_season_sort_key(extraction):
+    season = str(extraction.get('season') or '')
+    numbers = [int(value) for value in re.findall(r'\d{4}', season)]
+    return (numbers[0] if numbers else 0, season.casefold())
+
+
+@app.route('/api/league-extractions/<extraction_id>/export-all-seasons')
+def api_league_extraction_export_all_seasons(extraction_id):
+    """Descarga en un TXT todos los partidos registrados de la misma liga."""
+    selected = league_extraction_registry.get_extraction(extraction_id)
+    if selected is None:
+        return jsonify({'error': 'Extraccion no encontrada'}), 404
+
+    league_id = str(selected.get('league_id') or '')
+    extraction_ids = []
+    for summary in league_extraction_registry.list_extractions():
+        if str(summary.get('league_id') or '') != league_id:
+            continue
+        candidate_id = str(summary.get('extraction_id') or '')
+        if candidate_id and candidate_id not in extraction_ids:
+            extraction_ids.append(candidate_id)
+    if str(extraction_id) not in extraction_ids:
+        extraction_ids.append(str(extraction_id))
+
+    seasons = []
+    for candidate_id in extraction_ids:
+        candidate = league_extraction_registry.get_extraction(candidate_id)
+        if candidate and str(candidate.get('league_id') or '') == league_id:
+            seasons.append(candidate)
+    seasons.sort(key=_league_season_sort_key)
+
+    from modules import llm_exporter
+
+    sections = []
+    round_count = 0
+    match_count = 0
+    complete_count = 0
+    for season_extraction in seasons:
+        season_label = str(season_extraction.get('season') or 'SIN TEMPORADA')
+        season_lines = [
+            '=' * 96,
+            f'TEMPORADA {season_label}',
+            f"LIGA: {season_extraction.get('league_name') or selected.get('league_name') or league_id}",
+            f"REGISTRO: {season_extraction.get('label') or '-'}",
+            '=' * 96,
+        ]
+        for group in _league_round_groups(season_extraction.get('matches') or []):
+            matches = group.get('matches') or []
+            round_count += 1
+            season_lines.extend([
+                '',
+                f"JORNADA {group.get('round') or 'SIN JORNADA'} · {len(matches)} PARTIDOS",
+                '-' * 96,
+            ])
+            for index, source in enumerate(matches, start=1):
+                match_count += 1
+                match_id = str(source.get('id') or '')
+                stored = sql_store.get_match(match_id) if match_id else None
+                season_lines.extend([
+                    '',
+                    f"PARTIDO {index}: {source.get('home') or '-'} VS {source.get('away') or '-'}",
+                    f"ID: {match_id or '-'} | FECHA: {source.get('date') or '-'} | AH VISIBLE: {source.get('visible_ah') if source.get('visible_ah') is not None else '-'}",
+                ])
+                if isinstance(stored, dict):
+                    complete_count += 1
+                    try:
+                        season_lines.append(llm_exporter.generate_llm_prompt(stored))
+                    except Exception as exc:
+                        season_lines.append(f'DATOS COMPLETOS NO DISPONIBLES: {exc}')
+                else:
+                    season_lines.append('DATOS COMPLETOS NO DISPONIBLES EN LA BASE SQL.')
+        sections.append('\n'.join(season_lines))
+
+    generated = datetime.datetime.now(ZoneInfo('Europe/Madrid'))
+    header = '\n'.join([
+        'EXPORTACION COMPLETA DE LIGA',
+        f"LIGA: {selected.get('league_name') or league_id}",
+        'ETIQUETA: TODO (TODAS LAS TEMPORADAS)',
+        f"GENERADO: {generated.strftime('%Y-%m-%d %H:%M:%S Europe/Madrid')}",
+        f'TEMPORADAS: {len(seasons)} | JORNADAS: {round_count} | PARTIDOS: {match_count} | COMPLETOS: {complete_count}',
+        '',
+    ])
+    text_payload = '\ufeff' + header + '\n\n'.join(sections)
+    safe_name = re.sub(r'[^A-Za-z0-9_-]+', '_', str(selected.get('league_name') or league_id)).strip('_')
+    filename = f"liga_{safe_name or league_id}_todas_temporadas.txt"
+    response = app.response_class(text_payload, mimetype='text/plain')
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-League-Seasons'] = str(len(seasons))
+    response.headers['X-League-Rounds'] = str(round_count)
+    response.headers['X-League-Matches'] = str(match_count)
+    response.headers['X-League-Complete-Matches'] = str(complete_count)
+    return response
 
 
 @app.route('/api/league-extractions/<extraction_id>/match/<match_id>')

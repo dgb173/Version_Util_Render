@@ -3004,32 +3004,73 @@
         }
 
         function filterPreMatchContextLeague(checkbox) {
-            const panel = checkbox?.closest('.pre-context-panel');
+            if (!checkbox) return;
+            const panel = checkbox.closest('.pre-context-panel');
             if (!panel) return;
             const currentLeague = String(panel.dataset.currentLeague || '').trim();
-            const onlyCurrentLeague = !!checkbox.checked && !!currentLeague;
+            const onlyCurrentLeague = !!checkbox.checked;
+
             panel.querySelectorAll('.pre-context-team').forEach(team => {
-                const rows = [...team.querySelectorAll('tbody tr[data-context-league]')];
+                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row]')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleRows = 0;
+
                 rows.forEach(row => {
-                    const visible = !onlyCurrentLeague || String(row.dataset.contextLeague || '').trim() === currentLeague;
+                    let visible = true;
+                    if (onlyCurrentLeague) {
+                        if (row.dataset.sameLeague !== undefined) {
+                            visible = row.dataset.sameLeague === '1';
+                        } else {
+                            const rowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                            visible = !!currentLeague && rowLeague === currentLeague;
+                        }
+                    }
                     row.hidden = !visible;
                     if (visible) {
                         visibleRows += 1;
-                        const result = row.dataset.contextResult;
+                        const result = row.dataset.contextResult || row.dataset.result;
                         if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
                     }
                 });
+
+                const table = team.querySelector('.pre-context-table');
+                if (table) table.style.display = rows.length && !visibleRows ? 'none' : '';
+
                 team.querySelectorAll('[data-summary-result]').forEach(summary => {
                     const result = summary.dataset.summaryResult;
                     const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
                     summary.textContent = `${prefix} ${counts[result] || 0}`;
                 });
+
+                const summaryDiv = team.querySelector('.pre-context-summary');
+                if (summaryDiv) {
+                    summaryDiv.style.display = rows.length && !visibleRows ? 'none' : 'flex';
+                    const win = summaryDiv.querySelector('.is-win');
+                    const draw = summaryDiv.querySelector('.is-draw');
+                    const loss = summaryDiv.querySelector('.is-loss');
+                    if (win && !win.dataset.summaryResult) win.textContent = `V ${counts.W}`;
+                    if (draw && !draw.dataset.summaryResult) draw.textContent = `E ${counts.D}`;
+                    if (loss && !loss.dataset.summaryResult) loss.textContent = `D ${counts.L}`;
+                }
+
                 const empty = team.querySelector('.pre-context-filter-empty');
-                if (empty) empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
+                if (empty) {
+                    empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
+                    empty.hidden = !(onlyCurrentLeague && rows.length && !visibleRows);
+                }
             });
+
+            panel.querySelectorAll('[data-all-text][data-same-league-text]').forEach(element => {
+                element.textContent = onlyCurrentLeague ? element.dataset.sameLeagueText : element.dataset.allText;
+            });
+
+            const copyButton = panel.querySelector('.pre-context-copy');
+            if (copyButton && copyButton.dataset.sameLeagueContext) {
+                copyButton.dataset.context = onlyCurrentLeague ? copyButton.dataset.sameLeagueContext : copyButton.dataset.allContext;
+            }
         }
+
+        const togglePreMatchLeagueFilter = filterPreMatchContextLeague;
 
         async function copyPreMatchContext(button, matchId) {
             const encoded = button?.dataset?.context || '';

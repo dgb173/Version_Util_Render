@@ -57,3 +57,24 @@ incoming_matches/
 # NotebookLM exports
 notebooklm/
 
+# Archivos pesados que no deben subirse a Render
+*.zip
+analisis_*.html
+sistema_binario_*.html
+top_pronosticos_*.html
+MAPA_VISUAL_*.html
+tmp_*.json
+tmp_*.md
+sample_rich_match.json
+codex resume*
+flask_*.log
+entrega_chatgpt/
+explorer_light_repo/
+.Generar_data/
+.codex-worktrees/
+.pytest_cache/
+reports/
+informes/
+models/
+scratch/
+_legacy_archive/

@@ -28,6 +28,7 @@ _precacheo_lock = threading.Lock()
 _explorer_cache_lock = threading.Lock()
 _explorer_cache: Dict[Tuple[Optional[str], Optional[int]], Tuple[float, List[Dict]]] = {}
 _explorer_cache_ttl = max(0, int(os.getenv('EXPLORER_CACHE_TTL_SECONDS', '30')))
+_EXPLORER_CACHE_MAX_ENTRIES = 3  # Limitar entradas para evitar OOM en Render (512 MB)
 
 
 def _clear_explorer_cache() -> None:
@@ -207,8 +208,21 @@ def load_explorer_matches(ah_filter=None, scan_limit=None):
             prefer_explorer_payload=True,
         )
 
+    # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
+    if not rows:
+        rows = sql_store.fetch_matches(
+            bucket=cache_bucket if (ah_filter and ah_filter != 'all') else None,
+            limit=scan_limit,
+            prefer_explorer_payload=True,
+        )
+
+
     if _explorer_cache_ttl > 0:
         with _explorer_cache_lock:
+            # Evictar la entrada más antigua si se excede el límite
+            while len(_explorer_cache) >= _EXPLORER_CACHE_MAX_ENTRIES:
+                oldest_key = min(_explorer_cache, key=lambda k: _explorer_cache[k][0])
+                del _explorer_cache[oldest_key]
             _explorer_cache[cache_key] = (time.time(), rows)
     return rows
 

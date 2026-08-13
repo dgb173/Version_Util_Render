@@ -1604,6 +1604,24 @@ def analizar_contexto_previo_rapido(
             soup, "table_v2", away_name, None, False, odds_map,
             limit=100, is_neutral_venue=is_neutral_venue,
         )
+
+        # Fallback: si el filtro estricto de localía deja la lista vacía,
+        # re-extraer incluyendo TODAS las localías para no mostrar "Sin historial".
+        home_all_venues_fallback = False
+        away_all_venues_fallback = False
+        if not home_matches and not is_neutral_venue:
+            home_matches = extract_recent_matches(
+                soup, "table_v1", home_name, None, True, odds_map,
+                limit=100, is_neutral_venue=True,
+            )
+            home_all_venues_fallback = bool(home_matches)
+        if not away_matches and not is_neutral_venue:
+            away_matches = extract_recent_matches(
+                soup, "table_v2", away_name, None, False, odds_map,
+                limit=100, is_neutral_venue=True,
+            )
+            away_all_venues_fallback = bool(away_matches)
+
         h2h_data = extract_h2h_data_of(soup, home_name, away_name, None, odds_map)
         previous = extract_previous_h2h_context(h2h_data)
 
@@ -1624,6 +1642,8 @@ def analizar_contexto_previo_rapido(
             "league_id": league_id,
             "league_name": league_name,
             "is_neutral_venue": is_neutral_venue,
+            "home_all_venues_fallback": home_all_venues_fallback,
+            "away_all_venues_fallback": away_all_venues_fallback,
             "ah_line": home_line,
             "goal_line": goal_line,
             "home_matches": home_matches,
