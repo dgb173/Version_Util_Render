@@ -98,6 +98,17 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
             data_response.raise_for_status()
             data = _parse_json_or_js(data_response.text)
             
+            cup_names = {
+                str(row[0]): str(row[2])
+                for row in data.get("CupKindList", [])
+                if isinstance(row, list) and len(row) > 2
+            }
+            sub_names = {
+                str(row[0]): str(row[1])
+                for row in data.get("SubLeagueInfo", [])
+                if isinstance(row, list) and len(row) > 1
+            }
+
             matches_found = []
             seen = set()
             for sub_id, round_name, row in _walk_schedule_matches(data.get("ScheduleList") or {}):
@@ -110,6 +121,12 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
                 
                 ah_raw = str(row[8]).strip() if len(row) > 8 and row[8] is not None else ""
                 
+                stage_name = sub_names.get(str(sub_id), "")
+                if round_name.startswith("G"):
+                    stage_digits = "".join(filter(str.isdigit, round_name))
+                    if stage_digits in cup_names:
+                        stage_name = cup_names[stage_digits]
+
                 if target_ahs:
                     try:
                         ah_val = float(ah_raw)
@@ -119,7 +136,13 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
                     except ValueError:
                         continue
                         
-                matches_found.append({'id': match_id, 'ah': ah_raw})
+                matches_found.append({
+                    'id': match_id,
+                    'ah': ah_raw,
+                    'sub_id': str(sub_id),
+                    'sub_name': stage_name,
+                    'round': round_name
+                })
             
             logger.info(f"Found {len(matches_found)} unique matches for league {league_id} in season {current_season}.")
             

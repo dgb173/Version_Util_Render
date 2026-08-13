@@ -6184,8 +6184,10 @@ def _league_round_groups(matches):
             group['is_cup_stage'] = False
         else:
             stage_name = translated_stage or round_val
+            if stage_name.startswith('G') and any(c.isdigit() for c in stage_name):
+                stage_name = 'Fase de Copa / Clasificación'
             if round_val.startswith('G'):
-                group['label'] = stage_name if stage_name else f"Fase {round_val}"
+                group['label'] = stage_name
             else:
                 group['label'] = f"{stage_name} ({round_val})" if stage_name != round_val else stage_name
             group['is_cup_stage'] = True

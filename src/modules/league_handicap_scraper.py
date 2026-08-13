@@ -105,6 +105,11 @@ def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], 
         for row in data.get("SubLeagueInfo", [])
         if isinstance(row, list) and len(row) > 1
     }
+    cup_names = {
+        str(row[0]): str(row[2])
+        for row in data.get("CupKindList", [])
+        if isinstance(row, list) and len(row) > 2
+    }
     matches: Dict[str, Dict[str, Any]] = {}
     rounds: List[Tuple[str, str]] = []
 
@@ -123,10 +128,16 @@ def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], 
         if round_value:
             rounds.append((sub_id, round_value))
 
+        stage_name = sub_names.get(str(sub_id), "")
+        if round_value.startswith("G"):
+            stage_digits = "".join(filter(str.isdigit, round_value))
+            if stage_digits in cup_names:
+                stage_name = cup_names[stage_digits]
+
         matches[match_id] = {
             "id": match_id,
             "sub_id": str(sub_id),
-            "sub_name": sub_names.get(str(sub_id), ""),
+            "sub_name": stage_name,
             "round": round_value,
             "date": str(row[3]) if len(row) > 3 else "",
             "home": teams.get(str(row[4]), str(row[4])) if len(row) > 4 else str(row[4]),
