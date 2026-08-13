@@ -457,14 +457,26 @@
         if(icon)icon.className=willHide?'fa-solid fa-chevron-down':'fa-solid fa-chevron-up';
     }
 
+    function normLeagueId(val) {
+        if (val === undefined || val === null) return '';
+        return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+    }
+
     function renderPreMatchContextCard(pc) {
         if (!pc) return '';
         const current = pc.current || {};
         const previous = pc.previous || null;
-        const currentHome = pc.home_name || pc.home_team || 'Local';
-        const currentAway = pc.away_name || pc.away_team || 'Visitante';
-        const currentLeague = String(pc.league_id || '').trim();
-        const currentNeutral = !!pc.is_neutral_venue;
+        const currentHome = pc.home_name || pc.home_team || current.home_name || 'Local';
+        const currentAway = pc.away_name || pc.away_team || current.away_name || 'Visitante';
+        const currentLeague = String(
+            current.league_id || 
+            pc.league_id || 
+            pc.market_analysis_data?.league_id || 
+            (preview ? preview.league_id : '') || 
+            ''
+        ).trim();
+        const normCurrentLg = normLeagueId(currentLeague);
+        const currentNeutral = !!(current.is_neutral_venue || pc.is_neutral_venue);
 
         const renderMoment = (title, moment, isPrevious = false) => {
             if (!moment) return '';
@@ -495,7 +507,8 @@
                         }
                     }
                     const rowLeagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
-                    const isSameLg = !!currentLeague && rowLeagueId === currentLeague;
+                    const normRowLg = normLeagueId(rowLeagueId);
+                    const isSameLg = !!normCurrentLg && normRowLg === normCurrentLg;
                     const resBadgeClass = `pre-context-result-${result}`;
 
                     return `<tr data-context-league="${esc(rowLeagueId)}" data-context-result="${result}" data-same-league="${isSameLg ? '1' : '0'}">
@@ -571,7 +584,8 @@
         if (!checkbox) return;
         const panel = checkbox.closest('.pre-context-panel');
         if (!panel) return;
-        const currentLeague = String(panel.dataset.currentLeague || '').trim();
+        const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
+        const normCurrent = normLeagueId(rawCurrentLeague);
         const onlyCurrentLeague = !!checkbox.checked;
 
         panel.querySelectorAll('.pre-context-team').forEach(team => {
@@ -582,12 +596,9 @@
             rows.forEach(row => {
                 let visible = true;
                 if (onlyCurrentLeague) {
-                    if (row.dataset.sameLeague !== undefined) {
-                        visible = row.dataset.sameLeague === '1';
-                    } else {
-                        const rowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
-                        visible = !!currentLeague && rowLeague === currentLeague;
-                    }
+                    const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                    const normRow = normLeagueId(rawRowLeague);
+                    visible = !!normCurrent && normRow === normCurrent;
                 }
                 row.hidden = !visible;
                 if (visible) {

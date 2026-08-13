@@ -2590,10 +2590,12 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         "historical_matches_html": historical_matches_html,
         "pre_match_context": {
             "context_data_version": 2,
+            "league_id": str(league_id) if league_id is not None else None,
             "current": {
                 "date": match_date,
                 "home_name": home_name,
                 "away_name": away_name,
+                "league_id": str(league_id) if league_id is not None else None,
                 "league_name": league_name,
                 "is_neutral_venue": is_neutral_venue,
                 "home_matches": context_home_matches,

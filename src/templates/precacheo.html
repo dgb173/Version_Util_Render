@@ -7081,7 +7081,9 @@
                         ? (item?.away ?? item?.away_team ?? '')
                         : (item?.home ?? item?.home_team ?? '');
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    const sameLeague = !!currentLeagueId && String(leagueId) === currentLeagueId;
+                    const normCurrent = normLeagueId(currentLeagueId);
+                    const normRow = normLeagueId(leagueId);
+                    const sameLeague = !!normCurrent && normRow === normCurrent;
                     return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-same-league="${sameLeague ? '1' : '0'}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
                         <td class="ctx-league">${esc(leagueId)}</td>
@@ -7229,11 +7231,17 @@
             }
         }
 
+        function normLeagueId(val) {
+            if (val === undefined || val === null) return '';
+            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+        }
+
         function filterPreMatchContextLeague(checkbox) {
             if (!checkbox) return;
             const panel = checkbox.closest('.pre-context-panel');
             if (!panel) return;
-            const currentLeague = String(panel.dataset.currentLeague || '').trim();
+            const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
+            const normCurrent = normLeagueId(rawCurrentLeague);
             const onlyCurrentLeague = !!checkbox.checked;
 
             panel.querySelectorAll('.pre-context-team').forEach(team => {
@@ -7244,14 +7252,10 @@
                 rows.forEach(row => {
                     let visible = true;
                     if (onlyCurrentLeague) {
-                        if (row.dataset.sameLeague !== undefined) {
-                            visible = row.dataset.sameLeague === '1';
-                        } else {
-                            const rowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
-                            visible = !!currentLeague && rowLeague === currentLeague;
-                        }
+                        const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                        const normRow = normLeagueId(rawRowLeague);
+                        visible = !!normCurrent && normRow === normCurrent;
                     }
-                    row.hidden = !visible;
                     if (visible) {
                         visibleRows += 1;
                         const result = row.dataset.contextResult || row.dataset.result;

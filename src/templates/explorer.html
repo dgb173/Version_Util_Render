@@ -2983,7 +2983,6 @@
                 const parseValue = value => Number.parseInt((String(value).match(/\d+/) || ['0'])[0], 10);
                 const homeValue = parseValue(home);
                 const awayValue = parseValue(away);
-                const homeClass = homeValue > awayValue ? 'text-success fw-bold' : (homeValue < awayValue ? 'text-danger' : 'text-dark');
                 const awayClass = awayValue > homeValue ? 'text-success fw-bold' : (awayValue < homeValue ? 'text-danger' : 'text-dark');
                 return `<div class="d-flex justify-content-between" style="font-size:.75rem;line-height:1.4;border-bottom:1px solid rgba(0,0,0,.1);padding:2px 0;">
                     <span class="${homeClass}">${lgEscape(home)}</span>
@@ -2993,14 +2992,21 @@
             }).join('');
         }
 
-        function renderPreMatchContextCard(pc) {
+        function renderPreMatchContextCard(pc, matchPayload) {
             if (!pc) return '';
             const current = pc.current || {};
             const previous = pc.previous || null;
-            const currentHome = current.home_name || pc.home_name || 'Local';
-            const currentAway = current.away_name || pc.away_name || 'Visitante';
+            const currentHome = current.home_name || pc.home_name || matchPayload?.home_team || matchPayload?.home_name || 'Local';
+            const currentAway = current.away_name || pc.away_name || matchPayload?.away_team || matchPayload?.away_name || 'Visitante';
             const currentNeutral = !!current.is_neutral_venue;
-            const currentLeague = String(current.league_id ?? pc.league_id ?? '').trim();
+            const currentLeague = String(
+                current.league_id ?? 
+                pc.league_id ?? 
+                matchPayload?.league_id ?? 
+                matchPayload?.candidate?.league_id ?? 
+                matchPayload?.market_analysis_data?.league_id ?? 
+                ''
+            ).trim();
 
             const esc = str => lgEscape(str);
             const sameTeamName = (a, b) => {
@@ -3049,24 +3055,18 @@
                     const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
                     return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
                 };
-                const correlation = analysis.correlation || {};
-                const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
-                const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
-                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
-                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
-                return `<div class="pre-context-ah-analysis"><div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div><div class="pre-context-ah-grid">${summary(homeLabel, analysis.home)}${summary(awayLabel, analysis.away)}</div><div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div></div>`;
+                return `<div class="pre-context-ah-summary"><div class="pre-context-ah-title"><i class="fa-solid fa-scale-balanced me-1"></i>Hándicap similar ${moment === current ? '(partido actual)' : '(previo)'}</div><div class="pre-context-ah-grid">${summary(moment?.home_name || currentHome, analysis.home)}${summary(moment?.away_name || currentAway, analysis.away)}</div></div>`;
             };
 
             const renderMoment = (title, moment, isPrevious = false) => {
-                if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
-                const momentHome = moment.home_name || currentHome;
-                const momentAway = moment.away_name || currentAway;
-                const allVenues = !!moment.is_neutral_venue;
-                const homeAllVenues = allVenues || !!moment.home_all_venues_fallback;
-                const awayAllVenues = allVenues || !!moment.away_all_venues_fallback;
-                const reversed = isPrevious && sameTeamName(momentHome, currentAway);
-                const meta = isPrevious ? `${esc(moment.date || 'Fecha N/D')} · ${esc(momentHome)} ${esc(moment.score || '-')} ${esc(momentAway)}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}` : (allVenues ? `${esc(momentHome)} + ${esc(momentAway)} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS` : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · TODAS LAS LIGAS`);
-                return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta">${meta}</div></div><div class="pre-context-team-grid">${renderTeam(momentHome, 'home', moment.home_matches, homeAllVenues)}${renderTeam(momentAway, 'away', moment.away_matches, awayAllVenues)}</div>${renderSimilarAh(moment)}</section>`;
+                if (!moment) return '';
+                const hName = moment.home_name || currentHome;
+                const aName = moment.away_name || currentAway;
+                const venueNeutral = !!moment.is_neutral_venue;
+                const useAllVenuesHome = isPrevious ? false : !!moment.home_all_venues_fallback;
+                const useAllVenuesAway = isPrevious ? false : !!moment.away_all_venues_fallback;
+                const invertNote = isPrevious && sameTeamName(hName, currentAway) ? ' · <span class="text-warning fw-bold">LOCALÍAS INVERTIDAS</span>' : '';
+                return `<div class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${esc(title)}</div><div class="pre-context-moment-meta">${esc(hName)} vs ${esc(aName)}${invertNote}</div></div><div class="pre-context-team-grid">${renderTeam(hName, 'home', moment.home_matches, useAllVenuesHome)}${renderTeam(aName, 'away', moment.away_matches, useAllVenuesAway)}</div>${renderSimilarAh(moment)}</div>`;
             };
 
             const teamText = (teamName, role, matches, allVenues = false, leagueFilter = '') => {
@@ -3096,7 +3096,6 @@
                 return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
             };
 
-            // currentNeutral ya declarado al inicio de renderPreMatchContextCard (línea 2587)
             const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
             if (previous) {
@@ -3136,11 +3135,17 @@
             }
         }
 
+        function normLeagueId(val) {
+            if (val === undefined || val === null) return '';
+            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+        }
+
         function filterPreMatchContextLeague(checkbox) {
             if (!checkbox) return;
             const panel = checkbox.closest('.pre-context-panel');
             if (!panel) return;
-            const currentLeague = String(panel.dataset.currentLeague || '').trim();
+            const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
+            const normCurrent = normLeagueId(rawCurrentLeague);
             const onlyCurrentLeague = !!checkbox.checked;
 
             panel.querySelectorAll('.pre-context-team').forEach(team => {
@@ -3151,12 +3156,9 @@
                 rows.forEach(row => {
                     let visible = true;
                     if (onlyCurrentLeague) {
-                        if (row.dataset.sameLeague !== undefined) {
-                            visible = row.dataset.sameLeague === '1';
-                        } else {
-                            const rowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
-                            visible = !!currentLeague && rowLeague === currentLeague;
-                        }
+                        const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                        const normRow = normLeagueId(rawRowLeague);
+                        visible = !!normCurrent && normRow === normCurrent;
                     }
                     row.hidden = !visible;
                     if (visible) {
