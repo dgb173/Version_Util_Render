@@ -468,13 +468,7 @@
         const previous = pc.previous || null;
         const currentHome = pc.home_name || pc.home_team || current.home_name || 'Local';
         const currentAway = pc.away_name || pc.away_team || current.away_name || 'Visitante';
-        const currentLeague = String(
-            current.league_id || 
-            pc.league_id || 
-            pc.market_analysis_data?.league_id || 
-            (preview ? preview.league_id : '') || 
-            ''
-        ).trim();
+        const currentLeague = typeof resolveLeagueId === 'function' ? resolveLeagueId(pc) : String(current.league_id || pc.league_id || '').trim();
         const normCurrentLg = normLeagueId(currentLeague);
         const currentNeutral = !!(current.is_neutral_venue || pc.is_neutral_venue);
 

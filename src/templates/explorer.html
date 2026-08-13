@@ -2999,14 +2999,7 @@
             const currentHome = current.home_name || pc.home_name || matchPayload?.home_team || matchPayload?.home_name || 'Local';
             const currentAway = current.away_name || pc.away_name || matchPayload?.away_team || matchPayload?.away_name || 'Visitante';
             const currentNeutral = !!current.is_neutral_venue;
-            const currentLeague = String(
-                current.league_id ?? 
-                pc.league_id ?? 
-                matchPayload?.league_id ?? 
-                matchPayload?.candidate?.league_id ?? 
-                matchPayload?.market_analysis_data?.league_id ?? 
-                ''
-            ).trim();
+            const currentLeague = typeof resolveLeagueId === 'function' ? resolveLeagueId(pc, matchPayload) : String(current.league_id || pc.league_id || '').trim();
 
             const esc = str => lgEscape(str);
             const sameTeamName = (a, b) => {
