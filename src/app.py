@@ -6128,15 +6128,26 @@ def _league_extraction_match_payload(extraction, source_match):
 
 
 def _league_round_groups(matches):
-    """Agrupa el registro por fase y jornada sin mezclar rondas homónimas."""
+    """Agrupa el registro por fase y jornada sin mezclar rondas homónimas, traduciendo etapas de copa y liga."""
     groups = {}
     sub_order = {}
     stage_translations = {
-        'league': '',
-        'final qual.': 'Clasificación final',
+        'league': 'Fase de Liga',
+        'league round': 'Ronda de Liga',
+        'qualifi 1': '1ª Ronda Clasificación',
+        'qualifi 2': '2ª Ronda Clasificación',
+        'qualifi2': '2ª Ronda Clasificación',
+        'qualifi 3': '3ª Ronda Clasificación',
+        'qual.3': '3ª Ronda Clasificación',
+        'playoffs': 'Play-Offs Clasificación',
+        'playoff 2': 'Play-Offs Clasificación (Vuelta)',
+        'knockouts': 'Ronda Eliminatoria (Play-Offs 1/16)',
+        '1/8 final': 'Octavos de Final (1/8)',
+        'quarterfinals': 'Cuartos de Final',
         'semifinals': 'Semifinales',
         'semifinal': 'Semifinal',
-        'final': 'Final',
+        'final': 'Gran Final',
+        'finals': 'Gran Final',
     }
     for source_index, match in enumerate(matches):
         sub_id = str(match.get('sub_id') or '0')
@@ -6164,9 +6175,21 @@ def _league_round_groups(matches):
     )
     for group in ordered:
         stage = group['sub_name']
-        translated = stage_translations.get(stage.casefold(), stage)
-        base = f"Jornada {group['round']}"
-        group['label'] = f'{translated} · {base}' if translated else base
+        translated_stage = stage_translations.get(stage.casefold(), stage)
+        round_val = group['round']
+
+        if round_val.isdigit():
+            base = f"Jornada {round_val}"
+            group['label'] = f'{translated_stage} · {base}' if translated_stage else base
+            group['is_cup_stage'] = False
+        else:
+            stage_name = translated_stage or round_val
+            if round_val.startswith('G'):
+                group['label'] = stage_name if stage_name else f"Fase {round_val}"
+            else:
+                group['label'] = f"{stage_name} ({round_val})" if stage_name != round_val else stage_name
+            group['is_cup_stage'] = True
+
         group['count'] = len(group['matches'])
         group['available'] = sum(
             1 for match in group['matches']
@@ -6183,21 +6206,48 @@ def api_league_extraction_detail(extraction_id):
     registered = extraction.pop('matches', [])
     round_groups = _league_round_groups(registered)
     requested_round = str(request.args.get('round') or '').strip()
-    active_group = next(
-        (group for group in round_groups if group['key'] == requested_round),
-        round_groups[0] if round_groups else None,
-    )
-    selected_matches = active_group['matches'] if active_group else []
+
     public_rounds = [
-        {key: group[key] for key in ('key', 'label', 'round', 'sub_id', 'sub_name', 'count', 'available')}
+        {key: group[key] for key in ('key', 'label', 'round', 'sub_id', 'sub_name', 'count', 'available', 'is_cup_stage')}
         for group in round_groups
     ]
+
+    grouped_rounds_data = []
+    for group in round_groups:
+        grouped_rounds_data.append({
+            'key': group['key'],
+            'label': group['label'],
+            'round': group['round'],
+            'sub_id': group['sub_id'],
+            'sub_name': group['sub_name'],
+            'count': group['count'],
+            'available': group['available'],
+            'is_cup_stage': group.get('is_cup_stage', False),
+            'matches': [
+                _league_extraction_match_payload(extraction, match)
+                for match in group['matches']
+            ],
+        })
+
+    active_group = next(
+        (group for group in round_groups if group['key'] == requested_round),
+        None,
+    )
+
+    if requested_round and active_group:
+        selected_matches = active_group['matches']
+        current_round_key = active_group['key']
+    else:
+        selected_matches = registered
+        current_round_key = 'all'
+
     return jsonify({
         'extraction': extraction,
         'total': len(registered),
         'round_total': len(selected_matches),
-        'current_round': active_group['key'] if active_group else None,
+        'current_round': current_round_key,
         'rounds': public_rounds,
+        'grouped_rounds': grouped_rounds_data,
         'matches': [
             _league_extraction_match_payload(extraction, match)
             for match in selected_matches

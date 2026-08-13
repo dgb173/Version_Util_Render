@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extraer Liga Completa</title>
+    <title>Extraer Liga Completa - Explorador por Jornadas y Copas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
@@ -42,39 +42,72 @@
         .archive-item { display:block; padding:13px 14px; color:inherit; text-align:left; text-decoration:none; border:1px solid var(--line); border-radius:12px; background:#f9fbfc; transition:.15s ease; }
         .archive-item:hover { border-color:var(--mint); transform:translateY(-1px); }
         .archive-item .name { font-weight:900; color:var(--navy); }
-        .analysis-card { margin-bottom:18px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 5px 15px rgba(24,49,63,.07); }
-        .analysis-head { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 15px; border-bottom:1px solid var(--line); background:#f8fbfc; }
-        .round-chip { padding:4px 9px; color:#fff; border-radius:999px; background:var(--navy2); font-size:.72rem; font-weight:900; }
-        .analysis-head .match-name { flex:1 1 280px; font-weight:900; }
-        .stat-grid { display:grid; grid-template-columns:repeat(7,minmax(190px,1fr)); gap:8px; padding:10px; overflow-x:auto; }
-        .stat-box { min-height:150px; padding:10px; border:1px solid rgba(0,0,0,.12); border-radius:9px; }
+        
+        /* --- ESTILOS 100% IDENTICOS AL EXPLORADOR --- */
+        .stage-card { margin-bottom: 22px; border: 1px solid #cbd5e1; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(9,44,64,.06); overflow: hidden; }
+        .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: linear-gradient(135deg, #f8fafc, #edf4fb); border-bottom: 2px solid #cbd5e1; flex-wrap: wrap; }
+        .stage-title { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; font-weight: 900; color: #0f2d4a; }
+        .stage-badge { font-size: .75rem; padding: 4px 10px; border-radius: 999px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+        .stage-badge.league-round { background: #0d435b; color: #fff; }
+        .stage-badge.cup-stage { background: #6f42c1; color: #fff; }
+        
+        .explorer-table-wrap { overflow-x: auto; border-top: 1px solid #dbe5ea; }
+        .explorer-table { min-width: 1480px; margin: 0; table-layout: fixed; font-size: .75rem; border-collapse: collapse; }
+        .explorer-table th { padding: 9px 6px; text-align: center; vertical-align: bottom; background: #edf4f7 !important; border-bottom: 2px solid #cbd5e1; font-weight: 900; color: #1e3a5f; }
+        .explorer-table td { padding: 8px 6px; text-align: center; border-right: 1px solid #e1e9ed; border-bottom: 1px solid #e1e9ed; vertical-align: middle; }
+        .explorer-table .date-col { width: 105px; }
+        .explorer-table .team-col { width: 130px; text-align: left; font-weight: 800; }
+        .explorer-table .market-col { width: 58px; font-size: .82rem; font-weight: 900; }
+        .explorer-table .case-col { width: 120px; }
+        .explorer-main-row:hover td { background: #f1f7fa; }
+        .explorer-case { min-height: 58px; line-height: 1.25; }
+        .explorer-case .teams { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .72rem; }
+        .explorer-case .mini-score { display: inline-block; margin: 2px 0; padding: 2px 5px; border-radius: 4px; background: #eef3f5; font-size: .78rem; font-weight: 900; }
+        .explorer-case .mini-meta { color: var(--muted); font-size: .61rem; }
+        
+        /* Celdas con color característico de explorador */
+        .col-h2h-col3 { background-color: #ffe4ec !important; }
+        .cell-no-data { background-color: #ffcdd2 !important; }
+        .cell-diff-league { background-color: #fff9c4 !important; }
+        
+        /* Pre-Context Panel */
+        .pre-context-panel { margin: 8px 10px 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: #f8fafc; color: #334155; text-align: left; }
+        .pre-context-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; padding-bottom: 7px; border-bottom: 2px solid #dbe5ef; }
+        .pre-context-title { font-size: .95rem; font-weight: 900; color: #1e3a5f; }
+        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .75rem; font-weight: 900; cursor: pointer; white-space: nowrap; user-select: none; }
+        .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
+        .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
+        .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .pre-context-moments.hide-previous { grid-template-columns: minmax(0, 1fr); }
+        .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
+        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
+        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
+        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
+        .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
+        .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .pre-context-team { min-width: 0; }
+        .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
+        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
+        .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
+        .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
+        .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
+        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
+        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
+        .pre-context-summary .is-win { color: #16834b; }
+        .pre-context-summary .is-draw { color: #9a6700; }
+        .pre-context-summary .is-loss { color: #c92a3a; }
+        .pre-context-filter-empty { display: none; padding: 12px 10px; text-align: center; color: #64748b; background: #f8fafc; font-size: .75rem; font-weight: 700; }
+        
+        .stat-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); gap: 8px; padding: 10px; overflow-x: auto; }
+        .stat-box { min-height: 140px; padding: 8px; border: 1px solid rgba(0,0,0,.12); border-radius: 8px; font-size: .72rem; }
         .stat-box.prev-home{background:#e8f5e9}.stat-box.prev-away{background:#ffebee}.stat-box.h2h{background:#e3f2fd}.stat-box.col3{background:#fff8e1}.stat-box.indirect{background:#e3f2fd}
-        .stat-title { padding-bottom:6px; margin-bottom:8px; text-align:center; text-transform:uppercase; border-bottom:1px solid rgba(0,0,0,.1); font-size:.73rem; font-weight:900; }
-        .stat-match { min-height:34px; text-align:center; font-size:.72rem; }
-        .stat-score { display:inline-block; margin:0 4px; padding:2px 5px; border-radius:4px; background:rgba(255,255,255,.7); font-size:.88rem; font-weight:900; }
-        .stat-meta { margin:5px 0; text-align:center; color:var(--muted); font-size:.63rem; }
-        .stat-table { width:100%; margin-top:7px; border-top:1px solid rgba(0,0,0,.1); font-size:.64rem; }
-        .stat-table td { padding:3px 2px; border-bottom:1px solid rgba(0,0,0,.06); }
-        .empty-stat { display:flex; min-height:95px; align-items:center; justify-content:center; color:#82919a; }
-        .pagination-row { display:flex; justify-content:center; align-items:center; gap:10px; margin-top:15px; }
-        .round-navigation { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 12px; margin-bottom:12px; border:1px solid var(--line); border-radius:12px; background:#f7fafb; }
-        .round-navigation .form-select { width:auto; min-width:230px; font-weight:800; color:var(--navy); }
-        .explorer-table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; }
-        .explorer-table { min-width:1450px; margin:0; table-layout:fixed; font-size:.7rem; }
-        .explorer-table th { padding:9px 6px; text-align:center; vertical-align:bottom; }
-        .explorer-table td { padding:8px 6px; text-align:center; border-right:1px solid #e1e9ed; }
-        .explorer-table .date-col { width:110px; }
-        .explorer-table .team-col { width:125px; text-align:left; font-weight:800; }
-        .explorer-table .market-col { width:56px; font-size:.82rem; font-weight:900; }
-        .explorer-table .case-col { width:120px; }
-        .explorer-main-row:hover td { background:#f8fbfc; }
-        .explorer-case { min-height:62px; line-height:1.25; }
-        .explorer-case .teams { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        .explorer-case .mini-score { display:inline-block; margin:3px 0; padding:2px 5px; border-radius:4px; background:#eef3f5; font-size:.78rem; font-weight:900; }
-        .explorer-case .mini-meta { color:var(--muted); font-size:.61rem; }
-        .detail-row td { padding:0; background:#f5f8fa; }
-        .detail-row .stat-grid { padding:12px; }
-        .missing-analysis { color:#8a5960; background:#fff7f8; }
+        .stat-title { padding-bottom: 4px; margin-bottom: 6px; text-align: center; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,.1); font-size: .7rem; font-weight: 900; }
+
         @media(max-width:800px) { .sidebar{position:static;width:auto}.sidebar nav{display:flex;overflow-x:auto}.sidebar .nav-link{flex:0 0 auto}main{margin-left:0}.hero,.workspace{padding-inline:15px}.workspace{transform:translateY(-25px)}.metric-grid{grid-template-columns:repeat(2,1fr)} }
     </style>
 </head>
@@ -94,26 +127,27 @@
 <main>
     <section class="hero">
         <span class="eyebrow">FUENTE DE DATOS DEL MODELO</span>
-        <h1>Extracción profunda de una liga</h1>
-        <p>Recupera el calendario jornada por jornada y analiza cada encuentro con el mismo sistema de Pre-Cacheo: previos local/visitante, H2H estadio y general, Col3, indirectas, cuotas y estadísticas. Primero previsualiza; nada se guarda hasta que confirmes la selección.</p>
+        <h1>Extracción y Explorador por Jornadas / Copas</h1>
+        <p>Visualiza y analiza el calendario completo organizado por jornadas regulares o fases de copa. Con los mismos 7 bloques de contexto previo, hándicaps, cuotas y análisis del Explorador.</p>
     </section>
     <section class="workspace">
         <div class="panel border border-success"><div class="panel-body">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
                     <h5 class="mb-1"><i class="fa-brands fa-github me-2"></i>Extracción cloud desde el móvil</h5>
-                    <div class="small text-muted">GitHub hace el análisis pesado, publica los datos y Render solo los consulta. Cuando termine, la liga aparecerá abajo y también estará disponible en Explorador.</div>
+                    <div class="small text-muted">GitHub hace el análisis pesado, publica los datos y Render solo los consulta. Los datos aparecerán abajo y en Explorador automáticamente.</div>
                 </div>
                 <a class="btn btn-success" href="https://github.com/dgb173/Version_Util_Render/actions/workflows/extraer-liga-cloud.yml" target="_blank" rel="noopener">
                     <i class="fa-solid fa-cloud-arrow-down me-1"></i> Abrir extracción cloud
                 </a>
             </div>
         </div></div>
+        
         <div class="panel"><div class="panel-body">
             <form id="extractForm" class="row g-3">
                 <div class="col-lg-5">
                     <label for="leagueReference" class="form-label">URL o ID de liga NowGoal</label>
-                    <input id="leagueReference" class="form-control" placeholder="https://football.nowgoal26.com/league/2025/381" required>
+                    <input id="leagueReference" class="form-control" placeholder="Ej.: https://football.nowgoal26.com/league/2024-2025/2187" required>
                 </div>
                 <div class="col-sm-6 col-lg-2">
                     <label for="season" class="form-label">Temporada</label>
@@ -140,17 +174,17 @@
                 </div>
                 <div class="col-sm-6 col-lg-4">
                     <label for="leagueLabel" class="form-label">Etiqueta para guardar la liga</label>
-                    <input id="leagueLabel" class="form-control" placeholder="Ej.: Australia Capital 2025">
+                    <input id="leagueLabel" class="form-control" placeholder="Ej.: UEFA Conference League 2024-2025">
                 </div>
                 <div class="col-lg-3 d-flex align-items-end"><div class="form-check mb-2"><input id="force" class="form-check-input" type="checkbox"><label for="force" class="form-check-label">Volver a analizar partidos que ya estén en SQL</label></div></div>
             </form>
-            <div class="hint mt-3"><strong>Para una liga completa:</strong> deja “AH visible” vacío. El filtro AH sirve para repetir la consulta únicamente con esa línea.</div>
+            <div class="hint mt-3"><strong>Para una liga completa o copa:</strong> deja “AH visible” vacío. El filtro AH sirve para consultar únicamente esa línea.</div>
             <div id="message" class="alert mt-3 d-none" role="alert"></div>
         </div></div>
 
         <div class="panel"><div class="panel-body">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div><h5 class="mb-1"><i class="fa-solid fa-box-archive me-2"></i>Ligas analizadas</h5><div class="small text-muted">Registro separado de SQL. Conserva la jornada y permite volver a abrir los análisis.</div></div>
+                <div><h5 class="mb-1"><i class="fa-solid fa-box-archive me-2"></i>Ligas y Copas registradas</h5><div class="small text-muted">Organizado por jornadas y fases de copa. Haz clic en una liga para explorar.</div></div>
                 <button id="refreshArchives" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate"></i></button>
             </div>
             <div id="archiveList" class="archive-list"><span class="text-muted">Cargando registro…</span></div>
@@ -172,7 +206,7 @@
                 <div class="metric"><small>Ya en SQL</small><strong id="metricSql">0</strong></div>
                 <div class="metric"><small>Seleccionados</small><strong id="metricSelected">0</strong></div>
             </div>
-            <div class="table-wrap"><table class="table table-hover mb-0"><thead><tr><th></th><th>Jornada</th><th>Fecha</th><th>Partido</th><th>Resultado</th><th>AH visible</th><th>AH inicial SQL</th><th>Estado SQL</th></tr></thead><tbody id="rows"></tbody></table></div>
+            <div class="table-wrap"><table class="table table-hover mb-0"><thead><tr><th></th><th>Jornada/Fase</th><th>Fecha</th><th>Partido</th><th>Resultado</th><th>AH visible</th><th>AH inicial SQL</th><th>Estado SQL</th></tr></thead><tbody id="rows"></tbody></table></div>
         </div></div>
 
         <div id="progressPanel" class="panel d-none"><div class="panel-body">
@@ -181,35 +215,30 @@
             <div id="results" class="result-list mt-3"></div>
         </div></div>
 
+        <!-- PANEL PRINCIPAL EXPLORADOR POR JORNADAS Y COPAS -->
         <div id="analysisPanel" class="panel d-none"><div class="panel-body">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div><h5 id="analysisTitle" class="mb-1">Partidos analizados</h5><div id="analysisSubtitle" class="small text-muted"></div></div>
-                <div class="d-flex flex-wrap gap-2">
+                <div><h4 id="analysisTitle" class="mb-1 fw-bold text-navy"><i class="fa-solid fa-trophy text-warning me-2"></i>Partidos analizados</h4><div id="analysisSubtitle" class="small text-muted"></div></div>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
                     <button id="scrapeMissing" type="button" class="btn btn-outline-primary btn-sm d-none"><i class="fa-solid fa-rotate me-1"></i> Completar partidos pendientes</button>
                     <a id="downloadLeague" class="btn btn-success btn-sm" href="#"><i class="fa-solid fa-download me-1"></i> Descargar liga entera</a>
                 </div>
             </div>
-            <div id="roundNavigation" class="round-navigation d-none">
+
+            <!-- NAVEGACIÓN Y FILTRO DE JORNADAS -->
+            <div id="roundNavigation" class="round-navigation d-flex flex-wrap align-items-center gap-2 p-2 mb-3 border rounded bg-light">
                 <button id="roundPrev" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
-                <select id="roundSelect" class="form-select form-select-sm" aria-label="Seleccionar jornada"></select>
+                <select id="roundSelect" class="form-select form-select-sm fw-bold" style="width:auto; min-width:280px;"></select>
                 <button id="roundNext" type="button" class="btn btn-outline-secondary btn-sm">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
-                <span id="roundSummary" class="small text-muted ms-auto"></span>
+                <span id="roundSummary" class="small text-muted ms-auto fw-bold"></span>
             </div>
-            <div class="explorer-table-wrap">
-                <table class="table explorer-table align-middle">
-                    <thead><tr>
-                        <th class="date-col">Fecha</th><th class="team-col">Local</th><th class="team-col">Visitante</th>
-                        <th class="market-col">HA</th><th class="market-col">O/U</th><th class="market-col">FT</th>
-                        <th class="case-col">Prev Home</th><th class="case-col">Prev Away</th><th class="case-col">H2H Estadio</th>
-                        <th class="case-col">H2H General</th><th class="case-col">H2H Col3</th><th class="case-col">Ind. Local</th>
-                        <th class="case-col">Ind. Visitante</th><th style="width:72px">Detalle</th>
-                    </tr></thead>
-                    <tbody id="analysisRows"></tbody>
-                </table>
-            </div>
+
+            <!-- CONTENEDOR DE JORNADAS Y FASES DE COPA -->
+            <div id="stagesContainer"></div>
         </div></div>
     </section>
 </main>
+
 <script>
     const $ = id => document.getElementById(id);
     let preview = null;
@@ -217,10 +246,44 @@
     let activeExtractionId = null;
     let activeRounds = [];
     let activeRoundKey = '';
+    let activeGroupedRounds = [];
     const liveLoaded = new Set();
+
     const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    const esc = escapeHtml;
     const message = (kind,text) => { $('message').className=`alert alert-${kind} mt-3`; $('message').textContent=text; };
     const selected = () => preview ? Array.from(document.querySelectorAll('.match-check:checked')).map(el => preview.matches[Number(el.dataset.index)]).filter(Boolean) : [];
+
+    function sameTeamName(a, b) {
+        if (!a || !b) return false;
+        const normA = String(a).toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normB = String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normA === normB || normA.includes(normB) || normB.includes(normA);
+    }
+
+    function parseScoreValue(scoreStr) {
+        if (!scoreStr) return null;
+        const norm = String(scoreStr).replace('-', ':');
+        const parts = norm.split(':');
+        if (parts.length !== 2) return null;
+        const h = intValue(parts[0]);
+        const a = intValue(parts[1]);
+        if (h === null || a === null) return null;
+        return { home: h, away: a };
+    }
+
+    function intValue(val) {
+        if (val === undefined || val === null) return null;
+        const parsed = parseInt(String(val).trim(), 10);
+        return isNaN(parsed) ? null : parsed;
+    }
+
+    function formatAhNumber(val) {
+        if (val === undefined || val === null || val === '') return 'N/D';
+        const num = parseFloat(val);
+        if (isNaN(num)) return String(val);
+        return num > 0 ? `+${num}` : (num === 0 ? '0' : `${num}`);
+    }
 
     function updateSelection() {
         const count=selected().length;
@@ -330,8 +393,10 @@
         const data=item.data;
         const stats=normalizedStats(data&&data.stats_rows);
         const hasData=!!(data&&(data.score||data.home||data.away||data.ah||stats.length));
-        if(!hasData) return '<td class="case-col text-muted">—</td>';
-        return `<td class="case-col"><div class="explorer-case" title="${escapeHtml(item.title)}">
+        if(!hasData) return '<td class="case-col cell-no-data text-muted">—</td>';
+        const isCol3 = item.title === 'H2H Col3';
+        const bgClass = isCol3 ? 'col-h2h-col3' : '';
+        return `<td class="case-col ${bgClass}"><div class="explorer-case" title="${escapeHtml(item.title)}">
             <div class="teams"><span class="text-success fw-bold">${escapeHtml(data.home||'—')}</span></div>
             <div class="mini-score">${escapeHtml(data.score||'—')}</div>
             <div class="teams text-danger fw-bold">${escapeHtml(data.away||'—')}</div>
@@ -348,39 +413,283 @@
         if(icon)icon.className=willHide?'fa-solid fa-chevron-down':'fa-solid fa-chevron-up';
     }
 
-    function renderAnalysisMatch(payload, append=true) {
-        const source=payload.source||{};
-        const match=payload.data;
-        const rowId=`analysis-match-${source.id}`;
-        const detailId=`analysis-detail-${source.id}`;
-        const previous=$(rowId);
-        const previousDetail=$(detailId);
-        let html;
-        if(!match) {
-            html=`<tr class="explorer-main-row missing-analysis" id="${rowId}">
-                <td>${escapeHtml(source.date||'—')}</td><td class="team-col text-primary">${escapeHtml(source.home||'—')}</td><td class="team-col text-danger">${escapeHtml(source.away||'—')}</td>
-                <td class="market-col">${escapeHtml(source.visible_ah??'—')}</td><td>—</td><td>?:?</td>
-                ${'<td class="case-col text-muted">—</td>'.repeat(7)}
-                <td><span class="badge bg-secondary">${escapeHtml(source.status||'Sin SQL')}</span></td></tr>`;
+    /* --- Pre-Match Context Renderer (Explorador Style 100%) --- */
+    function renderPreMatchContextCard(pc) {
+        if (!pc) return '';
+        const current = pc.current || {};
+        const previous = pc.previous || null;
+        const currentHome = pc.home_name || pc.home_team || 'Local';
+        const currentAway = pc.away_name || pc.away_team || 'Visitante';
+        const currentLeague = String(pc.league_id || '').trim();
+        const currentNeutral = !!pc.is_neutral_venue;
+
+        const renderMoment = (title, moment, isPrevious = false) => {
+            if (!moment) return '';
+            const hName = moment.home_name || currentHome;
+            const aName = moment.away_name || currentAway;
+            const venueNeutral = !!moment.is_neutral_venue;
+            const hLabel = venueNeutral ? 'EQ 1' : 'HOME';
+            const aLabel = venueNeutral ? 'EQ 2' : 'AWAY';
+            const invertNote = isPrevious && sameTeamName(hName, currentAway) ? ' · <span class="text-warning fw-bold">LOCALÍAS INVERTIDAS</span>' : '';
+
+            const renderTeamTable = (teamName, role, matches) => {
+                const rows = Array.isArray(matches) ? matches : [];
+                const roleClass = role === 'home' ? 'is-home' : 'is-away';
+                const roleLabel = role === 'home' ? (venueNeutral ? 'EQ 1' : 'CASA') : (venueNeutral ? 'EQ 2' : 'FUERA');
+
+                let wins = 0, draws = 0, losses = 0;
+
+                const trs = rows.map(item => {
+                    const itemScore = parseScoreValue(item?.score || item?.score_raw);
+                    let result = 'D';
+                    if (itemScore) {
+                        const isHomeSubject = sameTeamName(item?.home ?? item?.home_team, teamName);
+                        const isAwaySubject = sameTeamName(item?.away ?? item?.away_team, teamName);
+                        const ownG = isHomeSubject ? itemScore.home : (isAwaySubject ? itemScore.away : null);
+                        const rivG = isHomeSubject ? itemScore.away : (isAwaySubject ? itemScore.home : null);
+                        if (ownG !== null && rivG !== null) {
+                            if (ownG > rivG) { result = 'W'; wins++; }
+                            else if (ownG < rivG) { result = 'L'; losses++; }
+                            else { result = 'D'; draws++; }
+                        }
+                    }
+                    const rowLeagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                    const isSameLg = !!currentLeague && rowLeagueId === currentLeague;
+                    const resBadgeClass = `pre-context-result-${result}`;
+
+                    return `<tr data-context-league="${esc(rowLeagueId)}" data-context-result="${result}" data-same-league="${isSameLg ? '1' : '0'}">
+                        <td class="ctx-date">${esc(item?.date || '-')}</td>
+                        <td class="ctx-league">${isSameLg ? `<span class="badge bg-primary" style="font-size:0.6rem;">${esc(rowLeagueId)}</span>` : `<span class="badge bg-secondary" style="font-size:0.6rem;">${esc(rowLeagueId)}</span>`}</td>
+                        <td class="ctx-score ${resBadgeClass}">${esc(item?.score || item?.score_raw || '-')}</td>
+                        <td class="ctx-ah">${esc(item?.ahLine || item?.ahLine_raw || item?.ah_line || '-')}</td>
+                    </tr>`;
+                }).join('');
+
+                return `<div class="pre-context-team">
+                    <div class="pre-context-team-head">
+                        <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
+                        <span class="pre-context-role ${roleClass}">${roleLabel}</span>
+                    </div>
+                    <table class="pre-context-table">
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <tbody>${trs || '<tr><td colspan="4" class="text-center text-muted">Sin partidos</td></tr>'}</tbody>
+                    </table>
+                    <div class="pre-context-summary">
+                        <span class="is-win" data-summary-result="W">V ${wins}</span>
+                        <span class="is-draw" data-summary-result="D">E ${draws}</span>
+                        <span class="is-loss" data-summary-result="L">D ${losses}</span>
+                    </div>
+                </div>`;
+            };
+
+            return `<div class="pre-context-moment">
+                <div class="pre-context-moment-head">
+                    <div class="pre-context-moment-title">${esc(title)}</div>
+                    <div class="pre-context-moment-meta">${esc(hName)} vs ${esc(aName)}${invertNote}</div>
+                </div>
+                <div class="pre-context-team-grid">
+                    ${renderTeamTable(hName, 'home', moment.home_matches)}
+                    ${renderTeamTable(aName, 'away', moment.away_matches)}
+                </div>
+            </div>`;
+        };
+
+        const filterDisabled = !currentLeague;
+        const hasPrevious = !!previous;
+
+        return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}">
+            <div class="pre-context-head">
+                <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo <span class="badge bg-secondary ms-1" style="font-size:0.58rem;">Vista previa</span></div>
+                <div class="pre-context-actions">
+                    <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}">
+                        <input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}
+                    </label>
+                    ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
+                </div>
+            </div>
+            <div class="pre-context-moments hide-previous">
+                ${renderMoment('Partido actual', current)}
+                ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
+            </div>
+        </div>`;
+    }
+
+    function togglePreMatchPreviousH2H(checkbox) {
+        const panel = checkbox?.closest('.pre-context-panel');
+        if (!panel) return;
+        const momentsContainer = panel.querySelector('.pre-context-moments');
+        if (!momentsContainer) return;
+        if (checkbox.checked) {
+            momentsContainer.classList.remove('hide-previous');
         } else {
-            const home=match.home_name||match.home_team||source.home||'';
-            const away=match.away_name||match.away_team||source.away||'';
-            const score=match.final_score||match.score||'?:?';
-            const odds=match.main_match_odds||{};
-            const ah=odds.ah_linea??match.handicap??source.visible_ah??'—';
-            const goals=odds.goals_linea??match.goal_line??'—';
-            const caseCells=analysisCases(match).map(explorerCaseCell).join('');
-            html=`<tr class="explorer-main-row" id="${rowId}">
-                <td class="date-col text-muted">${escapeHtml(source.date||match.match_date||'—')}</td>
-                <td class="team-col"><a class="text-primary text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(home)}</a></td>
-                <td class="team-col"><a class="text-danger text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(away)}</a></td>
-                <td class="market-col">${escapeHtml(ah)}</td><td class="market-col">${escapeHtml(goals)}</td><td class="market-col">${escapeHtml(score)}</td>
-                ${caseCells}<td><button type="button" class="btn btn-outline-primary btn-sm" data-detail-button="${escapeHtml(source.id)}" onclick="toggleAnalysisDetail('${escapeHtml(source.id)}')" title="Mostrar u ocultar estadísticas"><i class="fa-solid fa-chevron-up"></i></button></td>
-            </tr><tr class="detail-row" id="${detailId}"><td colspan="14"><div class="stat-grid">${analysisBoxes(match)}</div></td></tr>`;
+            momentsContainer.classList.add('hide-previous');
         }
-        if(previous)previous.remove();
-        if(previousDetail)previousDetail.remove();
-        $('analysisRows').insertAdjacentHTML(append?'beforeend':'afterbegin',html);
+    }
+
+    function filterPreMatchContextLeague(checkbox) {
+        if (!checkbox) return;
+        const panel = checkbox.closest('.pre-context-panel');
+        if (!panel) return;
+        const currentLeague = String(panel.dataset.currentLeague || '').trim();
+        const onlyCurrentLeague = !!checkbox.checked;
+
+        panel.querySelectorAll('.pre-context-team').forEach(team => {
+            const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row]')];
+            const counts = { W: 0, D: 0, L: 0 };
+            let visibleRows = 0;
+
+            rows.forEach(row => {
+                let visible = true;
+                if (onlyCurrentLeague) {
+                    if (row.dataset.sameLeague !== undefined) {
+                        visible = row.dataset.sameLeague === '1';
+                    } else {
+                        const rowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                        visible = !!currentLeague && rowLeague === currentLeague;
+                    }
+                }
+                row.hidden = !visible;
+                if (visible) {
+                    visibleRows += 1;
+                    const result = row.dataset.contextResult || row.dataset.result;
+                    if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
+                }
+            });
+
+            const table = team.querySelector('.pre-context-table');
+            if (table) table.style.display = rows.length && !visibleRows ? 'none' : '';
+
+            team.querySelectorAll('[data-summary-result]').forEach(summary => {
+                const result = summary.dataset.summaryResult;
+                const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
+                summary.textContent = `${prefix} ${counts[result] || 0}`;
+            });
+        });
+    }
+
+    async function searchPatterns(matchId, btnElement) {
+        if (!matchId) return;
+        window.open(`/explorador?match_id=${encodeURIComponent(matchId)}`, '_blank');
+    }
+
+    function buildMatchRowHtml(payload) {
+        const source = payload.source || {};
+        const match = payload.data;
+        const rowId = `analysis-match-${source.id}`;
+        const detailId = `analysis-detail-${source.id}`;
+
+        if (!match) {
+            return `<tr class="explorer-main-row missing-analysis" id="${rowId}">
+                <td>${escapeHtml(source.date||'—')}</td>
+                <td class="team-col text-primary">${escapeHtml(source.home||'—')}</td>
+                <td class="team-col text-danger">${escapeHtml(source.away||'—')}</td>
+                <td class="market-col">${escapeHtml(source.visible_ah??'—')}</td>
+                <td>—</td>
+                <td>?:?</td>
+                ${'<td class="case-col cell-no-data text-muted">—</td>'.repeat(7)}
+                <td><span class="badge bg-secondary">${escapeHtml(source.status||'Sin SQL')}</span></td>
+            </tr>`;
+        }
+
+        const home = match.home_name || match.home_team || source.home || '';
+        const away = match.away_name || match.away_team || source.away || '';
+        const score = match.final_score || match.score || '?:?';
+        const odds = match.main_match_odds || {};
+        const ah = odds.ah_linea ?? match.handicap ?? source.visible_ah ?? '—';
+        const goals = odds.goals_linea ?? match.goal_line ?? '—';
+        const caseCells = analysisCases(match).map(explorerCaseCell).join('');
+
+        const contextCardHtml = renderPreMatchContextCard(match);
+
+        return `<tr class="explorer-main-row" id="${rowId}">
+            <td class="date-col text-muted">${escapeHtml(source.date||match.match_date||'—')}</td>
+            <td class="team-col"><a class="text-primary text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(home)}</a></td>
+            <td class="team-col"><a class="text-danger text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(away)}</a></td>
+            <td class="market-col"><span class="badge bg-secondary">${escapeHtml(ah)}</span></td>
+            <td class="market-col"><span class="badge bg-light text-dark border">${escapeHtml(goals)}</span></td>
+            <td class="market-col fw-bold text-success">${escapeHtml(score)}</td>
+            ${caseCells}
+            <td>
+                <div class="d-flex align-items-center justify-content-center gap-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" data-detail-button="${escapeHtml(source.id)}" onclick="toggleAnalysisDetail('${escapeHtml(source.id)}')" title="Mostrar/ocultar contexto y estadísticas"><i class="fa-solid fa-chevron-up"></i></button>
+                    <button type="button" class="btn btn-outline-warning btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" onclick="searchPatterns('${escapeHtml(source.id)}', this)" title="Buscar patrones similares"><i class="fa-solid fa-compass" style="font-size:11px;"></i></button>
+                    <a href="/estudio/${escapeHtml(source.id)}" target="_blank" class="btn btn-outline-secondary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" title="Ver estudio"><i class="fas fa-eye" style="font-size:10px;"></i></a>
+                </div>
+            </td>
+        </tr>
+        <tr class="detail-row" id="${detailId}">
+            <td colspan="14">
+                ${contextCardHtml}
+                <div class="stat-grid">${analysisBoxes(match)}</div>
+            </td>
+        </tr>`;
+    }
+
+    function renderGroupedStages(groupedRounds) {
+        const container = $('stagesContainer');
+        if (!container) return;
+        
+        if (!groupedRounds || !groupedRounds.length) {
+            container.innerHTML = '<div class="alert alert-warning">No hay jornadas o fases registradas en esta liga.</div>';
+            return;
+        }
+
+        container.innerHTML = groupedRounds.map(group => {
+            const isCup = group.is_cup_stage;
+            const badgeClass = isCup ? 'cup-stage' : 'league-round';
+            const icon = isCup ? 'fa-solid fa-trophy text-warning' : 'fa-solid fa-calendar-days text-primary';
+            const rowsHtml = group.matches.map(buildMatchRowHtml).join('');
+            const pct = group.count ? Math.round((group.available / group.count) * 100) : 0;
+            const isComplete = group.available >= group.count && group.count > 0;
+            
+            return `<div class="stage-card" id="stage-block-${escapeHtml(group.key)}">
+                <div class="stage-head">
+                    <div class="stage-title">
+                        <i class="${icon}"></i>
+                        <span>${escapeHtml(group.label)}</span>
+                        <span class="stage-badge ${badgeClass}">${isCup ? 'Copa / Fase' : 'Liga'}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge ${isComplete ? 'bg-success' : 'bg-secondary'}" style="font-size:0.75rem;">
+                            ${group.available}/${group.count} Analizados (${pct}%)
+                        </span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleStageBlock('${escapeHtml(group.key)}')">
+                            <i class="fa-solid fa-chevron-up" id="stage-icon-${escapeHtml(group.key)}"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="explorer-table-wrap" id="stage-body-${escapeHtml(group.key)}">
+                    <table class="table explorer-table align-middle">
+                        <thead><tr>
+                            <th class="date-col">Fecha</th>
+                            <th class="team-col">Local</th>
+                            <th class="team-col">Visitante</th>
+                            <th class="market-col">HA</th>
+                            <th class="market-col">O/U</th>
+                            <th class="market-col">FT</th>
+                            <th class="case-col">Prev Home</th>
+                            <th class="case-col">Prev Away</th>
+                            <th class="case-col">H2H Estadio</th>
+                            <th class="case-col">H2H General</th>
+                            <th class="case-col col-h2h-col3">H2H Col3</th>
+                            <th class="case-col">Ind. Local</th>
+                            <th class="case-col">Ind. Visitante</th>
+                            <th style="width:85px">Acciones</th>
+                        </tr></thead>
+                        <tbody>${rowsHtml || '<tr><td colspan="14" class="py-4 text-muted">Sin partidos en esta fase</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleStageBlock(stageKey) {
+        const body = $(`stage-body-${stageKey}`);
+        const icon = $(`stage-icon-${stageKey}`);
+        if (!body) return;
+        const willHide = !body.classList.contains('d-none');
+        body.classList.toggle('d-none', willHide);
+        if (icon) icon.className = willHide ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
     }
 
     function updateRoundButtons() {
@@ -389,122 +698,186 @@
         $('roundNext').disabled=index<0||index>=activeRounds.length-1;
     }
 
-    async function openExtraction(extractionId,roundKey='',scroll=false) {
+    async function openExtraction(extractionId, roundKey='', scroll=false) {
         try {
-            activeExtractionId=extractionId;
-            const query=roundKey?`?round=${encodeURIComponent(roundKey)}`:'';
-            const response=await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}${query}`);
-            const data=await response.json();
-            if(!response.ok) throw new Error(data.error||'No se pudo abrir la extracción');
-            const extraction=data.extraction;
-            activeRounds=data.rounds||[];
-            activeRoundKey=data.current_round||'';
-            const current=activeRounds.find(round=>round.key===activeRoundKey);
-            $('analysisTitle').textContent=`${extraction.league_name} · ${extraction.season||'Temporada sin nombre'}`;
-            $('analysisSubtitle').textContent=`${data.total} partidos registrados · explorador histórico por jornadas`;
-            $('downloadLeague').href=`/api/league-extractions/${encodeURIComponent(extractionId)}/export-all-seasons`;
-            const missingCount=activeRounds.reduce((total,round)=>total+Math.max(0,Number(round.count||0)-Number(round.available||0)),0);
-            $('scrapeMissing').classList.toggle('d-none',missingCount<=0);
-            $('scrapeMissing').disabled=false;
-            $('scrapeMissing').innerHTML=`<i class="fa-solid fa-rotate me-1"></i> Completar pendientes (${missingCount})`;
-            $('roundSelect').innerHTML=activeRounds.map(round=>`<option value="${escapeHtml(round.key)}" ${round.key===activeRoundKey?'selected':''}>${escapeHtml(round.label)} (${round.count})</option>`).join('');
-            $('roundSummary').textContent=current?`${current.available}/${current.count} análisis disponibles en esta jornada`:'';
-            $('roundNavigation').classList.toggle('d-none',!activeRounds.length);
+            activeExtractionId = extractionId;
+            const query = roundKey ? `?round=${encodeURIComponent(roundKey)}` : '';
+            const response = await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}${query}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo abrir la extracción');
+            
+            const extraction = data.extraction;
+            activeRounds = data.rounds || [];
+            activeRoundKey = data.current_round || 'all';
+            activeGroupedRounds = data.grouped_rounds || [];
+            
+            $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${escapeHtml(extraction.league_name)} · ${escapeHtml(extraction.season || 'Temporada')}`;
+            $('analysisSubtitle').textContent = `${data.total} partidos registrados · Organizador por Jornadas y Copas`;
+            $('downloadLeague').href = `/api/league-extractions/${encodeURIComponent(extractionId)}/export-all-seasons`;
+            
+            const missingCount = activeRounds.reduce((total, round) => total + Math.max(0, Number(round.count || 0) - Number(round.available || 0)), 0);
+            $('scrapeMissing').classList.toggle('d-none', missingCount <= 0);
+            $('scrapeMissing').disabled = false;
+            $('scrapeMissing').innerHTML = `<i class="fa-solid fa-rotate me-1"></i> Completar pendientes (${missingCount})`;
+            
+            const options = [
+                '<option value="">✨ Todas las Jornadas / Fases de Copa</option>',
+                ...activeRounds.map(round => `<option value="${escapeHtml(round.key)}" ${round.key === activeRoundKey ? 'selected' : ''}>${escapeHtml(round.label)} (${round.available}/${round.count})</option>`)
+            ];
+            $('roundSelect').innerHTML = options.join('');
+            
+            const currentRoundObj = activeRounds.find(r => r.key === activeRoundKey);
+            $('roundSummary').textContent = currentRoundObj ? `${currentRoundObj.available}/${currentRoundObj.count} análisis listos` : `${data.total} partidos en total`;
+            $('roundNavigation').classList.toggle('d-none', !activeRounds.length);
             updateRoundButtons();
-            $('analysisRows').innerHTML='';
-            data.matches.forEach(payload=>renderAnalysisMatch(payload));
-            if(!data.matches.length)$('analysisRows').innerHTML='<tr><td colspan="14" class="py-4 text-muted">No hay partidos registrados en esta jornada.</td></tr>';
+
+            if (roundKey && roundKey !== 'all') {
+                const singleGroup = activeGroupedRounds.filter(g => g.key === roundKey);
+                renderGroupedStages(singleGroup.length ? singleGroup : activeGroupedRounds);
+            } else {
+                renderGroupedStages(activeGroupedRounds);
+            }
+
             $('analysisPanel').classList.remove('d-none');
-            if(scroll) $('analysisPanel').scrollIntoView({behavior:'smooth',block:'start'});
-        } catch(error) { message('danger',error.message); }
+            if (scroll) $('analysisPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+            message('danger', error.message);
+        }
     }
 
-    async function loadLiveMatch(extractionId,result) {
-        if(!['saved','exists'].includes(result.status)) return;
-        const key=`${extractionId}:${result.id}`;
-        if(liveLoaded.has(key)) return;
+    async function loadLiveMatch(extractionId, result) {
+        if (!['saved', 'exists'].includes(result.status)) return;
+        const key = `${extractionId}:${result.id}`;
+        if (liveLoaded.has(key)) return;
         liveLoaded.add(key);
         try {
-            const response=await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}/match/${encodeURIComponent(result.id)}`);
-            const payload=await response.json();
-            if(!response.ok) throw new Error(payload.error||'No se pudo cargar el partido');
-            renderAnalysisMatch(payload);
-        } catch(error) {
+            const response = await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}/match/${encodeURIComponent(result.id)}`);
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.error || 'No se pudo cargar el partido');
+            
+            const row = document.querySelector(`tr[id="analysis-match-${result.id}"]`);
+            if (row) {
+                const updatedHtml = buildMatchRowHtml(payload);
+                const detailRow = document.querySelector(`tr[id="analysis-detail-${result.id}"]`);
+                if (row && detailRow) {
+                    detailRow.remove();
+                    row.insertAdjacentHTML('afterend', updatedHtml);
+                    row.remove();
+                }
+            }
+        } catch (error) {
             liveLoaded.delete(key);
         }
     }
 
-    $('extractForm').addEventListener('submit',async event=>{
-        event.preventDefault(); $('previewButton').disabled=true; message('info','Leyendo todas las jornadas y cuotas disponibles…'); $('previewPanel').classList.add('d-none');
-        try { const response=await fetch('/api/league_handicap/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_reference:$('leagueReference').value,season:$('season').value,ah:$('targetAh').value,company_id:$('company').value,match_status:$('matchStatus').value})}); const data=await response.json(); if(!response.ok) throw new Error(data.error||'No se pudo consultar la liga'); render(data); message(data.matches.length?'success':'warning',data.matches.length?`Calendario recuperado: ${data.matches.length} partidos. Revisa la selección antes de guardar.`:'No hay partidos con esos filtros.'); }
-        catch(error){ message('danger',error.message); }
-        finally { $('previewButton').disabled=false; }
-    });
-    $('selectAll').addEventListener('click',()=>{document.querySelectorAll('.match-check').forEach(el=>el.checked=true);updateSelection();});
-    $('selectNew').addEventListener('click',()=>{document.querySelectorAll('.match-check').forEach(el=>el.checked=!preview.matches[Number(el.dataset.index)].already_in_sql);updateSelection();});
-    $('registerLeague').addEventListener('click',async()=>{
-        if(!preview||!preview.matches.length)return;
-        $('registerLeague').disabled=true;
-        try {
-            const response=await fetch('/api/league-extractions/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_id:preview.league_id,league_name:preview.league_name,season:preview.season,label:$('leagueLabel').value.trim(),company_id:preview.company_id,target_ah:preview.target_ah,matches:preview.matches})});
-            const data=await response.json();
-            if(!response.ok)throw new Error(data.error||'No se pudo registrar la liga');
-            message('success',`Liga guardada con la etiqueta “${data.extraction.label}”.`);
-            await loadArchives();
-            await openExtraction(data.extraction.extraction_id,'',true);
-        } catch(error){message('danger',error.message);}
-        finally{$('registerLeague').disabled=false;}
+    $('extractForm').addEventListener('submit', async event => {
+        event.preventDefault(); $('previewButton').disabled = true; message('info', 'Leyendo todas las jornadas y cuotas disponibles…'); $('previewPanel').classList.add('d-none');
+        try { const response = await fetch('/api/league_handicap/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_reference: $('leagueReference').value, season: $('season').value, ah: $('targetAh').value, company_id: $('company').value, match_status: $('matchStatus').value }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'No se pudo consultar la liga'); render(data); message(data.matches.length ? 'success' : 'warning', data.matches.length ? `Calendario recuperado: ${data.matches.length} partidos. Revisa la selección antes de guardar.` : 'No hay partidos con esos filtros.'); }
+        catch (error) { message('danger', error.message); }
+        finally { $('previewButton').disabled = false; }
     });
 
-    async function poll(jobId){
-        try { const response=await fetch(`/api/league_handicap/status/${encodeURIComponent(jobId)}`); const job=await response.json(); if(!response.ok) throw new Error(job.error||'No se pudo consultar el proceso'); const pct=job.total?Math.round(job.processed/job.total*100):0; $('progressBar').style.width=`${pct}%`; $('progressCount').textContent=`${job.processed}/${job.total}`; $('progressText').textContent=job.status==='completed'?'Extracción completada':'Analizando partidos y guardando en SQL…'; const colors={saved:'success',exists:'secondary',filtered:'warning',error:'danger'}; $('results').innerHTML=job.results.map(r=>`<div class="small border-bottom py-1"><span class="badge bg-${colors[r.status]||'secondary'}">${escapeHtml(r.status)}</span> <strong>${escapeHtml(r.id)}</strong> Jornada ${escapeHtml(r.round||'—')} · ${escapeHtml(r.error||r.bucket||'')}</div>`).join(''); job.results.forEach(r=>{const row=document.querySelector(`tr[data-match-id="${r.id}"]`);if(row){row.querySelector('.sql-state').innerHTML=(r.status==='saved'||r.status==='exists')?`<span class="badge bg-success">${escapeHtml(r.bucket||'SQL')}</span>`:`<span class="badge bg-danger">${escapeHtml(r.status)}</span>`;if(r.stored_initial_ah!=null)row.querySelector('.stored-ah').textContent=r.stored_initial_ah;} loadLiveMatch(job.extraction_id,r);}); if(job.status==='completed'){ $('progressBar').classList.remove('progress-bar-animated'); const c=job.counts||{}; message(c.error?'warning':'success',`Finalizado: ${c.saved||0} guardados, ${c.exists||0} existentes, ${c.filtered||0} filtrados y ${c.error||0} errores.`); $('startButton').disabled=false; await loadArchives(); await openExtraction(job.extraction_id,'',false); return; } if(job.status==='failed')throw new Error(job.error||'El proceso falló'); pollTimer=setTimeout(()=>poll(jobId),1000); }
-        catch(error){message('danger',error.message);$('startButton').disabled=false;}
+    $('selectAll').addEventListener('click', () => { document.querySelectorAll('.match-check').forEach(el => el.checked = true); updateSelection(); });
+    $('selectNew').addEventListener('click', () => { document.querySelectorAll('.match-check').forEach(el => el.checked = !preview.matches[Number(el.dataset.index)].already_in_sql); updateSelection(); });
+    $('registerLeague').addEventListener('click', async () => {
+        if (!preview || !preview.matches.length) return;
+        $('registerLeague').disabled = true;
+        try {
+            const response = await fetch('/api/league-extractions/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_id: preview.league_id, league_name: preview.league_name, season: preview.season, label: $('leagueLabel').value.trim(), company_id: preview.company_id, target_ah: preview.target_ah, matches: preview.matches }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo registrar la liga');
+            message('success', `Liga guardada con la etiqueta “${data.extraction.label}”.`);
+            await loadArchives();
+            await openExtraction(data.extraction.extraction_id, '', true);
+        } catch (error) { message('danger', error.message); }
+        finally { $('registerLeague').disabled = false; }
+    });
+
+    async function poll(jobId) {
+        try {
+            const response = await fetch(`/api/league_handicap/status/${encodeURIComponent(jobId)}`);
+            const job = await response.json();
+            if (!response.ok) throw new Error(job.error || 'No se pudo consultar el proceso');
+            const pct = job.total ? Math.round(job.processed / job.total * 100) : 0;
+            $('progressBar').style.width = `${pct}%`;
+            $('progressCount').textContent = `${job.processed}/${job.total}`;
+            $('progressText').textContent = job.status === 'completed' ? 'Extracción completada' : 'Analizando partidos y guardando en SQL…';
+            const colors = { saved: 'success', exists: 'secondary', filtered: 'warning', error: 'danger' };
+            $('results').innerHTML = job.results.map(r => `<div class="small border-bottom py-1"><span class="badge bg-${colors[r.status] || 'secondary'}">${escapeHtml(r.status)}</span> <strong>${escapeHtml(r.id)}</strong> Jornada ${escapeHtml(r.round || '—')} · ${escapeHtml(r.error || r.bucket || '')}</div>`).join('');
+            job.results.forEach(r => {
+                const row = document.querySelector(`tr[data-match-id="${r.id}"]`);
+                if (row) {
+                    row.querySelector('.sql-state').innerHTML = (r.status === 'saved' || r.status === 'exists') ? `<span class="badge bg-success">${escapeHtml(r.bucket || 'SQL')}</span>` : `<span class="badge bg-danger">${escapeHtml(r.status)}</span>`;
+                    if (r.stored_initial_ah != null) row.querySelector('.stored-ah').textContent = r.stored_initial_ah;
+                }
+                loadLiveMatch(job.extraction_id, r);
+            });
+            if (job.status === 'completed') {
+                $('progressBar').classList.remove('progress-bar-animated');
+                const c = job.counts || {};
+                message(c.error ? 'warning' : 'success', `Finalizado: ${c.saved || 0} guardados, ${c.exists || 0} existentes, ${c.filtered || 0} filtrados y ${c.error || 0} errores.`);
+                $('startButton').disabled = false;
+                await loadArchives();
+                await openExtraction(job.extraction_id, '', false);
+                return;
+            }
+            if (job.status === 'failed') throw new Error(job.error || 'El proceso falló');
+            pollTimer = setTimeout(() => poll(jobId), 1000);
+        } catch (error) {
+            message('danger', error.message);
+            $('startButton').disabled = false;
+        }
     }
 
-    $('startButton').addEventListener('click',async()=>{
-        const matches=selected();
-        if(!matches.length||!preview)return;
-        if(!confirm(`¿Analizar ${matches.length} partidos con el sistema completo y guardarlos en SQL?`))return;
-        clearTimeout(pollTimer); liveLoaded.clear(); $('startButton').disabled=true;
-        $('progressPanel').classList.remove('d-none'); $('progressBar').classList.add('progress-bar-animated'); $('progressBar').style.width='0%'; $('results').innerHTML='';
-        $('analysisRows').innerHTML=''; $('analysisTitle').textContent=`${preview.league_name} · análisis en curso`; $('analysisSubtitle').textContent='Los partidos aparecerán aquí según termine cada análisis.'; $('roundNavigation').classList.add('d-none'); $('analysisPanel').classList.remove('d-none');
-        message('info','Creando el trabajo de extracción profunda…');
+    $('startButton').addEventListener('click', async () => {
+        const matches = selected();
+        if (!matches.length || !preview) return;
+        if (!confirm(`¿Analizar ${matches.length} partidos con el sistema completo y guardarlos en SQL?`)) return;
+        clearTimeout(pollTimer); liveLoaded.clear(); $('startButton').disabled = true;
+        $('progressPanel').classList.remove('d-none'); $('progressBar').classList.add('progress-bar-animated'); $('progressBar').style.width = '0%'; $('results').innerHTML = '';
+        $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${preview.league_name} · análisis en curso`;
+        $('analysisSubtitle').textContent = 'Los partidos aparecerán aquí según termine cada análisis.';
+        $('roundNavigation').classList.add('d-none');
+        $('analysisPanel').classList.remove('d-none');
+        message('info', 'Creando el trabajo de extracción profunda…');
         try {
-            const response=await fetch('/api/league_handicap/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({league_id:preview.league_id,league_name:preview.league_name,season:preview.season,label:$('leagueLabel').value.trim(),company_id:preview.company_id,target_ah:preview.target_ah,workers:$('workers').value,force:$('force').checked,matches})});
-            const data=await response.json();
-            if(!response.ok)throw new Error(data.error||'No se pudo iniciar');
-            activeExtractionId=data.extraction_id; loadArchives(); poll(data.job_id);
-        } catch(error){message('danger',error.message);$('startButton').disabled=false;}
+            const response = await fetch('/api/league_handicap/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_id: preview.league_id, league_name: preview.league_name, season: preview.season, label: $('leagueLabel').value.trim(), company_id: preview.company_id, target_ah: preview.target_ah, workers: $('workers').value, force: $('force').checked, matches }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo iniciar');
+            activeExtractionId = data.extraction_id; loadArchives(); poll(data.job_id);
+        } catch (error) { message('danger', error.message); $('startButton').disabled = false; }
     });
 
-    $('refreshArchives').addEventListener('click',loadArchives);
-    $('scrapeMissing').addEventListener('click',async()=>{
-        if(!activeExtractionId)return;
-        $('scrapeMissing').disabled=true;
-        message('info','Preparando los partidos que faltan en la liga…');
-        try{
-            const response=await fetch(`/api/league-extractions/${encodeURIComponent(activeExtractionId)}/scrape-missing`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({limit:500,workers:$('workers').value})});
-            const data=await response.json();
-            if(!response.ok)throw new Error(data.error||'No se pudo reanudar la liga');
-            if(data.status==='completed'){
-                message('success',data.message||'La liga ya está completa.');
-                await openExtraction(activeExtractionId,'',false);
+    $('refreshArchives').addEventListener('click', loadArchives);
+    $('scrapeMissing').addEventListener('click', async () => {
+        if (!activeExtractionId) return;
+        $('scrapeMissing').disabled = true;
+        message('info', 'Preparando los partidos que faltan en la liga…');
+        try {
+            const response = await fetch(`/api/league-extractions/${encodeURIComponent(activeExtractionId)}/scrape-missing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit: 500, workers: $('workers').value }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo reanudar la liga');
+            if (data.status === 'completed') {
+                message('success', data.message || 'La liga ya está completa.');
+                await openExtraction(activeExtractionId, '', false);
                 return;
             }
             $('progressPanel').classList.remove('d-none');
             $('progressBar').classList.add('progress-bar-animated');
-            $('progressBar').style.width='0%';
-            $('results').innerHTML='';
-            message('info',`Analizando ${data.total} partidos. Después de este lote quedarán ${data.remaining_after_batch}.`);
+            $('progressBar').style.width = '0%';
+            $('results').innerHTML = '';
+            message('info', `Analizando ${data.total} partidos. Después de este lote quedarán ${data.remaining_after_batch}.`);
             poll(data.job_id);
-        }catch(error){message('danger',error.message);$('scrapeMissing').disabled=false;}
+        } catch (error) { message('danger', error.message); $('scrapeMissing').disabled = false; }
     });
-    $('roundSelect').addEventListener('change',event=>activeExtractionId&&openExtraction(activeExtractionId,event.target.value));
-    $('roundPrev').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>0)openExtraction(activeExtractionId,activeRounds[index-1].key);});
-    $('roundNext').addEventListener('click',()=>{const index=activeRounds.findIndex(round=>round.key===activeRoundKey);if(activeExtractionId&&index>=0&&index<activeRounds.length-1)openExtraction(activeExtractionId,activeRounds[index+1].key);});
+
+    $('roundSelect').addEventListener('change', event => activeExtractionId && openExtraction(activeExtractionId, event.target.value));
+    $('roundPrev').addEventListener('click', () => { const index = activeRounds.findIndex(round => round.key === activeRoundKey); if (activeExtractionId && index > 0) openExtraction(activeExtractionId, activeRounds[index - 1].key); });
+    $('roundNext').addEventListener('click', () => { const index = activeRounds.findIndex(round => round.key === activeRoundKey); if (activeExtractionId && index >= 0 && index < activeRounds.length - 1) openExtraction(activeExtractionId, activeRounds[index + 1].key); });
+
     loadArchives();
-    const initialExtractionId=new URLSearchParams(window.location.search).get('extraction_id');
-    if(initialExtractionId)openExtraction(initialExtractionId,'',true);
+    const initialExtractionId = new URLSearchParams(window.location.search).get('extraction_id');
+    if (initialExtractionId) openExtraction(initialExtractionId, '', true);
 </script>
 </body>
 </html>
