@@ -77,8 +77,29 @@ def _round_sort_key(value: Tuple[str, str]) -> Tuple[str, int, str]:
     return sub_id, 10**9, str(round_value)
 
 
+def _walk_schedule_matches(node: Any, sub_id: str = "0", round_name: str = "") -> Iterable[Tuple[str, str, list]]:
+    if isinstance(node, dict):
+        for key, val in node.items():
+            key_str = str(key)
+            new_sub_id = sub_id
+            new_round = round_name
+            if key_str.startswith("sub_"):
+                new_sub_id = key_str.removeprefix("sub_")
+            elif key_str.startswith("R_"):
+                new_round = key_str.removeprefix("R_")
+            elif key_str.startswith("G"):
+                new_round = key_str
+            yield from _walk_schedule_matches(val, new_sub_id, new_round)
+    elif isinstance(node, list):
+        if len(node) >= 8 and str(node[0]).isdigit() and (isinstance(node[1], int) or str(node[1]).isdigit()):
+            yield sub_id, round_name, node
+        else:
+            for item in node:
+                yield from _walk_schedule_matches(item, sub_id, round_name)
+
+
 def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], List[Tuple[str, str]]]:
-    teams = {str(row[0]): row[1] for row in data.get("TeamInfo", []) if len(row) > 1}
+    teams = {str(row[0]): row[1] for row in data.get("TeamInfo", []) if isinstance(row, list) and len(row) > 1}
     sub_names = {
         str(row[0]): str(row[1])
         for row in data.get("SubLeagueInfo", [])
@@ -87,31 +108,33 @@ def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], 
     matches: Dict[str, Dict[str, Any]] = {}
     rounds: List[Tuple[str, str]] = []
 
-    for schedule_key, round_map in (data.get("ScheduleList") or {}).items():
-        if not isinstance(round_map, dict):
+    for sub_id, round_value, row in _walk_schedule_matches(data.get("ScheduleList") or {}):
+        if not isinstance(row, list) or len(row) < 8:
             continue
-        sub_id = schedule_key.removeprefix("sub_") if schedule_key.startswith("sub_") else "0"
-        for round_key, rows in round_map.items():
-            round_match = re.fullmatch(r"R_(.+)", str(round_key))
-            if not round_match or not isinstance(rows, list):
-                continue
-            round_value = round_match.group(1)
+        match_id = str(row[0])
+
+        row_ah = None
+        if len(row) > 8 and row[8] is not None and str(row[8]).strip() not in ("", "-"):
+            try:
+                row_ah = float(str(row[8]).strip())
+            except ValueError:
+                pass
+
+        if round_value:
             rounds.append((sub_id, round_value))
-            for row in rows:
-                if not isinstance(row, list) or len(row) < 8:
-                    continue
-                match_id = str(row[0])
-                matches[match_id] = {
-                    "id": match_id,
-                    "sub_id": str(sub_id),
-                    "sub_name": sub_names.get(str(sub_id), ""),
-                    "round": round_value,
-                    "date": row[3],
-                    "home": teams.get(str(row[4]), str(row[4])),
-                    "away": teams.get(str(row[5]), str(row[5])),
-                    "score": row[6] or "-",
-                    "source_state": row[2],
-                }
+
+        matches[match_id] = {
+            "id": match_id,
+            "sub_id": str(sub_id),
+            "sub_name": sub_names.get(str(sub_id), ""),
+            "round": round_value,
+            "date": str(row[3]) if len(row) > 3 else "",
+            "home": teams.get(str(row[4]), str(row[4])) if len(row) > 4 else str(row[4]),
+            "away": teams.get(str(row[5]), str(row[5])) if len(row) > 5 else str(row[5]),
+            "score": row[6] or "-" if len(row) > 6 else "-",
+            "source_state": row[2] if len(row) > 2 else 0,
+            "row_ah": row_ah,
+        }
     return matches, sorted(set(rounds), key=_round_sort_key)
 
 
@@ -156,12 +179,35 @@ def preview_league_handicap(
 
     all_odds: Dict[str, Dict[str, float]] = {}
     for sub_id, round_value in rounds:
-        odds_url = (
+        if round_value and not round_value.startswith("G"):
+            odds_url = (
+                f"{BASE_URL}/ajax/LeagueOddsAjax?sclassId={league_id}"
+                f"&subSclassId={sub_id}&matchSeason={discovered_season}&round={round_value}"
+            )
+            try:
+                for match_id, odds in parse_round_odds(_get_text(session, odds_url), company_id).items():
+                    all_odds[match_id] = odds
+            except Exception:
+                pass
+
+    if len(all_odds) < len(match_map):
+        fallback_odds_url = (
             f"{BASE_URL}/ajax/LeagueOddsAjax?sclassId={league_id}"
-            f"&subSclassId={sub_id}&matchSeason={discovered_season}&round={round_value}"
+            f"&subSclassId=0&matchSeason={discovered_season}&round=1"
         )
-        for match_id, odds in parse_round_odds(_get_text(session, odds_url), company_id).items():
-            all_odds[match_id] = odds
+        try:
+            for match_id, odds in parse_round_odds(_get_text(session, fallback_odds_url), company_id).items():
+                all_odds.setdefault(match_id, odds)
+        except Exception:
+            pass
+
+    for match_id, m in match_map.items():
+        if match_id not in all_odds and m.get("row_ah") is not None:
+            all_odds[match_id] = {
+                "home_odds_hk": None,
+                "visible_ah": m["row_ah"],
+                "away_odds_hk": None,
+            }
 
     if target_ah is None:
         selected_ids = list(match_map)
