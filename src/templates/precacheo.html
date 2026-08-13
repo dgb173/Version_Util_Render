@@ -354,50 +354,55 @@
             border-bottom: 2px solid #dbe5ef;
         }
 
-        .pre-context-title { font-size: .82rem; font-weight: 900; color: #1e3a5f; }
-        .pre-context-note { font-size: .65rem; font-weight: 700; color: #64748b; }
-        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        .pre-context-copy { padding: 4px 8px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .62rem; font-weight: 900; white-space: nowrap; }
+        .pre-context-title { font-size: .95rem; font-weight: 900; color: #1e3a5f; }
+        .pre-context-note { font-size: .78rem; font-weight: 700; color: #64748b; }
+        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .75rem; font-weight: 900; cursor: pointer; white-space: nowrap; user-select: none; }
+        .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
+        .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
         .pre-context-copy:hover { background: #0d6efd; color: #fff; }
         .pre-context-league-filter { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 3px 6px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #475569; font-size: .58rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
         .pre-context-league-filter input { width: 12px; height: 12px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
         .pre-context-filter-empty { padding: 12px 8px; text-align: center; color: #94a3b8; font-size: .58rem; font-weight: 800; }
         .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .pre-context-moments.hide-previous { grid-template-columns: minmax(0, 1fr); }
+        .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
         .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
-        .pre-context-moment-head { padding: 7px 9px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
-        .pre-context-moment-title { font-size: .7rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
-        .pre-context-moment-meta { margin-top: 2px; font-size: .61rem; font-weight: 700; color: #64748b; }
+        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
+        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
+        .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
         .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .pre-context-team { min-width: 0; }
         .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
-        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 6px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .64rem; font-weight: 900; }
-        .pre-context-role { flex: 0 0 auto; padding: 1px 4px; border-radius: 4px; font-size: .5rem; font-weight: 900; }
+        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
+        .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
         .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
         .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
         .pre-context-role.is-all { color: #245a91; background: #e7f1fb; }
-        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .57rem; }
-        .pre-context-table th, .pre-context-table td { padding: 3px 4px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .5rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 20%; }
+        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
+        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
+        .pre-context-table .ctx-date { width: 22%; }
         .pre-context-table .ctx-league { width: 13%; text-align: center; font-weight: 900; }
         .pre-context-table .ctx-score { width: 15%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-ah { width: 14%; text-align: right; }
+        .pre-context-table .ctx-ah { width: 15%; text-align: right; }
         .pre-context-result-W { color: #16834b; background: #eef9f2; }
         .pre-context-result-D { color: #9a6700; background: #fff9e8; }
         .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
-        .pre-context-summary { display: flex; justify-content: center; gap: 8px; padding: 5px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .59rem; font-weight: 900; }
+        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
         .pre-context-summary .is-win { color: #16834b; }
         .pre-context-summary .is-draw { color: #9a6700; }
         .pre-context-summary .is-loss { color: #c92a3a; }
-        .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .65rem; font-weight: 700; }
+        .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .78rem; font-weight: 700; }
+        .pre-context-filter-empty { display: none; padding: 12px 10px; text-align: center; color: #64748b; background: #f8fafc; font-size: .75rem; font-weight: 700; }
 
-        .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 7px; }
-        .pre-context-ah-title { margin-bottom: 5px; color: #475569; font-size: .57rem; font-weight: 900; text-transform: uppercase; }
-        .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
-        .pre-context-ah-team { padding: 5px; border: 1px solid #dbe3ec; border-radius: 5px; background: #fff; font-size: .56rem; line-height: 1.35; }
+        .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 8px; }
+        .pre-context-ah-title { margin-bottom: 6px; color: #475569; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
+        .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+        .pre-context-ah-team { padding: 6px; border: 1px solid #dbe3ec; border-radius: 5px; background: #fff; font-size: .72rem; line-height: 1.35; }
         .pre-context-ah-team strong { color: #1e3a5f; }
-        .pre-context-correlation { margin-top: 6px; padding: 5px 7px; border-radius: 5px; text-align: center; font-size: .59rem; font-weight: 900; }
+        .pre-context-correlation { margin-top: 6px; padding: 6px 8px; border-radius: 5px; text-align: center; font-size: .75rem; font-weight: 900; }
         .pre-context-correlation.is-home { color: #137047; background: #e4f5eb; }
         .pre-context-correlation.is-away { color: #b4232f; background: #fdebec; }
         .pre-context-correlation.is-balanced { color: #9a6700; background: #fff7d6; }
@@ -3934,7 +3939,7 @@
 
         function hasRenderableSpecialistPicks(pc) {
             if (!pc || !Array.isArray(pc.specialist_picks)) return false;
-            const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED'];
+            const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED', 'CLAVE_DICOTOMICA_UNIVERSAL', 'DEFINITIVE_TRADING_ENGINE', 'MLS_DEDICATED_SYSTEM'];
             return pc.specialist_picks.some(p => p && supportedAlgorithms.includes(p.algorithm) && (p.type === 'AH' || p.type === 'OU'));
         }
 
@@ -4786,7 +4791,7 @@
 
                 if (hasHistory) {
                     // Separar por tipo: AH y OU
-                    const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED'];
+                    const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED', 'CLAVE_DICOTOMICA_UNIVERSAL', 'DEFINITIVE_TRADING_ENGINE', 'MLS_DEDICATED_SYSTEM'];
                     const ahPicks = pc.specialist_picks.filter(p => supportedAlgorithms.includes(p.algorithm) && p.type === 'AH');
                     const ouPicks = pc.specialist_picks.filter(p => supportedAlgorithms.includes(p.algorithm) && p.type === 'OU');
 
@@ -7203,7 +7208,7 @@
                         : (item?.home ?? item?.home_team ?? '');
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
                     const sameLeague = !!currentLeagueId && String(leagueId) === currentLeagueId;
-                    return `<tr class="pre-context-result-${result}" data-context-history-row="1" data-result="${result}" data-league-id="${esc(leagueId)}" data-same-league="${sameLeague ? '1' : '0'}">
+                    return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-same-league="${sameLeague ? '1' : '0'}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
                         <td class="ctx-league">${esc(leagueId)}</td>
                         <td title="${esc(rival)}">${esc(rival || '-')}</td>
@@ -7220,9 +7225,9 @@
                         <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
-                    <div class="pre-context-summary"><span class="is-win">V ${wins}</span><span class="is-draw">E ${draws}</span><span class="is-loss">D ${losses}</span></div>
-                    <div class="pre-context-filter-empty" hidden>Sin partidos de la liga ID ${esc(currentLeagueId || '-')}</div>`
-                    : '<div class="pre-context-empty">Sin historial previo en esta localía</div>'}
+                    <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>
+                    <div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>`
+                    : '<div class="pre-context-empty">Sin historial previo disponible</div>'}
                 </div>`;
             };
 
@@ -7256,6 +7261,8 @@
                 const momentHome = moment.home_name || currentHome;
                 const momentAway = moment.away_name || currentAway;
                 const allVenues = !!moment.is_neutral_venue;
+                const homeAllVenues = allVenues || !!moment.home_all_venues_fallback;
+                const awayAllVenues = allVenues || !!moment.away_all_venues_fallback;
                 const reversed = isPrevious && sameTeamName(momentHome, currentAway);
                 const metaText = isPrevious
                     ? `${moment.date || 'Fecha N/D'} · ${momentHome} ${moment.score || '-'} ${momentAway}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
@@ -7266,8 +7273,8 @@
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     <div class="pre-context-team-grid">
-                        ${renderTeam(momentHome, 'home', moment.home_matches, allVenues)}
-                        ${renderTeam(momentAway, 'away', moment.away_matches, allVenues)}
+                        ${renderTeam(momentHome, 'home', moment.home_matches, homeAllVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, awayAllVenues)}
                     </div>
                     ${renderSimilarAh(moment)}
                 </section>`;
@@ -7303,40 +7310,77 @@
                 return !!currentLeagueId && leagueId === currentLeagueId;
             });
             const currentNeutral = !!current.is_neutral_venue;
-            const buildCurrentText = sameLeagueOnly => `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', sameLeagueOnly ? sameLeagueMatches(current.home_matches) : current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', sameLeagueOnly ? sameLeagueMatches(current.away_matches) : current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            const currentLeague = String(current.league_id ?? pc.league_id ?? currentLeagueId ?? '').trim();
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
-            let previousSameLeagueText = previousText;
             if (previous) {
                 const previousHome = previous.home_name || currentHome;
                 const previousAway = previous.away_name || currentAway;
                 const previousNeutral = !!previous.is_neutral_venue;
                 const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
                 previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
-                previousSameLeagueText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', sameLeagueMatches(previous.home_matches), previousNeutral)}\n\n${teamText(previousAway, 'away', sameLeagueMatches(previous.away_matches), previousNeutral)}\n\n${similarAhText(previous)}`;
             }
             const contextScope = currentNeutral
                 ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
                 : 'CASA VS FUERA · TODAS LAS LIGAS';
-            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${buildCurrentText(false)}\n\n${previousText}`;
-            const sameLeagueScope = `LIGA ID ${currentLeagueId || 'N/D'} · ${currentNeutral ? 'TODAS LAS LOCALÍAS' : 'CASA VS FUERA'}`;
-            const sameLeagueCopyText = `CONTEXTO PREVIO (${sameLeagueScope})\n\n${buildCurrentText(true)}\n\n${previousSameLeagueText}`;
-            const noteAll = currentNeutral ? 'Historial completo de ambos equipos' : 'Local en casa y visitante fuera, con todas las ligas';
-            const noteSameLeague = `Solo liga ID ${currentLeagueId || 'N/D'}`;
+            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const filterDisabled = !currentLeague;
+            const hasPrevious = !!previous;
 
-            return `<div class="pre-context-panel">
+            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}">
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
-                        <div class="pre-context-note" data-all-text="${esc(noteAll)}" data-same-league-text="${esc(noteSameLeague)}">${esc(noteAll)}</div>
-                        ${currentLeagueId ? `<label class="pre-context-league-filter" title="Mostrar y copiar únicamente partidos con la misma liga ID ${esc(currentLeagueId)}"><input type="checkbox" onchange="togglePreMatchLeagueFilter(this)"><span>Misma liga ${esc(currentLeagueId)}</span></label>` : ''}
-                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" data-all-context="${encodeURIComponent(copyText)}" data-same-league-context="${encodeURIComponent(sameLeagueCopyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
+                        <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
+                        ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
+                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                     </div>
                 </div>
-                <div class="pre-context-moments">
+                <div class="pre-context-moments hide-previous">
                     ${renderMoment('Partido actual', current)}
-                    ${renderMoment('Último enfrentamiento entre ellos', previous, true)}
+                    ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
                 </div>
             </div>`;
+        }
+
+        function togglePreMatchPreviousH2H(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const momentsContainer = panel.querySelector('.pre-context-moments');
+            if (!momentsContainer) return;
+            if (checkbox.checked) {
+                momentsContainer.classList.remove('hide-previous');
+            } else {
+                momentsContainer.classList.add('hide-previous');
+            }
+        }
+
+        function filterPreMatchContextLeague(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const currentLeague = String(panel.dataset.currentLeague || '').trim();
+            const onlyCurrentLeague = !!checkbox.checked && !!currentLeague;
+            panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const rows = [...team.querySelectorAll('tbody tr[data-context-league]')];
+                const counts = { W: 0, D: 0, L: 0 };
+                let visibleRows = 0;
+                rows.forEach(row => {
+                    const visible = !onlyCurrentLeague || String(row.dataset.contextLeague || '').trim() === currentLeague;
+                    row.hidden = !visible;
+                    if (visible) {
+                        visibleRows += 1;
+                        const result = row.dataset.contextResult;
+                        if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
+                    }
+                });
+                team.querySelectorAll('[data-summary-result]').forEach(summary => {
+                    const result = summary.dataset.summaryResult;
+                    const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
+                    summary.textContent = `${prefix} ${counts[result] || 0}`;
+                });
+                const empty = team.querySelector('.pre-context-filter-empty');
+                if (empty) empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
+            });
         }
 
         function summarizeTeamSimpleLeagueStats(pc, teamName, side, scope = 'general') {
@@ -8147,134 +8191,63 @@
         }
 
         function renderClaveDicotomicaV7(m) {
-            const pickAh = m.clave_pick_ah || 'NO_BET';
-            const labelAh = m.clave_label_ah || 'NO BET AH';
-            const pickOu = m.clave_pick_ou || 'NO_BET';
-            const labelOu = m.clave_label_ou || 'OU neutro';
-            const rawAh = m.clave_raw_ah || pickAh;
-            const rawOu = m.clave_raw_ou || pickOu;
-            const tierAh = m.clave_tier_ah || 'NO_BET';
-            const tierOu = m.clave_tier_ou || 'NO_BET';
-            const confidenceAh = m.clave_confidence_ah || 'NONE';
-            const quality = m.clave_quality || {};
-            const qualityScore = Number.isFinite(Number(quality.score)) ? Number(quality.score) : 0;
-            const evidenceBlocks = Number.isFinite(Number(quality.evidence_blocks))
-                ? Number(quality.evidence_blocks)
-                : 0;
-            const ahGateReasons = Array.isArray(m.clave_ah_gate_reasons) ? m.clave_ah_gate_reasons : [];
-            const ouGateReasons = Array.isArray(m.clave_ou_gate_reasons) ? m.clave_ou_gate_reasons : [];
-            const productionRules = [
-                ...(Array.isArray(m.clave_production_ah_rules) ? m.clave_production_ah_rules : []),
-                ...(Array.isArray(m.clave_production_ou_rules) ? m.clave_production_ou_rules : [])
-            ];
-            const scoreDraw = m.clave_score_draw || 0;
-            const drawType = m.clave_draw_type || '';
-            const args = m.clave_argumentos || [];
-            const hooks = Array.isArray(m.clave_learning_hooks) ? m.clave_learning_hooks : [];
-            const roleMode = m.clave_role_mode || '';
-            const bookieDetector = m.clave_bookie_detector || {};
-            const bookieConfirmation = m.clave_bookie_confirmation || 'NO_DATA';
-            const bookieSignals = Array.isArray(bookieDetector.signals) ? bookieDetector.signals : [];
-            const compactAhLabel = labelAh
-                .replace(/\s*\(.+\)\s*$/, '')
-                .replace(/\s+cubre\s+AH\s+/i, ' ')
-                .replace(/\s+cubre\s+/i, ' ')
-                .replace(/\s+NO\s+supera\s+la\s+linea/i, '')
-                .trim();
-            const displayAh = compactAhLabel.length > 28
-                ? `${compactAhLabel.slice(0, 25).trim()}...`
-                : compactAhLabel;
+            const specPicks = Array.isArray(m.specialist_picks) ? m.specialist_picks : (Array.isArray(m.picks) ? m.picks : []);
+            
+            // Buscar si hay pick del Motor Definitivo o Sistema MLS
+            const defPick = specPicks.find(p => p && (p.algorithm === 'DEFINITIVE_TRADING_ENGINE' || p.algorithm === 'MLS_DEDICATED_SYSTEM'));
+            const ahPickObj = defPick || specPicks.find(p => p && p.type === 'AH');
+            const ouPickObj = specPicks.find(p => p && p.type === 'OU');
 
-            // Colores según pick AH
+            const pickAh = m.clave_pick_ah || (ahPickObj ? (ahPickObj.pick || ahPickObj.display_pick_label) : 'NO_BET');
+            const labelAh = ahPickObj ? (ahPickObj.display_pick_label || ahPickObj.pick) : (m.clave_label_ah || 'NO BET AH');
+            const labelOu = ouPickObj ? (ouPickObj.display_pick_label || ouPickObj.pick) : (m.clave_label_ou || 'OU neutro');
+
             let border = '#1e2d45';
             let bg = '#0e1520';
             let color = '#94a3b8';
+            let headerTitle = 'SISTEMA UNIVERSAL DEFINITIVO';
+            let badgeText = 'MOTOR OK';
+            let badgeBg = 'bg-primary';
 
-            if (pickAh === 'FAV_CUBRE') {
+            if (ahPickObj) {
+                border = '#22c55e';
+                bg = 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)';
+                color = '#4ade80';
+                badgeText = ahPickObj.confidence || 'ALTA';
+                badgeBg = 'bg-success';
+                if (ahPickObj.algorithm === 'MLS_DEDICATED_SYSTEM') {
+                    headerTitle = 'SISTEMA DEDICADO MLS';
+                    border = '#f59e0b';
+                }
+            } else if (pickAh === 'FAV_CUBRE') {
                 border = '#22c55e';
                 bg = '#16a34a15';
                 color = '#22c55e';
+                badgeText = 'NÚCLEO';
+                badgeBg = 'bg-success';
             } else if (pickAh === 'DOG_CUBRE') {
                 border = '#f97316';
                 bg = '#ea580c15';
                 color = '#f97316';
+                badgeText = 'UNDERDOG';
+                badgeBg = 'bg-warning text-dark';
             }
 
-            const isAhExpansion = tierAh === 'PRODUCTION_EXPANSION' && pickAh !== 'NO_BET';
-            const isAhProduction = (tierAh === 'PRODUCTION' || isAhExpansion) && pickAh !== 'NO_BET';
-            const isOuProduction = tierOu === 'PRODUCTION' && pickOu !== 'NO_BET';
-            const confidenceLabel = confidenceAh === 'HIGH'
-                ? 'ALTA'
-                : (confidenceAh === 'MEDIUM' ? 'MEDIA' : (confidenceAh === 'LOW' ? 'BAJA' : ''));
-            const stateBadge = isAhExpansion
-                ? `<span class="badge bg-primary" style="font-size:0.54rem;">EXP VALIDADA · ${confidenceLabel}</span>`
-                : (isAhProduction
-                ? `<span class="badge bg-success" style="font-size:0.54rem;">NÚCLEO · ${confidenceLabel}</span>`
-                : '<span class="badge bg-secondary" style="font-size:0.54rem;">OBS</span>');
-
-            const goalsBadge = isOuProduction
-                ? `<span class="badge ${pickOu === 'OVER' ? 'bg-warning text-dark' : 'bg-info text-dark'}" style="font-size:0.58rem;">${labelOu}</span>`
-                : '<span class="badge bg-light text-muted border" style="font-size:0.58rem;">OU neutro</span>';
-            const roleBadge = roleMode === 'PICKEM_DNB'
-                ? '<span class="badge bg-secondary" style="font-size:0.55rem;">PICKEM</span>'
-                : '';
-            const hookBadge = hooks.length
-                ? `<div class="text-center mt-1" style="font-size:0.5rem;color:#64748b;line-height:1.1;">${hooks.slice(0, 2).map(h => h.replace(/_/g, ' ')).join(' · ')}</div>`
-                : '';
-            const bookieBadge = bookieConfirmation === 'STRONG_CONFIRM'
-                ? '<span class="badge bg-success" style="font-size:0.55rem;">CASA + COL3 ✓</span>'
-                : (bookieConfirmation === 'CONFIRM'
-                    ? '<span class="badge bg-primary" style="font-size:0.55rem;">CASA CONFIRMA</span>'
-                    : (bookieConfirmation === 'CONFLICT'
-                        ? '<span class="badge bg-danger" style="font-size:0.55rem;">CONFLICTO COL3</span>'
-                        : ''));
-
-            let drawBadge = '';
-            if (scoreDraw >= 1.5) {
-                drawBadge = `
-                    <div class="mt-1 border border-primary rounded text-primary text-center px-1" style="font-size:0.55rem; font-weight:800; background: rgba(30,144,255,0.1);" title="Empate Estructural (Score: ${scoreDraw})">
-                        <i class="fa-solid fa-scale-balanced me-1"></i>EMPATE (${drawType})
-                    </div>
-                `;
-            }
-
-            const tooltipText = [
-                `Lectura AH: ${rawAh}`,
-                `Lectura OU: ${rawOu}`,
-                labelAh,
-                labelOu,
-                ...ahGateReasons,
-                ...ouGateReasons,
-                ...productionRules,
-                `Col3: ${bookieDetector.col3_direction || 'sin rama'} (${bookieDetector.col3_agrees === true ? 'coincide' : (bookieDetector.col3_agrees === false ? 'conflicto' : 'neutral')})`,
-                ...bookieSignals.map(signal => `${signal.id}: mov=${signal.movement}, delta=${signal.delta ?? 'N/A'}, residual=${signal.residual ?? 'N/A'}`),
-                ...args
-            ].join('\n')
-                .replace(/&/g, '&amp;')
-                .replace(/"/g, '&quot;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
+            const displayAh = labelAh.length > 28 ? `${labelAh.slice(0, 25).trim()}...` : labelAh;
+            const explanation = ahPickObj ? (ahPickObj.explanation || ahPickObj.perspective || '') : '';
 
             return `
-                <div class="clave-dicotomica-v7" title="${tooltipText}" style="cursor: help; width: 100%;">
-                    <div style="background:${bg}; border:2px solid ${border}; border-radius:8px; padding:6px 7px; width:100%; box-shadow:0 2px 4px rgba(0,0,0,0.08);">
+                <div class="clave-dicotomica-v7" title="${explanation.replace(/"/g, '&quot;')}" style="cursor: help; width: 100%;">
+                    <div style="background:${bg}; border:2px solid ${border}; border-radius:8px; padding:6px 7px; width:100%; box-shadow:0 2px 6px rgba(0,0,0,0.3);">
                         <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
-                            <span class="text-uppercase" style="font-size:0.53rem;font-weight:800;color:#f59e0b;line-height:1.1;letter-spacing:0;">CLAVE UNIVERSAL ${m.clave_engine_version || 'V7.0'}</span>
-                            ${stateBadge}
+                            <span class="text-uppercase" style="font-size:0.53rem;font-weight:900;color:#f59e0b;line-height:1.1;letter-spacing:0.3px;">${headerTitle}</span>
+                            <span class="badge ${badgeBg}" style="font-size:0.52rem;">${badgeText}</span>
                         </div>
-                        <div class="text-center mt-1" style="font-size:0.74rem; font-weight:800; color:${color}; line-height:1.15;">
+                        <div class="text-center mt-1" style="font-size:0.78rem; font-weight:900; color:${color}; line-height:1.15;">
                             ${displayAh}
                         </div>
-                        <div class="text-muted text-center" style="font-size:0.55rem; margin-top: 1px;">
-                            Edge ${m.clave_edge_ah !== undefined && m.clave_edge_ah !== null ? (m.clave_edge_ah >= 0 ? '+' : '') + Number(m.clave_edge_ah).toFixed(2) : '0.00'} · Q${qualityScore} · ${evidenceBlocks}B
-                        </div>
-                        <div class="d-flex justify-content-center gap-1 flex-wrap mt-1">
-                            ${roleBadge}
-                            ${goalsBadge}
-                            ${bookieBadge}
-                        </div>
-                        ${hookBadge}
-                        ${drawBadge}
+                        ${ouPickObj ? `<div class="text-center mt-1"><span class="badge bg-info text-dark" style="font-size:0.58rem;font-weight:800;">${labelOu}</span></div>` : ''}
+                        ${explanation ? `<div class="text-muted text-center mt-1" style="font-size:0.52rem;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${explanation.replace(/"/g, '&quot;')}">${explanation}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -9847,59 +9820,57 @@
 
                 // 3. H2H Estadio
                 let h2hStadiumData = null;
-                const stadium = pc && pc.market_analysis_data && pc.market_analysis_data.stadium;
-                const h2hStadiumRaw = pc && pc.h2h_stadium; // Datos adicionales con stats_rows
-                // Check if it's the same as General (implied logic: if identical, maybe only show one? User wants both usually)
-                // Let's just show it if it exists.
-                // Note: precacheo objects might not have full team names in market_analysis_data sub-objects, 
-                // but usually have 'result' and 'movement'. Obtener stats_rows de h2h_stadium.
-                if (stadium && (stadium.result || stadium.movement)) {
-                    // res1 pertenece al H2H en el estadio del local actual. No usar
-                    // h2h_gen_home/away: esos nombres corresponden a res6 (H2H General)
-                    // y pueden tener las localías invertidas.
-                    const stadiumHome = pc.home_name || pc.home_team || stadium.home_team || 'H';
-                    const stadiumAway = pc.away_name || pc.away_team || stadium.away_team || 'A';
-                    // Obtener stats_rows desde h2h_stadium (ubicación correcta)
-                    const stadiumStats = (h2hStadiumRaw && h2hStadiumRaw.stats_rows && h2hStadiumRaw.stats_rows.length > 0)
-                        ? h2hStadiumRaw.stats_rows
-                        : (stadium.stats_rows || []);
+                const stadium = (pc && pc.market_analysis_data && pc.market_analysis_data.stadium) || {};
+                const h2hStadiumRaw = (pc && pc.h2h_stadium) || {};
+                
+                const stadiumScore = stadium.result || h2hStadiumRaw.res1 || h2hStadiumRaw.res1_raw || h2hStadiumRaw.score || '';
+                const stadiumAh = stadium.movement || (h2hStadiumRaw.ah1 ? `AH: ${h2hStadiumRaw.ah1}` : '') || h2hStadiumRaw.handicap || '';
+                const stadiumDate = stadium.date || h2hStadiumRaw.date1 || h2hStadiumRaw.date || '';
+                const stadiumHome = pc.home_name || pc.home_team || stadium.home_team || h2hStadiumRaw.home_name || 'H';
+                const stadiumAway = pc.away_name || pc.away_team || stadium.away_team || h2hStadiumRaw.away_name || 'A';
+                const stadiumStats = (h2hStadiumRaw.stats_rows && h2hStadiumRaw.stats_rows.length > 0)
+                    ? h2hStadiumRaw.stats_rows
+                    : (stadium.stats_rows || []);
+
+                if (stadiumScore || stadiumAh || stadiumStats.length > 0) {
                     h2hStadiumData = {
                         match: {
                             home: stadiumHome,
                             away: stadiumAway,
-                            score: stadium.result
+                            score: stadiumScore
                         },
-                        date: stadium.date || '',
-                        ah: stadium.movement || '', // Show movement in AH slot
+                        date: stadiumDate,
+                        ah: stadiumAh,
                         stats: stadiumStats
                     };
                 }
                 const isDiffStadium = !!(stadium && stadium.is_different_league);
-                // Use same color as Ind (Blue-ish) or H2H (Yellow-ish)? 
-                // In explorer.html they are #e3f2fd (Light Blue).
                 const BG_STADIUM = '#e3f2fd';
                 statBoxes.push(createStatBox('H2H Estadio', h2hStadiumData, !h2hStadiumData, 'text-info', BG_STADIUM, isDiffStadium));
 
                 // 4. H2H General
                 let h2hGeneralData = null;
-                const general = pc && pc.market_analysis_data && pc.market_analysis_data.general;
-                const h2hGeneralRaw = pc && pc.h2h_general; // Datos adicionales con stats_rows
-                if (general && (general.result || general.movement)) {
-                    // Obtener nombres de equipos desde h2h_general si están disponibles
-                    const generalHome = (h2hGeneralRaw && h2hGeneralRaw.h2h_gen_home) ? h2hGeneralRaw.h2h_gen_home : (general.home_team || 'H');
-                    const generalAway = (h2hGeneralRaw && h2hGeneralRaw.h2h_gen_away) ? h2hGeneralRaw.h2h_gen_away : (general.away_team || 'A');
-                    // Obtener stats_rows desde h2h_general (ubicación correcta)
-                    const generalStats = (h2hGeneralRaw && h2hGeneralRaw.stats_rows && h2hGeneralRaw.stats_rows.length > 0)
-                        ? h2hGeneralRaw.stats_rows
-                        : (general.stats_rows || []);
+                const general = (pc && pc.market_analysis_data && pc.market_analysis_data.general) || {};
+                const h2hGeneralRaw = (pc && pc.h2h_general) || {};
+
+                const generalScore = general.result || h2hGeneralRaw.res6 || h2hGeneralRaw.res6_raw || h2hGeneralRaw.score || '';
+                const generalAh = general.movement || (h2hGeneralRaw.ah6 ? `AH: ${h2hGeneralRaw.ah6}` : '') || h2hGeneralRaw.handicap || '';
+                const generalDate = general.date || h2hGeneralRaw.date6 || h2hGeneralRaw.date || '';
+                const generalHome = h2hGeneralRaw.h2h_gen_home || general.home_team || pc.home_name || 'H';
+                const generalAway = h2hGeneralRaw.h2h_gen_away || general.away_team || pc.away_name || 'A';
+                const generalStats = (h2hGeneralRaw.stats_rows && h2hGeneralRaw.stats_rows.length > 0)
+                    ? h2hGeneralRaw.stats_rows
+                    : (general.stats_rows || []);
+
+                if (generalScore || generalAh || generalStats.length > 0) {
                     h2hGeneralData = {
                         match: {
                             home: generalHome,
                             away: generalAway,
-                            score: general.result
+                            score: generalScore
                         },
-                        date: general.date || '',
-                        ah: general.movement || '',
+                        date: generalDate,
+                        ah: generalAh,
                         stats: generalStats
                     };
                 }
@@ -10574,27 +10545,65 @@
             };
         }
 
-        // Fetch and copy LLM prompt
+        // Fetch and copy LLM prompt + Contexto Previo combinado
         async function copyLLMPrompt(matchId, btnElement) {
+            // 1. Si existe el botón .pre-context-copy en el DOM para este partido, lo usamos directamente
+            const preCtxBtn = document.querySelector(`#global-stats-${matchId} .pre-context-copy`);
+            if (preCtxBtn && preCtxBtn.dataset && preCtxBtn.dataset.context) {
+                return copyPreMatchContext(preCtxBtn, matchId);
+            }
+
+            // 2. Si no está generado en el DOM, obtenemos el prompt LLM y el contexto previo
             const originalHtml = btnElement.innerHTML;
+            const deferredClipboard = beginDeferredClipboardWrite();
             btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             btnElement.disabled = true;
 
             try {
-                const response = await fetch(`/api/export_prompt/${matchId}`);
-                const data = await response.json();
-                
-                if (data.success && data.prompt) {
-                    await copyToClipboard(data.prompt);
-                    btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
-                    btnElement.classList.add('btn-outline-success');
-                    btnElement.classList.remove('btn-outline-primary');
-                } else {
-                    alert('Error al generar prompt: ' + (data.error || 'Desconocido'));
-                    btnElement.innerHTML = originalHtml;
+                const [promptRes, ctxRes] = await Promise.all([
+                    fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`),
+                    fetch('/api/explorer_context_preview', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_id: matchId, force_refresh: false })
+                    }).catch(() => null)
+                ]);
+
+                const promptData = await promptRes.json();
+                if (!promptRes.ok || !promptData.success || !promptData.prompt) {
+                    throw new Error(promptData.error || 'No se pudo generar el prompt LLM');
                 }
+
+                let contextText = '';
+                if (ctxRes && ctxRes.ok) {
+                    try {
+                        const ctxData = await ctxRes.json();
+                        if (ctxData.status === 'success' && ctxData.pre_match_context) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = renderPreMatchContextCard(ctxData.pre_match_context);
+                            const tempBtn = tempDiv.querySelector('.pre-context-copy');
+                            if (tempBtn && tempBtn.dataset && tempBtn.dataset.context) {
+                                contextText = decodeURIComponent(tempBtn.dataset.context);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('No se pudo parsear el contexto previo para combinar:', e);
+                    }
+                }
+
+                let finalPayload = promptData.prompt;
+                if (contextText) {
+                    const divider = '='.repeat(72);
+                    finalPayload = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptData.prompt}`;
+                }
+
+                await deferredClipboard.finish(finalPayload);
+                btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+                btnElement.classList.add('btn-outline-success');
+                btnElement.classList.remove('btn-outline-primary');
             } catch (err) {
-                alert('Error al generar o copiar prompt: ' + err.message);
+                deferredClipboard.cancel(err);
+                alert('Error al copiar contexto + prompt: ' + err.message);
                 btnElement.innerHTML = originalHtml;
             } finally {
                 setTimeout(() => {

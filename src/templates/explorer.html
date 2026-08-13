@@ -400,6 +400,285 @@
             font-size: 0.75rem;
             color: #6c757d;
         }
+
+        /* --- Contexto Previo CSS (Letra ajustada más grande y legible) --- */
+        .pre-context-panel {
+            margin: 6px 0 12px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            background: #f8fafc;
+            color: #334155;
+            transition: box-shadow .2s ease, border-color .2s ease;
+            text-align: left;
+        }
+
+        .pre-context-panel.is-focused {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
+        }
+
+        .pre-context-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 7px;
+            border-bottom: 2px solid #dbe5ef;
+        }
+
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            /* Table optimizations for mobile */
+            .excel-table {
+                font-size: 0.75rem;
+            }
+
+            .excel-table th,
+            .excel-table td {
+                padding: 4px;
+            }
+
+            .header-filter {
+                font-size: 0.7rem;
+                padding: 2px;
+            }
+
+            .col-ah,
+            .col-res {
+                width: 50px;
+                font-size: 0.85rem;
+            }
+
+            .col-team {
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+
+            .col-prev {
+                min-width: 110px;
+            }
+        }
+
+        .mobile-header {
+            display: none;
+        }
+
+        /* H2H Col3 - Fondo rosa para distinguirla */
+        .col-h2h-col3 {
+            background-color: #ffe4ec !important;
+        }
+
+        /* Fondo rojo claro para celdas sin datos */
+        .cell-no-data {
+            background-color: #ffcdd2 !important;
+        }
+
+        /* MultiSelect Styles */
+        .multiselect-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .h2h-ah-filter-pair {
+            display: flex;
+            gap: 3px;
+            width: 100%;
+        }
+
+        .h2h-ah-filter-pair .multiselect-container {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .h2h-ah-filter-pair .multiselect-btn {
+            min-height: 25px;
+            padding: 3px 4px;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .multiselect-btn {
+            width: 100%;
+            text-align: left;
+            background: linear-gradient(to bottom, #fff, #f8f9fa);
+            border: 1px solid #adb5bd;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+
+        .multiselect-btn:hover {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            border-color: #6c757d;
+        }
+
+        .multiselect-btn::after {
+            content: '▼';
+            font-size: 0.6rem;
+            margin-left: 5px;
+            color: #6c757d;
+        }
+
+        .multiselect-dropdown {
+            display: none;
+            position: fixed;
+            /* Fixed instead of absolute to escape overflow:hidden containers */
+            width: 260px;
+            max-height: 350px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #adb5bd;
+            z-index: 9999;
+            /* Very high z-index */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 4px 0;
+        }
+
+        .multiselect-dropdown.show {
+            display: block;
+        }
+
+        .multiselect-option {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.15s;
+        }
+
+        .multiselect-option:last-child {
+            border-bottom: none;
+        }
+
+        .multiselect-option:hover {
+            background-color: #e3f2fd;
+        }
+
+        .multiselect-option input {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Color coding for positive/negative handicaps */
+        .multiselect-option[data-positive="true"] {
+            color: #0d6efd;
+        }
+
+        .multiselect-option[data-negative="true"] {
+            color: #dc3545;
+        }
+
+        .multiselect-option strong {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        /* --- Contexto Previo CSS (Letra ajustada más grande y legible) --- */
+        .pre-context-panel {
+            margin: 6px 0 12px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            background: #f8fafc;
+            color: #334155;
+            transition: box-shadow .2s ease, border-color .2s ease;
+            text-align: left;
+        }
+
+        .pre-context-panel.is-focused {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
+        }
+
+        .pre-context-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 7px;
+            border-bottom: 2px solid #dbe5ef;
+        }
+
+        .pre-context-title { font-size: .95rem; font-weight: 900; color: #1e3a5f; }
+        .pre-context-note { font-size: .78rem; font-weight: 700; color: #64748b; }
+        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .75rem; font-weight: 900; cursor: pointer; white-space: nowrap; user-select: none; }
+        .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
+        .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
+        .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .pre-context-moments.hide-previous { grid-template-columns: minmax(0, 1fr); }
+        .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
+        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
+        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
+        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
+        .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
+        .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .pre-context-team { min-width: 0; }
+        .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
+        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
+        .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
+        .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
+        .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-role.is-all { color: #245a91; background: #e7f1fb; }
+        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
+        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
+        .pre-context-table .ctx-date { width: 22%; }
+        .pre-context-table .ctx-league { width: 13%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-score { width: 15%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-ah { width: 15%; text-align: right; }
+        .pre-context-result-W { color: #16834b; background: #eef9f2; }
+        .pre-context-result-D { color: #9a6700; background: #fff9e8; }
+        .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
+        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
+        .pre-context-summary .is-win { color: #16834b; }
+        .pre-context-summary .is-draw { color: #9a6700; }
+        .pre-context-summary .is-loss { color: #c92a3a; }
+        .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .78rem; font-weight: 700; }
+        .pre-context-filter-empty { display: none; padding: 12px 10px; text-align: center; color: #64748b; background: #f8fafc; font-size: .75rem; font-weight: 700; }
+
+        .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 8px; }
+        .pre-context-ah-title { margin-bottom: 6px; color: #475569; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
+        .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+        .pre-context-ah-team { padding: 6px; border: 1px solid #dbe3ec; border-radius: 5px; background: #fff; font-size: .72rem; line-height: 1.35; }
+        .pre-context-ah-team strong { color: #1e3a5f; }
+        .pre-context-correlation { margin-top: 6px; padding: 6px 8px; border-radius: 5px; text-align: center; font-size: .75rem; font-weight: 900; }
+        .pre-context-correlation.is-home { color: #137047; background: #e4f5eb; }
+        .pre-context-correlation.is-away { color: #b4232f; background: #fdebec; }
+        .pre-context-correlation.is-balanced { color: #9a6700; background: #fff7d6; }
+        .pre-context-correlation.is-insufficient { color: #64748b; background: #edf2f7; }
+
+        @media (max-width: 900px) {
+            .pre-context-moments { grid-template-columns: 1fr; }
+            .pre-context-panel { min-width: 100%; }
+            .pre-context-note { display: none; }
+        }
     </style>
 </head>
 
@@ -1162,11 +1441,10 @@
             const ouLimitRaw = params.get('ou_limit');
             hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
-            const shouldAutoSearch = params.get('auto_search') === '1';
-            if ((hasPreset || Object.keys(explorerPresetStrictFilters).length > 0) && shouldAutoSearch) {
-                triggerSearch();
-            }
+            // Cargar datos automáticamente siempre al iniciar la página
+            triggerSearch();
         }
+
 
         // Helper function to calculate Asian Result Category
         function getAsianResultCategory(teamGoals, oppGoals, ahValue) {
@@ -1299,7 +1577,7 @@
                 // Las estadísticas detalladas se cargan al desplegar cada ficha.
                 // Evita repetirlas miles de veces en la descarga inicial completa.
                 include_stats: false,
-                limit: 20000
+                limit: 3000
             };
 
             // URL fallback (if UI presets were not reflected, keep backend filtering aligned).
@@ -1385,6 +1663,7 @@
 
             if (onlyWithHistory) {
                 filteredResults = totalResults.filter(item => {
+                    if (!item) return false;
                     // Requiere datos en AMBOS Prev Home y Prev Away
                     const hasPrevHome = item.prev_home && item.prev_home.score;
                     const hasPrevAway = item.prev_away && item.prev_away.score;
@@ -1394,7 +1673,8 @@
 
             // Filtro: Excluir partidos juveniles (excepto Italia U20/U21 e Inglaterra U21/U23)
             filteredResults = filteredResults.filter(item => {
-                const c = item.candidate;
+                const c = item?.candidate;
+                if (!c) return false;
                 const homeTeam = (c.home_team || c.home || '').toLowerCase();
                 const awayTeam = (c.away_team || c.away || '').toLowerCase();
                 const league = (c.league || '').toLowerCase();
@@ -1418,7 +1698,8 @@
 
             // Filtro: Excluir partidos sin resultado definido (??)
             filteredResults = filteredResults.filter(item => {
-                const c = item.candidate;
+                const c = item?.candidate;
+                if (!c) return false;
                 const score = c.score || '';
                 // Excluir si el score es ??, ?:?, vacío, o no tiene formato válido
                 if (!score || score === '??' || score === '?:?' || score.includes('?')) {
@@ -1431,13 +1712,11 @@
             const coverFilter = document.getElementById('filter-cover-result').value;
             if (coverFilter) {
                 filteredResults = filteredResults.filter(item => {
-                    const c = item.candidate;
-                    if (!c.score || c.ah_real === null || c.ah_real === undefined) return false;
+                    const c = item?.candidate;
+                    if (!c || !c.score || c.ah_real === null || c.ah_real === undefined) return false;
                     const parts = c.score.replace('-', ':').split(':');
                     const ah = parseFloat(c.ah_real);
                     if (parts.length !== 2) return false;
-                    const golesLocal = parseInt(parts[0]);
-                    const golesVisitante = parseInt(parts[1]);
 
                     // LÓGICA UNIFICADA: AH > 0 significa Local es Favorito
                     const res = calculateH2HResult(c.score, ah);
@@ -1449,15 +1728,16 @@
 
             // Handicap
             const handicapValues = msHandicap ? msHandicap.getValues() : [];
-            if (handicapValues.length > 0) filteredResults = filteredResults.filter(i => checkAhMatch(i.candidate.ah_real, handicapValues));
+            if (handicapValues.length > 0) filteredResults = filteredResults.filter(i => i?.candidate && checkAhMatch(i.candidate.ah_real, handicapValues));
 
             // Prev Home AH
             const prevHomeValues = msPrevHomeAh ? msPrevHomeAh.getValues() : [];
-            if (prevHomeValues.length > 0) filteredResults = filteredResults.filter(i => i.prev_home && checkAhMatch(i.prev_home.ah, prevHomeValues));
+            if (prevHomeValues.length > 0) filteredResults = filteredResults.filter(i => i?.prev_home && checkAhMatch(i.prev_home.ah, prevHomeValues));
 
             // Prev Away AH
             const prevAwayValues = msPrevAwayAh ? msPrevAwayAh.getValues() : [];
-            if (prevAwayValues.length > 0) filteredResults = filteredResults.filter(i => i.prev_away && checkAhMatch(i.prev_away.ah, prevAwayValues));
+            if (prevAwayValues.length > 0) filteredResults = filteredResults.filter(i => i?.prev_away && checkAhMatch(i.prev_away.ah, prevAwayValues));
+
 
             // H2H Col3 AH
             const col3Values = msH2hCol3Ah ? msH2hCol3Ah.getValues() : [];
@@ -1603,7 +1883,7 @@
             const fIndLocalRes = document.getElementById('filter-ind-local-res').value;
             if (fIndLocalRes) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i.ind_local || !i.ind_local.score) return false;
+                    if (!i || !i.ind_local || !i.ind_local.score || !i.candidate) return false;
                     const cov = getIndCoverStatus(i.ind_local.score, i.ind_local.localia, true, parseFloat(i.candidate.ah_real)) || i.ind_local.cover_status;
                     let normCov = cov;
                     if (cov === 'CUBIERTO') normCov = 'COVER';
@@ -1616,7 +1896,7 @@
             const fIndVisitanteRes = document.getElementById('filter-ind-visitante-res').value;
             if (fIndVisitanteRes) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i.ind_visitante || !i.ind_visitante.score) return false;
+                    if (!i || !i.ind_visitante || !i.ind_visitante.score || !i.candidate) return false;
                     const cov = getIndCoverStatus(i.ind_visitante.score, i.ind_visitante.localia, false, parseFloat(i.candidate.ah_real)) || i.ind_visitante.cover_status;
                     let normCov = cov;
                     if (cov === 'CUBIERTO') normCov = 'COVER';
@@ -1629,7 +1909,7 @@
             const fIndLocalLoc = document.getElementById('filter-ind-local-loc').value;
             if (fIndLocalLoc) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i.ind_local || !i.ind_local.localia) return false;
+                    if (!i || !i.ind_local || !i.ind_local.localia) return false;
                     const loc = i.ind_local.localia;
                     const normLoc = (loc === 'L' || loc === 'H' || loc === 'Local' || loc === 'Home') ? 'H' : 'A';
                     return normLoc === fIndLocalLoc;
@@ -1640,7 +1920,7 @@
             const fIndVisitanteLoc = document.getElementById('filter-ind-visitante-loc').value;
             if (fIndVisitanteLoc) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i.ind_visitante || !i.ind_visitante.localia) return false;
+                    if (!i || !i.ind_visitante || !i.ind_visitante.localia) return false;
                     const loc = i.ind_visitante.localia;
                     const normLoc = (loc === 'L' || loc === 'H' || loc === 'Local' || loc === 'Home') ? 'H' : 'A';
                     return normLoc === fIndVisitanteLoc;
@@ -1651,9 +1931,11 @@
             const ouFilterValues = getOuFilterValues();
             if (ouFilterValues.length > 0) {
                 filteredResults = filteredResults.filter(item => {
+                    if (!item || !item.candidate) return false;
                     return checkOuMatch(item.candidate.ou_line, ouFilterValues);
                 });
             }
+
 
             filteredResultsGlobal = filteredResults;
 
@@ -1762,16 +2044,19 @@
             const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
 
             results.forEach(item => {
-                const c = item.candidate;
+                try {
+                    if (!item || !item.candidate) return;
+                    const c = item.candidate;
 
-                // League & Rank Data
-                const league = c.league || '';
+                    // League & Rank Data
+                    const league = c.league || '';
 
-                const hRankVal = (item.home_standings && item.home_standings.ranking && item.home_standings.ranking !== 'N/A') ? item.home_standings.ranking : '';
-                const homeRank = hRankVal ? `[${hRankVal}]` : '';
+                    const hRankVal = (item.home_standings && item.home_standings.ranking && item.home_standings.ranking !== 'N/A') ? item.home_standings.ranking : '';
+                    const homeRank = hRankVal ? `[${hRankVal}]` : '';
 
-                const aRankVal = (item.away_standings && item.away_standings.ranking && item.away_standings.ranking !== 'N/A') ? item.away_standings.ranking : '';
-                const awayRank = aRankVal ? `[${aRankVal}]` : '';
+                    const aRankVal = (item.away_standings && item.away_standings.ranking && item.away_standings.ranking !== 'N/A') ? item.away_standings.ranking : '';
+                    const awayRank = aRankVal ? `[${aRankVal}]` : '';
+
 
                 // Stats Helper
                 const fmtStats = (s, type) => {
@@ -2416,6 +2701,7 @@
             <div class="d-flex gap-2 w-100" style = "padding: 8px 0;">
                 ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
                     </div>
+            <div id="pre-context-slot-${globalStatsId}" class="mt-2"></div>
             `;
 
                 // Asignar el atributo de datos DESPUÉS de calcular performanceStatus
@@ -2486,6 +2772,9 @@
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
                     ${globalStatsBtn}
+                    <button class="btn btn-sm btn-link text-primary p-0 ms-1" title="Copiar Contexto + Prompt LLM" onclick="copyLLMPrompt('${item.match_id}', this)">
+                        <i class="fa-regular fa-copy" style="font-size: 12px;"></i>
+                    </button>
                     <button class="btn btn-sm btn-link text-dark p-0 ms-1" title="Último General + Col3" onclick="showLastGeneralContext('${item.match_id}', this)">
                         <i class="fa-solid fa-brain" style="font-size: 12px;"></i>
                     </button>
@@ -2511,12 +2800,17 @@
                         ${globalStatsHtmlContent}
                     </div>
                 </div>
-                        </td>
+            </td>
             `;
                     tbody.appendChild(collapseTr);
                 }
+                } catch (rowErr) {
+                    console.error('Error procesando fila en renderTable:', rowErr, item);
+                }
             });
         }
+
+
 
         // Reinitialize Bootstrap collapses after rendering table
         // This ensures the "Ver Estadísticas" button works correctly after filtering
@@ -2566,32 +2860,367 @@
             }).join('');
         }
 
+        function renderPreMatchContextCard(pc) {
+            if (!pc) return '';
+            const current = pc.current || {};
+            const previous = pc.previous || null;
+            const currentHome = current.home_name || pc.home_name || 'Local';
+            const currentAway = current.away_name || pc.away_name || 'Visitante';
+            const currentNeutral = !!current.is_neutral_venue;
+            const currentLeague = String(current.league_id ?? pc.league_id ?? '').trim();
+
+            const esc = str => lgEscape(str);
+            const sameTeamName = (a, b) => {
+                if (!a || !b) return false;
+                const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+                const na = norm(a), nb = norm(b);
+                return na === nb || na.includes(nb) || nb.includes(na);
+            };
+            const parseScoreValue = val => {
+                if (!val) return null;
+                const str = String(val).replace(':', '-').trim();
+                const parts = str.split('-');
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    return { home: parseInt(parts[0], 10), away: parseInt(parts[1], 10) };
+                }
+                return null;
+            };
+            const asRows = arr => Array.isArray(arr) ? arr : [];
+
+            const renderTeam = (teamName, role, matches, allVenues = false) => {
+                let wins = 0, draws = 0, losses = 0;
+                const rows = asRows(matches).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    let result = own === null ? '' : (own > rivalGoals ? 'W' : (own < rivalGoals ? 'L' : 'D'));
+                    if (result === 'W') wins += 1;
+                    else if (result === 'D') draws += 1;
+                    else if (result === 'L') losses += 1;
+                    const rival = subjectHome ? (item?.away ?? item?.away_team ?? '') : (item?.home ?? item?.home_team ?? '');
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}"><td class="ctx-date">${esc(item?.date || '-')}</td><td class="ctx-league">${esc(leagueId)}</td><td title="${esc(rival)}">${esc(rival || '-')}</td><td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td><td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td></tr>`;
+                }).join('');
+                return `<div class="pre-context-team"><div class="pre-context-team-head"><span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span><span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span></div>${rows ? `<table class="pre-context-table"><thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead><tbody>${rows}</tbody></table><div class="pre-context-filter-empty">Sin partidos de la liga actual</div><div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>` : '<div class="pre-context-empty">Sin historial previo disponible</div>'}</div>`;
+            };
+
+            const formatAhNumber = value => Number.isFinite(Number(value)) ? `${Number(value) > 0 ? '+' : ''}${Number(value)}` : 'N/D';
+            const renderSimilarAh = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return '';
+                const summary = (label, data) => {
+                    const samples = Number(data?.samples) || 0;
+                    const cover = Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D';
+                    const gf = Number.isFinite(Number(data?.goals_for_avg)) ? Number(data.goals_for_avg).toFixed(1) : 'N/D';
+                    const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
+                    return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
+                };
+                const correlation = analysis.correlation || {};
+                const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
+                const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `<div class="pre-context-ah-analysis"><div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div><div class="pre-context-ah-grid">${summary(homeLabel, analysis.home)}${summary(awayLabel, analysis.away)}</div><div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div></div>`;
+            };
+
+            const renderMoment = (title, moment, isPrevious = false) => {
+                if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
+                const momentHome = moment.home_name || currentHome;
+                const momentAway = moment.away_name || currentAway;
+                const allVenues = !!moment.is_neutral_venue;
+                const homeAllVenues = allVenues || !!moment.home_all_venues_fallback;
+                const awayAllVenues = allVenues || !!moment.away_all_venues_fallback;
+                const reversed = isPrevious && sameTeamName(momentHome, currentAway);
+                const meta = isPrevious ? `${esc(moment.date || 'Fecha N/D')} · ${esc(momentHome)} ${esc(moment.score || '-')} ${esc(momentAway)}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}` : (allVenues ? `${esc(momentHome)} + ${esc(momentAway)} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS` : `${esc(momentHome)} en casa · ${esc(momentAway)} fuera · TODAS LAS LIGAS`);
+                return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta">${meta}</div></div><div class="pre-context-team-grid">${renderTeam(momentHome, 'home', moment.home_matches, homeAllVenues)}${renderTeam(momentAway, 'away', moment.away_matches, awayAllVenues)}</div>${renderSimilarAh(moment)}</section>`;
+            };
+
+            const teamText = (teamName, role, matches, allVenues = false, leagueFilter = '') => {
+                let wins = 0, draws = 0, losses = 0;
+                const filteredMatches = asRows(matches).filter(item => {
+                    if (!leagueFilter) return true;
+                    return String(item?.league_id_hist ?? item?.league_id ?? '').trim() === leagueFilter;
+                });
+                const lines = filteredMatches.map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    if (own !== null) { if (own > rivalGoals) wins += 1; else if (own < rivalGoals) losses += 1; else draws += 1; }
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                });
+                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}\n${lines.length ? lines.join('\n') : (leagueFilter ? 'Sin partidos de la liga actual' : 'Sin historial previo disponible')}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
+            };
+
+            const similarAhText = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
+                const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
+            };
+
+            // currentNeutral ya declarado al inicio de renderPreMatchContextCard (línea 2587)
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            if (previous) {
+                const previousHome = previous.home_name || currentHome;
+                const previousAway = previous.away_name || currentAway;
+                const previousNeutral = !!previous.is_neutral_venue;
+                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
+            }
+            const contextScope = currentNeutral ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS' : 'CASA VS FUERA · TODAS LAS LIGAS';
+            const currentLeagueText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}`;
+            let previousLeagueText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            if (previous) {
+                const previousHome = previous.home_name || currentHome;
+                const previousAway = previous.away_name || currentAway;
+                const previousNeutral = !!previous.is_neutral_venue;
+                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
+                previousLeagueText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}`;
+            }
+            const leagueTitle = currentLeague ? `LIGA ACTUAL · ID ${currentLeague}` : 'LIGA ACTUAL · ID NO DISPONIBLE';
+            const copyText = `CONTEXTO PREVIO DIVIDIDO POR ÁMBITO\n\n${leagueTitle}\n${'-'.repeat(72)}\n${currentLeagueText}\n\n${previousLeagueText}\n\n${'='.repeat(72)}\n\nGLOBAL · TODAS LAS LIGAS\n${'-'.repeat(72)}\nCONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const filterDisabled = !currentLeague;
+            const hasPrevious = !!previous;
+
+            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}"><div class="pre-context-head"><div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo <span class="badge bg-secondary ms-1" style="font-size:0.58rem;">Vista previa - No guardado en BD</span></div><div class="pre-context-actions"><label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}<button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar Liga actual + Global</button></div></div><div class="pre-context-moments hide-previous">${renderMoment('Partido actual', current)}${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}</div></div>`;
+        }
+
+        function togglePreMatchPreviousH2H(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const momentsContainer = panel.querySelector('.pre-context-moments');
+            if (!momentsContainer) return;
+            if (checkbox.checked) {
+                momentsContainer.classList.remove('hide-previous');
+            } else {
+                momentsContainer.classList.add('hide-previous');
+            }
+        }
+
+        function filterPreMatchContextLeague(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const currentLeague = String(panel.dataset.currentLeague || '').trim();
+            const onlyCurrentLeague = !!checkbox.checked && !!currentLeague;
+            panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const rows = [...team.querySelectorAll('tbody tr[data-context-league]')];
+                const counts = { W: 0, D: 0, L: 0 };
+                let visibleRows = 0;
+                rows.forEach(row => {
+                    const visible = !onlyCurrentLeague || String(row.dataset.contextLeague || '').trim() === currentLeague;
+                    row.hidden = !visible;
+                    if (visible) {
+                        visibleRows += 1;
+                        const result = row.dataset.contextResult;
+                        if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
+                    }
+                });
+                team.querySelectorAll('[data-summary-result]').forEach(summary => {
+                    const result = summary.dataset.summaryResult;
+                    const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
+                    summary.textContent = `${prefix} ${counts[result] || 0}`;
+                });
+                const empty = team.querySelector('.pre-context-filter-empty');
+                if (empty) empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
+            });
+        }
+
+        async function copyPreMatchContext(button, matchId) {
+            const encoded = button?.dataset?.context || '';
+            const contextText = decodeURIComponent(encoded);
+            if (!contextText) return;
+            const original = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando...';
+            try {
+                let promptText = '';
+                if (matchId) {
+                    const response = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
+                    const data = await response.json();
+                    if (data.success && data.prompt) {
+                        promptText = data.prompt;
+                    }
+                }
+                const divider = '='.repeat(72);
+                const combined = promptText 
+                    ? `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}`
+                    : contextText;
+                await navigator.clipboard.writeText(combined);
+                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
+                button.style.background = '#198754';
+                button.style.color = '#ffffff';
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.disabled = false;
+                }, 1800);
+            } catch (error) {
+                console.error('Error al copiar contexto:', error);
+                try {
+                    await navigator.clipboard.writeText(contextText);
+                    button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto copiado';
+                } catch(e) {
+                    alert('Error al copiar contexto');
+                }
+                button.disabled = false;
+                setTimeout(() => { button.innerHTML = original; }, 1800);
+            }
+        }
+
+        async function copyLLMPrompt(matchId, btnElement) {
+            // 1. Si ya existe el botón .pre-context-copy renderizado en el DOM, usarlo directamente
+            const preCtxBtn = document.querySelector(`#global-stats-${matchId} .pre-context-copy`);
+            if (preCtxBtn && preCtxBtn.dataset && preCtxBtn.dataset.context) {
+                return copyPreMatchContext(preCtxBtn, matchId);
+            }
+
+            // 2. Obtener prompt LLM y contexto previo en paralelo
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const [promptRes, ctxRes] = await Promise.all([
+                    fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`),
+                    fetch('/api/explorer_context_preview', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_id: matchId, force_refresh: false })
+                    }).catch(() => null)
+                ]);
+
+                const promptData = await promptRes.json();
+                if (!promptRes.ok || !promptData.success || !promptData.prompt) {
+                    throw new Error(promptData.error || 'No se pudo generar el prompt LLM');
+                }
+
+                let contextText = '';
+                if (ctxRes && ctxRes.ok) {
+                    try {
+                        const ctxData = await ctxRes.json();
+                        if (ctxData.status === 'success' && ctxData.pre_match_context) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = renderPreMatchContextCard(ctxData.pre_match_context);
+                            const tempBtn = tempDiv.querySelector('.pre-context-copy');
+                            if (tempBtn && tempBtn.dataset && tempBtn.dataset.context) {
+                                contextText = decodeURIComponent(tempBtn.dataset.context);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('No se pudo parsear el contexto previo para combinar:', e);
+                    }
+                }
+
+                let finalPayload = promptData.prompt;
+                if (contextText) {
+                    const divider = '='.repeat(72);
+                    finalPayload = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptData.prompt}`;
+                }
+
+                await navigator.clipboard.writeText(finalPayload);
+                btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+            } catch (err) {
+                alert('Error al copiar contexto + prompt: ' + err.message);
+                btnElement.innerHTML = originalHtml;
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                }, 2000);
+            }
+        }
+
+        async function fetchContextPreviewOnDemand(containerId, matchId, btn = null) {
+            if (!containerId || !matchId) return;
+            const slot = document.getElementById(`pre-context-slot-${containerId}`);
+            if (!slot) return;
+            if (!btn && slot.dataset.contextLoading === '1') return;
+            slot.dataset.contextLoading = '1';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Scrapeando contexto previo en vivo...';
+            } else {
+                slot.innerHTML = '<div class="text-center py-2 border-top mt-2 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Cargando contexto previo…</div>';
+            }
+            try {
+                const response = await fetch('/api/explorer_context_preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: matchId, force_refresh: !!btn })
+                });
+                if (!response.ok) {
+                    throw new Error('Error de conexión con el servidor');
+                }
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error('Respuesta no válida del servidor');
+                }
+                const data = await response.json();
+
+                if (data.status === 'success' && data.pre_match_context) {
+                    slot.innerHTML = renderPreMatchContextCard(data.pre_match_context);
+                    slot.dataset.contextLoaded = '1';
+                } else {
+                    throw new Error('No se pudo obtener el contexto previo en vivo');
+                }
+            } catch (err) {
+                console.error('Error al solicitar contexto en vivo:', err);
+                slot.innerHTML = `<div class="alert alert-warning py-2 px-2 my-1 small text-center">${lgEscape(err.message || err)} <button type="button" class="btn btn-sm btn-outline-dark ms-2" onclick="fetchContextPreviewOnDemand('${containerId}', '${matchId}', this)"><i class="fa-solid fa-rotate me-1"></i>Reintentar</button></div>`;
+            } finally {
+                slot.dataset.contextLoading = '0';
+            }
+        }
+
         async function hydrateProgressionStats(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
+
+            // 1. Cargar estadisticas de progresion
             const boxes = [...container.querySelectorAll('[data-progression-match-id][data-stats-loaded="0"]')]
                 .filter(box => /^\d+$/.test(box.dataset.progressionMatchId || ''));
-            await Promise.all(boxes.map(async box => {
+            Promise.all(boxes.map(async box => {
                 const target = box.querySelector('[data-progression-stats-target]');
                 if (!target || box.dataset.statsLoading === '1') return;
                 box.dataset.statsLoading = '1';
                 target.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Cargando tiros y ataques…';
                 try {
                     const response = await fetch(`/api/match/${encodeURIComponent(box.dataset.progressionMatchId)}/progression-stats`);
+                    if (!response.ok) {
+                        throw new Error('Sin datos');
+                    }
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        throw new Error('Respuesta no JSON');
+                    }
                     const payload = await response.json();
-                    if (!response.ok) throw new Error(payload.error || 'No se pudieron cargar las estadísticas');
                     const rows = Array.isArray(payload.stats_rows) ? payload.stats_rows : [];
                     target.innerHTML = rows.length
                         ? progressionStatsRowsHtml(rows)
-                        : '<span class="text-muted">Nowgoal no publicó estadísticas para este partido</span>';
+                        : '<span class="text-muted" style="font-size:0.68rem;">Sin estadísticas publicadas</span>';
                     box.dataset.statsLoaded = '1';
                 } catch (error) {
-                    target.innerHTML = `<span class="text-danger">${lgEscape(error.message || error)}</span>`;
+                    target.innerHTML = '<span class="text-muted" style="font-size:0.68rem;">Sin estadísticas publicadas</span>';
                 } finally {
                     box.dataset.statsLoading = '0';
                 }
+
             }));
+
+            // 2. Cargar el Contexto Previo directamente al abrir el detalle.
+            const slot = document.getElementById(`pre-context-slot-${containerId}`);
+            if (slot && !slot.dataset.contextLoaded) {
+                const matchId = containerId.replace('global-stats-', '');
+                fetchContextPreviewOnDemand(containerId, matchId);
+            }
         }
+
 
         function lgEscape(value) {
             const div = document.createElement('div');
@@ -3298,11 +3927,9 @@
             syncOuFilterInput();
 
             // Si llegamos con parámetros desde "Buscar patrones similares", precargar filtros y lanzar búsqueda.
-            applyExplorerUrlPresetFilters();
-            // La réplica UEFA abre directamente su histórico; el Explorador general conserva su comportamiento.
-            if (EXPLORER_SCOPE === 'uefa_qualifying') {
-                window.setTimeout(() => triggerSearch(), 0);
-            }
+            // Cargar partidos automáticamente al iniciar el Explorador
+            window.setTimeout(() => applyExplorerUrlPresetFilters(), 0);
+
         });
 
         async function copyToClipboard(text) {
