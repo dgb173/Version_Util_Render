@@ -717,18 +717,26 @@
                 </button>
                 <h4 class="mb-0"><i class="fa-solid fa-table me-2"></i>{{ explorer_title|default('Explorador de Datos') }}</h4>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <!-- Buscador / Recomendador de Liga vía Texto -->
+                <div class="position-relative" style="min-width: 250px;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-primary border-secondary-subtle"><i class="fa-solid fa-trophy"></i></span>
+                        <input type="text" id="filter-league-autocomplete" class="form-control form-control-sm border-secondary-subtle fw-bold" placeholder="Filtrar liga (ej: Conference, Suecia)..." autocomplete="off" oninput="onLeagueSearchInput(this.value)" onfocus="onLeagueSearchFocus()">
+                        <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btn-clear-league-filter" onclick="clearLeagueFilter()" title="Limpiar liga"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="league-recommendations-dropdown" class="dropdown-menu shadow-lg p-1 w-100" style="display:none; position:absolute; top:100%; left:0; z-index:1050; max-height:280px; overflow-y:auto;"></div>
+                </div>
                 {% if explorer_dashboard_url %}<a class="btn btn-outline-primary btn-sm" href="{{ explorer_dashboard_url }}"><i class="fa-solid fa-gauge-high me-1"></i>Resumen y próximos</a>{% endif %}
-                <div class="form-check d-flex align-items-center">
-                    <input class="form-check-input me-2" type="checkbox" id="filter-only-with-history">
-                    <label class="form-check-label small" for="filter-only-with-history">Solo con historial</label>
+                <div class="form-check d-flex align-items-center mb-0">
+                    <input class="form-check-input me-1" type="checkbox" id="filter-only-with-history">
+                    <label class="form-check-label small fw-bold" for="filter-only-with-history">Solo con historial</label>
                 </div>
-                <div class="form-check d-flex align-items-center">
-                    <input class="form-check-input me-2" type="checkbox" id="filter-exclude-empty">
-                    <label class="form-check-label small" for="filter-exclude-empty">Ocultar vacíos</label>
+                <div class="form-check d-flex align-items-center mb-0">
+                    <input class="form-check-input me-1" type="checkbox" id="filter-exclude-empty">
+                    <label class="form-check-label small fw-bold" for="filter-exclude-empty">Ocultar vacíos</label>
                 </div>
-                <button class="btn btn-primary btn-sm" onclick="triggerSearch()"><i class="fa-solid fa-filter me-1"></i>
-                    Aplicar Filtros</button>
+                <button class="btn btn-primary btn-sm fw-bold" onclick="triggerSearch()"><i class="fa-solid fa-filter me-1"></i> Aplicar Filtros</button>
             </div>
         </div>
 
@@ -1116,6 +1124,119 @@
             }
         }
 
+        // --- AUTOCOMPLETADO Y RECOMENDADOR DE LIGAS VÍA TEXTO ---
+        let registeredLeaguesList = [];
+
+        async function initLeagueAutocomplete() {
+            try {
+                const response = await fetch('/api/league-extractions');
+                const data = await response.json();
+                if (response.ok && data.extractions) {
+                    registeredLeaguesList = data.extractions.map(ext => ({
+                        id: String(ext.league_id || '').trim(),
+                        name: ext.label || ext.league_name || `Liga ${ext.league_id}`,
+                        season: ext.season || '',
+                        rawName: ext.league_name || ''
+                    }));
+                }
+            } catch (e) {
+                console.warn("No se pudieron cargar las ligas para autocompletar", e);
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const urlLeagueId = params.get('league_id') || params.get('league');
+            if (urlLeagueId) {
+                const input = document.getElementById('filter-league-autocomplete');
+                const found = registeredLeaguesList.find(l => l.id === urlLeagueId || l.name.toLowerCase().includes(urlLeagueId.toLowerCase()));
+                if (found && input) {
+                    input.value = found.name;
+                    document.getElementById('btn-clear-league-filter')?.classList.remove('d-none');
+                } else if (input) {
+                    input.value = urlLeagueId;
+                    document.getElementById('btn-clear-league-filter')?.classList.remove('d-none');
+                }
+            }
+        }
+
+        function onLeagueSearchFocus() {
+            const val = (document.getElementById('filter-league-autocomplete')?.value || '').trim();
+            renderLeagueRecommendations(val);
+        }
+
+        function onLeagueSearchInput(val) {
+            const clearBtn = document.getElementById('btn-clear-league-filter');
+            if (clearBtn) clearBtn.classList.toggle('d-none', !val.trim());
+            renderLeagueRecommendations(val);
+            renderTableWithPagination();
+        }
+
+        function renderLeagueRecommendations(query) {
+            const dropdown = document.getElementById('league-recommendations-dropdown');
+            if (!dropdown) return;
+
+            const map = new Map();
+            registeredLeaguesList.forEach(l => {
+                if (l.name) map.set(l.id || l.name.toLowerCase(), l);
+            });
+
+            if (Array.isArray(totalResults)) {
+                totalResults.forEach(item => {
+                    const c = item?.candidate;
+                    if (c) {
+                        const lgId = String(c.league_id || item.league_id || '').trim();
+                        const lgName = c.league || item.league_name || '';
+                        if (lgName && !map.has(lgId || lgName.toLowerCase())) {
+                            map.set(lgId || lgName.toLowerCase(), { id: lgId, name: lgName, season: '' });
+                        }
+                    }
+                });
+            }
+
+            const allLeagues = Array.from(map.values());
+            const q = query.trim().toLowerCase();
+            const matches = q
+                ? allLeagues.filter(l => l.name.toLowerCase().includes(q) || l.id.toLowerCase().includes(q) || (l.season && l.season.toLowerCase().includes(q)))
+                : allLeagues;
+
+            if (!matches.length) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 15).map(l => `
+                <button type="button" class="dropdown-item d-flex justify-content-between align-items-center py-2" onclick="selectLeagueRecommendation('${escapeHtml(l.name)}', '${escapeHtml(l.id)}')">
+                    <span class="fw-bold text-dark"><i class="fa-solid fa-trophy text-warning me-2"></i>${escapeHtml(l.name)}</span>
+                    <span class="badge bg-light text-muted border ms-2">${escapeHtml(l.season || (l.id ? 'ID ' + l.id : ''))}</span>
+                </button>
+            `).join('');
+
+            dropdown.style.display = 'block';
+        }
+
+        function selectLeagueRecommendation(name, id) {
+            const input = document.getElementById('filter-league-autocomplete');
+            if (input) input.value = name;
+            document.getElementById('btn-clear-league-filter')?.classList.remove('d-none');
+            document.getElementById('league-recommendations-dropdown').style.display = 'none';
+            renderTableWithPagination();
+        }
+
+        function clearLeagueFilter() {
+            const input = document.getElementById('filter-league-autocomplete');
+            if (input) input.value = '';
+            document.getElementById('btn-clear-league-filter')?.classList.add('d-none');
+            document.getElementById('league-recommendations-dropdown').style.display = 'none';
+            renderTableWithPagination();
+        }
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('filter-league-autocomplete')?.closest('.position-relative');
+            if (container && !container.contains(e.target)) {
+                const dropdown = document.getElementById('league-recommendations-dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        });
+
         // MultiSelect Instances
         let msHandicap, msOu, msPrevHomeAh, msPrevAwayAh, msH2hCol3Ah, msIndLocalAh, msIndVisitanteAh;
         let msH2hStadiumStartAh, msH2hStadiumEndAh, msH2hGeneralStartAh, msH2hGeneralEndAh;
@@ -1441,7 +1562,8 @@
             const ouLimitRaw = params.get('ou_limit');
             hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
-            // Cargar datos automáticamente siempre al iniciar la página
+            // Inicializar autocompletado de ligas y cargar datos
+            initLeagueAutocomplete();
             triggerSearch();
         }
 
@@ -1652,8 +1774,19 @@
             // Aplicar filtro client-side "Solo con historial"
             const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
             let filteredResults = totalResults;
-            // DEBUG:
-            // console.log(`Total Results: ${ totalResults.length } `);
+
+            // Filtro client-side de Liga (Autocompletado / Texto)
+            const leagueFilterQuery = (document.getElementById('filter-league-autocomplete')?.value || '').trim().toLowerCase();
+            if (leagueFilterQuery) {
+                filteredResults = filteredResults.filter(item => {
+                    const c = item?.candidate;
+                    if (!c) return false;
+                    const lgName = String(c.league || item.league_name || '').toLowerCase();
+                    const lgId = String(c.league_id || item.league_id || '').toLowerCase();
+                    return lgName.includes(leagueFilterQuery) || lgId.includes(leagueFilterQuery);
+                });
+            }
+
             if (totalResults.length === 0) {
                 // Si no hay resultados de la API, no hay nada que filtrar.
                 renderTable([]);
