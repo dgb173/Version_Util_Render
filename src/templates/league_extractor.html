@@ -371,7 +371,7 @@
                         <a class="btn btn-outline-primary btn-sm flex-grow-1" href="/extraer-liga?extraction_id=${encodeURIComponent(extraction.extraction_id)}">
                             <i class="fa-solid fa-list-ol me-1"></i> Ver Jornadas / Copas
                         </a>
-                        <a class="btn btn-primary btn-sm" href="/explorador" target="_blank" title="Abrir en Explorador de Datos">
+                        <a class="btn btn-primary btn-sm" href="/explorador?league_id=${encodeURIComponent(extraction.league_id)}" target="_blank" title="Abrir en Explorador de Datos">
                             <i class="fa-solid fa-compass"></i>
                         </a>
                     </div>
@@ -884,6 +884,9 @@
             $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${escapeHtml(extraction.league_name)} · ${escapeHtml(extraction.season || 'Temporada')}`;
             $('analysisSubtitle').textContent = `${data.total} partidos registrados · Organizador por Jornadas y Copas`;
             $('downloadLeague').href = `/api/league-extractions/${encodeURIComponent(extractionId)}/export-all-seasons`;
+            if ($('openInExplorerBtn')) {
+                $('openInExplorerBtn').href = `/explorador?league_id=${encodeURIComponent(extraction.league_id)}`;
+            }
             
             const missingCount = activeRounds.reduce((total, round) => total + Math.max(0, Number(round.count || 0) - Number(round.available || 0)), 0);
             $('scrapeMissing').classList.toggle('d-none', missingCount <= 0);
