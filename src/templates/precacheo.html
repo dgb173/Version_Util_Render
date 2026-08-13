@@ -1741,38 +1741,6 @@
                         <i class="fa-solid fa-star text-warning"></i> Solo favoritas
                     </label>
                 </div>
-                <div class="desktop-inline-filter d-flex align-items-center ms-3">
-                    <label class="small me-2 mb-0" for="filter-strategies"><i
-                            class="fa-solid fa-chess-knight text-purple"></i> Estrategia:</label>
-                    <select class="form-select form-select-sm" id="filter-strategies" onchange="applyFiltersVisually()"
-                        style="width: 210px; border-color: #6f42c1;">
-                        <option value="">-- Ninguna --</option>
-                        <option value="underdog_loses_ah">❌ El No Favorito NO supera el hándicap (Previa)</option>
-                        <option value="fav_wins_ah">⭐ El Favorito supera el hándicap (Previa)</option>
-                        <option value="clave_fav_cubre">🟢 CLAVE: FAV CUBRE (Favorito Cubre)</option>
-                        <option value="clave_dog_cubre">🟠 CLAVE: DOG CUBRE (No Favorito Cubre)</option>
-                        <option value="clave_no_bet">⚪ CLAVE: NO BET AH</option>
-                        <option value="clave_over">🟡 CLAVE: OVER de Goles</option>
-                        <option value="clave_under">🔵 CLAVE: UNDER de Goles</option>
-                        <option value="clave_draw_structural">⚖️ CLAVE: Empate Estructural</option>
-                        <option value="clave_u10_anomalia">⚠️ CLAVE: U10 Anomalía de Línea</option>
-                        <option value="clave_u11_dog_persistente">🐕 CLAVE: U11 Dog Goleador Persistente</option>
-                        <option value="clave_u12_bloqueo_seco">🔒 CLAVE: U12 Bloqueo Seco (0-0)</option>
-                        <option value="clave_u13_push_seco">🔄 CLAVE: U13 Push Seco (-1)</option>
-                        <option value="clave_u14_repeticion_proceso">📈 CLAVE: U14 Repetición de Línea por Proceso</option>
-                        <option value="clave_u15_rebaja_protectora">🛡️ CLAVE: U15 Rebaja Protectora del Favorito</option>
-                        <option value="clave_u16_fav_025_capado">🐐 CLAVE: U16 Favorito 0.25 Capado (X2 + Over)</option>
-                        <option value="clave_u17_market_flip_validated">🪙 CLAVE: U17 Inversión de Mercado Validada</option>
-                        <option value="clave_u18_over_counterintuitive">🟡 CLAVE: U18 Over Contraintuitivo</option>
-                        <option value="clave_u19_market_rejects_x2">🧭 CLAVE: U19 Rechazo X2 Obvio</option>
-                        <option value="clave_u20_huge_drop_dog_under">🧊 CLAVE: U20 Rebaja Brutal Dog + Under</option>
-                        <option value="clave_u21_h2h_over_capped_draw_under">🧯 CLAVE: U21 H2H Over Capado + Under</option>
-                        <option value="clave_u22_pickem_dog_win_dnb_under">🎯 CLAVE: U22 Pick'em Dog Ganador + Under</option>
-                        <option value="fav_super_shooter">🔥 Favorito Super Disparador</option>
-                        <option value="underdog_low_stats">📉 Underdog Stats Bajos</option>
-                        <option value="super_specialist_h0">💎 Super Especialista H0</option>
-                    </select>
-                </div>
             </div>
             <div class="precache-action-toolbar d-flex gap-2 align-items-center flex-wrap">
                 <div id="scraping-status" class="d-none"></div>
@@ -2037,20 +2005,6 @@
                                     <option value="A">A</option>
                                 </select>
                             </div>
-                        </th>
-                        <th style="width: 118px;">
-                            <div class="fw-bold">Pick</div>
-                            <select class="header-filter mt-1" id="filter-pick" style="width: 100%;">
-                                <option value="">Todo</option>
-                                <option value="HAS_PICK">Con Pick</option>
-                                <option value="AH_FAVORITE">AH favorito</option>
-                                <option value="AH_DOG">AH no fav.</option>
-                                <option value="OVER">Over</option>
-                                <option value="UNDER">Under</option>
-                                <option value="HIGH">Alta</option>
-                                <option value="MEDIUM">Media</option>
-                                <option value="NO_BET">No bet</option>
-                            </select>
                         </th>
                         <th style="width: 100px;">Acciones</th>
                     </tr>
@@ -6470,7 +6424,7 @@
             if (visibleCount === 0) {
                 const noResultsRow = document.createElement('tr');
                 noResultsRow.id = 'no-results-row';
-                noResultsRow.innerHTML = `<td colspan="14" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
+                noResultsRow.innerHTML = `<td colspan="13" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
                 const existing = document.getElementById('no-results-row');
                 if (existing) existing.remove();
                 tbody.appendChild(noResultsRow);
@@ -9034,7 +8988,7 @@
             tbody.innerHTML = '';
 
             if (!matches || matches.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="14" class="text-center py-4">No hay partidos próximos</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4">No hay partidos próximos</td></tr>`;
                 return;
             }
 
@@ -9984,12 +9938,17 @@
                     </div>
                 `;
 
+                const searchPatternsBtn = isScraped
+                    ? `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center" onclick="searchPatterns('${matchId}', this)" style="width: 22px; height: 22px; border-radius: 50%;" title="Buscar Patrones Similares">
+                            <i class="fa-solid fa-compass" style="font-size: 11px;"></i>
+                       </button>`
+                    : '';
                 const viewBtnHtml = APP_PRECACHEO_ONLY
                     ? ''
-                    : `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Ver Estudio">
-                            <i class="fas fa-eye"></i>
+                    : `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary p-0 d-inline-flex align-items-center justify-content-center ms-1" style="width: 22px; height: 22px; border-radius: 50%;" title="Ver Estudio">
+                            <i class="fas fa-eye" style="font-size: 10px;"></i>
                        </a>`;
-                const actionButtonsHtml = `${globalStatsBtn}${viewBtnHtml}`;
+                const actionButtonsHtml = `<div class="d-flex align-items-center justify-content-center gap-1">${globalStatsBtn}${searchPatternsBtn}${viewBtnHtml}</div>`;
 
 
                 tr.innerHTML = `
@@ -10043,7 +10002,6 @@
                     <td class="col-prev col-h2h-col3 text-center ${isDiffCol3 ? 'cell-diff-league' : ''}">${h2hCol3Html}</td>
                     <td class="col-prev ${!indLeftHasData ? 'cell-no-data' : (isDiffIndL ? 'cell-diff-league' : '')}">${indLeftHtml}</td>
                     <td class="col-prev ${!indRightHasData ? 'cell-no-data' : (isDiffIndR ? 'cell-diff-league' : '')}">${indRightHtml}</td>
-                    <td class="col-pick pick-cell">${pickHtml}</td>
                     <td class="text-center">${actionButtonsHtml}</td>
                 `;
                 tr.setAttribute('data-match-id', matchId);
@@ -10133,7 +10091,7 @@
                 if (globalStatsId && globalStatsHtmlContent) {
                     const collapseTr = document.createElement('tr');
                     collapseTr.innerHTML = `
-                        <td colspan="14" class="p-0">
+                        <td colspan="13" class="p-0">
                             <div class="collapse" id="${globalStatsId}">
                                 <div class="py-2 px-2" style="background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa); border-top: 1px solid #dee2e6;">
                                     ${globalStatsHtmlContent}
