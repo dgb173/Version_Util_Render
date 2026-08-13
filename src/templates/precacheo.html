@@ -1741,6 +1741,9 @@
                         <i class="fa-solid fa-star text-warning"></i> Solo favoritas
                     </label>
                 </div>
+                <!-- Elementos ocultos necesarios para la lógica JS de filtros -->
+                <select id="filter-strategies" style="display:none;"></select>
+                <select id="filter-pick" style="display:none;"></select>
             </div>
             <div class="precache-action-toolbar d-flex gap-2 align-items-center flex-wrap">
                 <div id="scraping-status" class="d-none"></div>
@@ -2085,44 +2088,6 @@
             </div>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label small fw-bold">Estrategia</label>
-            <select class="form-select form-select-sm" id="mobile-filter-strategies"
-                onchange="document.getElementById('filter-strategies').value = this.value; applyFiltersVisually();">
-                <option value="">-- Ninguna --</option>
-                <option value="fav_wins_ah">⭐ Favorito Gana AH</option>
-                <option value="underdog_loses_ah">❌ Underdog Pierde AH</option>
-                <option value="clave_fav_cubre">🟢 CLAVE: FAV CUBRE</option>
-                <option value="clave_dog_cubre">🟠 CLAVE: DOG CUBRE</option>
-                <option value="clave_over">🟡 CLAVE: OVER</option>
-                <option value="clave_under">🔵 CLAVE: UNDER</option>
-                <option value="clave_u18_over_counterintuitive">🟡 CLAVE: U18 Over Contraintuitivo</option>
-                <option value="clave_u19_market_rejects_x2">🧭 CLAVE: U19 Rechazo X2 Obvio</option>
-                <option value="clave_u20_huge_drop_dog_under">🧊 CLAVE: U20 Rebaja Brutal Dog + Under</option>
-                <option value="clave_u21_h2h_over_capped_draw_under">🧯 CLAVE: U21 H2H Over Capado + Under</option>
-                <option value="clave_u22_pickem_dog_win_dnb_under">🎯 CLAVE: U22 Pick'em Dog Ganador + Under</option>
-                <option value="fav_super_shooter">🔥 Favorito Super Disparador</option>
-                <option value="underdog_low_stats">📉 Underdog Stats Bajos</option>
-                <option value="super_specialist_h0">💎 Super Especialista H0</option>
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label small fw-bold">Picks</label>
-            <select class="form-select form-select-sm" id="mobile-filter-pick"
-                onchange="document.getElementById('filter-pick').value = this.value; applyFiltersVisually();">
-                <option value="">Todo</option>
-                <option value="HAS_PICK">Con Pick</option>
-                <option value="AH_FAVORITE">AH favorito</option>
-                <option value="AH_DOG">AH no fav.</option>
-                <option value="OVER">Over</option>
-                <option value="UNDER">Under</option>
-                <option value="HIGH">Alta</option>
-                <option value="MEDIUM">Media</option>
-                <option value="NO_BET">No bet</option>
-            </select>
-        </div>
-
         <div class="d-flex gap-2 mt-3">
             <button class="btn btn-primary flex-grow-1" onclick="applyFiltersVisually(); closeMobileFilters();">
                 <i class="fa-solid fa-check me-1"></i> Aplicar
@@ -2157,10 +2122,6 @@
                 document.getElementById('filter-only-with-history').checked;
             document.getElementById('mobile-filter-only-favorites').checked =
                 document.getElementById('filter-only-favorites').checked;
-            document.getElementById('mobile-filter-strategies').value =
-                document.getElementById('filter-strategies').value;
-            document.getElementById('mobile-filter-pick').value =
-                document.getElementById('filter-pick').value;
         }
 
         function closeMobileFilters() {
