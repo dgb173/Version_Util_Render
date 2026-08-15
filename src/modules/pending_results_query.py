@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import datetime as dt
+import hashlib
 import json
 import math
 import os
@@ -12,6 +13,7 @@ import threading
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
 
+import ijson
 import requests
 
 from . import data_manager, sql_store
@@ -118,7 +120,14 @@ def _remote_query(sql: str, params: Sequence[Any]) -> Optional[List[Dict[str, An
 
 
 _FILE_STORE_LOCK = threading.Lock()
-_FILE_STORE: Optional[Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]], bool]] = None
+_FILE_STORE: Optional[Tuple[List[Dict[str, Any]], bool]] = None
+_FAST_STORE_DIR = sql_store.DATA_DIR / ".precacheo_fast"
+_FAST_INDEX_FILE = _FAST_STORE_DIR / "index.json"
+
+
+def _fast_payload_path(match_id: str):
+    digest = hashlib.sha256(str(match_id).encode("utf-8")).hexdigest()
+    return _FAST_STORE_DIR / f"{digest}.json"
 
 
 def _handicap_value_matches(raw_value: Any, selected_values: Optional[Sequence[str]]) -> bool:
@@ -161,51 +170,98 @@ def _handicap_value_matches(raw_value: Any, selected_values: Optional[Sequence[s
     return False
 
 
-def _load_json_file_store() -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]], bool]:
-    """Load deployed live buckets once, without building a SQLite replica."""
+def _iter_deployed_rows(path: Any):
+    """Yield one JSON-array row at a time with bounded memory."""
+    with path.open("rb") as handle:
+        for row in ijson.items(handle, "item", use_float=True):
+            if isinstance(row, dict):
+                yield row
+
+
+def _load_json_file_store() -> Tuple[List[Dict[str, Any]], bool]:
+    """Cache only lightweight headers from the deployed live buckets."""
     global _FILE_STORE
     with _FILE_STORE_LOCK:
         if _FILE_STORE is not None:
             return _FILE_STORE
 
-        rows_by_id: Dict[str, Dict[str, Any]] = {}
+        if _FAST_INDEX_FILE.exists():
+            try:
+                with _FAST_INDEX_FILE.open("r", encoding="utf-8") as handle:
+                    fast_headers = json.load(handle)
+                if isinstance(fast_headers, list):
+                    _FILE_STORE = (
+                        [row for row in fast_headers if isinstance(row, dict)],
+                        True,
+                    )
+                    return _FILE_STORE
+            except Exception:
+                pass
+
+        headers_by_id: Dict[str, Dict[str, Any]] = {}
         loaded_any = False
         for bucket in (data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET):
             path = sql_store.DATA_DIR / bucket
             if not path.exists():
                 continue
+            loaded_any = True
+            try:
+                for row in _iter_deployed_rows(path):
+                    match_id = str(row.get("match_id") or row.get("id") or "").strip()
+                    if not match_id:
+                        continue
+                    odds = row.get("main_match_odds") if isinstance(row.get("main_match_odds"), dict) else {}
+                    handicap = row.get("handicap")
+                    if handicap in (None, ""):
+                        handicap = odds.get("ah_linea")
+                    headers_by_id[match_id] = {
+                        "match_id": match_id,
+                        "handicap": handicap,
+                        "score": row.get("score") or row.get("final_score"),
+                        "match_date": row.get("match_date") or row.get("date"),
+                        "start_time": row.get("start_time"),
+                        "time": row.get("time"),
+                    }
+            except Exception:
+                continue
+
+        _FILE_STORE = (list(headers_by_id.values()), loaded_any)
+        return _FILE_STORE
+
+
+def _load_json_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]]:
+    """Stream large buckets and retain only rows required by the visible page."""
+    wanted = {str(match_id) for match_id in match_ids if str(match_id)}
+    output: Dict[str, Dict[str, Any]] = {}
+    if not wanted:
+        return output
+
+    if _FAST_INDEX_FILE.exists():
+        for match_id in wanted:
+            path = _fast_payload_path(match_id)
+            if not path.exists():
+                continue
             try:
                 with path.open("r", encoding="utf-8") as handle:
                     payload = json.load(handle)
+                if isinstance(payload, dict):
+                    output[match_id] = payload
             except Exception:
                 continue
-            loaded_any = True
-            if not isinstance(payload, list):
-                continue
-            for row in payload:
-                if not isinstance(row, dict):
-                    continue
+        return output
+
+    for bucket in (data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET):
+        path = sql_store.DATA_DIR / bucket
+        if not path.exists():
+            continue
+        try:
+            for row in _iter_deployed_rows(path):
                 match_id = str(row.get("match_id") or row.get("id") or "").strip()
-                if match_id:
-                    rows_by_id[match_id] = row
-
-        headers: List[Dict[str, Any]] = []
-        for match_id, row in rows_by_id.items():
-            odds = row.get("main_match_odds") if isinstance(row.get("main_match_odds"), dict) else {}
-            handicap = row.get("handicap")
-            if handicap in (None, ""):
-                handicap = odds.get("ah_linea")
-            headers.append({
-                "match_id": match_id,
-                "handicap": handicap,
-                "score": row.get("score") or row.get("final_score"),
-                "match_date": row.get("match_date") or row.get("date"),
-                "start_time": row.get("start_time"),
-                "time": row.get("time"),
-            })
-
-        _FILE_STORE = (headers, rows_by_id, loaded_any)
-        return _FILE_STORE
+                if match_id in wanted:
+                    output[match_id] = row
+        except Exception:
+            continue
+    return output
 
 
 def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str, List[float]]:
@@ -279,7 +335,7 @@ def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[st
     if remote_rows is not None:
         return remote_rows
 
-    file_headers, _, files_loaded = _load_json_file_store()
+    file_headers, files_loaded = _load_json_file_store()
     if files_loaded:
         return [
             row for row in file_headers
@@ -315,13 +371,9 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
     if remote_rows is not None:
         rows = remote_rows
     else:
-        _, file_rows_by_id, files_loaded = _load_json_file_store()
+        _, files_loaded = _load_json_file_store()
         if files_loaded:
-            return {
-                match_id: dict(file_rows_by_id[match_id])
-                for match_id in ordered_ids
-                if match_id in file_rows_by_id
-            }
+            return _load_json_payloads_by_ids(ordered_ids)
         with sql_store._connect() as conn:
             rows = conn.execute(query, ordered_ids).fetchall()
 
