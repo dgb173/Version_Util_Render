@@ -826,11 +826,21 @@ def ensure_bootstrap(force_import: bool = False) -> None:
                     pending_count = 0
                     cached_count = 0
 
-                    if SQL_BOOTSTRAP_SKIP_LEGACY:
+                    # Turso/libSQL ya es la fuente persistente. Reimportar los
+                    # JSON legacy en cada despliegue crea un pico de memoria
+                    # suficiente para tumbar el único worker de Render.
+                    # `force_import=True` conserva la herramienta de migración
+                    # explícita para tareas de mantenimiento.
+                    skip_legacy_import = SQL_BOOTSTRAP_SKIP_LEGACY or (
+                        bool(LIBSQL_URL) and not force_import
+                    )
+
+                    if skip_legacy_import:
                         LOGGER.info(
                             "SQL bootstrap running in lightweight mode. "
-                            "Skipping legacy JSON import (SQL_BOOTSTRAP_MODE=%s).",
+                            "Skipping legacy JSON import (SQL_BOOTSTRAP_MODE=%s, libsql=%s).",
                             SQL_BOOTSTRAP_MODE,
+                            bool(LIBSQL_URL),
                         )
                     else:
                         if not SQL_BOOTSTRAP_HISTORY_ONLY:
