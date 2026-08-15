@@ -409,9 +409,13 @@
         .pre-context-correlation.is-balanced { color: #9a6700; background: #fff7d6; }
         .pre-context-correlation.is-insufficient { color: #64748b; background: #edf2f7; }
 
-        @media (max-width: 900px) {
+        @media (min-width: 769px) and (max-width: 900px) {
             .pre-context-moments { grid-template-columns: 1fr; }
             .pre-context-panel { min-width: 620px; }
+            .pre-context-note { display: none; }
+        }
+
+        @media (max-width: 768px) {
             .pre-context-note { display: none; }
         }
 
@@ -2155,15 +2159,19 @@
             }
 
             #mobile-detail-analysis-host {
+                width: 100%;
+                max-width: 100%;
                 overflow-x: auto;
+                overflow-y: hidden;
                 overscroll-behavior-x: contain;
-                scroll-snap-type: x proximity;
+                scroll-snap-type: x mandatory;
                 scrollbar-width: thin;
                 -webkit-overflow-scrolling: touch;
             }
 
             #mobile-detail-analysis-host > .py-2 {
-                min-width: 100%;
+                width: 100%;
+                min-width: 0;
                 padding: 0 !important;
                 background: transparent !important;
                 border: 0 !important;
@@ -2173,25 +2181,49 @@
                 display: flex !important;
                 width: max-content;
                 min-width: 100%;
+                max-width: none;
                 flex-wrap: nowrap !important;
                 align-items: stretch !important;
-                gap: 10px !important;
-                padding: 12px !important;
+                gap: 8px !important;
+                padding: 8px !important;
             }
 
             #mobile-detail-analysis-host > .py-2 > .d-flex > div {
-                width: 276px !important;
-                min-width: 276px !important;
-                flex: 0 0 276px !important;
+                width: min(248px, calc(100vw - 54px)) !important;
+                min-width: min(248px, calc(100vw - 54px)) !important;
+                flex: 0 0 min(248px, calc(100vw - 54px)) !important;
                 scroll-snap-align: start;
             }
 
-            #mobile-detail-analysis-host .stat-box {
-                height: 100%;
+            #mobile-detail-analysis-host > .py-2 > .d-flex > div > div {
+                max-width: 100%;
+                padding: 8px !important;
+                overflow: hidden;
+            }
+
+            #mobile-detail-analysis-host .stat-table {
+                width: 100%;
+                font-size: .64rem;
+            }
+
+            #mobile-detail-analysis-host .stat-table td {
+                padding: 3px 4px;
+            }
+
+            #mobile-detail-context-host {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: hidden;
             }
 
             #mobile-detail-context-host .pre-context-panel {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
                 margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
                 border: 0 !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
@@ -2199,22 +2231,60 @@
 
             #mobile-detail-context-host .pre-context-head,
             #mobile-detail-context-host .pre-context-actions,
-            #mobile-detail-context-host .pre-context-team-grid {
+            #mobile-detail-context-host .pre-context-team-grid,
+            #mobile-detail-context-host .pre-context-ah-grid {
                 display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 10px !important;
+                min-width: 0 !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                gap: 8px !important;
+            }
+
+            #mobile-detail-context-host .pre-context-head {
+                padding: 12px;
+            }
+
+            #mobile-detail-context-host .pre-context-moments,
+            #mobile-detail-context-host .pre-context-moment,
+            #mobile-detail-context-host .pre-context-team {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0 !important;
+            }
+
+            #mobile-detail-context-host .pre-context-team + .pre-context-team {
+                border-left: 0;
+                border-top: 1px solid #d7e0e9;
             }
 
             #mobile-detail-context-host .pre-context-table {
-                font-size: .67rem;
+                width: 100% !important;
+                max-width: 100%;
+                table-layout: fixed;
+                font-size: .6rem;
+            }
+
+            #mobile-detail-context-host .pre-context-table th,
+            #mobile-detail-context-host .pre-context-table td {
+                padding: 4px 2px;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                text-overflow: clip;
+            }
+
+            #mobile-detail-context-host .pre-context-table th {
+                font-size: .56rem;
+            }
+
+            #mobile-detail-context-host .pre-context-copy-footer {
+                padding: 10px 12px;
             }
 
             #mobile-detail-context-host .pre-context-copy {
                 width: 100%;
-                min-height: 50px;
-                margin-top: 8px;
-                border-radius: 11px;
-                font-size: .82rem;
+                min-height: 48px;
+                margin-top: 0;
+                border-radius: 10px;
+                font-size: .78rem;
                 font-weight: 850;
             }
 
