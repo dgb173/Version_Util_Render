@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import datetime as dt
 import base64
+import datetime as dt
 import json
 import math
 import os
@@ -209,7 +209,7 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
         return {}
     placeholders = ", ".join("?" for _ in ordered_ids)
     query = (
-        "SELECT match_id, COALESCE(explorer_json, payload_json) AS payload_json "
+        "SELECT match_id, payload_json, explorer_json "
         f"FROM matches WHERE match_id IN ({placeholders})"
     )
     remote_rows = _remote_query(query, ordered_ids)
@@ -221,11 +221,46 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
 
     output: Dict[str, Dict[str, Any]] = {}
     for row in rows:
+        # Start with payload_json (contains full scrape data with h2h stats)
+        base: Dict[str, Any] = {}
         try:
-            payload = json.loads(row["payload_json"])
+            base = json.loads(row["payload_json"]) if row["payload_json"] else {}
         except (json.JSONDecodeError, TypeError):
-            continue
-        if isinstance(payload, dict):
+            pass
+        if not isinstance(base, dict):
+            base = {}
+
+        # Overlay explorer_json if it exists (has compact/explorer-oriented fields)
+        explorer: Dict[str, Any] = {}
+        try:
+            explorer = json.loads(row["explorer_json"]) if row["explorer_json"] else {}
+        except (json.JSONDecodeError, TypeError):
+            pass
+        if not isinstance(explorer, dict):
+            explorer = {}
+
+        if explorer:
+            # Merge: explorer keys override base, but preserve base keys that
+            # explorer doesn't have (like h2h_stadium, h2h_general with stats_rows,
+            # last_home_match, last_away_match, comparativas_indirectas, etc.)
+            merged = {**base, **explorer}
+            # Restore deep analysis keys from base when explorer nullifies them
+            _DEEP_KEYS = (
+                'h2h_stadium', 'h2h_general', 'h2h_col3',
+                'last_home_match', 'last_away_match',
+                'comparativas_indirectas', 'pre_match_context',
+                'market_analysis_data',
+            )
+            for key in _DEEP_KEYS:
+                base_val = base.get(key)
+                merged_val = merged.get(key)
+                if base_val and not merged_val:
+                    merged[key] = base_val
+            payload = merged
+        else:
+            payload = base
+
+        if payload:
             output[str(row["match_id"])] = payload
     return output
 
