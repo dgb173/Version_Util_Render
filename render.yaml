@@ -3,7 +3,7 @@ services:
     name: nowgoal-app
     runtime: python
     plan: free
-    buildCommand: pip install --no-cache-dir -r requirements.txt
+    buildCommand: pip install --no-cache-dir -r requirements.txt && python scripts/build_precache_fast_store.py
     startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 wsgi:app
     healthCheckPath: /precacheo
     envVars:
