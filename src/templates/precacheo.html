@@ -12793,10 +12793,15 @@
             updateCurrentTimeDisplay();
             // Actualizar hora cada minuto
             setInterval(updateCurrentTimeDisplay, 60000);
-            await cleanupLegacyPrecacheCaches();
-            // Cargar ligas favoritas primero
-            await loadLigasFavoritas();
-            triggerSearch(); // Cargar lista inicial al abrir la página
+            // La limpieza legacy no debe retrasar el primer render.
+            void cleanupLegacyPrecacheCaches();
+            // Favoritas y partidos son independientes: una sola ronda de red.
+            await Promise.allSettled([
+                loadLigasFavoritas(),
+                triggerSearch()
+            ]);
+            // Reaplicar favoritas/ocultas si la tabla terminó antes que su configuración.
+            applyFiltersVisually();
         });
     </script>
 
