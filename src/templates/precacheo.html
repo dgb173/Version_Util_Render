@@ -361,6 +361,7 @@
         .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
         .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
         .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-copy-footer { display: flex; justify-content: flex-end; padding: 12px; border-top: 1px solid #dce4e8; background: #f8fafb; }
         .pre-context-league-filter { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 3px 6px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #475569; font-size: .58rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
         .pre-context-league-filter input { width: 12px; height: 12px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
         .pre-context-filter-empty { padding: 12px 8px; text-align: center; color: #94a3b8; font-size: .58rem; font-weight: 800; }
@@ -1685,6 +1686,607 @@
                 display: none !important;
             }
         }
+
+        /* ============================================================
+           EXPERIENCIA MÓVIL DE ANÁLISIS
+           La tabla de escritorio se conserva intacta; por debajo de
+           768px se muestra una lista compacta y un detalle a pantalla
+           completa con las mismas funciones y datos.
+           ============================================================ */
+        .mobile-match-browser,
+        .mobile-match-detail {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                background: #f3f6f8;
+                color: #0b2733;
+            }
+
+            .main-content {
+                padding: 8px 0 84px !important;
+            }
+
+            .precache-header,
+            #pagination-nav-top,
+            .precache-action-toolbar {
+                margin-left: 12px !important;
+                margin-right: 12px !important;
+            }
+
+            .precache-header {
+                gap: 10px !important;
+                padding-top: 4px;
+            }
+
+            .precache-primary-controls {
+                grid-template-columns: 42px minmax(0, 1fr) auto !important;
+            }
+
+            .precache-primary-controls h4 {
+                font-weight: 850;
+                color: #0b2733;
+            }
+
+            .precache-view-controls {
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 2px 8px rgba(11, 39, 51, .08);
+            }
+
+            .precache-bulk-actions .btn {
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: 0 2px 8px rgba(11, 39, 51, .06);
+            }
+
+            .table-zoom-toolbar,
+            .main-content > .table-responsive {
+                display: none !important;
+            }
+
+            .mobile-match-browser {
+                display: block;
+                margin-top: 10px;
+            }
+
+            .mobile-list-summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 10px 16px;
+                color: #53666e;
+                font-size: .78rem;
+                font-weight: 700;
+            }
+
+            .mobile-list-summary strong {
+                color: #0b2733;
+            }
+
+            .mobile-league-group {
+                margin-bottom: 10px;
+                border-top: 1px solid #dce4e8;
+                border-bottom: 1px solid #dce4e8;
+                background: #fff;
+            }
+
+            .mobile-league-group[hidden] {
+                display: none !important;
+            }
+
+            .mobile-league-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-height: 52px;
+                padding: 9px 14px;
+                background: #eaf3f7;
+                border-bottom: 1px solid #d6e3e8;
+            }
+
+            .mobile-league-mark {
+                display: inline-grid;
+                width: 34px;
+                height: 34px;
+                flex: 0 0 34px;
+                place-items: center;
+                border-radius: 10px;
+                background: #fff;
+                color: #0e6578;
+                box-shadow: 0 1px 4px rgba(11, 39, 51, .1);
+            }
+
+            .mobile-league-copy {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .mobile-league-name {
+                display: block;
+                overflow: hidden;
+                color: #102d38;
+                font-size: .86rem;
+                font-weight: 850;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-league-meta {
+                display: block;
+                margin-top: 1px;
+                color: #61747c;
+                font-size: .68rem;
+            }
+
+            .mobile-league-favorite {
+                width: 38px;
+                height: 38px;
+                flex: 0 0 38px;
+                border: 0;
+                border-radius: 50%;
+                background: transparent;
+                color: #8b9aa0;
+                font-size: 1.05rem;
+            }
+
+            .mobile-league-favorite.is-favorite {
+                color: #edb400;
+            }
+
+            .mobile-match-row {
+                display: grid;
+                grid-template-columns: 58px minmax(0, 1fr) auto 22px;
+                align-items: stretch;
+                min-height: 92px;
+                border-bottom: 1px solid #e7ecef;
+                background: #fff;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .mobile-match-row:last-child {
+                border-bottom: 0;
+            }
+
+            .mobile-match-row[hidden] {
+                display: none !important;
+            }
+
+            .mobile-match-row:active {
+                background: #f1f7f9;
+            }
+
+            .mobile-match-time {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                padding: 10px 5px;
+                border-right: 1px solid #edf1f3;
+                color: #566a72;
+                font-size: .7rem;
+                font-weight: 750;
+            }
+
+            .mobile-match-time strong {
+                color: #173943;
+                font-size: .78rem;
+            }
+
+            .mobile-history-dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: #cbd5da;
+            }
+
+            .mobile-history-dot.has-history {
+                background: #19a060;
+            }
+
+            .mobile-match-teams {
+                min-width: 0;
+                padding: 13px 10px;
+            }
+
+            .mobile-team-line {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 8px;
+                min-height: 28px;
+            }
+
+            .mobile-team-line strong {
+                overflow: hidden;
+                color: #102d38;
+                font-size: .88rem;
+                font-weight: 760;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-team-line .rank {
+                color: #7a8b92;
+                font-size: .68rem;
+                font-weight: 750;
+            }
+
+            .mobile-match-pick {
+                margin-top: 5px;
+                overflow: hidden;
+                color: #677b83;
+                font-size: .66rem;
+                font-weight: 700;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-match-market {
+                display: flex;
+                min-width: 64px;
+                flex-direction: column;
+                align-items: flex-end;
+                justify-content: center;
+                gap: 5px;
+                padding: 10px 5px 10px 0;
+            }
+
+            .mobile-market-pill {
+                max-width: 88px;
+                padding: 3px 7px;
+                border-radius: 7px;
+                background: #eef5f8;
+                color: #23444e;
+                font-size: .66rem;
+                font-weight: 850;
+                white-space: nowrap;
+            }
+
+            .mobile-market-pill.is-pick {
+                background: #eaf8ef;
+                color: #137849;
+            }
+
+            .mobile-match-chevron {
+                display: grid;
+                place-items: center;
+                color: #91a0a6;
+                font-size: .72rem;
+            }
+
+            .mobile-list-empty {
+                padding: 72px 24px;
+                color: #7c8e95;
+                text-align: center;
+            }
+
+            .mobile-list-empty i {
+                display: block;
+                margin-bottom: 14px;
+                color: #b8c4c9;
+                font-size: 2.8rem;
+            }
+
+            .mobile-match-detail {
+                position: fixed;
+                inset: 0;
+                z-index: 3000;
+                flex-direction: column;
+                background: #f3f6f8;
+                overflow: hidden;
+            }
+
+            .mobile-match-detail.show {
+                display: flex;
+            }
+
+            .mobile-detail-header {
+                display: grid;
+                grid-template-columns: 46px minmax(0, 1fr) 46px;
+                align-items: center;
+                min-height: 68px;
+                padding: max(8px, env(safe-area-inset-top)) 8px 8px;
+                background: #062d38;
+                color: #fff;
+            }
+
+            .mobile-detail-header button {
+                width: 42px;
+                height: 42px;
+                border: 0;
+                border-radius: 50%;
+                background: transparent;
+                color: #fff;
+                font-size: 1.15rem;
+            }
+
+            .mobile-detail-title {
+                min-width: 0;
+                text-align: center;
+            }
+
+            .mobile-detail-title strong,
+            .mobile-detail-title span {
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .mobile-detail-title strong {
+                font-size: .92rem;
+            }
+
+            .mobile-detail-title span {
+                margin-top: 2px;
+                color: #bcd0d6;
+                font-size: .66rem;
+            }
+
+            .mobile-detail-tabs {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                background: #fff;
+                border-bottom: 1px solid #dfe6e9;
+                box-shadow: 0 2px 6px rgba(11, 39, 51, .05);
+            }
+
+            .mobile-detail-tab {
+                min-height: 50px;
+                padding: 8px 3px 6px;
+                border: 0;
+                border-bottom: 3px solid transparent;
+                background: transparent;
+                color: #65777e;
+                font-size: .66rem;
+                font-weight: 850;
+                text-transform: uppercase;
+            }
+
+            .mobile-detail-tab.is-active {
+                border-bottom-color: #ec1760;
+                color: #0b2733;
+            }
+
+            .mobile-detail-scroll {
+                flex: 1;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .mobile-detail-pane {
+                display: none;
+                padding: 12px;
+            }
+
+            .mobile-detail-pane.is-active {
+                display: block;
+            }
+
+            .mobile-summary-card,
+            .mobile-detail-section {
+                margin-bottom: 12px;
+                overflow: hidden;
+                border: 1px solid #dfe6e9;
+                border-radius: 14px;
+                background: #fff;
+                box-shadow: 0 2px 8px rgba(11, 39, 51, .05);
+            }
+
+            .mobile-summary-league {
+                padding: 10px 14px;
+                background: #eaf3f7;
+                color: #31525d;
+                font-size: .72rem;
+                font-weight: 800;
+            }
+
+            .mobile-summary-teams {
+                padding: 18px 16px 14px;
+            }
+
+            .mobile-summary-team {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 0;
+                color: #102d38;
+                font-size: 1rem;
+                font-weight: 800;
+            }
+
+            .mobile-summary-market-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
+                padding: 0 16px 16px;
+            }
+
+            .mobile-summary-metric {
+                padding: 10px 6px;
+                border-radius: 10px;
+                background: #f1f6f8;
+                text-align: center;
+            }
+
+            .mobile-summary-metric small,
+            .mobile-summary-metric strong {
+                display: block;
+            }
+
+            .mobile-summary-metric small {
+                margin-bottom: 3px;
+                color: #6c7e85;
+                font-size: .61rem;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .mobile-summary-metric strong {
+                color: #173943;
+                font-size: .82rem;
+            }
+
+            .mobile-detail-section-title {
+                padding: 12px 14px;
+                border-bottom: 1px solid #e7ecef;
+                color: #173943;
+                font-size: .78rem;
+                font-weight: 900;
+                text-transform: uppercase;
+            }
+
+            #mobile-detail-analysis-host > .py-2 {
+                padding: 0 !important;
+                background: transparent !important;
+                border: 0 !important;
+            }
+
+            #mobile-detail-analysis-host > .py-2 > .d-flex {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+                padding: 0 !important;
+            }
+
+            #mobile-detail-analysis-host > .py-2 > .d-flex > div {
+                width: 100% !important;
+            }
+
+            #mobile-detail-context-host .pre-context-panel {
+                margin: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+
+            #mobile-detail-context-host .pre-context-head,
+            #mobile-detail-context-host .pre-context-actions,
+            #mobile-detail-context-host .pre-context-team-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            #mobile-detail-context-host .pre-context-table {
+                font-size: .67rem;
+            }
+
+            #mobile-detail-context-host .pre-context-copy {
+                width: 100%;
+                min-height: 50px;
+                margin-top: 8px;
+                border-radius: 11px;
+                font-size: .82rem;
+                font-weight: 850;
+            }
+
+            .mobile-action-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                padding: 14px;
+            }
+
+            .mobile-action-grid .btn {
+                min-height: 72px;
+                border-radius: 12px;
+                font-size: .76rem;
+                font-weight: 800;
+            }
+
+            .mobile-action-grid .btn i {
+                display: block;
+                margin-bottom: 7px;
+                font-size: 1.1rem;
+            }
+
+            .mobile-filters-toggle {
+                z-index: 2200;
+                width: 58px;
+                height: 58px;
+                border-radius: 18px;
+                box-shadow: 0 8px 24px rgba(20, 77, 93, .28);
+            }
+
+            .mobile-filters-panel {
+                z-index: 3100;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                background: #fff;
+            }
+
+            .mobile-overlay {
+                z-index: 3050;
+            }
+
+            .mobile-filter-section {
+                margin-bottom: 12px;
+                padding: 12px;
+                border: 1px solid #e1e8eb;
+                border-radius: 12px;
+                background: #f9fbfc;
+            }
+
+            .mobile-filter-section-title {
+                margin-bottom: 9px;
+                color: #31515c;
+                font-size: .69rem;
+                font-weight: 900;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+            .mobile-filter-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 9px;
+            }
+
+            .mobile-filter-field label {
+                display: block;
+                margin-bottom: 4px;
+                color: #63767e;
+                font-size: .64rem;
+                font-weight: 800;
+            }
+
+            .mobile-filter-field select {
+                width: 100%;
+                min-height: 42px;
+                padding: 7px 28px 7px 9px;
+                border: 1px solid #ccd8dd;
+                border-radius: 9px;
+                background-color: #fff;
+                color: #173943;
+                font-size: .72rem;
+            }
+
+            .mobile-filter-more > summary {
+                padding: 10px 0;
+                color: #0f6679;
+                cursor: pointer;
+                font-size: .74rem;
+                font-weight: 850;
+                list-style: none;
+            }
+
+            .mobile-filter-more > summary::-webkit-details-marker {
+                display: none;
+            }
+
+            .mobile-filter-more > summary::after {
+                content: '\25BC';
+                float: right;
+            }
+        }
     </style>
 </head>
 
@@ -1754,7 +2356,7 @@
                         <span class="badge bg-primary ms-1" id="copy-all-precache-count">0</span>
                     </button>
                     <button class="btn btn-outline-success btn-sm" id="btn-download-all-precache"
-                        onclick="downloadAllPrecacheTxt(this)" title="Descargar hasta 100 partidos con contexto previo y prompt LLM">
+                        onclick="downloadAllPrecacheTxt(this)" title="Descargar hasta 100 partidos con todos sus datos de contexto">
                         <i class="fa-solid fa-file-arrow-down me-1"></i> Descargar TXT completo
                         <span class="badge bg-success ms-1" id="download-all-precache-count">0</span>
                     </button>
@@ -1810,6 +2412,14 @@
                 <i class="fa-solid fa-expand me-1"></i> Ajustar
             </button>
         </div>
+
+        <section class="mobile-match-browser" id="mobile-match-browser" aria-label="Partidos">
+            <div class="mobile-list-summary" id="mobile-list-summary">
+                <span><strong>0</strong> partidos visibles</span>
+                <span>Toca un partido para analizarlo</span>
+            </div>
+            <div id="mobile-match-list"></div>
+        </section>
 
         <div class="table-responsive">
             <table class="table table-bordered table-sm excel-table" id="results-table">
@@ -2034,6 +2644,48 @@
         </div>
     </div>
 
+    <section class="mobile-match-detail" id="mobile-match-detail" aria-hidden="true">
+        <header class="mobile-detail-header">
+            <button type="button" onclick="closeMobileMatchDetail()" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="mobile-detail-title">
+                <strong id="mobile-detail-match-title">Partido</strong>
+                <span id="mobile-detail-match-meta">Pre-Cacheo</span>
+            </div>
+            <button type="button" id="mobile-detail-favorite" onclick="toggleMobileDetailLeagueFavorite(this)" aria-label="Liga favorita">
+                <i class="fa-regular fa-star"></i>
+            </button>
+        </header>
+        <nav class="mobile-detail-tabs" aria-label="Secciones del partido">
+            <button type="button" class="mobile-detail-tab is-active" data-mobile-detail-tab="summary" onclick="showMobileDetailTab('summary', this)">Resumen</button>
+            <button type="button" class="mobile-detail-tab" data-mobile-detail-tab="analysis" onclick="showMobileDetailTab('analysis', this)">Análisis</button>
+            <button type="button" class="mobile-detail-tab" data-mobile-detail-tab="context" onclick="showMobileDetailTab('context', this)">Contexto</button>
+            <button type="button" class="mobile-detail-tab" data-mobile-detail-tab="actions" onclick="showMobileDetailTab('actions', this)">Acciones</button>
+        </nav>
+        <div class="mobile-detail-scroll" id="mobile-detail-scroll">
+            <div class="mobile-detail-pane is-active" data-mobile-detail-pane="summary" id="mobile-detail-summary"></div>
+            <div class="mobile-detail-pane" data-mobile-detail-pane="analysis">
+                <section class="mobile-detail-section">
+                    <div class="mobile-detail-section-title">Estadísticas y comparativas</div>
+                    <div id="mobile-detail-analysis-host"></div>
+                </section>
+            </div>
+            <div class="mobile-detail-pane" data-mobile-detail-pane="context">
+                <section class="mobile-detail-section">
+                    <div class="mobile-detail-section-title">Datos para copiar</div>
+                    <div id="mobile-detail-context-host"></div>
+                </section>
+            </div>
+            <div class="mobile-detail-pane" data-mobile-detail-pane="actions">
+                <section class="mobile-detail-section">
+                    <div class="mobile-detail-section-title">Funciones del partido</div>
+                    <div class="mobile-action-grid" id="mobile-detail-actions"></div>
+                </section>
+            </div>
+        </div>
+    </section>
+
     <!-- Botón flotante de filtros (solo visible en móvil) -->
     <button class="mobile-filters-toggle" id="mobile-filters-btn" onclick="toggleMobileFilters()">
         <i class="fa-solid fa-filter"></i>
@@ -2052,8 +2704,8 @@
             </button>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label small fw-bold">Modo de vista</label>
+        <div class="mobile-filter-section">
+            <div class="mobile-filter-section-title">Modo de vista</div>
             <div class="btn-group w-100" role="group">
                 <button type="button" class="btn btn-outline-primary btn-sm" id="mobile-btn-proximos"
                     onclick="setViewMode('proximos'); closeMobileFilters();">
@@ -2068,25 +2720,105 @@
             </div>
         </div>
 
-        <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="mobile-filter-only-with-history"
-                    onchange="document.getElementById('filter-only-with-history').checked = this.checked; triggerSearch();">
-                <label class="form-check-label" for="mobile-filter-only-with-history">
-                    Solo con historial
-                </label>
+        <div class="mobile-filter-section">
+            <div class="mobile-filter-section-title">Filtros principales</div>
+            <div class="mobile-filter-grid">
+                <div class="mobile-filter-field">
+                    <label for="mobile-filter-league">Liga</label>
+                    <select id="mobile-filter-league" onchange="setMobileMultiFilter('league', this.value)">
+                        <option value="">Todas las ligas</option>
+                    </select>
+                </div>
+                <div class="mobile-filter-field">
+                    <label for="mobile-filter-handicap">Hándicap actual</label>
+                    <select id="mobile-filter-handicap" onchange="setMobileMultiFilter('handicap', this.value)">
+                        <option value="">Todos</option>
+                        <option value="-2.5">-2.5 o menor</option><option value="-2">-2</option>
+                        <option value="-1.5">-1.5</option><option value="-1">-1</option>
+                        <option value="-0.5">-0.5</option><option value="0">0</option>
+                        <option value="0.5">+0.5</option><option value="1">+1</option>
+                        <option value="1.5">+1.5</option><option value="2">+2</option>
+                        <option value="2.5">+2.5 o mayor</option>
+                    </select>
+                </div>
+                <div class="mobile-filter-field">
+                    <label for="mobile-filter-ou">Línea O/U</label>
+                    <select id="mobile-filter-ou" onchange="setMobileMultiFilter('ou', this.value)">
+                        <option value="">Todas</option><option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option><option value="3.0">3.0</option>
+                        <option value="3.5">3.5</option><option value="4+">4+</option>
+                    </select>
+                </div>
+                <div class="mobile-filter-field">
+                    <label for="mobile-filter-pick">Pick</label>
+                    <select id="mobile-filter-pick" onchange="setMobileSimpleFilter('filter-pick', this.value)">
+                        <option value="">Todos</option><option value="HAS_PICK">Con pick</option>
+                        <option value="AH">Pick AH</option><option value="OU">Pick O/U</option>
+                        <option value="AH_FAVORITE">Favorito</option><option value="AH_DOG">Underdog</option>
+                        <option value="OVER">Over</option><option value="UNDER">Under</option>
+                        <option value="NO_BET">No bet</option>
+                    </select>
+                </div>
+                <div class="mobile-filter-field" style="grid-column:1/-1">
+                    <label for="mobile-filter-strategy">Estrategia</label>
+                    <select id="mobile-filter-strategy" onchange="setMobileSimpleFilter('filter-strategies', this.value)"><option value="">Todas las estrategias</option></select>
+                </div>
             </div>
         </div>
 
-        <div class="mb-3">
+        <div class="mobile-filter-section">
+            <div class="mobile-filter-section-title">Disponibilidad</div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="mobile-filter-only-with-history"
+                    onchange="document.getElementById('filter-only-with-history').checked = this.checked; triggerSearch();">
+                <label class="form-check-label" for="mobile-filter-only-with-history">Solo con historial completo</label>
+            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="mobile-filter-only-favorites"
                     onchange="document.getElementById('filter-only-favorites').checked = this.checked; applyFiltersVisually();">
-                <label class="form-check-label" for="mobile-filter-only-favorites">
-                    <i class="fa-solid fa-star text-warning"></i> Solo favoritas
-                </label>
+                <label class="form-check-label" for="mobile-filter-only-favorites"><i class="fa-solid fa-star text-warning"></i> Solo ligas favoritas</label>
             </div>
         </div>
+
+        <details class="mobile-filter-more">
+            <summary>Filtros avanzados</summary>
+            <div class="mobile-filter-section">
+                <div class="mobile-filter-section-title">Partidos previos</div>
+                <div class="mobile-filter-grid">
+                    <div class="mobile-filter-field"><label>AH previo local</label><select id="mobile-filter-prev-home-ah" onchange="setMobileMultiFilter('prevHomeAh', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Resultado local</label><select id="mobile-filter-prev-home-res" onchange="setMobileSimpleFilter('filter-prev-home-res', this.value)"><option value="">Todos</option><option value="WIN">Win</option><option value="DRAW">Draw</option><option value="LOSS">Loss</option></select></div>
+                    <div class="mobile-filter-field"><label>AH previo visitante</label><select id="mobile-filter-prev-away-ah" onchange="setMobileMultiFilter('prevAwayAh', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Resultado visitante</label><select id="mobile-filter-prev-away-res" onchange="setMobileSimpleFilter('filter-prev-away-res', this.value)"><option value="">Todos</option><option value="WIN">Win</option><option value="DRAW">Draw</option><option value="LOSS">Loss</option></select></div>
+                </div>
+            </div>
+            <div class="mobile-filter-section">
+                <div class="mobile-filter-section-title">H2H y espejo</div>
+                <div class="mobile-filter-grid">
+                    <div class="mobile-filter-field"><label>H2H estadio movimiento</label><select id="mobile-filter-h2h-stadium-mov" onchange="setMobileSimpleFilter('filter-h2h-stadium-mov', this.value)"><option value="">Todos</option><option value="UP">Subió</option><option value="DOWN">Bajó</option><option value="SAME">Igual</option></select></div>
+                    <div class="mobile-filter-field"><label>H2H estadio cover</label><select id="mobile-filter-h2h-stadium-res" onchange="setMobileSimpleFilter('filter-h2h-stadium-res', this.value)"><option value="">Todos</option><option value="COVER">Cubierto</option><option value="PUSH">Push</option><option value="NO_COVER">No cubierto</option></select></div>
+                    <div class="mobile-filter-field"><label>H2H general movimiento</label><select id="mobile-filter-h2h-general-mov" onchange="setMobileSimpleFilter('filter-h2h-general-mov', this.value)"><option value="">Todos</option><option value="UP">Subió</option><option value="DOWN">Bajó</option><option value="SAME">Igual</option></select></div>
+                    <div class="mobile-filter-field"><label>H2H general cover</label><select id="mobile-filter-h2h-general-res" onchange="setMobileSimpleFilter('filter-h2h-general-res', this.value)"><option value="">Todos</option><option value="COVER">Cubierto</option><option value="PUSH">Push</option><option value="NO_COVER">No cubierto</option></select></div>
+                    <div class="mobile-filter-field"><label>Tipo de espejo</label><select id="mobile-filter-h2h-col3-mirror" onchange="setMobileSimpleFilter('filter-h2h-col3-mirror', this.value)"><option value="">Todos</option><option value="directa">Directa</option><option value="inversa">Inversa</option></select></div>
+                    <div class="mobile-filter-field"><label>Lectura del espejo</label><select id="mobile-filter-h2h-col3-cover" onchange="setMobileSimpleFilter('filter-h2h-col3-cover', this.value)"><option value="">Todas</option><option value="MEJORA">Mejora</option><option value="IGUALA">Iguala</option><option value="IGUALA_SUP">Iguala +</option><option value="EMPEORA">Empeora</option></select></div>
+                    <div class="mobile-filter-field"><label>AH del espejo</label><select id="mobile-filter-h2h-col3-ah" onchange="setMobileMultiFilter('h2hCol3Ah', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Estadio AH inicial</label><select id="mobile-filter-h2h-stadium-start-ah" onchange="setMobileSimpleFilter('filter-h2h-stadium-start-ah', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Estadio AH final</label><select id="mobile-filter-h2h-stadium-end-ah" onchange="setMobileSimpleFilter('filter-h2h-stadium-end-ah', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>General AH inicial</label><select id="mobile-filter-h2h-general-start-ah" onchange="setMobileSimpleFilter('filter-h2h-general-start-ah', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>General AH final</label><select id="mobile-filter-h2h-general-end-ah" onchange="setMobileSimpleFilter('filter-h2h-general-end-ah', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                </div>
+            </div>
+            <div class="mobile-filter-section">
+                <div class="mobile-filter-section-title">Comparativas indirectas</div>
+                <div class="mobile-filter-grid">
+                    <div class="mobile-filter-field"><label>Indirecta local AH</label><select id="mobile-filter-ind-local-ah" onchange="setMobileMultiFilter('indLocalAh', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Indirecta local</label><select id="mobile-filter-ind-local-res" onchange="setMobileSimpleFilter('filter-ind-local-res', this.value)"><option value="">Todos</option><option value="COVER">Cubierto</option><option value="PUSH">Push</option><option value="NO_COVER">No cubierto</option></select></div>
+                    <div class="mobile-filter-field"><label>Localía indirecta local</label><select id="mobile-filter-ind-local-loc" onchange="setMobileSimpleFilter('filter-ind-local-loc', this.value)"><option value="">Todas</option><option value="H">Casa</option><option value="A">Fuera</option></select></div>
+                    <div class="mobile-filter-field"><label>Indirecta visitante AH</label><select id="mobile-filter-ind-visitante-ah" onchange="setMobileMultiFilter('indVisitanteAh', this.value)"><option value="">Todos</option><option value="-2.5">-2.5-</option><option value="-2">-2</option><option value="-1.5">-1.5</option><option value="-1">-1</option><option value="-0.5">-0.5</option><option value="0">0</option><option value="0.5">+0.5</option><option value="1">+1</option><option value="1.5">+1.5</option><option value="2">+2</option><option value="2.5">+2.5+</option></select></div>
+                    <div class="mobile-filter-field"><label>Indirecta visitante</label><select id="mobile-filter-ind-visitante-res" onchange="setMobileSimpleFilter('filter-ind-visitante-res', this.value)"><option value="">Todos</option><option value="COVER">Cubierto</option><option value="PUSH">Push</option><option value="NO_COVER">No cubierto</option></select></div>
+                    <div class="mobile-filter-field"><label>Localía indirecta visitante</label><select id="mobile-filter-ind-visitante-loc" onchange="setMobileSimpleFilter('filter-ind-visitante-loc', this.value)"><option value="">Todas</option><option value="H">Casa</option><option value="A">Fuera</option></select></div>
+                </div>
+            </div>
+        </details>
 
         <div class="d-flex gap-2 mt-3">
             <button class="btn btn-primary flex-grow-1" onclick="applyFiltersVisually(); closeMobileFilters();">
@@ -2105,11 +2837,353 @@
         let precacheDateFormatHint = 'MDY';
         let quickPickModeEnabled = false;
         let quickPickModeBusy = false;
+        let mobileDetailState = null;
 
         // MultiSelect Instances
         let msLeague, msHandicap, msOu, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
 
         // --- Mobile Filters Functions ---
+        function mobileEscape(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function mobileMatchById(matchId) {
+            const wanted = String(matchId || '');
+            return (totalFilteredMatches || []).find(item => String(item?.id ?? item?.match_id ?? '') === wanted)
+                || upcomingMatches.find(item => String(item?.id ?? item?.match_id ?? '') === wanted)
+                || precacheoData[wanted]
+                || null;
+        }
+
+        function mobileMatchLeague(match, pc) {
+            return String(pc?.league_name || match?.league || match?.league_name || 'Liga sin identificar').trim();
+        }
+
+        function mobileMatchLeagueId(match, pc) {
+            return String(resolveLeagueId(pc, match) || match?.league_id || '').trim();
+        }
+
+        function mobileMatchClock(match, pc) {
+            const raw = match?.time || match?.match_time || match?.kickoff || match?.date || pc?.match_date || pc?.date || '';
+            const text = String(raw);
+            const timeMatch = text.match(/(?:T|\s)(\d{1,2}:\d{2})/) || text.match(/^(\d{1,2}:\d{2})$/);
+            return timeMatch ? timeMatch[1] : (text.length <= 8 ? text : '--:--');
+        }
+
+        function mobileMatchDate(match, pc) {
+            const raw = String(match?.match_date || match?.date || pc?.match_date || pc?.date || '');
+            const dateMatch = raw.match(/(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) {
+                const parts = dateMatch[1].split('-');
+                return `${parts[2]}.${parts[1]}`;
+            }
+            return raw && raw.length <= 10 ? raw : '';
+        }
+
+        function mobileRank(pc, side, match) {
+            const standings = side === 'home' ? pc?.home_standings : pc?.away_standings;
+            const fallback = side === 'home' ? match?.home_rank : match?.away_rank;
+            const value = standings?.ranking ?? fallback;
+            return value && value !== 'N/A' ? `[${value}]` : '';
+        }
+
+        function mobilePickText(match, pc) {
+            const source = { ...(match || {}), ...(pc || {}) };
+            const parts = [];
+            const ahPick = source.clave_pick_ah;
+            const ouPick = source.clave_pick_ou;
+            if (ahPick && ahPick !== 'NO_BET') parts.push(String(ahPick).replaceAll('_', ' '));
+            if (ouPick && ouPick !== 'NO_BET') parts.push(String(ouPick).replaceAll('_', ' '));
+            return parts.join(' · ') || 'Sin pick';
+        }
+
+        function renderMobileMatchBrowser(matches) {
+            const list = document.getElementById('mobile-match-list');
+            if (!list) return;
+            const items = Array.isArray(matches) ? matches : [];
+            if (!items.length) {
+                list.innerHTML = '<div class="mobile-list-empty"><i class="fa-regular fa-folder-open"></i>No hay partidos que mostrar</div>';
+                const summary = document.getElementById('mobile-list-summary');
+                if (summary) summary.innerHTML = '<span><strong>0</strong> partidos visibles</span><span>Revisa los filtros</span>';
+                return;
+            }
+
+            const groups = new Map();
+            items.forEach(match => {
+                const matchId = String(match?.id ?? match?.match_id ?? '');
+                if (!matchId) return;
+                const pc = precacheoData[matchId] || match;
+                const league = mobileMatchLeague(match, pc);
+                if (!groups.has(league)) groups.set(league, []);
+                groups.get(league).push({ match, pc, matchId });
+            });
+
+            list.innerHTML = Array.from(groups.entries()).map(([league, rows]) => {
+                const first = rows[0] || {};
+                const leagueId = mobileMatchLeagueId(first.match, first.pc);
+                const favorite = isLigaFavorita(league);
+                const cards = rows.map(({ match, pc, matchId }) => {
+                    const home = match?.home_team || pc?.home_name || pc?.home_team || '-';
+                    const away = match?.away_team || pc?.away_name || pc?.away_team || '-';
+                    const ah = match?.handicap ?? pc?.main_match_odds?.ah_linea ?? '-';
+                    const ou = pc?.main_match_odds?.goals_linea ?? match?.goals_line ?? match?.goal_line ?? '-';
+                    const ft = match?.score || match?.ft_score || pc?.score || '';
+                    const row = document.querySelector(`#table-body tr[data-match-id="${CSS.escape(matchId)}"]`);
+                    const hasHistory = row?.dataset?.hasHistory === '1';
+                    const hasPick = mobilePickText(match, pc) !== 'Sin pick';
+                    return `<article class="mobile-match-row" data-mobile-match-id="${mobileEscape(matchId)}" onclick="openMobileMatchDetail('${mobileEscape(matchId)}')">
+                        <div class="mobile-match-time"><strong>${mobileEscape(mobileMatchClock(match, pc))}</strong><span>${mobileEscape(mobileMatchDate(match, pc))}</span><span class="mobile-history-dot ${hasHistory ? 'has-history' : ''}" title="${hasHistory ? 'Historial completo' : 'Historial incompleto'}"></span></div>
+                        <div class="mobile-match-teams">
+                            <div class="mobile-team-line"><strong>${mobileEscape(home)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'home', match))}</span></div>
+                            <div class="mobile-team-line"><strong>${mobileEscape(away)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'away', match))}</span></div>
+                            <div class="mobile-match-pick">${mobileEscape(mobilePickText(match, pc))}</div>
+                        </div>
+                        <div class="mobile-match-market">
+                            <span class="mobile-market-pill">AH ${mobileEscape(ah)}</span>
+                            <span class="mobile-market-pill">O/U ${mobileEscape(ou)}</span>
+                            ${ft ? `<span class="mobile-market-pill is-pick">FT ${mobileEscape(ft)}</span>` : (hasPick ? '<span class="mobile-market-pill is-pick">PICK</span>' : '')}
+                        </div>
+                        <div class="mobile-match-chevron"><i class="fa-solid fa-chevron-right"></i></div>
+                    </article>`;
+                }).join('');
+                return `<section class="mobile-league-group" data-mobile-league-group="${mobileEscape(league)}">
+                    <header class="mobile-league-header">
+                        <span class="mobile-league-mark"><i class="fa-solid fa-trophy"></i></span>
+                        <span class="mobile-league-copy"><span class="mobile-league-name">${mobileEscape(league)}</span><span class="mobile-league-meta">${leagueId ? `Liga ID ${mobileEscape(leagueId)} · ` : ''}${rows.length} partido${rows.length === 1 ? '' : 's'}</span></span>
+                        <button type="button" class="mobile-league-favorite ${favorite ? 'is-favorite' : ''}" onclick="event.stopPropagation(); toggleMobileLeagueFavorite(decodeURIComponent('${encodeURIComponent(league).replace(/'/g, '%27')}'), this)" aria-label="Marcar liga favorita"><i class="fa-${favorite ? 'solid' : 'regular'} fa-star"></i></button>
+                    </header>${cards}
+                </section>`;
+            }).join('');
+        }
+
+        function syncMobileMatchBrowser() {
+            const list = document.getElementById('mobile-match-list');
+            if (!list) return;
+            let visible = 0;
+            list.querySelectorAll('[data-mobile-match-id]').forEach(card => {
+                const matchId = card.dataset.mobileMatchId || '';
+                const row = document.querySelector(`#table-body tr[data-match-id="${CSS.escape(matchId)}"]`);
+                const show = !!row && row.style.display !== 'none';
+                card.hidden = !show;
+                if (show) visible += 1;
+            });
+            list.querySelectorAll('[data-mobile-league-group]').forEach(group => {
+                group.hidden = !group.querySelector('[data-mobile-match-id]:not([hidden])');
+            });
+            let empty = list.querySelector('.mobile-list-empty[data-filter-empty]');
+            if (!visible) {
+                if (!empty) {
+                    empty = document.createElement('div');
+                    empty.className = 'mobile-list-empty';
+                    empty.dataset.filterEmpty = '1';
+                    empty.innerHTML = '<i class="fa-solid fa-filter-circle-xmark"></i>No hay partidos que coincidan con los filtros';
+                    list.appendChild(empty);
+                }
+            } else if (empty) {
+                empty.remove();
+            }
+            const summary = document.getElementById('mobile-list-summary');
+            if (summary) summary.innerHTML = `<span><strong>${visible}</strong> partidos visibles</span><span>Toca uno para analizarlo</span>`;
+        }
+
+        async function toggleMobileLeagueFavorite(league, button) {
+            await toggleLigaFavorita(league, button);
+            const favorite = isLigaFavorita(league);
+            document.querySelectorAll(`[data-mobile-league-group="${CSS.escape(league)}"] .mobile-league-favorite`).forEach(item => {
+                item.classList.toggle('is-favorite', favorite);
+                item.innerHTML = `<i class="fa-${favorite ? 'solid' : 'regular'} fa-star"></i>`;
+            });
+            if (mobileDetailState?.league === league) updateMobileDetailFavorite();
+        }
+
+        function updateMobileDetailFavorite() {
+            const button = document.getElementById('mobile-detail-favorite');
+            if (!button || !mobileDetailState) return;
+            const favorite = isLigaFavorita(mobileDetailState.league);
+            button.classList.toggle('text-warning', favorite);
+            button.innerHTML = `<i class="fa-${favorite ? 'solid' : 'regular'} fa-star"></i>`;
+        }
+
+        function toggleMobileDetailLeagueFavorite(button) {
+            if (!mobileDetailState) return;
+            toggleMobileLeagueFavorite(mobileDetailState.league, button);
+        }
+
+        function showMobileDetailTab(name, button = null) {
+            document.querySelectorAll('[data-mobile-detail-pane]').forEach(pane => pane.classList.toggle('is-active', pane.dataset.mobileDetailPane === name));
+            document.querySelectorAll('[data-mobile-detail-tab]').forEach(tab => tab.classList.toggle('is-active', tab.dataset.mobileDetailTab === name));
+            if (button) button.classList.add('is-active');
+            const scroll = document.getElementById('mobile-detail-scroll');
+            if (scroll) scroll.scrollTop = 0;
+        }
+
+        function openMobileMatchDetail(matchId) {
+            if (mobileDetailState) closeMobileMatchDetail();
+            const id = String(matchId || '');
+            const match = mobileMatchById(id);
+            const pc = precacheoData[id] || match || {};
+            if (!match && !pc) return;
+            const league = mobileMatchLeague(match, pc);
+            const home = match?.home_team || pc?.home_name || pc?.home_team || '-';
+            const away = match?.away_team || pc?.away_name || pc?.away_team || '-';
+            const ah = match?.handicap ?? pc?.main_match_odds?.ah_linea ?? '-';
+            const ou = pc?.main_match_odds?.goals_linea ?? match?.goals_line ?? match?.goal_line ?? '-';
+            const ft = match?.score || match?.ft_score || pc?.score || '-';
+            const leagueId = mobileMatchLeagueId(match, pc);
+
+            document.getElementById('mobile-detail-match-title').textContent = `${home} · ${away}`;
+            document.getElementById('mobile-detail-match-meta').textContent = `${league}${leagueId ? ` · ID ${leagueId}` : ''}`;
+            document.getElementById('mobile-detail-summary').innerHTML = `<section class="mobile-summary-card">
+                <div class="mobile-summary-league"><i class="fa-solid fa-trophy me-1"></i>${mobileEscape(league)}${leagueId ? ` · Liga ID ${mobileEscape(leagueId)}` : ''}</div>
+                <div class="mobile-summary-teams">
+                    <div class="mobile-summary-team"><span>${mobileEscape(home)}</span><span>${mobileEscape(mobileRank(pc, 'home', match))}</span></div>
+                    <div class="mobile-summary-team"><span>${mobileEscape(away)}</span><span>${mobileEscape(mobileRank(pc, 'away', match))}</span></div>
+                </div>
+                <div class="mobile-summary-market-grid">
+                    <div class="mobile-summary-metric"><small>Inicio</small><strong>${mobileEscape(mobileMatchClock(match, pc))}</strong></div>
+                    <div class="mobile-summary-metric"><small>AH</small><strong>${mobileEscape(ah)}</strong></div>
+                    <div class="mobile-summary-metric"><small>O/U</small><strong>${mobileEscape(ou)}</strong></div>
+                    <div class="mobile-summary-metric"><small>FT</small><strong>${mobileEscape(ft)}</strong></div>
+                    <div class="mobile-summary-metric" style="grid-column:span 2"><small>Pick</small><strong>${mobileEscape(mobilePickText(match, pc))}</strong></div>
+                </div>
+            </section>`;
+
+            const actions = document.getElementById('mobile-detail-actions');
+            actions.innerHTML = `${APP_PRECACHEO_ONLY ? '' : `<a class="btn btn-outline-secondary" href="/estudio/${encodeURIComponent(id)}" target="_blank"><i class="fa-solid fa-eye"></i>Ver estudio</a>`}
+                <button type="button" class="btn btn-outline-warning" onclick="searchPatterns('${mobileEscape(id)}', this)"><i class="fa-solid fa-compass"></i>Buscar patrones</button>
+                <button type="button" class="btn btn-outline-primary" onclick="showMobileDetailTab('analysis')"><i class="fa-solid fa-table-cells"></i>Estadísticas</button>
+                <button type="button" class="btn btn-outline-success" onclick="showMobileDetailTab('context')"><i class="fa-regular fa-copy"></i>Ver contexto</button>`;
+
+            const collapse = document.getElementById(`global-stats-${id}`);
+            const detailContent = collapse?.firstElementChild || null;
+            const analysisHost = document.getElementById('mobile-detail-analysis-host');
+            const contextHost = document.getElementById('mobile-detail-context-host');
+            analysisHost.innerHTML = '';
+            contextHost.innerHTML = '';
+            let originalParent = null;
+            let contextPanel = null;
+            if (detailContent) {
+                originalParent = detailContent.parentElement;
+                analysisHost.appendChild(detailContent);
+                contextPanel = detailContent.querySelector('.pre-context-panel');
+                if (contextPanel) contextHost.appendChild(contextPanel);
+            } else {
+                contextHost.innerHTML = renderPreMatchContext(pc, home, away);
+                contextPanel = contextHost.querySelector('.pre-context-panel');
+                analysisHost.innerHTML = '<div class="p-4 text-center text-muted">No hay estadísticas comparativas cargadas para este partido.</div>';
+            }
+
+            mobileDetailState = { matchId: id, match, pc, league, originalParent, detailContent, contextPanel, generatedContext: !detailContent };
+            updateMobileDetailFavorite();
+            showMobileDetailTab('summary');
+            const detail = document.getElementById('mobile-match-detail');
+            detail.classList.add('show');
+            detail.setAttribute('aria-hidden', 'false');
+            document.getElementById('mobile-filters-btn').style.display = 'none';
+            document.body.style.overflow = 'hidden';
+            history.pushState({ mobileMatchDetail: id }, '', `#partido-${encodeURIComponent(id)}`);
+        }
+
+        function closeMobileMatchDetail(fromPopState = false) {
+            const state = mobileDetailState;
+            if (state?.detailContent && state?.originalParent) {
+                if (state.contextPanel && !state.generatedContext) state.detailContent.appendChild(state.contextPanel);
+                state.originalParent.appendChild(state.detailContent);
+            }
+            document.getElementById('mobile-detail-analysis-host').innerHTML = '';
+            document.getElementById('mobile-detail-context-host').innerHTML = '';
+            const detail = document.getElementById('mobile-match-detail');
+            detail.classList.remove('show');
+            detail.setAttribute('aria-hidden', 'true');
+            mobileDetailState = null;
+            document.getElementById('mobile-filters-btn').style.display = '';
+            document.body.style.overflow = '';
+            if (!fromPopState && location.hash.startsWith('#partido-')) history.back();
+        }
+
+        window.addEventListener('popstate', () => {
+            if (mobileDetailState) closeMobileMatchDetail(true);
+        });
+
+        function setMobileMultiFilter(kind, value) {
+            const instances = {
+                league: msLeague,
+                handicap: msHandicap,
+                ou: msOu,
+                h2hCol3Ah: msH2hCol3Ah,
+                prevHomeAh: msPrevHomeAh,
+                prevAwayAh: msPrevAwayAh,
+                indLocalAh: msIndLocalAh,
+                indVisitanteAh: msIndVisitanteAh,
+            };
+            const instance = instances[kind];
+            if (!instance) return;
+            instance.selectedValues = value ? [value] : [];
+            instance.updateBtnText();
+            instance.renderOptions();
+            if (kind === 'ou') syncOuFilterInput();
+            if (kind === 'league') {
+                currentPage = 1;
+                renderTableWithPagination();
+            } else {
+                applyFiltersVisually();
+            }
+        }
+
+        function setMobileSimpleFilter(targetId, value) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.value = value;
+            applyFiltersVisually();
+        }
+
+        function syncMobileFilterControls() {
+            const setValue = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) element.value = value || '';
+            };
+            const leagueSelect = document.getElementById('mobile-filter-league');
+            if (leagueSelect && msLeague) {
+                const selected = msLeague.getValues()[0] || '';
+                leagueSelect.innerHTML = '<option value="">Todas las ligas</option>' + (msLeague.options || []).map(option => `<option value="${mobileEscape(option.value)}">${mobileEscape(option.label)}</option>`).join('');
+                leagueSelect.value = selected;
+            }
+            setValue('mobile-filter-handicap', msHandicap?.getValues()[0]);
+            setValue('mobile-filter-ou', msOu?.getValues()[0]);
+            setValue('mobile-filter-h2h-col3-ah', msH2hCol3Ah?.getValues()[0]);
+            setValue('mobile-filter-prev-home-ah', msPrevHomeAh?.getValues()[0]);
+            setValue('mobile-filter-prev-away-ah', msPrevAwayAh?.getValues()[0]);
+            setValue('mobile-filter-ind-local-ah', msIndLocalAh?.getValues()[0]);
+            setValue('mobile-filter-ind-visitante-ah', msIndVisitanteAh?.getValues()[0]);
+            [
+                ['mobile-filter-pick', 'filter-pick'],
+                ['mobile-filter-h2h-stadium-start-ah', 'filter-h2h-stadium-start-ah'],
+                ['mobile-filter-h2h-stadium-end-ah', 'filter-h2h-stadium-end-ah'],
+                ['mobile-filter-h2h-general-start-ah', 'filter-h2h-general-start-ah'],
+                ['mobile-filter-h2h-general-end-ah', 'filter-h2h-general-end-ah'],
+                ['mobile-filter-prev-home-res', 'filter-prev-home-res'],
+                ['mobile-filter-prev-away-res', 'filter-prev-away-res'],
+                ['mobile-filter-h2h-stadium-mov', 'filter-h2h-stadium-mov'],
+                ['mobile-filter-h2h-stadium-res', 'filter-h2h-stadium-res'],
+                ['mobile-filter-h2h-general-mov', 'filter-h2h-general-mov'],
+                ['mobile-filter-h2h-general-res', 'filter-h2h-general-res'],
+                ['mobile-filter-h2h-col3-mirror', 'filter-h2h-col3-mirror'],
+                ['mobile-filter-h2h-col3-cover', 'filter-h2h-col3-cover'],
+                ['mobile-filter-ind-local-res', 'filter-ind-local-res'],
+                ['mobile-filter-ind-local-loc', 'filter-ind-local-loc'],
+                ['mobile-filter-ind-visitante-res', 'filter-ind-visitante-res'],
+                ['mobile-filter-ind-visitante-loc', 'filter-ind-visitante-loc'],
+            ].forEach(([mobileId, desktopId]) => setValue(mobileId, document.getElementById(desktopId)?.value));
+            const strategySelect = document.getElementById('mobile-filter-strategy');
+            const desktopStrategy = document.getElementById('filter-strategies');
+            if (strategySelect && desktopStrategy) {
+                strategySelect.innerHTML = Array.from(desktopStrategy.options).map(option => `<option value="${mobileEscape(option.value)}">${mobileEscape(option.textContent)}</option>`).join('');
+                strategySelect.value = desktopStrategy.value || '';
+            }
+        }
+
         function toggleMobileFilters() {
             const panel = document.getElementById('mobile-filters-panel');
             const overlay = document.getElementById('mobile-overlay');
@@ -2122,6 +3196,7 @@
                 document.getElementById('filter-only-with-history').checked;
             document.getElementById('mobile-filter-only-favorites').checked =
                 document.getElementById('filter-only-favorites').checked;
+            syncMobileFilterControls();
         }
 
         function closeMobileFilters() {
@@ -6346,8 +7421,12 @@
             if (strategy) activeFiltersCount++;
             if (document.getElementById('filter-h2h-stadium-mov').value) activeFiltersCount++;
             if (document.getElementById('filter-h2h-stadium-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-stadium-start-ah').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-stadium-end-ah').value) activeFiltersCount++;
             if (document.getElementById('filter-h2h-general-mov').value) activeFiltersCount++;
             if (document.getElementById('filter-h2h-general-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-general-start-ah').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-general-end-ah').value) activeFiltersCount++;
             if (document.getElementById('filter-ind-local-res').value) activeFiltersCount++;
             if (document.getElementById('filter-ind-local-loc').value) activeFiltersCount++;
             if (document.getElementById('filter-ind-visitante-res').value) activeFiltersCount++;
@@ -6380,6 +7459,8 @@
                     mobileBadge.style.display = 'none';
                 }
             }
+
+            syncMobileMatchBrowser();
 
             // Si no hay filas visibles, mostrar mensaje
             if (visibleCount === 0) {
@@ -6989,21 +8070,14 @@
         async function copyPreMatchContext(button, matchId) {
             const encoded = button?.dataset?.context || '';
             const contextText = decodeURIComponent(encoded);
-            if (!contextText || !matchId) return;
+            if (!contextText) return;
             const original = button.innerHTML;
             const deferredClipboard = beginDeferredClipboardWrite();
             button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando';
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Copiando datos';
             try {
-                const response = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
-                const data = await response.json();
-                if (!response.ok || !data.success || !data.prompt) {
-                    throw new Error(data.error || 'No se pudo generar el prompt LLM');
-                }
-                const divider = '='.repeat(72);
-                const combined = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
-                await deferredClipboard.finish(combined);
-                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
+                await deferredClipboard.finish(contextText);
+                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto copiado';
                 button.classList.add('btn-success');
                 setTimeout(() => {
                     button.innerHTML = original;
@@ -7014,7 +8088,7 @@
                 deferredClipboard.cancel(error);
                 button.innerHTML = original;
                 button.disabled = false;
-                alert('Error al preparar contexto + prompt LLM: ' + error.message);
+                alert('Error al copiar los datos del contexto: ' + error.message);
             }
         }
 
@@ -7225,22 +8299,26 @@
             };
             const sameLeagueMatches = matches => asRows(matches).filter(item => {
                 const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
-                return !!currentLeagueId && leagueId === currentLeagueId;
+                return !!currentLeagueId && normLeagueId(leagueId) === normLeagueId(currentLeagueId);
             });
             const currentNeutral = !!current.is_neutral_venue;
             const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            const currentSameLeagueText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', sameLeagueMatches(current.home_matches), currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', sameLeagueMatches(current.away_matches), currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            let previousSameLeagueText = previousText;
             if (previous) {
                 const previousHome = previous.home_name || currentHome;
                 const previousAway = previous.away_name || currentAway;
                 const previousNeutral = !!previous.is_neutral_venue;
                 const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
                 previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
+                previousSameLeagueText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', sameLeagueMatches(previous.home_matches), previousNeutral)}\n\n${teamText(previousAway, 'away', sameLeagueMatches(previous.away_matches), previousNeutral)}\n\n${similarAhText(previous)}`;
             }
             const contextScope = currentNeutral
                 ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
                 : 'CASA VS FUERA · TODAS LAS LIGAS';
             const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const sameLeagueCopyText = `CONTEXTO PREVIO (LIGA ACTUAL${currentLeagueId ? ` · ID ${currentLeagueId}` : ''})\n\n${currentSameLeagueText}\n\n${previousSameLeagueText}`;
             const filterDisabled = !currentLeague;
             const hasPrevious = !!previous;
 
@@ -7250,12 +8328,14 @@
                     <div class="pre-context-actions">
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
-                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                     </div>
                 </div>
                 <div class="pre-context-moments hide-previous">
                     ${renderMoment('Partido actual', current)}
                     ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
+                </div>
+                <div class="pre-context-copy-footer">
+                    <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" data-all-context="${encodeURIComponent(copyText)}" data-same-league-context="${encodeURIComponent(sameLeagueCopyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto</button>
                 </div>
             </div>`;
         }
@@ -8997,6 +10077,7 @@
 
             if (!matches || matches.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4">No hay partidos próximos</td></tr>`;
+                renderMobileMatchBrowser([]);
                 return;
             }
 
@@ -10111,6 +11192,8 @@
                 }
             });
 
+            renderMobileMatchBrowser(matches);
+
             // --- Initialize MultiSelect Filters ---
             // Simplified Handicap Options - Buckets:
             // 0.5 includes 0.25, 0.5, 0.75
@@ -10509,65 +11592,47 @@
             };
         }
 
-        // Fetch and copy LLM prompt + Contexto Previo combinado
+        function getPrecacheContextText(matchId, onlyCurrentLeague = false) {
+            const id = String(matchId || '');
+            let button = document.querySelector(`#global-stats-${CSS.escape(id)} .pre-context-copy`)
+                || (mobileDetailState?.matchId === id ? document.querySelector('#mobile-detail-context-host .pre-context-copy') : null);
+            if (!button) {
+                const match = mobileMatchById(id);
+                const pc = precacheoData[id] || match;
+                if (!pc) return '';
+                const home = match?.home_team || pc?.home_name || pc?.home_team || '-';
+                const away = match?.away_team || pc?.away_name || pc?.away_team || '-';
+                const temp = document.createElement('div');
+                temp.innerHTML = renderPreMatchContext(pc, home, away);
+                button = temp.querySelector('.pre-context-copy');
+            }
+            if (!button) return '';
+            const encoded = onlyCurrentLeague
+                ? (button.dataset.sameLeagueContext || button.dataset.context || '')
+                : (button.dataset.allContext || button.dataset.context || '');
+            return encoded ? decodeURIComponent(encoded) : '';
+        }
+
+        // Compatibilidad con acciones antiguas: ahora copia únicamente datos.
         async function copyLLMPrompt(matchId, btnElement) {
-            // 1. Si existe el botón .pre-context-copy en el DOM para este partido, lo usamos directamente
             const preCtxBtn = document.querySelector(`#global-stats-${matchId} .pre-context-copy`);
             if (preCtxBtn && preCtxBtn.dataset && preCtxBtn.dataset.context) {
                 return copyPreMatchContext(preCtxBtn, matchId);
             }
-
-            // 2. Si no está generado en el DOM, obtenemos el prompt LLM y el contexto previo
             const originalHtml = btnElement.innerHTML;
             const deferredClipboard = beginDeferredClipboardWrite();
             btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             btnElement.disabled = true;
-
             try {
-                const [promptRes, ctxRes] = await Promise.all([
-                    fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`),
-                    fetch('/api/explorer_context_preview', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ match_id: matchId, force_refresh: false })
-                    }).catch(() => null)
-                ]);
-
-                const promptData = await promptRes.json();
-                if (!promptRes.ok || !promptData.success || !promptData.prompt) {
-                    throw new Error(promptData.error || 'No se pudo generar el prompt LLM');
-                }
-
-                let contextText = '';
-                if (ctxRes && ctxRes.ok) {
-                    try {
-                        const ctxData = await ctxRes.json();
-                        if (ctxData.status === 'success' && ctxData.pre_match_context) {
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = renderPreMatchContextCard(ctxData.pre_match_context);
-                            const tempBtn = tempDiv.querySelector('.pre-context-copy');
-                            if (tempBtn && tempBtn.dataset && tempBtn.dataset.context) {
-                                contextText = decodeURIComponent(tempBtn.dataset.context);
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('No se pudo parsear el contexto previo para combinar:', e);
-                    }
-                }
-
-                let finalPayload = promptData.prompt;
-                if (contextText) {
-                    const divider = '='.repeat(72);
-                    finalPayload = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptData.prompt}`;
-                }
-
-                await deferredClipboard.finish(finalPayload);
+                const contextText = getPrecacheContextText(matchId, false);
+                if (!contextText) throw new Error('No hay datos de contexto disponibles');
+                await deferredClipboard.finish(contextText);
                 btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
                 btnElement.classList.add('btn-outline-success');
                 btnElement.classList.remove('btn-outline-primary');
             } catch (err) {
                 deferredClipboard.cancel(err);
-                alert('Error al copiar contexto + prompt: ' + err.message);
+                alert('Error al copiar el contexto: ' + err.message);
                 btnElement.innerHTML = originalHtml;
             } finally {
                 setTimeout(() => {
@@ -10626,19 +11691,12 @@
             btnElement.disabled = true;
             btnElement.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> Copiando 0/${matchIds.length}`;
             try {
-                const response = await fetch('/api/export_prompts_bulk', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_ids: matchIds })
-                });
-                const data = await response.json();
-                if (!response.ok || !data.success || !Array.isArray(data.prompts)) {
-                    throw new Error(data.error || 'No se pudieron generar los prompts');
-                }
-                await deferredClipboard.finish(data.prompts.join('\n\n---\n\n'));
+                const contexts = matchIds.map(id => getPrecacheContextText(id, false)).filter(Boolean);
+                if (!contexts.length) throw new Error('No hay datos de contexto disponibles');
+                await deferredClipboard.finish(contexts.join('\n\n' + '='.repeat(72) + '\n\n'));
                 btnElement.classList.remove('btn-outline-primary');
                 btnElement.classList.add('btn-success');
-                btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> Copiados ${data.prompts.length}`;
+                btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> Copiados ${contexts.length}`;
             } catch (err) {
                 deferredClipboard.cancel(err);
                 alert('Error al copiar todos los partidos: ' + err.message);
@@ -10664,20 +11722,11 @@
             btnElement.disabled = true;
             btnElement.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> Preparando TXT 0/${matchIds.length}`;
             try {
-                const response = await fetch('/api/export_context_prompts_txt', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_ids: matchIds })
-                });
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || 'No se pudo generar el TXT');
-                }
-
-                const blob = await response.blob();
-                const disposition = response.headers.get('Content-Disposition') || '';
-                const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
-                const filename = filenameMatch?.[1] || 'precacheo_contexto_prompt.txt';
+                const contexts = matchIds.map(id => getPrecacheContextText(id, false)).filter(Boolean);
+                if (!contexts.length) throw new Error('No hay datos de contexto disponibles');
+                const content = contexts.join('\n\n' + '='.repeat(72) + '\n\n');
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const filename = `precacheo_contextos_${new Date().toISOString().slice(0, 10)}.txt`;
                 const downloadUrl = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = downloadUrl;
