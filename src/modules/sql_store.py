@@ -865,9 +865,21 @@ def ensure_bootstrap(force_import: bool = False) -> None:
                         cached_count,
                     )
 
+                # Every current upsert already writes ``explorer_json``. Backfilling
+                # old rows on a small Render worker is therefore unnecessary and
+                # very expensive: it deserializes up to 1,000 full historical
+                # payloads on the first list request and syncs the copies back to
+                # Turso. That cold-start spike was blocking (and sometimes killing)
+                # the only web worker before it could return the first page.
+                #
+                # Keep the migration available for local databases and explicit
+                # maintenance imports, but never run it implicitly on libSQL.
+                skip_explorer_backfill = bool(LIBSQL_URL) and not force_import
                 backfill_done = _get_kv(conn, EXPLORER_BACKFILL_KEY)
-                if force_import or backfill_done != "done":
-                    # Keep first-request latency bounded; complete in chunks.
+                if skip_explorer_backfill:
+                    LOGGER.info("Skipping explorer payload backfill on libSQL startup.")
+                elif force_import or backfill_done != "done":
+                    # Keep local migrations bounded; complete in chunks.
                     updated = _backfill_explorer_payload(conn, max_rows=1000)
                     pending_row = conn.execute(
                         "SELECT 1 FROM matches WHERE explorer_json IS NULL LIMIT 1"
