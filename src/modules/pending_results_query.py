@@ -8,6 +8,7 @@ import json
 import math
 import os
 import re
+import threading
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
 
@@ -116,6 +117,97 @@ def _remote_query(sql: str, params: Sequence[Any]) -> Optional[List[Dict[str, An
     return output
 
 
+_FILE_STORE_LOCK = threading.Lock()
+_FILE_STORE: Optional[Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]], bool]] = None
+
+
+def _handicap_value_matches(raw_value: Any, selected_values: Optional[Sequence[str]]) -> bool:
+    """Mirror the UI handicap buckets for JSON-backed reads."""
+    if not selected_values:
+        return True
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError):
+        return False
+
+    for raw_target in selected_values:
+        try:
+            target = float(raw_target)
+        except (TypeError, ValueError):
+            continue
+        magnitude = abs(target)
+        if magnitude >= 2.49:
+            if (target > 0 and value >= 2.24) or (target < 0 and value <= -2.24):
+                return True
+        elif abs(magnitude - 2.0) < 0.01:
+            if target - 0.01 <= value <= target + 0.01:
+                return True
+        elif abs(magnitude - 1.5) < 0.1:
+            low, high = ((1.24, 1.76) if target > 0 else (-1.76, -1.24))
+            if low <= value <= high:
+                return True
+        elif abs(magnitude - 1.0) < 0.1:
+            if target - 0.1 <= value <= target + 0.1:
+                return True
+        elif abs(magnitude - 0.5) < 0.1:
+            low, high = ((0.24, 0.76) if target > 0 else (-0.76, -0.24))
+            if low <= value <= high:
+                return True
+        elif magnitude < 0.1:
+            if -0.1 <= value <= 0.1:
+                return True
+        elif target - 0.01 <= value <= target + 0.01:
+            return True
+    return False
+
+
+def _load_json_file_store() -> Tuple[List[Dict[str, Any]], Dict[str, Dict[str, Any]], bool]:
+    """Load deployed live buckets once, without building a SQLite replica."""
+    global _FILE_STORE
+    with _FILE_STORE_LOCK:
+        if _FILE_STORE is not None:
+            return _FILE_STORE
+
+        rows_by_id: Dict[str, Dict[str, Any]] = {}
+        loaded_any = False
+        for bucket in (data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET):
+            path = sql_store.DATA_DIR / bucket
+            if not path.exists():
+                continue
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    payload = json.load(handle)
+            except Exception:
+                continue
+            loaded_any = True
+            if not isinstance(payload, list):
+                continue
+            for row in payload:
+                if not isinstance(row, dict):
+                    continue
+                match_id = str(row.get("match_id") or row.get("id") or "").strip()
+                if match_id:
+                    rows_by_id[match_id] = row
+
+        headers: List[Dict[str, Any]] = []
+        for match_id, row in rows_by_id.items():
+            odds = row.get("main_match_odds") if isinstance(row.get("main_match_odds"), dict) else {}
+            handicap = row.get("handicap")
+            if handicap in (None, ""):
+                handicap = odds.get("ah_linea")
+            headers.append({
+                "match_id": match_id,
+                "handicap": handicap,
+                "score": row.get("score") or row.get("final_score"),
+                "match_date": row.get("match_date") or row.get("date"),
+                "start_time": row.get("start_time"),
+                "time": row.get("time"),
+            })
+
+        _FILE_STORE = (headers, rows_by_id, loaded_any)
+        return _FILE_STORE
+
+
 def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str, List[float]]:
     """Build SQL matching the handicap buckets exposed by the UI."""
     clauses: List[str] = []
@@ -187,6 +279,13 @@ def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[st
     if remote_rows is not None:
         return remote_rows
 
+    file_headers, _, files_loaded = _load_json_file_store()
+    if files_loaded:
+        return [
+            row for row in file_headers
+            if _handicap_value_matches(row.get("handicap"), handicap_buckets)
+        ]
+
     sql_store.ensure_bootstrap()
     with sql_store._connect() as conn:
         rows = conn.execute(query, params).fetchall()
@@ -216,6 +315,13 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
     if remote_rows is not None:
         rows = remote_rows
     else:
+        _, file_rows_by_id, files_loaded = _load_json_file_store()
+        if files_loaded:
+            return {
+                match_id: dict(file_rows_by_id[match_id])
+                for match_id in ordered_ids
+                if match_id in file_rows_by_id
+            }
         with sql_store._connect() as conn:
             rows = conn.execute(query, ordered_ids).fetchall()
 
