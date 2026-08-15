@@ -5540,6 +5540,22 @@ def api_scrape_pending_results():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/precacheo_runtime')
+def api_precacheo_runtime():
+    """Safe deployment diagnostics for the lightweight Pre-Cacheo reader."""
+    libsql_url_configured = bool(str(os.getenv('LIBSQL_URL') or '').strip())
+    libsql_auth_configured = bool(str(os.getenv('LIBSQL_AUTH_TOKEN') or '').strip())
+    response = jsonify({
+        'reader_version': 'turso-http-v1',
+        'libsql_url_configured': libsql_url_configured,
+        'libsql_auth_configured': libsql_auth_configured,
+        'direct_http_enabled': libsql_url_configured and libsql_auth_configured,
+        'sql_bootstrap_mode': str(os.getenv('SQL_BOOTSTRAP_MODE') or ''),
+    })
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
 @app.route('/api/precacheo_pending_list')
 def api_precacheo_pending_list():
     """Devuelve resultados pendientes paginados y filtrados desde SQL."""
