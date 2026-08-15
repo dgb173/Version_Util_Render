@@ -2123,42 +2123,59 @@ FAVORITAS_CONFIG_LEGACY_FILE = Path(__file__).resolve().parent / 'favoritas_conf
 _favoritas_lock = threading.Lock()
 
 
+def _normalize_favoritas_config(config):
+    default_cfg = {
+        'favoritas': [],
+        'ocultas': [],
+        'favoritas_nombres': [],
+        'ocultas_nombres': [],
+        'neutras_nombres': [],
+    }
+    normalized = dict(config) if isinstance(config, dict) else {}
+    for key, default_value in default_cfg.items():
+        if not isinstance(normalized.get(key), list):
+            normalized[key] = list(default_value)
+    return normalized
+
+
 def load_favoritas_config():
-    """Carga la configuración de ligas favoritas del usuario desde SQL."""
-    default_cfg = {'favoritas': [], 'ocultas': [], 'favoritas_nombres': [], 'ocultas_nombres': [], 'neutras_nombres': []}
+    """Load favorites without bootstrapping SQLite when Turso is unavailable."""
     with _favoritas_lock:
-        cfg = sql_store.get_json_state(FAVORITAS_CONFIG_KEY, default=None)
+        cfg = None
+        if sql_store.is_libsql_enabled():
+            try:
+                cfg = sql_store.get_json_state(FAVORITAS_CONFIG_KEY, default=None)
+            except Exception as exc:
+                print(f"Warning loading favoritas from SQL: {exc}")
+
         if cfg is None and FAVORITAS_CONFIG_LEGACY_FILE.exists():
             try:
-                with open(FAVORITAS_CONFIG_LEGACY_FILE, 'r', encoding='utf-8') as f:
-                    cfg = json.load(f)
-                sql_store.set_json_state(FAVORITAS_CONFIG_KEY, cfg)
-                print(f"Legacy favoritas config imported from {FAVORITAS_CONFIG_LEGACY_FILE}")
+                with FAVORITAS_CONFIG_LEGACY_FILE.open('r', encoding='utf-8') as handle:
+                    cfg = json.load(handle)
             except Exception as exc:
-                print(f"Warning importing legacy favoritas config: {exc}")
-                cfg = None
-
-        if not isinstance(cfg, dict):
-            cfg = dict(default_cfg)
-
-        for key in default_cfg:
-            if key not in cfg or not isinstance(cfg.get(key), list):
-                cfg[key] = []
-        return cfg
+                print(f"Warning loading favoritas file: {exc}")
+        return _normalize_favoritas_config(cfg)
 
 
 def save_favoritas_config(config):
-    """Guarda la configuración de ligas favoritas en SQL."""
+    """Persist favorites in Turso when available, otherwise in a tiny local file."""
+    normalized = _normalize_favoritas_config(config)
     with _favoritas_lock:
-        try:
-            # Asegurar que todas las claves existan antes de guardar
-            for key in ['favoritas', 'ocultas', 'favoritas_nombres', 'ocultas_nombres', 'neutras_nombres']:
-                if key not in config:
-                    config[key] = []
+        if sql_store.is_libsql_enabled():
+            try:
+                sql_store.set_json_state(FAVORITAS_CONFIG_KEY, normalized)
+                return
+            except Exception as exc:
+                print(f"Warning saving favoritas to SQL: {exc}")
 
-            sql_store.set_json_state(FAVORITAS_CONFIG_KEY, config)
-        except Exception as e:
-            print(f"Error saving favoritas config: {e}")
+        try:
+            FAVORITAS_CONFIG_LEGACY_FILE.parent.mkdir(parents=True, exist_ok=True)
+            temporary = FAVORITAS_CONFIG_LEGACY_FILE.with_suffix('.json.tmp')
+            with temporary.open('w', encoding='utf-8') as handle:
+                json.dump(normalized, handle, ensure_ascii=False)
+            os.replace(temporary, FAVORITAS_CONFIG_LEGACY_FILE)
+        except Exception as exc:
+            print(f"Error saving favoritas config: {exc}")
 
 @app.route('/ligas_favoritas')
 def ligas_favoritas():
