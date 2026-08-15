@@ -3,17 +3,117 @@
 from __future__ import annotations
 
 import datetime as dt
+import base64
 import json
 import math
+import os
 import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
+
+import requests
 
 from . import data_manager, sql_store
 
 
 UTC = dt.timezone.utc
 SPAIN_TZ = ZoneInfo("Europe/Madrid")
+
+
+def _http_arg(value: Any) -> Dict[str, Any]:
+    """Encode one positional argument for Turso's SQL-over-HTTP API."""
+    if value is None:
+        return {"type": "null"}
+    if isinstance(value, bool):
+        return {"type": "integer", "value": "1" if value else "0"}
+    if isinstance(value, int):
+        return {"type": "integer", "value": str(value)}
+    if isinstance(value, float):
+        return {"type": "float", "value": str(value)}
+    if isinstance(value, (bytes, bytearray)):
+        return {"type": "blob", "base64": base64.b64encode(value).decode("ascii")}
+    return {"type": "text", "value": str(value)}
+
+
+def _http_value(cell: Any) -> Any:
+    """Decode one Hrana value returned by Turso."""
+    if not isinstance(cell, dict):
+        return cell
+    value_type = cell.get("type")
+    if value_type == "null":
+        return None
+    if value_type == "integer":
+        try:
+            return int(cell.get("value"))
+        except (TypeError, ValueError):
+            return cell.get("value")
+    if value_type == "float":
+        try:
+            return float(cell.get("value"))
+        except (TypeError, ValueError):
+            return cell.get("value")
+    if value_type == "blob":
+        try:
+            return base64.b64decode(cell.get("base64") or "")
+        except (TypeError, ValueError):
+            return b""
+    return cell.get("value")
+
+
+def _remote_query(sql: str, params: Sequence[Any]) -> Optional[List[Dict[str, Any]]]:
+    """Run a small read directly on Turso, without downloading an embedded replica."""
+    database_url = str(os.getenv("LIBSQL_URL") or "").strip()
+    auth_token = str(os.getenv("LIBSQL_AUTH_TOKEN") or "").strip()
+    if not database_url or not auth_token:
+        return None
+
+    if database_url.startswith("libsql://"):
+        database_url = "https://" + database_url[len("libsql://"):]
+    elif database_url.startswith("turso://"):
+        database_url = "https://" + database_url[len("turso://"):]
+
+    response = requests.post(
+        f"{database_url.rstrip('/')}/v2/pipeline",
+        headers={
+            "Authorization": f"Bearer {auth_token}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "requests": [
+                {
+                    "type": "execute",
+                    "stmt": {
+                        "sql": sql,
+                        "args": [_http_arg(value) for value in params],
+                    },
+                },
+                {"type": "close"},
+            ]
+        },
+        timeout=(4, 15),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    results = payload.get("results") if isinstance(payload, dict) else None
+    first = results[0] if isinstance(results, list) and results else None
+    if not isinstance(first, dict) or first.get("type") != "ok":
+        raise RuntimeError(f"Turso query failed: {first}")
+
+    result = (((first.get("response") or {}).get("result")) or {})
+    columns = [
+        str(column.get("name") or "")
+        for column in result.get("cols", [])
+        if isinstance(column, dict)
+    ]
+    output: List[Dict[str, Any]] = []
+    for raw_row in result.get("rows", []) or []:
+        if not isinstance(raw_row, list):
+            continue
+        output.append({
+            name: _http_value(raw_row[index]) if index < len(raw_row) else None
+            for index, name in enumerate(columns)
+        })
+    return output
 
 
 def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str, List[float]]:
@@ -63,7 +163,6 @@ def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str,
 
 def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[str, Any]]:
     """Fetch only lightweight headers needed to filter, count and sort."""
-    sql_store.ensure_bootstrap()
     buckets = [data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET]
     query = """
         SELECT
@@ -84,6 +183,11 @@ def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[st
         params.extend(handicap_params)
     query += " ORDER BY updated_at DESC"
 
+    remote_rows = _remote_query(query, params)
+    if remote_rows is not None:
+        return remote_rows
+
+    sql_store.ensure_bootstrap()
     with sql_store._connect() as conn:
         rows = conn.execute(query, params).fetchall()
     return [
@@ -105,54 +209,23 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
         return {}
     placeholders = ", ".join("?" for _ in ordered_ids)
     query = (
-        "SELECT match_id, payload_json, explorer_json "
+        "SELECT match_id, COALESCE(explorer_json, payload_json) AS payload_json "
         f"FROM matches WHERE match_id IN ({placeholders})"
     )
-    with sql_store._connect() as conn:
-        rows = conn.execute(query, ordered_ids).fetchall()
+    remote_rows = _remote_query(query, ordered_ids)
+    if remote_rows is not None:
+        rows = remote_rows
+    else:
+        with sql_store._connect() as conn:
+            rows = conn.execute(query, ordered_ids).fetchall()
 
     output: Dict[str, Dict[str, Any]] = {}
     for row in rows:
-        # Start with payload_json (contains full scrape data with h2h stats)
-        base: Dict[str, Any] = {}
         try:
-            base = json.loads(row["payload_json"]) if row["payload_json"] else {}
+            payload = json.loads(row["payload_json"])
         except (json.JSONDecodeError, TypeError):
-            pass
-        if not isinstance(base, dict):
-            base = {}
-
-        # Overlay explorer_json if it exists (has compact/explorer-oriented fields)
-        explorer: Dict[str, Any] = {}
-        try:
-            explorer = json.loads(row["explorer_json"]) if row["explorer_json"] else {}
-        except (json.JSONDecodeError, TypeError):
-            pass
-        if not isinstance(explorer, dict):
-            explorer = {}
-
-        if explorer:
-            # Merge: explorer keys override base, but preserve base keys that
-            # explorer doesn't have (like h2h_stadium, h2h_general with stats_rows,
-            # last_home_match, last_away_match, comparativas_indirectas, etc.)
-            merged = {**base, **explorer}
-            # Restore deep analysis keys from base when explorer nullifies them
-            _DEEP_KEYS = (
-                'h2h_stadium', 'h2h_general', 'h2h_col3',
-                'last_home_match', 'last_away_match',
-                'comparativas_indirectas', 'pre_match_context',
-                'market_analysis_data',
-            )
-            for key in _DEEP_KEYS:
-                base_val = base.get(key)
-                merged_val = merged.get(key)
-                if base_val and not merged_val:
-                    merged[key] = base_val
-            payload = merged
-        else:
-            payload = base
-
-        if payload:
+            continue
+        if isinstance(payload, dict):
             output[str(row["match_id"])] = payload
     return output
 
