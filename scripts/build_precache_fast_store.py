@@ -60,6 +60,13 @@ def compact_row(row: dict) -> dict:
 
 
 def main() -> None:
+    existing_sources = [source for source in SOURCE_FILES if source.exists()]
+    if INDEX_FILE.exists() and existing_sources:
+        newest_source = max(source.stat().st_mtime_ns for source in existing_sources)
+        if INDEX_FILE.stat().st_mtime_ns >= newest_source:
+            print("Pre-Cacheo fast store is already current")
+            return
+
     FAST_DIR.mkdir(parents=True, exist_ok=True)
     headers_by_id: dict[str, dict] = {}
     written = 0
