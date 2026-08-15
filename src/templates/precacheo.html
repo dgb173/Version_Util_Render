@@ -669,37 +669,35 @@
 
         /* ===== MOBILE RESPONSIVE STYLES ===== */
 
-        /* Botón flotante de filtros móvil */
+        /* Acceso a filtros integrado en la cabecera móvil */
         .mobile-filters-toggle {
             display: none;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            z-index: 1050;
-            font-size: 1.3rem;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 1px solid #b8cbd2;
+            border-radius: 10px;
+            background: #fff;
+            color: #0e6578;
+            box-shadow: 0 2px 7px rgba(11, 39, 51, .08);
+            font-size: .76rem;
+            font-weight: 850;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background .2s, border-color .2s;
         }
 
         .mobile-filters-toggle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+            border-color: #0e6578;
+            background: #edf7fa;
         }
 
         .mobile-filters-toggle .badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
+            position: static;
             background: #dc3545;
-            font-size: 0.7rem;
-            padding: 4px 6px;
+            font-size: .65rem;
+            padding: 3px 6px;
         }
 
         /* Panel de filtros móvil */
@@ -1766,6 +1764,19 @@
                 color: #0b2733;
             }
 
+            .mobile-list-summary-copy {
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .mobile-list-summary-copy span:last-child {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
             .mobile-league-group {
                 margin-bottom: 10px;
                 border-top: 1px solid #dce4e8;
@@ -2143,21 +2154,40 @@
                 text-transform: uppercase;
             }
 
+            #mobile-detail-analysis-host {
+                overflow-x: auto;
+                overscroll-behavior-x: contain;
+                scroll-snap-type: x proximity;
+                scrollbar-width: thin;
+                -webkit-overflow-scrolling: touch;
+            }
+
             #mobile-detail-analysis-host > .py-2 {
+                min-width: 100%;
                 padding: 0 !important;
                 background: transparent !important;
                 border: 0 !important;
             }
 
             #mobile-detail-analysis-host > .py-2 > .d-flex {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
+                display: flex !important;
+                width: max-content;
+                min-width: 100%;
+                flex-wrap: nowrap !important;
+                align-items: stretch !important;
                 gap: 10px !important;
-                padding: 0 !important;
+                padding: 12px !important;
             }
 
             #mobile-detail-analysis-host > .py-2 > .d-flex > div {
-                width: 100% !important;
+                width: 276px !important;
+                min-width: 276px !important;
+                flex: 0 0 276px !important;
+                scroll-snap-align: start;
+            }
+
+            #mobile-detail-analysis-host .stat-box {
+                height: 100%;
             }
 
             #mobile-detail-context-host .pre-context-panel {
@@ -2209,11 +2239,9 @@
             }
 
             .mobile-filters-toggle {
-                z-index: 2200;
-                width: 58px;
-                height: 58px;
-                border-radius: 18px;
-                box-shadow: 0 8px 24px rgba(20, 77, 93, .28);
+                flex: 0 0 auto;
+                min-width: 92px;
+                box-shadow: 0 2px 7px rgba(20, 77, 93, .12);
             }
 
             .mobile-filters-panel {
@@ -2267,6 +2295,58 @@
                 background-color: #fff;
                 color: #173943;
                 font-size: .72rem;
+            }
+
+            .mobile-handicap-heading {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .mobile-handicap-heading span {
+                color: #0e6578;
+                font-size: .62rem;
+                font-weight: 900;
+            }
+
+            .mobile-handicap-options {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 7px;
+            }
+
+            .mobile-handicap-chip {
+                position: relative;
+                margin: 0;
+                cursor: pointer;
+            }
+
+            .mobile-handicap-chip input {
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .mobile-handicap-chip span {
+                display: grid;
+                min-height: 38px;
+                place-items: center;
+                padding: 6px 4px;
+                border: 1px solid #cad7dc;
+                border-radius: 9px;
+                background: #fff;
+                color: #31515c;
+                font-size: .69rem;
+                font-weight: 850;
+                transition: background .15s, border-color .15s, color .15s;
+            }
+
+            .mobile-handicap-chip input:checked + span {
+                border-color: #0e6578;
+                background: #0e6578;
+                color: #fff;
+                box-shadow: 0 2px 6px rgba(14, 101, 120, .2);
             }
 
             .mobile-filter-more > summary {
@@ -2415,8 +2495,15 @@
 
         <section class="mobile-match-browser" id="mobile-match-browser" aria-label="Partidos">
             <div class="mobile-list-summary" id="mobile-list-summary">
-                <span><strong>0</strong> partidos visibles</span>
-                <span>Toca un partido para analizarlo</span>
+                <span class="mobile-list-summary-copy" id="mobile-list-summary-text">
+                    <span><strong>0</strong> partidos visibles</span>
+                    <span>Toca un partido para analizarlo</span>
+                </span>
+                <button type="button" class="mobile-filters-toggle" id="mobile-filters-btn" onclick="toggleMobileFilters()">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Filtros</span>
+                    <span class="badge rounded-pill" id="mobile-filters-count" style="display: none;">0</span>
+                </button>
             </div>
             <div id="mobile-match-list"></div>
         </section>
@@ -2686,12 +2773,6 @@
         </div>
     </section>
 
-    <!-- Botón flotante de filtros (solo visible en móvil) -->
-    <button class="mobile-filters-toggle" id="mobile-filters-btn" onclick="toggleMobileFilters()">
-        <i class="fa-solid fa-filter"></i>
-        <span class="badge rounded-pill" id="mobile-filters-count" style="display: none;">0</span>
-    </button>
-
     <!-- Overlay para cerrar panel de filtros -->
     <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileFilters()"></div>
 
@@ -2729,17 +2810,24 @@
                         <option value="">Todas las ligas</option>
                     </select>
                 </div>
-                <div class="mobile-filter-field">
-                    <label for="mobile-filter-handicap">Hándicap actual</label>
-                    <select id="mobile-filter-handicap" onchange="setMobileMultiFilter('handicap', this.value)">
-                        <option value="">Todos</option>
-                        <option value="-2.5">-2.5 o menor</option><option value="-2">-2</option>
-                        <option value="-1.5">-1.5</option><option value="-1">-1</option>
-                        <option value="-0.5">-0.5</option><option value="0">0</option>
-                        <option value="0.5">+0.5</option><option value="1">+1</option>
-                        <option value="1.5">+1.5</option><option value="2">+2</option>
-                        <option value="2.5">+2.5 o mayor</option>
-                    </select>
+                <div class="mobile-filter-field" style="grid-column:1/-1">
+                    <label class="mobile-handicap-heading">
+                        <span>Hándicap actual · selección múltiple</span>
+                        <span id="mobile-handicap-selection">Todos</span>
+                    </label>
+                    <div class="mobile-handicap-options" role="group" aria-label="Hándicaps actuales">
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="-2.5" value="-2.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>-2.5−</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="-2" value="-2" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>-2</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="-1.5" value="-1.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>-1.5</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="-1" value="-1" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>-1</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="-0.5" value="-0.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>-0.5</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="0" value="0" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>0</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="0.5" value="0.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>+0.5</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="1" value="1" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>+1</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="1.5" value="1.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>+1.5</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="2" value="2" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>+2</span></label>
+                        <label class="mobile-handicap-chip"><input type="checkbox" data-mobile-handicap-value="2.5" value="2.5" onchange="toggleMobileMultiFilter('handicap', this.value, this.checked)"><span>+2.5+</span></label>
+                    </div>
                 </div>
                 <div class="mobile-filter-field">
                     <label for="mobile-filter-ou">Línea O/U</label>
@@ -2905,7 +2993,7 @@
             const items = Array.isArray(matches) ? matches : [];
             if (!items.length) {
                 list.innerHTML = '<div class="mobile-list-empty"><i class="fa-regular fa-folder-open"></i>No hay partidos que mostrar</div>';
-                const summary = document.getElementById('mobile-list-summary');
+                const summary = document.getElementById('mobile-list-summary-text');
                 if (summary) summary.innerHTML = '<span><strong>0</strong> partidos visibles</span><span>Revisa los filtros</span>';
                 return;
             }
@@ -2984,7 +3072,7 @@
             } else if (empty) {
                 empty.remove();
             }
-            const summary = document.getElementById('mobile-list-summary');
+            const summary = document.getElementById('mobile-list-summary-text');
             if (summary) summary.innerHTML = `<span><strong>${visible}</strong> partidos visibles</span><span>Toca uno para analizarlo</span>`;
         }
 
@@ -3081,7 +3169,7 @@
             const detail = document.getElementById('mobile-match-detail');
             detail.classList.add('show');
             detail.setAttribute('aria-hidden', 'false');
-            document.getElementById('mobile-filters-btn').style.display = 'none';
+            document.getElementById('mobile-filters-btn')?.style.setProperty('display', 'none');
             document.body.style.overflow = 'hidden';
             history.pushState({ mobileMatchDetail: id }, '', `#partido-${encodeURIComponent(id)}`);
         }
@@ -3098,7 +3186,7 @@
             detail.classList.remove('show');
             detail.setAttribute('aria-hidden', 'true');
             mobileDetailState = null;
-            document.getElementById('mobile-filters-btn').style.display = '';
+            document.getElementById('mobile-filters-btn')?.style.removeProperty('display');
             document.body.style.overflow = '';
             if (!fromPopState && location.hash.startsWith('#partido-')) history.back();
         }
@@ -3107,8 +3195,8 @@
             if (mobileDetailState) closeMobileMatchDetail(true);
         });
 
-        function setMobileMultiFilter(kind, value) {
-            const instances = {
+        function mobileMultiFilterInstances() {
+            return {
                 league: msLeague,
                 handicap: msHandicap,
                 ou: msOu,
@@ -3118,9 +3206,12 @@
                 indLocalAh: msIndLocalAh,
                 indVisitanteAh: msIndVisitanteAh,
             };
-            const instance = instances[kind];
+        }
+
+        function applyMobileMultiFilter(kind, values) {
+            const instance = mobileMultiFilterInstances()[kind];
             if (!instance) return;
-            instance.selectedValues = value ? [value] : [];
+            instance.selectedValues = Array.from(new Set((values || []).filter(value => value !== '')));
             instance.updateBtnText();
             instance.renderOptions();
             if (kind === 'ou') syncOuFilterInput();
@@ -3130,6 +3221,29 @@
             } else {
                 applyFiltersVisually();
             }
+        }
+
+        function setMobileMultiFilter(kind, value) {
+            applyMobileMultiFilter(kind, value ? [value] : []);
+        }
+
+        function toggleMobileMultiFilter(kind, value, checked) {
+            const instance = mobileMultiFilterInstances()[kind];
+            if (!instance) return;
+            const selected = new Set(instance.getValues().map(String));
+            if (checked) selected.add(String(value));
+            else selected.delete(String(value));
+            applyMobileMultiFilter(kind, Array.from(selected));
+            syncMobileHandicapControls();
+        }
+
+        function syncMobileHandicapControls() {
+            const selected = new Set((msHandicap?.getValues() || []).map(String));
+            document.querySelectorAll('[data-mobile-handicap-value]').forEach(input => {
+                input.checked = selected.has(String(input.value));
+            });
+            const status = document.getElementById('mobile-handicap-selection');
+            if (status) status.textContent = selected.size ? `${selected.size} elegido${selected.size === 1 ? '' : 's'}` : 'Todos';
         }
 
         function setMobileSimpleFilter(targetId, value) {
@@ -3150,7 +3264,7 @@
                 leagueSelect.innerHTML = '<option value="">Todas las ligas</option>' + (msLeague.options || []).map(option => `<option value="${mobileEscape(option.value)}">${mobileEscape(option.label)}</option>`).join('');
                 leagueSelect.value = selected;
             }
-            setValue('mobile-filter-handicap', msHandicap?.getValues()[0]);
+            syncMobileHandicapControls();
             setValue('mobile-filter-ou', msOu?.getValues()[0]);
             setValue('mobile-filter-h2h-col3-ah', msH2hCol3Ah?.getValues()[0]);
             setValue('mobile-filter-prev-home-ah', msPrevHomeAh?.getValues()[0]);
