@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import datetime as dt
+import hashlib
 import json
 import math
 import os
@@ -120,6 +121,13 @@ def _remote_query(sql: str, params: Sequence[Any]) -> Optional[List[Dict[str, An
 
 _FILE_STORE_LOCK = threading.Lock()
 _FILE_STORE: Optional[Tuple[List[Dict[str, Any]], bool]] = None
+_FAST_STORE_DIR = sql_store.DATA_DIR / ".precacheo_fast"
+_FAST_INDEX_FILE = _FAST_STORE_DIR / "index.json"
+
+
+def _fast_payload_path(match_id: str):
+    digest = hashlib.sha256(str(match_id).encode("utf-8")).hexdigest()
+    return _FAST_STORE_DIR / f"{digest}.json"
 
 
 def _handicap_value_matches(raw_value: Any, selected_values: Optional[Sequence[str]]) -> bool:
@@ -165,7 +173,7 @@ def _handicap_value_matches(raw_value: Any, selected_values: Optional[Sequence[s
 def _iter_deployed_rows(path: Any):
     """Yield one JSON-array row at a time with bounded memory."""
     with path.open("rb") as handle:
-        for row in ijson.items(handle, "item"):
+        for row in ijson.items(handle, "item", use_float=True):
             if isinstance(row, dict):
                 yield row
 
@@ -176,6 +184,19 @@ def _load_json_file_store() -> Tuple[List[Dict[str, Any]], bool]:
     with _FILE_STORE_LOCK:
         if _FILE_STORE is not None:
             return _FILE_STORE
+
+        if _FAST_INDEX_FILE.exists():
+            try:
+                with _FAST_INDEX_FILE.open("r", encoding="utf-8") as handle:
+                    fast_headers = json.load(handle)
+                if isinstance(fast_headers, list):
+                    _FILE_STORE = (
+                        [row for row in fast_headers if isinstance(row, dict)],
+                        True,
+                    )
+                    return _FILE_STORE
+            except Exception:
+                pass
 
         headers_by_id: Dict[str, Dict[str, Any]] = {}
         loaded_any = False
@@ -213,6 +234,20 @@ def _load_json_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, 
     wanted = {str(match_id) for match_id in match_ids if str(match_id)}
     output: Dict[str, Dict[str, Any]] = {}
     if not wanted:
+        return output
+
+    if _FAST_INDEX_FILE.exists():
+        for match_id in wanted:
+            path = _fast_payload_path(match_id)
+            if not path.exists():
+                continue
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    payload = json.load(handle)
+                if isinstance(payload, dict):
+                    output[match_id] = payload
+            except Exception:
+                continue
         return output
 
     for bucket in (data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET):
