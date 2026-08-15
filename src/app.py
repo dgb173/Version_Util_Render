@@ -426,8 +426,18 @@ async def _refresh_main_page_snapshot_if_empty():
 
 
 def _maybe_cleanup_precacheo_stale(force=False):
-    """Limpia precacheo viejo para evitar crecimiento descontrolado del cache."""
+    """Limpia precacheo viejo sin bloquear las rutas normales de lectura.
+
+    En Render el bucket puede superar decenas de MB. Ejecutar la limpieza en
+    la primera petición tras cada despliegue agotaba el worker y dejaba las
+    APIs de partidos en un bucle de 502. La limpieza forzada sigue disponible;
+    la automática en lecturas solo se activa explícitamente por entorno.
+    """
     global _last_precacheo_cleanup_ts
+
+    auto_clean_on_read = str(os.getenv('PRECACHEO_AUTO_CLEAN_ON_READ', '0')).strip().lower()
+    if not force and auto_clean_on_read not in {'1', 'true', 'yes', 'on'}:
+        return 0
 
     now_ts = time.time()
     with _precacheo_cleanup_lock:
