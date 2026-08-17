@@ -1852,14 +1852,18 @@
             }
 
             .mobile-match-row {
-                display: grid;
-                grid-template-columns: 58px minmax(0, 1fr) auto 22px;
-                align-items: stretch;
-                min-height: 92px;
+                display: block;
                 border-bottom: 1px solid #e7ecef;
                 background: #fff;
                 cursor: pointer;
                 -webkit-tap-highlight-color: transparent;
+            }
+
+            .mobile-match-primary {
+                display: grid;
+                grid-template-columns: 58px minmax(0, 1fr) auto 22px;
+                align-items: stretch;
+                min-height: 88px;
             }
 
             .mobile-match-row:last-child {
@@ -1972,6 +1976,104 @@
                 place-items: center;
                 color: #91a0a6;
                 font-size: .72rem;
+            }
+
+            .mobile-result-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 7px;
+                padding: 0 10px 10px;
+            }
+
+            .mobile-result-cell {
+                min-width: 0;
+                min-height: 78px;
+                padding: 9px;
+                overflow: hidden;
+                border: 1px solid rgba(148, 163, 184, .16);
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #334155;
+                font-size: .67rem;
+                overflow-wrap: anywhere;
+            }
+
+            .mobile-result-cell.is-market {
+                background: #ecfdf5;
+            }
+
+            .mobile-result-cell.is-score {
+                background: #eff6ff;
+            }
+
+            .mobile-result-cell.is-home-history {
+                background: #f0f9ff;
+            }
+
+            .mobile-result-cell.is-away-history {
+                background: #fff1f2;
+            }
+
+            .mobile-result-cell.is-h2h {
+                background: #fef2f2;
+            }
+
+            .mobile-result-cell.is-col3 {
+                background: #ffe4ec;
+            }
+
+            .mobile-result-cell.is-indirect {
+                background: #fff7ed;
+            }
+
+            .mobile-result-cell.is-empty {
+                background: #ffcdd2;
+            }
+
+            .mobile-result-cell.is-wide {
+                grid-column: 1 / -1;
+            }
+
+            .mobile-result-label {
+                display: block;
+                margin-bottom: 6px;
+                color: #64748b;
+                font-size: .56rem;
+                font-weight: 900;
+                letter-spacing: .035em;
+                text-transform: uppercase;
+            }
+
+            .mobile-result-value {
+                min-width: 0;
+            }
+
+            .mobile-result-value .d-flex {
+                min-width: 0;
+            }
+
+            .mobile-result-value .small,
+            .mobile-result-value [style*="font-size"] {
+                line-height: 1.15 !important;
+            }
+
+            .mobile-inline-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                padding: 0 10px 12px;
+            }
+
+            .mobile-inline-stats {
+                min-height: 42px;
+                padding: 8px 14px;
+                border: 1px solid #22a06b;
+                border-radius: 11px;
+                background: #18895b;
+                color: #fff;
+                font-size: .72rem;
+                font-weight: 900;
+                box-shadow: 0 2px 5px rgba(24, 137, 91, .2);
             }
 
             .mobile-list-empty {
@@ -3057,6 +3159,22 @@
             return parts.join(' · ') || 'Sin pick';
         }
 
+        function mobileDesktopResultCell(row, index, label, tone, wide = false) {
+            const cell = row?.children?.[index] || null;
+            const text = String(cell?.innerText || '').trim();
+            const empty = !text || text === '-' || text === 'N/A';
+            const value = cell?.innerHTML || '<span class="text-muted">-</span>';
+            return `<div class="mobile-result-cell ${tone} ${empty ? 'is-empty' : ''} ${wide ? 'is-wide' : ''}">
+                <span class="mobile-result-label">${mobileEscape(label)}</span>
+                <div class="mobile-result-value">${value}</div>
+            </div>`;
+        }
+
+        function openMobileMatchStats(matchId) {
+            openMobileMatchDetail(matchId);
+            showMobileDetailTab('analysis');
+        }
+
         function renderMobileMatchBrowser(matches) {
             const list = document.getElementById('mobile-match-list');
             if (!list) return;
@@ -3091,19 +3209,38 @@
                     const row = document.querySelector(`#table-body tr[data-match-id="${CSS.escape(matchId)}"]`);
                     const hasHistory = row?.dataset?.hasHistory === '1';
                     const hasPick = mobilePickText(match, pc) !== 'Sin pick';
+                    const resultGrid = [
+                        mobileDesktopResultCell(row, 3, 'Hándicap / O-U', 'is-market'),
+                        mobileDesktopResultCell(row, 4, 'Resultado', 'is-score'),
+                        mobileDesktopResultCell(row, 5, 'Local · último en casa', 'is-home-history'),
+                        mobileDesktopResultCell(row, 6, 'Visitante · último fuera', 'is-away-history'),
+                        mobileDesktopResultCell(row, 7, 'H2H en este campo', 'is-h2h'),
+                        mobileDesktopResultCell(row, 8, 'Último enfrentamiento', 'is-h2h'),
+                        mobileDesktopResultCell(row, 9, 'H2H Col 3', 'is-col3'),
+                        mobileDesktopResultCell(row, 10, 'Comparativa local', 'is-indirect'),
+                        mobileDesktopResultCell(row, 11, 'Comparativa visitante', 'is-indirect', true)
+                    ].join('');
                     return `<article class="mobile-match-row" data-mobile-match-id="${mobileEscape(matchId)}" onclick="openMobileMatchDetail('${mobileEscape(matchId)}')">
-                        <div class="mobile-match-time"><strong>${mobileEscape(mobileMatchClock(match, pc))}</strong><span>${mobileEscape(mobileMatchDate(match, pc))}</span><span class="mobile-history-dot ${hasHistory ? 'has-history' : ''}" title="${hasHistory ? 'Historial completo' : 'Historial incompleto'}"></span></div>
-                        <div class="mobile-match-teams">
-                            <div class="mobile-team-line"><strong>${mobileEscape(home)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'home', match))}</span></div>
-                            <div class="mobile-team-line"><strong>${mobileEscape(away)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'away', match))}</span></div>
-                            <div class="mobile-match-pick">${mobileEscape(mobilePickText(match, pc))}</div>
+                        <div class="mobile-match-primary">
+                            <div class="mobile-match-time"><strong>${mobileEscape(mobileMatchClock(match, pc))}</strong><span>${mobileEscape(mobileMatchDate(match, pc))}</span><span class="mobile-history-dot ${hasHistory ? 'has-history' : ''}" title="${hasHistory ? 'Historial completo' : 'Historial incompleto'}"></span></div>
+                            <div class="mobile-match-teams">
+                                <div class="mobile-team-line"><strong>${mobileEscape(home)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'home', match))}</span></div>
+                                <div class="mobile-team-line"><strong>${mobileEscape(away)}</strong><span class="rank">${mobileEscape(mobileRank(pc, 'away', match))}</span></div>
+                                <div class="mobile-match-pick">${mobileEscape(mobilePickText(match, pc))}</div>
+                            </div>
+                            <div class="mobile-match-market">
+                                <span class="mobile-market-pill">AH ${mobileEscape(ah)}</span>
+                                <span class="mobile-market-pill">O/U ${mobileEscape(ou)}</span>
+                                ${ft ? `<span class="mobile-market-pill is-pick">FT ${mobileEscape(ft)}</span>` : (hasPick ? '<span class="mobile-market-pill is-pick">PICK</span>' : '')}
+                            </div>
+                            <div class="mobile-match-chevron"><i class="fa-solid fa-chevron-right"></i></div>
                         </div>
-                        <div class="mobile-match-market">
-                            <span class="mobile-market-pill">AH ${mobileEscape(ah)}</span>
-                            <span class="mobile-market-pill">O/U ${mobileEscape(ou)}</span>
-                            ${ft ? `<span class="mobile-market-pill is-pick">FT ${mobileEscape(ft)}</span>` : (hasPick ? '<span class="mobile-market-pill is-pick">PICK</span>' : '')}
+                        <div class="mobile-result-grid">${resultGrid}</div>
+                        <div class="mobile-inline-actions">
+                            <button type="button" class="mobile-inline-stats" onclick="event.stopPropagation(); openMobileMatchStats('${mobileEscape(matchId)}')">
+                                <i class="fa-solid fa-table-cells me-1"></i>Ver stats
+                            </button>
                         </div>
-                        <div class="mobile-match-chevron"><i class="fa-solid fa-chevron-right"></i></div>
                     </article>`;
                 }).join('');
                 return `<section class="mobile-league-group" data-mobile-league-group="${mobileEscape(league)}">
