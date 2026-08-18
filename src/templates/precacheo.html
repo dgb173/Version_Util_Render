@@ -7871,7 +7871,7 @@
             const scoreOf = row => row?.score ?? row?.score_raw ?? '';
 
             const favIsLocal = Number.isFinite(currentAh) && currentAh > 0;
-            const favIsVisitor = Number.isFinite(currentAh) && currentAh < 0;
+            const favIsVisitor = Number.isFinite(currentAh) && currentAh <= 0;
             let favWdl = null;
             let mirrorName = '';
             if (favIsLocal && scoreOf(lastHome)) {
@@ -10068,29 +10068,74 @@
                         if (hasValidMovement) {
                             h2hStadiumMovAttr = getMovementDirection(st.movement) || '';
                         }
-
-                        // Si el scraper no calculó el resultado H2H (res1_raw fue '?-?' o faltaron cuotas), 
-                        // pero tenemos un resultado en st.result, lo usamos con el currentAh del frontend.
                         if (hasValidResult && !isNaN(currentAh)) {
                             const resWdl = calculateH2HResult(st.result, currentAh);
                             h2hStadiumResAttr = resWdl || '';
                         }
 
-                        // Calcular color basado en si el FAVORITO del partido ACTUAL cubre con el resultado histórico
-                        let movColor = 'text-dark';
-                        if (hasValidResult && !isNaN(currentAh)) {
-                            // Usamos calculateH2HResult que ya tiene la lógica de favoritismo integrada
-                            const res = calculateH2HResult(st.result, currentAh);
-                            if (res === 'COVER') movColor = 'text-success';
-                            else if (res === 'NO_COVER') movColor = 'text-danger';
-                            else if (res === 'PUSH') movColor = 'text-push';
+                        // Calcular WIN / NO WIN para Estadio (siempre Mismas Localías)
+                        let winStatus = 'N/D';
+                        let statusColor = 'text-muted';
+                        if (hasValidResult) {
+                            const scoreParts = String(st.result).replace('-', ':').split(':');
+                            if (scoreParts.length === 2) {
+                                const gh = parseInt(scoreParts[0], 10);
+                                const ga = parseInt(scoreParts[1], 10);
+                                if (!isNaN(gh) && !isNaN(ga)) {
+                                    if (gh > ga) {
+                                        winStatus = 'WIN';
+                                        statusColor = 'text-success';
+                                    } else if (gh < ga) {
+                                        winStatus = 'NO WIN';
+                                        statusColor = 'text-danger';
+                                    } else {
+                                        winStatus = 'EMPATE';
+                                        statusColor = 'text-push';
+                                    }
+                                }
+                            }
                         }
+
+                        // Calcular Cobertura (Cover)
+                        let coverLabel = '';
+                        if (hasValidResult && !isNaN(currentAh)) {
+                            const res = calculateH2HResult(st.result, currentAh);
+                            if (res === 'COVER') coverLabel = '<span class="badge bg-success" style="font-size: 0.5rem;">✓ Cubrió</span>';
+                            else if (res === 'NO_COVER') coverLabel = '<span class="badge bg-danger" style="font-size: 0.5rem;">✗ No Cubrió</span>';
+                            else if (res === 'PUSH') coverLabel = '<span class="badge bg-secondary" style="font-size: 0.5rem;">Push</span>';
+                        }
+
+                        // Calcular Movimiento de Línea
+                        let movementLabel = '';
+                        const stAhNum = parseFloat(String(st.movement).split('->')[0]);
+                        if (!isNaN(currentAh) && !isNaN(stAhNum)) {
+                            const diff = Math.abs(currentAh) - Math.abs(stAhNum);
+                            if (Math.abs(diff) < 0.01) {
+                                movementLabel = '<span class="badge bg-secondary" style="font-size: 0.5rem;">= Igual</span>';
+                            } else if (diff > 0) {
+                                movementLabel = '<span class="badge bg-primary" style="font-size: 0.5rem;">↑ Sube</span>';
+                            } else {
+                                movementLabel = '<span class="badge bg-warning text-dark" style="font-size: 0.5rem;">↓ Baja</span>';
+                            }
+                        }
+
+                        const stadiumBadge = '<span class="badge bg-info" style="font-size: 0.55rem;">Estadio</span>';
 
                         h2hStadiumHtml = `
                             <div class="d-flex flex-column">
+                                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">
+                                    ${winStatus} ${stadiumBadge}
+                                </div>
                                 ${st.date && st.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
-                                <div class="fw-bold small ${movColor}">${hasValidMovement ? st.movement : (hasValidResult ? 'Histórico' : '-')}</div>
-                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.result}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${st.movement || '-'}</span>
+                                    <span class="fw-bold">${st.result || '-'}</span>
+                                </div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">${m.home_team || 'Local'} vs ${m.away_team || 'Visitante'}</div>
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    ${coverLabel}
+                                    ${movementLabel}
+                                </div>
                             </div>
                         `;
                     }
@@ -10109,35 +10154,105 @@
                     stadiumData.result === generalData.result &&
                     stadiumData.result !== '?-?' && stadiumData.result !== '?:?';
 
-                if (pc && pc.market_analysis_data && pc.market_analysis_data.general && !isSameAsStadium) {
-                    const gen = pc.market_analysis_data.general;
-                    const hasValidMovement = gen.movement && gen.movement !== 'N/A' && gen.movement.trim() !== '';
-                    const hasValidResult = gen.result && gen.result !== 'N/A' && gen.result.trim() !== '' && gen.result !== '?:?' && gen.result !== '?-?';
+                const rawH2hGen = pc && (pc.h2h_general || (pc.market_analysis_data && pc.market_analysis_data.general));
+                if (rawH2hGen && !isSameAsStadium) {
+                    const gen = (pc.market_analysis_data && pc.market_analysis_data.general) || {};
+                    const h2hObj = pc.h2h_general || {};
+                    const genDate = gen.date && gen.date !== 'N/A' ? gen.date : (h2hObj.date6 || h2hObj.date || '');
+                    const genScore = gen.result && gen.result !== 'N/A' && gen.result !== '?:?' && gen.result !== '?-?'
+                        ? gen.result : (h2hObj.res6 || h2hObj.score || '');
+                    const genMovement = gen.movement && gen.movement !== 'N/A' ? gen.movement : (h2hObj.ah6 || h2hObj.handicap || '');
+                    const genHome = gen.home_team || h2hObj.h2h_gen_home || (h2hObj.details && h2hObj.details.h2h_gen_home) || '';
+                    const genAway = gen.away_team || h2hObj.h2h_gen_away || (h2hObj.details && h2hObj.details.h2h_gen_away) || '';
+
+                    const hasValidMovement = genMovement && genMovement !== 'N/A' && String(genMovement).trim() !== '';
+                    const hasValidResult = genScore && genScore !== 'N/A' && String(genScore).trim() !== '' && genScore !== '?:?' && genScore !== '?-?';
 
                     if (hasValidMovement || hasValidResult) {
-                        // Calcular atributos para el filtrado visual
                         if (hasValidMovement) {
-                            h2hGeneralMovAttr = getMovementDirection(gen.movement) || '';
+                            h2hGeneralMovAttr = getMovementDirection(genMovement) || '';
                         }
                         if (hasValidResult && !isNaN(currentAh)) {
-                            const resWdl = calculateH2HResult(gen.result, currentAh, true);
+                            const resWdl = calculateH2HResult(genScore, currentAh, true);
                             h2hGeneralResAttr = resWdl || '';
                         }
 
-                        // Calcular color basado en si el FAVORITO del partido ACTUAL cubre con el resultado histórico
-                        let movColor = 'text-dark';
-                        if (hasValidResult && !isNaN(currentAh) && currentAh !== 0) {
-                            const res = calculateH2HResult(gen.result, currentAh, true);
-                            if (res === 'COVER') movColor = 'text-success';
-                            else if (res === 'NO_COVER') movColor = 'text-danger';
-                            else if (res === 'PUSH') movColor = 'text-push';
+                        // Determinar Localías (Mismas o Invertidas)
+                        const homeTeamLower = (m.home_team || '').toLowerCase().trim();
+                        const isLocalHomeInH2H = genHome && (genHome.toLowerCase().includes(homeTeamLower) || homeTeamLower.includes(genHome.toLowerCase()));
+                        const isLocalAwayInH2H = genAway && (genAway.toLowerCase().includes(homeTeamLower) || homeTeamLower.includes(genAway.toLowerCase()));
+                        const localityType = isLocalAwayInH2H ? 'invertida' : 'misma';
+                        const localityBadge = localityType === 'invertida'
+                            ? '<span class="badge bg-warning text-dark" style="font-size: 0.55rem;">Invertidas</span>'
+                            : '<span class="badge bg-info" style="font-size: 0.55rem;">Mismas</span>';
+
+                        // Calcular WIN / NO WIN
+                        let winStatus = 'N/D';
+                        let statusColor = 'text-muted';
+                        if (hasValidResult) {
+                            const scoreParts = String(genScore).replace('-', ':').split(':');
+                            if (scoreParts.length === 2) {
+                                const gh = parseInt(scoreParts[0], 10);
+                                const ga = parseInt(scoreParts[1], 10);
+                                if (!isNaN(gh) && !isNaN(ga)) {
+                                    let ownGoals = gh;
+                                    let rivalGoals = ga;
+                                    if (isLocalAwayInH2H) {
+                                        ownGoals = ga;
+                                        rivalGoals = gh;
+                                    }
+                                    if (ownGoals > rivalGoals) {
+                                        winStatus = 'WIN';
+                                        statusColor = 'text-success';
+                                    } else if (ownGoals < rivalGoals) {
+                                        winStatus = 'NO WIN';
+                                        statusColor = 'text-danger';
+                                    } else {
+                                        winStatus = 'EMPATE';
+                                        statusColor = 'text-push';
+                                    }
+                                }
+                            }
+                        }
+
+                        // Calcular Cobertura (Cover)
+                        let coverLabel = '';
+                        if (hasValidResult && !isNaN(currentAh)) {
+                            const res = calculateH2HResult(genScore, currentAh, true);
+                            if (res === 'COVER') coverLabel = '<span class="badge bg-success" style="font-size: 0.5rem;">✓ Cubrió</span>';
+                            else if (res === 'NO_COVER') coverLabel = '<span class="badge bg-danger" style="font-size: 0.5rem;">✗ No Cubrió</span>';
+                            else if (res === 'PUSH') coverLabel = '<span class="badge bg-secondary" style="font-size: 0.5rem;">Push</span>';
+                        }
+
+                        // Calcular Movimiento de Línea
+                        let movementLabel = '';
+                        const genAhNum = parseFloat(String(genMovement).split('->')[0]);
+                        if (!isNaN(currentAh) && !isNaN(genAhNum)) {
+                            const diff = Math.abs(currentAh) - Math.abs(genAhNum);
+                            if (Math.abs(diff) < 0.01) {
+                                movementLabel = '<span class="badge bg-secondary" style="font-size: 0.5rem;">= Igual</span>';
+                            } else if (diff > 0) {
+                                movementLabel = '<span class="badge bg-primary" style="font-size: 0.5rem;">↑ Sube</span>';
+                            } else {
+                                movementLabel = '<span class="badge bg-warning text-dark" style="font-size: 0.5rem;">↓ Baja</span>';
+                            }
                         }
 
                         h2hGeneralHtml = `
                             <div class="d-flex flex-column">
-                                ${gen.date && gen.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
-                                <div class="fw-bold small ${movColor}">${hasValidMovement ? gen.movement : (hasValidResult ? 'Histórico' : '-')}</div>
-                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.result}</div>` : ''}
+                                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">
+                                    ${winStatus} ${localityBadge}
+                                </div>
+                                ${genDate ? `<div class="text-muted" style="font-size: 0.55rem;">${genDate}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${genMovement || '-'}</span>
+                                    <span class="fw-bold">${genScore || '-'}</span>
+                                </div>
+                                ${(genHome || genAway) ? `<div class="small text-muted" style="font-size: 0.75rem;">${genHome} vs ${genAway}</div>` : ''}
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    ${coverLabel}
+                                    ${movementLabel}
+                                </div>
                             </div>
                         `;
                     }
