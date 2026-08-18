@@ -41,6 +41,7 @@ data/*.sqlite
 data/*.sqlite3
 data/.sql_bootstrap.lock
 data/data_others.json
+data/pre_context_row_col3.json
 
 # Runtime history cache
 studied_matches/
