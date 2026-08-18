@@ -5787,15 +5787,46 @@ def api_precacheo_h2h_col3():
                 return '', None
 
             if row_role == 'home':
-                candidate_home, candidate_away = selected, last_away
-                rival_a_name, rival_a_id = _rival_of(selected, parent_home)
-                rival_b_name, rival_b_id = _rival_of(last_away, parent_away)
-                key_ids = [match_id, _row_mid(last_away)]
+                subject_team = parent_home
+                opponent_team = parent_away
+                row_rival_name, row_rival_id = _rival_of(selected, parent_home)
             else:
-                candidate_home, candidate_away = last_home, selected
-                rival_a_name, rival_a_id = _rival_of(last_home, parent_home)
-                rival_b_name, rival_b_id = _rival_of(selected, parent_away)
-                key_ids = [_row_mid(last_home), match_id]
+                subject_team = parent_away
+                opponent_team = parent_home
+                row_rival_name, row_rival_id = _rival_of(selected, parent_away)
+
+            if _same_team(row_rival_name, opponent_team):
+                # Enfrentamiento directo entre ambos equipos
+                score_parts = str(selected.get('score') or '').replace('-', ':').split(':')
+                gh = score_parts[0] if len(score_parts) == 2 else ''
+                ga = score_parts[1] if len(score_parts) == 2 else ''
+                context = {
+                    'home_name': parent_home,
+                    'away_name': parent_away,
+                    'is_direct_h2h': True,
+                    'last_home_match': selected if row_role == 'home' else last_home,
+                    'last_away_match': selected if row_role == 'away' else last_away,
+                    'h2h_col3_general': {
+                        'status': 'found',
+                        'is_direct_h2h': True,
+                        'goles_home': gh,
+                        'goles_away': ga,
+                        'handicap': selected.get('handicap_line_raw') or '',
+                        'date': selected.get('date') or '',
+                        'h2h_home_team_name': selected.get('home_team') or selected.get('home') or parent_home,
+                        'h2h_away_team_name': selected.get('away_team') or selected.get('away') or parent_away,
+                        'match_id': match_id,
+                    }
+                }
+                cached = True
+                cache_source = 'direct_h2h_fila'
+            elif row_rival_name and opponent_team:
+                # Enfrentamiento de Col3: opponent_team vs el rival de esta fila
+                rival_a_name, rival_a_id = opponent_team, None
+                rival_b_name, rival_b_id = row_rival_name, row_rival_id
+                key_ids = [parent_match_id, match_id]
+                candidate_home = selected if row_role == 'home' else last_home
+                candidate_away = selected if row_role == 'away' else last_away
 
             if rival_a_name and rival_b_name:
                 pair_key = f"anchored:{parent_match_id}:{row_role}:{match_id}:{rival_a_name}:{rival_b_name}"

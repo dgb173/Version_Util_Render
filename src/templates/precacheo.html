@@ -7844,17 +7844,24 @@
         function buildPreContextCol3Card(button, data) {
             const col3 = data?.h2h_col3 || {};
             const match = data?.match || {};
-            const comparison = data?.comparison || {};
-            const lastHome = comparison.last_home_match || {};
-            const lastAway = comparison.last_away_match || {};
-            const currentAh = Number.parseFloat(button.dataset.currentAh);
-            const homeName = String(match.home_name || button.dataset.rowHome || '').toLowerCase().trim();
-            const awayName = String(match.away_name || button.dataset.rowAway || '').toLowerCase().trim();
+            const isDirectH2H = !!col3.is_direct_h2h;
+
+            const rowRole = String(button.dataset.rowRole || '').toLowerCase().trim();
+            const rowHome = String(button.dataset.rowHome || '').toLowerCase().trim();
+            const rowAway = String(button.dataset.rowAway || '').toLowerCase().trim();
+            const rowScore = String(button.dataset.rowScore || '').trim();
+            const parentHome = String(match.home_name || '').toLowerCase().trim();
+            const parentAway = String(match.away_name || '').toLowerCase().trim();
+
+            const subjectTeam = rowRole === 'home' ? parentHome : parentAway;
+            const opponentTeam = rowRole === 'home' ? parentAway : parentHome;
+
             const sameName = (a, b) => {
                 const left = String(a || '').toLowerCase().trim();
                 const right = String(b || '').toLowerCase().trim();
                 return !!left && !!right && (left.includes(right) || right.includes(left));
             };
+
             const wdlRank = (score, isHome) => {
                 const parts = String(score || '').replace('-', ':').split(':');
                 if (parts.length !== 2) return null;
@@ -7865,36 +7872,59 @@
                 const rival = isHome ? ga : gh;
                 return own > rival ? 2 : (own === rival ? 1 : 0);
             };
-            const homeOf = row => row?.home_team ?? row?.home ?? '';
-            const awayOf = row => row?.away_team ?? row?.away ?? '';
-            const scoreOf = row => row?.score ?? row?.score_raw ?? '';
 
-            const favIsLocal = Number.isFinite(currentAh) && currentAh > 0;
-            const favIsVisitor = Number.isFinite(currentAh) && currentAh <= 0;
-            let favWdl = null;
-            let mirrorName = '';
-            if (favIsLocal && scoreOf(lastHome)) {
-                favWdl = wdlRank(scoreOf(lastHome), sameName(homeOf(lastHome), homeName));
-                mirrorName = sameName(homeOf(lastAway), awayName) ? awayOf(lastAway) : homeOf(lastAway);
-            } else if (favIsVisitor && scoreOf(lastAway)) {
-                favWdl = wdlRank(scoreOf(lastAway), sameName(homeOf(lastAway), awayName));
-                mirrorName = sameName(homeOf(lastHome), homeName) ? awayOf(lastHome) : homeOf(lastHome);
-            }
+            const isSubjectHomeInRow = sameName(rowHome, subjectTeam);
+            const subjectWdl = wdlRank(rowScore, isSubjectHomeInRow);
 
             const col3Home = String(col3.h2h_home_team_name || 'Rival A');
             const col3Away = String(col3.h2h_away_team_name || 'Rival B');
-            const mirrorIsHome = sameName(col3Home, mirrorName);
-            const mirrorIsAway = sameName(col3Away, mirrorName);
-            let comparisonType = mirrorIsHome ? 'directa' : (mirrorIsAway ? 'inversa' : '');
-            if (favIsVisitor && comparisonType) comparisonType = comparisonType === 'directa' ? 'inversa' : 'directa';
-
             const score = `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}`;
-            const mirrorWdl = mirrorIsHome ? wdlRank(score, true) : (mirrorIsAway ? wdlRank(score, false) : null);
-            let performance = 'COL3';
-            if (favWdl !== null && mirrorWdl !== null) {
-                performance = favWdl > mirrorWdl ? 'MEJORA' : (favWdl === mirrorWdl ? 'IGUALA' : 'EMPEORA');
+
+            let performance = 'SIMILAR';
+            let statusClass = 'is-equal';
+            let comparisonType = 'directa';
+
+            if (isDirectH2H) {
+                // Enfrentamiento directo entre subject y opponent
+                if (subjectWdl === 2) {
+                    performance = 'MEJOR (WIN)';
+                    statusClass = 'is-better';
+                } else if (subjectWdl === 0) {
+                    performance = 'PEOR (NO WIN)';
+                    statusClass = 'is-worse';
+                } else {
+                    performance = 'SIMILAR (EMPATE)';
+                    statusClass = 'is-equal';
+                }
+                comparisonType = isSubjectHomeInRow ? 'directa' : 'inversa';
+            } else {
+                // Col3: Rendimiento de opponent contra el rival de esta fila
+                const opponentIsHomeInCol3 = sameName(col3Home, opponentTeam);
+                const opponentIsAwayInCol3 = sameName(col3Away, opponentTeam);
+                const opponentWdl = opponentIsHomeInCol3 ? wdlRank(score, true) : (opponentIsAwayInCol3 ? wdlRank(score, false) : null);
+
+                if (subjectWdl !== null && opponentWdl !== null) {
+                    if (subjectWdl > opponentWdl) {
+                        performance = 'MEJOR QUE RIVAL';
+                        statusClass = 'is-better';
+                    } else if (subjectWdl < opponentWdl) {
+                        performance = 'PEOR QUE RIVAL';
+                        statusClass = 'is-worse';
+                    } else {
+                        performance = 'SIMILAR';
+                        statusClass = 'is-equal';
+                    }
+                }
+
+                // Localía: ¿Jugaron en la misma condición contra ese rival?
+                if ((isSubjectHomeInRow && opponentIsHomeInCol3) || (!isSubjectHomeInRow && opponentIsAwayInCol3)) {
+                    comparisonType = 'directa';
+                } else {
+                    comparisonType = 'inversa';
+                }
             }
 
+            const currentAh = Number.parseFloat(button.dataset.currentAh);
             const col3Ah = Number.parseFloat(col3.handicap);
             let cover = '';
             if (Number.isFinite(col3Ah)) {
@@ -7919,7 +7949,6 @@
                 movement = Math.abs(difference) < .01 ? 'IGUAL' : (difference > 0 ? 'SUBE' : 'BAJA');
             }
 
-            const statusClass = performance === 'MEJORA' ? 'is-better' : (performance === 'EMPEORA' ? 'is-worse' : 'is-equal');
             const typeHtml = comparisonType
                 ? `<span class="pre-col3-badge ${comparisonType === 'directa' ? 'is-direct' : 'is-inverse'}">${comparisonType === 'directa' ? 'Directa' : 'Inversa'}</span>`
                 : '';
