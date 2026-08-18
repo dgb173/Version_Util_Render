@@ -5718,6 +5718,200 @@ def api_precacheo_last_general():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/precacheo_h2h_col3', methods=['POST'])
+def api_precacheo_h2h_col3():
+    """Devuelve solo el H2H Col3 solicitado para mantener ligera la tabla."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = "".join(filter(str.isdigit, str(payload.get('match_id') or '')))
+        parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
+        force_refresh = bool(payload.get('force_refresh'))
+        parent = None
+
+        if parent_match_id:
+            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id) or {}
+        if not match_id and parent:
+            pre_context = parent.get('pre_match_context') or {}
+            current_context = pre_context.get('current') or pre_context
+            candidate_groups = (
+                current_context.get('home_matches'), current_context.get('away_matches'),
+                parent.get('recent_home_matches'), parent.get('recent_away_matches'),
+            )
+            target_date = str(payload.get('row_date') or '').strip()
+            target_home = str(payload.get('row_home') or '').strip().casefold()
+            target_away = str(payload.get('row_away') or '').strip().casefold()
+            for group in candidate_groups:
+                for row in group or []:
+                    row_date = str(row.get('date') or '').strip()
+                    row_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
+                    row_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
+                    if target_date and row_date != target_date:
+                        continue
+                    if target_home and row_home != target_home:
+                        continue
+                    if target_away and row_away != target_away:
+                        continue
+                    match_id = "".join(filter(str.isdigit, str(
+                        row.get('matchIndex') or row.get('match_id') or row.get('id') or ''
+                    )))
+                    if match_id:
+                        break
+                if match_id:
+                    break
+        if not match_id:
+            return jsonify({'status': 'error', 'error': 'No se pudo identificar el partido de esta fila'}), 400
+
+        context = None
+        cached = False
+        cache_source = 'scrape'
+        row_role = str(payload.get('row_role') or '').strip().lower()
+        if parent and row_role in {'home', 'away'}:
+            parent_home = parent.get('home_name') or parent.get('home_team') or ''
+            parent_away = parent.get('away_name') or parent.get('away_team') or ''
+            last_home = parent.get('last_home_match') or parent.get('last_general_home') or {}
+            last_away = parent.get('last_away_match') or parent.get('last_general_away') or {}
+
+            pre_context = parent.get('pre_match_context') or {}
+            current_context = pre_context.get('current') or pre_context
+            history_rows = []
+            for group in (
+                current_context.get('home_matches'), current_context.get('away_matches'),
+                parent.get('recent_home_matches'), parent.get('recent_away_matches'),
+            ):
+                history_rows.extend(group or [])
+
+            def _row_mid(row):
+                return "".join(filter(str.isdigit, str(
+                    (row or {}).get('matchIndex') or (row or {}).get('match_id') or (row or {}).get('id') or ''
+                )))
+
+            def _enrich(reference):
+                base = dict(reference or {})
+                ref_mid = _row_mid(base)
+                for history_row in history_rows:
+                    if ref_mid and _row_mid(history_row) == ref_mid:
+                        merged = dict(history_row)
+                        merged.update({key: value for key, value in base.items() if value not in (None, '')})
+                        return merged
+                return base
+
+            last_home = _enrich(last_home)
+            last_away = _enrich(last_away)
+            selected = {
+                'date': payload.get('row_date') or '',
+                'home_team': payload.get('row_home') or '',
+                'away_team': payload.get('row_away') or '',
+                'home_id': payload.get('row_home_id') or None,
+                'away_id': payload.get('row_away_id') or None,
+                'score': payload.get('row_score') or '',
+                'handicap_line_raw': payload.get('row_ah') or '',
+                'match_id': match_id,
+            }
+
+            def _same_team(left, right):
+                a = str(left or '').strip().casefold()
+                b = str(right or '').strip().casefold()
+                return bool(a and b and (a == b or a in b or b in a))
+
+            def _rival_of(row, subject):
+                home = row.get('home_team') or row.get('home') or ''
+                away = row.get('away_team') or row.get('away') or ''
+                if _same_team(home, subject):
+                    return away, row.get('away_id')
+                if _same_team(away, subject):
+                    return home, row.get('home_id')
+                return '', None
+
+            if row_role == 'home':
+                candidate_home, candidate_away = selected, last_away
+                rival_a_name, rival_a_id = _rival_of(selected, parent_home)
+                rival_b_name, rival_b_id = _rival_of(last_away, parent_away)
+                key_ids = [match_id, _row_mid(last_away)]
+            else:
+                candidate_home, candidate_away = last_home, selected
+                rival_a_name, rival_a_id = _rival_of(last_home, parent_home)
+                rival_b_name, rival_b_id = _rival_of(selected, parent_away)
+                key_ids = [_row_mid(last_home), match_id]
+
+            if rival_a_name and rival_b_name:
+                pair_key = f"anchored:{parent_match_id}:{row_role}:{match_id}:{rival_a_name}:{rival_b_name}"
+                pair_result, cached = last_general_context.get_or_create_rival_pair_col3(
+                    pair_key, key_ids, rival_a_name, rival_a_id,
+                    rival_b_name, rival_b_id, str(parent.get('league_id') or ''),
+                    force_refresh=force_refresh,
+                )
+                if pair_result and not pair_result.get('error'):
+                    context = {
+                        'home_name': parent_home,
+                        'away_name': parent_away,
+                        'last_home_match': candidate_home,
+                        'last_away_match': candidate_away,
+                        'h2h_col3_general': pair_result.get('h2h_col3_general') or {},
+                    }
+                    cache_source = 'cache_col3_anclada' if cached else 'scrape_col3_anclada'
+
+        if context is None and not force_refresh:
+            stored = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id)
+            if stored:
+                stored_col3 = stored.get('h2h_col3') or stored.get('h2h_col3_general')
+                if isinstance(stored_col3, dict) and stored_col3:
+                    context = {
+                        'home_name': stored.get('home_name') or stored.get('home_team') or '',
+                        'away_name': stored.get('away_name') or stored.get('away_team') or '',
+                        'last_home_match': stored.get('last_home_match') or stored.get('last_general_home'),
+                        'last_away_match': stored.get('last_away_match') or stored.get('last_general_away'),
+                        'h2h_col3_general': stored_col3,
+                    }
+                    cached = True
+                    cache_source = 'partido_guardado'
+
+        if context is None:
+            context, cached = last_general_context.get_or_create_col3(match_id, force_refresh=force_refresh)
+            cache_source = 'cache_col3' if cached else 'scrape'
+        if not context or context.get('error'):
+            return jsonify({
+                'status': 'error',
+                'error': (context or {}).get('error', 'No se pudo extraer H2H Col3'),
+            }), 500
+
+        raw_col3 = context.get('h2h_col3_general') or context.get('h2h_col3') or {}
+        allowed_fields = (
+            'status', 'goles_home', 'goles_away', 'handicap', 'match_id',
+            'h2h_home_team_name', 'h2h_away_team_name', 'date', 'source',
+            'is_different_league', 'resultado', 'home_red', 'away_red',
+        )
+        col3 = {key: raw_col3.get(key) for key in allowed_fields if key in raw_col3}
+
+        def _compact_previous(row):
+            if not isinstance(row, dict):
+                return None
+            fields = (
+                'date', 'home_team', 'away_team', 'home', 'away',
+                'home_id', 'away_id', 'score', 'score_raw', 'match_id',
+                'matchIndex', 'handicap_line_raw', 'ahLine', 'ahLine_raw',
+            )
+            return {key: row.get(key) for key in fields if key in row}
+
+        return jsonify({
+            'status': 'success',
+            'cached': cached,
+            'cache_source': cache_source,
+            'match': {
+                'match_id': match_id,
+                'home_name': context.get('home_name') or '',
+                'away_name': context.get('away_name') or '',
+            },
+            'comparison': {
+                'last_home_match': _compact_previous(context.get('last_home_match')),
+                'last_away_match': _compact_previous(context.get('last_away_match')),
+            },
+            'h2h_col3': col3,
+        })
+    except Exception as exc:
+        logging.exception("Error en /api/precacheo_h2h_col3")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/precacheo_last_general_batch', methods=['POST'])
 def api_precacheo_last_general_batch():
     """Procesa Último General para una lista elegida por el usuario."""
