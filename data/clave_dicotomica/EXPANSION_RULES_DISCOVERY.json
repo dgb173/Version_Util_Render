@@ -1,0 +1,150 @@
+{
+  "method": {
+    "split": "60% discovery / 20% validation / 20% untouched final test",
+    "eligibility": "raw AH passes every V7 guard except exact-line whitelist",
+    "candidate_origin": "discovery only",
+    "selection_uses_final_test": false,
+    "thresholds": {
+      "discovery": {
+        "minimum_picks": 30,
+        "minimum_positive_rate": 56.0,
+        "minimum_mean_settlement": 0.08
+      },
+      "validation": {
+        "minimum_picks": 12,
+        "minimum_positive_rate": 55.0,
+        "minimum_mean_settlement": 0.05
+      }
+    }
+  },
+  "periods": {
+    "discovery": {
+      "from": "2024-08-10",
+      "to": "2026-02-22",
+      "all_rows": 5589,
+      "eligible_rows": 692
+    },
+    "validation": {
+      "from": "2026-02-23",
+      "to": "2026-03-23",
+      "all_rows": 1310,
+      "eligible_rows": 204
+    },
+    "final_test": {
+      "from": "2026-03-28",
+      "to": "2026-07-11",
+      "all_rows": 1718,
+      "eligible_rows": 237
+    }
+  },
+  "candidates_generated": 1343,
+  "candidates_passing_discovery_and_validation": 2,
+  "selected_rules": [
+    {
+      "id": "EXP_AH_01",
+      "name": "ah_line_exact=+0.50 | raw_ah=FAV_CUBRE | bookie_confirmation=NEUTRAL",
+      "conditions": [
+        {
+          "field": "ah_line_exact",
+          "op": "eq",
+          "value": "+0.50"
+        },
+        {
+          "field": "raw_ah",
+          "op": "eq",
+          "value": "FAV_CUBRE"
+        },
+        {
+          "field": "bookie_confirmation",
+          "op": "eq",
+          "value": "NEUTRAL"
+        }
+      ],
+      "discovery": {
+        "rows": 60,
+        "picks": 60,
+        "coverage": 100.0,
+        "positive": 37,
+        "negative": 23,
+        "pushes": 0,
+        "positive_rate": 61.67,
+        "wilson_lower_95": 49.02,
+        "mean_settlement_even_odds": 0.23333
+      },
+      "validation": {
+        "rows": 12,
+        "picks": 12,
+        "coverage": 100.0,
+        "positive": 10,
+        "negative": 2,
+        "pushes": 0,
+        "positive_rate": 83.33,
+        "wilson_lower_95": 55.2,
+        "mean_settlement_even_odds": 0.66667
+      },
+      "validation_incremental": {
+        "rows": 12,
+        "picks": 12,
+        "coverage": 100.0,
+        "positive": 10,
+        "negative": 2,
+        "pushes": 0,
+        "positive_rate": 83.33,
+        "wilson_lower_95": 55.2,
+        "mean_settlement_even_odds": 0.66667
+      },
+      "final_test": {
+        "rows": 17,
+        "picks": 17,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.29412
+      }
+    }
+  ],
+  "selected_union": {
+    "discovery": {
+      "rows": 60,
+      "picks": 60,
+      "coverage": 100.0,
+      "positive": 37,
+      "negative": 23,
+      "pushes": 0,
+      "positive_rate": 61.67,
+      "wilson_lower_95": 49.02,
+      "mean_settlement_even_odds": 0.23333
+    },
+    "validation": {
+      "rows": 12,
+      "picks": 12,
+      "coverage": 100.0,
+      "positive": 10,
+      "negative": 2,
+      "pushes": 0,
+      "positive_rate": 83.33,
+      "wilson_lower_95": 55.2,
+      "mean_settlement_even_odds": 0.66667
+    },
+    "final_test": {
+      "rows": 17,
+      "picks": 17,
+      "coverage": 100.0,
+      "positive": 11,
+      "negative": 6,
+      "pushes": 0,
+      "positive_rate": 64.71,
+      "wilson_lower_95": 41.3,
+      "mean_settlement_even_odds": 0.29412
+    }
+  },
+  "audit": {
+    "historical_rows": 12722,
+    "usable_rows": 8617,
+    "reject:no_date": 4030,
+    "reject:no_lines": 75
+  }
+}

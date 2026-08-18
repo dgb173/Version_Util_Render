@@ -1,0 +1,997 @@
+{
+  "generated_at": "2026-07-13T20:42:34+02:00",
+  "engine_versions": {
+    "V7.0": 8617
+  },
+  "data_audit": {
+    "historical_rows": 12722,
+    "usable_rows": 8617,
+    "reject:no_date": 4030,
+    "reject:no_lines": 75
+  },
+  "range": {
+    "start": "2024-08-10",
+    "end": "2026-07-11",
+    "rows": 8617
+  },
+  "all": {
+    "ah": {
+      "rows": 8617,
+      "picks": 1156,
+      "coverage": 13.42,
+      "positive": 617,
+      "negative": 417,
+      "pushes": 122,
+      "positive_rate": 59.67,
+      "wilson_lower_95": 56.65,
+      "mean_settlement_even_odds": 0.12846
+    },
+    "ou": {
+      "rows": 8617,
+      "picks": 67,
+      "coverage": 0.78,
+      "positive": 44,
+      "negative": 19,
+      "pushes": 4,
+      "positive_rate": 69.84,
+      "wilson_lower_95": 57.64,
+      "mean_settlement_even_odds": 0.35075
+    }
+  },
+  "holdout_20": {
+    "range": {
+      "start": "2026-03-28",
+      "end": "2026-07-11",
+      "rows": 1718
+    },
+    "ah": {
+      "rows": 1718,
+      "picks": 207,
+      "coverage": 12.05,
+      "positive": 121,
+      "negative": 66,
+      "pushes": 20,
+      "positive_rate": 64.71,
+      "wilson_lower_95": 57.62,
+      "mean_settlement_even_odds": 0.20773
+    },
+    "ou": {
+      "rows": 1718,
+      "picks": 22,
+      "coverage": 1.28,
+      "positive": 15,
+      "negative": 7,
+      "pushes": 0,
+      "positive_rate": 68.18,
+      "wilson_lower_95": 47.32,
+      "mean_settlement_even_odds": 0.31818
+    },
+    "ah_by_pick": [
+      {
+        "group": "DOG_CUBRE",
+        "rows": 134,
+        "picks": 134,
+        "coverage": 100.0,
+        "positive": 78,
+        "negative": 40,
+        "pushes": 16,
+        "positive_rate": 66.1,
+        "wilson_lower_95": 57.17,
+        "mean_settlement_even_odds": 0.17164
+      },
+      {
+        "group": "FAV_CUBRE",
+        "rows": 73,
+        "picks": 73,
+        "coverage": 100.0,
+        "positive": 43,
+        "negative": 26,
+        "pushes": 4,
+        "positive_rate": 62.32,
+        "wilson_lower_95": 50.52,
+        "mean_settlement_even_odds": 0.27397
+      }
+    ],
+    "ah_by_tier": [
+      {
+        "group": "PRODUCTION",
+        "rows": 190,
+        "picks": 190,
+        "coverage": 100.0,
+        "positive": 110,
+        "negative": 60,
+        "pushes": 20,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 57.27,
+        "mean_settlement_even_odds": 0.2
+      },
+      {
+        "group": "PRODUCTION_EXPANSION",
+        "rows": 17,
+        "picks": 17,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.29412
+      }
+    ],
+    "ah_by_expansion_rule": [
+      {
+        "group": "CORE_OR_NONE",
+        "rows": 1701,
+        "picks": 190,
+        "coverage": 11.17,
+        "positive": 110,
+        "negative": 60,
+        "pushes": 20,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 57.27,
+        "mean_settlement_even_odds": 0.2
+      },
+      {
+        "group": "EXP_AH_01_HOME_FAV_M05_BOOKIE_NEUTRAL",
+        "rows": 17,
+        "picks": 17,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.29412
+      }
+    ],
+    "ou_by_pick": [
+      {
+        "group": "UNDER",
+        "rows": 22,
+        "picks": 22,
+        "coverage": 100.0,
+        "positive": 15,
+        "negative": 7,
+        "pushes": 0,
+        "positive_rate": 68.18,
+        "wilson_lower_95": 47.32,
+        "mean_settlement_even_odds": 0.31818
+      }
+    ],
+    "ah_by_family": [
+      {
+        "group": "H025",
+        "rows": 398,
+        "picks": 81,
+        "coverage": 20.35,
+        "positive": 51,
+        "negative": 30,
+        "pushes": 0,
+        "positive_rate": 62.96,
+        "wilson_lower_95": 52.08,
+        "mean_settlement_even_odds": 0.12963
+      },
+      {
+        "group": "H0",
+        "rows": 218,
+        "picks": 58,
+        "coverage": 26.61,
+        "positive": 22,
+        "negative": 16,
+        "pushes": 20,
+        "positive_rate": 57.89,
+        "wilson_lower_95": 42.19,
+        "mean_settlement_even_odds": 0.10345
+      },
+      {
+        "group": "H15_175",
+        "rows": 91,
+        "picks": 30,
+        "coverage": 32.97,
+        "positive": 21,
+        "negative": 9,
+        "pushes": 0,
+        "positive_rate": 70.0,
+        "wilson_lower_95": 52.12,
+        "mean_settlement_even_odds": 0.38333
+      },
+      {
+        "group": "H1_125",
+        "rows": 219,
+        "picks": 21,
+        "coverage": 9.59,
+        "positive": 16,
+        "negative": 5,
+        "pushes": 0,
+        "positive_rate": 76.19,
+        "wilson_lower_95": 54.91,
+        "mean_settlement_even_odds": 0.47619
+      },
+      {
+        "group": "H05_075",
+        "rows": 464,
+        "picks": 17,
+        "coverage": 3.66,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.29412
+      }
+    ],
+    "ah_by_exact_line": [
+      {
+        "group": "+0.25",
+        "rows": 310,
+        "picks": 81,
+        "coverage": 26.13,
+        "positive": 51,
+        "negative": 30,
+        "pushes": 0,
+        "positive_rate": 62.96,
+        "wilson_lower_95": 52.08,
+        "mean_settlement_even_odds": 0.12963
+      },
+      {
+        "group": "+0.00",
+        "rows": 262,
+        "picks": 58,
+        "coverage": 22.14,
+        "positive": 22,
+        "negative": 16,
+        "pushes": 20,
+        "positive_rate": 57.89,
+        "wilson_lower_95": 42.19,
+        "mean_settlement_even_odds": 0.10345
+      },
+      {
+        "group": "+1.50",
+        "rows": 54,
+        "picks": 22,
+        "coverage": 40.74,
+        "positive": 16,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 72.73,
+        "wilson_lower_95": 51.85,
+        "mean_settlement_even_odds": 0.45455
+      },
+      {
+        "group": "+1.25",
+        "rows": 77,
+        "picks": 21,
+        "coverage": 27.27,
+        "positive": 16,
+        "negative": 5,
+        "pushes": 0,
+        "positive_rate": 76.19,
+        "wilson_lower_95": 54.91,
+        "mean_settlement_even_odds": 0.47619
+      },
+      {
+        "group": "+0.50",
+        "rows": 227,
+        "picks": 17,
+        "coverage": 7.49,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.29412
+      },
+      {
+        "group": "+1.75",
+        "rows": 29,
+        "picks": 8,
+        "coverage": 27.59,
+        "positive": 5,
+        "negative": 3,
+        "pushes": 0,
+        "positive_rate": 62.5,
+        "wilson_lower_95": 30.57,
+        "mean_settlement_even_odds": 0.1875
+      }
+    ],
+    "ah_by_col3": [
+      {
+        "group": "WITH_COL3",
+        "rows": 1143,
+        "picks": 160,
+        "coverage": 14.0,
+        "positive": 91,
+        "negative": 53,
+        "pushes": 16,
+        "positive_rate": 63.19,
+        "wilson_lower_95": 55.07,
+        "mean_settlement_even_odds": 0.1875
+      },
+      {
+        "group": "WITHOUT_COL3",
+        "rows": 575,
+        "picks": 47,
+        "coverage": 8.17,
+        "positive": 30,
+        "negative": 13,
+        "pushes": 4,
+        "positive_rate": 69.77,
+        "wilson_lower_95": 54.89,
+        "mean_settlement_even_odds": 0.2766
+      }
+    ],
+    "ah_by_col3_concordance": [
+      {
+        "group": "COL3_NO_BRANCH",
+        "rows": 1534,
+        "picks": 165,
+        "coverage": 10.76,
+        "positive": 96,
+        "negative": 53,
+        "pushes": 16,
+        "positive_rate": 64.43,
+        "wilson_lower_95": 56.47,
+        "mean_settlement_even_odds": 0.2
+      },
+      {
+        "group": "COL3_AGREES",
+        "rows": 118,
+        "picks": 28,
+        "coverage": 23.73,
+        "positive": 20,
+        "negative": 7,
+        "pushes": 1,
+        "positive_rate": 74.07,
+        "wilson_lower_95": 55.32,
+        "mean_settlement_even_odds": 0.39286
+      },
+      {
+        "group": "COL3_CONFLICTS",
+        "rows": 66,
+        "picks": 14,
+        "coverage": 21.21,
+        "positive": 5,
+        "negative": 6,
+        "pushes": 3,
+        "positive_rate": 45.45,
+        "wilson_lower_95": 21.27,
+        "mean_settlement_even_odds": -0.07143
+      }
+    ],
+    "ah_by_bookie_confirmation": [
+      {
+        "group": "NEUTRAL",
+        "rows": 767,
+        "picks": 125,
+        "coverage": 16.3,
+        "positive": 67,
+        "negative": 43,
+        "pushes": 15,
+        "positive_rate": 60.91,
+        "wilson_lower_95": 51.57,
+        "mean_settlement_even_odds": 0.144
+      },
+      {
+        "group": "CONFIRM",
+        "rows": 160,
+        "picks": 40,
+        "coverage": 25.0,
+        "positive": 27,
+        "negative": 12,
+        "pushes": 1,
+        "positive_rate": 69.23,
+        "wilson_lower_95": 53.58,
+        "mean_settlement_even_odds": 0.2625
+      },
+      {
+        "group": "CONFLICT",
+        "rows": 487,
+        "picks": 28,
+        "coverage": 5.75,
+        "positive": 15,
+        "negative": 9,
+        "pushes": 4,
+        "positive_rate": 62.5,
+        "wilson_lower_95": 42.71,
+        "mean_settlement_even_odds": 0.26786
+      },
+      {
+        "group": "STRONG_CONFIRM",
+        "rows": 33,
+        "picks": 14,
+        "coverage": 42.42,
+        "positive": 12,
+        "negative": 2,
+        "pushes": 0,
+        "positive_rate": 85.71,
+        "wilson_lower_95": 60.06,
+        "mean_settlement_even_odds": 0.5
+      }
+    ],
+    "ou_by_family": [
+      {
+        "group": "OU_MID",
+        "rows": 439,
+        "picks": 11,
+        "coverage": 2.51,
+        "positive": 5,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 45.45,
+        "wilson_lower_95": 21.27,
+        "mean_settlement_even_odds": -0.09091
+      }
+    ],
+    "ou_by_col3": [
+      {
+        "group": "WITH_COL3",
+        "rows": 1143,
+        "picks": 17,
+        "coverage": 1.49,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.23529
+      },
+      {
+        "group": "WITHOUT_COL3",
+        "rows": 575,
+        "picks": 5,
+        "coverage": 0.87,
+        "positive": 4,
+        "negative": 1,
+        "pushes": 0,
+        "positive_rate": 80.0,
+        "wilson_lower_95": 37.55,
+        "mean_settlement_even_odds": 0.6
+      }
+    ],
+    "ah_by_edge": [
+      {
+        "group": "3_50_PLUS",
+        "rows": 441,
+        "picks": 204,
+        "coverage": 46.26,
+        "positive": 118,
+        "negative": 66,
+        "pushes": 20,
+        "positive_rate": 64.13,
+        "wilson_lower_95": 56.98,
+        "mean_settlement_even_odds": 0.19608
+      }
+    ],
+    "ou_by_edge": [
+      {
+        "group": "3_50_PLUS",
+        "rows": 433,
+        "picks": 20,
+        "coverage": 4.62,
+        "positive": 15,
+        "negative": 5,
+        "pushes": 0,
+        "positive_rate": 75.0,
+        "wilson_lower_95": 53.13,
+        "mean_settlement_even_odds": 0.45
+      }
+    ],
+    "ah_micro_rules": [
+      {
+        "signal": "MR-F4 H15_INDIRECTA_VALIDA",
+        "rows": 16,
+        "picks": 16,
+        "coverage": 100.0,
+        "positive": 13,
+        "negative": 3,
+        "pushes": 0,
+        "positive_rate": 81.25,
+        "wilson_lower_95": 56.99,
+        "mean_settlement_even_odds": 0.625
+      },
+      {
+        "signal": "MR-D14 AH025+LEAN 69.4%",
+        "rows": 23,
+        "picks": 23,
+        "coverage": 100.0,
+        "positive": 17,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 73.91,
+        "wilson_lower_95": 53.53,
+        "mean_settlement_even_odds": 0.30435
+      },
+      {
+        "signal": "MR-F1 LOW+OVER+IND_PUSH 75%",
+        "rows": 37,
+        "picks": 37,
+        "coverage": 100.0,
+        "positive": 20,
+        "negative": 11,
+        "pushes": 6,
+        "positive_rate": 64.52,
+        "wilson_lower_95": 46.95,
+        "mean_settlement_even_odds": 0.27027
+      },
+      {
+        "signal": "MR-D7 DOG_NEUTRAL+TABLE 73.3%",
+        "rows": 42,
+        "picks": 42,
+        "coverage": 100.0,
+        "positive": 19,
+        "negative": 14,
+        "pushes": 9,
+        "positive_rate": 57.58,
+        "wilson_lower_95": 40.81,
+        "mean_settlement_even_odds": 0.05952
+      }
+    ],
+    "ou_micro_rules": [
+      {
+        "signal": "MR-OU2 H025_H2H_UNDER_IND_DOG_POS",
+        "rows": 22,
+        "picks": 22,
+        "coverage": 100.0,
+        "positive": 15,
+        "negative": 7,
+        "pushes": 0,
+        "positive_rate": 68.18,
+        "wilson_lower_95": 47.32,
+        "mean_settlement_even_odds": 0.31818
+      }
+    ],
+    "ah_flags": [
+      {
+        "signal": "PRESSURE_NEW_FAV",
+        "rows": 82,
+        "picks": 82,
+        "coverage": 100.0,
+        "positive": 60,
+        "negative": 22,
+        "pushes": 0,
+        "positive_rate": 73.17,
+        "wilson_lower_95": 62.7,
+        "mean_settlement_even_odds": 0.34146
+      },
+      {
+        "signal": "MARKET_INSISTS_AGAINST_H2H",
+        "rows": 33,
+        "picks": 33,
+        "coverage": 100.0,
+        "positive": 26,
+        "negative": 7,
+        "pushes": 0,
+        "positive_rate": 78.79,
+        "wilson_lower_95": 62.25,
+        "mean_settlement_even_odds": 0.51515
+      },
+      {
+        "signal": "RAMA_FAVORITO_BLOQUEADO_EMPATE",
+        "rows": 13,
+        "picks": 13,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 2,
+        "pushes": 0,
+        "positive_rate": 84.62,
+        "wilson_lower_95": 57.76,
+        "mean_settlement_even_odds": 0.53846
+      },
+      {
+        "signal": "F_PREV_NORMAL",
+        "rows": 170,
+        "picks": 170,
+        "coverage": 100.0,
+        "positive": 98,
+        "negative": 53,
+        "pushes": 19,
+        "positive_rate": 64.9,
+        "wilson_lower_95": 57.0,
+        "mean_settlement_even_odds": 0.20882
+      },
+      {
+        "signal": "D_PREV_NORMAL",
+        "rows": 170,
+        "picks": 170,
+        "coverage": 100.0,
+        "positive": 98,
+        "negative": 54,
+        "pushes": 18,
+        "positive_rate": 64.47,
+        "wilson_lower_95": 56.59,
+        "mean_settlement_even_odds": 0.19706
+      },
+      {
+        "signal": "DOG_CERRADO",
+        "rows": 115,
+        "picks": 115,
+        "coverage": 100.0,
+        "positive": 67,
+        "negative": 35,
+        "pushes": 13,
+        "positive_rate": 65.69,
+        "wilson_lower_95": 56.05,
+        "mean_settlement_even_odds": 0.22174
+      },
+      {
+        "signal": "DOG_GANA_COMO_FAV_O_PICKEM",
+        "rows": 24,
+        "picks": 24,
+        "coverage": 100.0,
+        "positive": 17,
+        "negative": 6,
+        "pushes": 1,
+        "positive_rate": 73.91,
+        "wilson_lower_95": 53.53,
+        "mean_settlement_even_odds": 0.29167
+      },
+      {
+        "signal": "TABLE_FAV_WORSE",
+        "rows": 67,
+        "picks": 67,
+        "coverage": 100.0,
+        "positive": 37,
+        "negative": 19,
+        "pushes": 11,
+        "positive_rate": 66.07,
+        "wilson_lower_95": 53.0,
+        "mean_settlement_even_odds": 0.20896
+      },
+      {
+        "signal": "GOLEADA_D_ENCAJADA",
+        "rows": 33,
+        "picks": 33,
+        "coverage": 100.0,
+        "positive": 19,
+        "negative": 11,
+        "pushes": 3,
+        "positive_rate": 63.33,
+        "wilson_lower_95": 45.51,
+        "mean_settlement_even_odds": 0.18182
+      },
+      {
+        "signal": "INDIRECTA_DOG_SUPERA_FAV_AH_BAJO",
+        "rows": 18,
+        "picks": 18,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 5,
+        "pushes": 2,
+        "positive_rate": 68.75,
+        "wilson_lower_95": 44.4,
+        "mean_settlement_even_odds": 0.16667
+      },
+      {
+        "signal": "STADIUM_OLD",
+        "rows": 33,
+        "picks": 33,
+        "coverage": 100.0,
+        "positive": 19,
+        "negative": 12,
+        "pushes": 2,
+        "positive_rate": 61.29,
+        "wilson_lower_95": 43.82,
+        "mean_settlement_even_odds": 0.19697
+      },
+      {
+        "signal": "PICKEM_DNB",
+        "rows": 58,
+        "picks": 58,
+        "coverage": 100.0,
+        "positive": 22,
+        "negative": 16,
+        "pushes": 20,
+        "positive_rate": 57.89,
+        "wilson_lower_95": 42.19,
+        "mean_settlement_even_odds": 0.10345
+      },
+      {
+        "signal": "DOG_VOL_COMPRESSED",
+        "rows": 18,
+        "picks": 18,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 1,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.08333
+      },
+      {
+        "signal": "F_PREV_GOLEADA_LIMPIA",
+        "rows": 17,
+        "picks": 17,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 6,
+        "pushes": 0,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 41.3,
+        "mean_settlement_even_odds": 0.26471
+      },
+      {
+        "signal": "VOLUMEN_SIN_CONVERSION",
+        "rows": 61,
+        "picks": 61,
+        "coverage": 100.0,
+        "positive": 29,
+        "negative": 25,
+        "pushes": 7,
+        "positive_rate": 53.7,
+        "wilson_lower_95": 40.61,
+        "mean_settlement_even_odds": 0.0082
+      },
+      {
+        "signal": "TABLA_IGUALADA",
+        "rows": 20,
+        "picks": 20,
+        "coverage": 100.0,
+        "positive": 10,
+        "negative": 6,
+        "pushes": 4,
+        "positive_rate": 62.5,
+        "wilson_lower_95": 38.64,
+        "mean_settlement_even_odds": 0.175
+      },
+      {
+        "signal": "U4_TABLA_IGUALADA",
+        "rows": 20,
+        "picks": 20,
+        "coverage": 100.0,
+        "positive": 10,
+        "negative": 6,
+        "pushes": 4,
+        "positive_rate": 62.5,
+        "wilson_lower_95": 38.64,
+        "mean_settlement_even_odds": 0.175
+      },
+      {
+        "signal": "INDIRECTA_ESPEJO_EMPATE",
+        "rows": 23,
+        "picks": 23,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 8,
+        "pushes": 4,
+        "positive_rate": 57.89,
+        "wilson_lower_95": 36.28,
+        "mean_settlement_even_odds": 0.13043
+      },
+      {
+        "signal": "RESULTADO_BLOQUEA_VOLUMEN",
+        "rows": 44,
+        "picks": 44,
+        "coverage": 100.0,
+        "positive": 19,
+        "negative": 18,
+        "pushes": 7,
+        "positive_rate": 51.35,
+        "wilson_lower_95": 35.89,
+        "mean_settlement_even_odds": -0.05682
+      },
+      {
+        "signal": "STALE_CONTEXT",
+        "rows": 21,
+        "picks": 21,
+        "coverage": 100.0,
+        "positive": 11,
+        "negative": 9,
+        "pushes": 1,
+        "positive_rate": 55.0,
+        "wilson_lower_95": 34.21,
+        "mean_settlement_even_odds": 0.09524
+      },
+      {
+        "signal": "REPETICION_LINEA_PROCESO",
+        "rows": 26,
+        "picks": 26,
+        "coverage": 100.0,
+        "positive": 13,
+        "negative": 13,
+        "pushes": 0,
+        "positive_rate": 50.0,
+        "wilson_lower_95": 32.06,
+        "mean_settlement_even_odds": 0.05769
+      },
+      {
+        "signal": "D_PREV_DEFENSA_ROTA",
+        "rows": 20,
+        "picks": 20,
+        "coverage": 100.0,
+        "positive": 10,
+        "negative": 9,
+        "pushes": 1,
+        "positive_rate": 52.63,
+        "wilson_lower_95": 31.71,
+        "mean_settlement_even_odds": 0.075
+      }
+    ],
+    "ou_flags": [
+      {
+        "signal": "D_PREV_NORMAL",
+        "rows": 19,
+        "picks": 19,
+        "coverage": 100.0,
+        "positive": 14,
+        "negative": 5,
+        "pushes": 0,
+        "positive_rate": 73.68,
+        "wilson_lower_95": 51.21,
+        "mean_settlement_even_odds": 0.42105
+      },
+      {
+        "signal": "F_PREV_NORMAL",
+        "rows": 18,
+        "picks": 18,
+        "coverage": 100.0,
+        "positive": 13,
+        "negative": 5,
+        "pushes": 0,
+        "positive_rate": 72.22,
+        "wilson_lower_95": 49.13,
+        "mean_settlement_even_odds": 0.38889
+      },
+      {
+        "signal": "RESULTADO_BLOQUEA_VOLUMEN",
+        "rows": 12,
+        "picks": 12,
+        "coverage": 100.0,
+        "positive": 9,
+        "negative": 3,
+        "pushes": 0,
+        "positive_rate": 75.0,
+        "wilson_lower_95": 46.77,
+        "mean_settlement_even_odds": 0.45833
+      },
+      {
+        "signal": "VOLUMEN_SIN_CONVERSION",
+        "rows": 12,
+        "picks": 12,
+        "coverage": 100.0,
+        "positive": 9,
+        "negative": 3,
+        "pushes": 0,
+        "positive_rate": 75.0,
+        "wilson_lower_95": 46.77,
+        "mean_settlement_even_odds": 0.45833
+      }
+    ]
+  },
+  "temporal_folds": [
+    {
+      "fold": 1,
+      "start": "2024-08-10",
+      "end": "2025-12-27",
+      "ah": {
+        "rows": 1793,
+        "picks": 255,
+        "coverage": 14.22,
+        "positive": 134,
+        "negative": 93,
+        "pushes": 28,
+        "positive_rate": 59.03,
+        "wilson_lower_95": 52.53,
+        "mean_settlement_even_odds": 0.11176
+      },
+      "ou": {
+        "rows": 1793,
+        "picks": 13,
+        "coverage": 0.73,
+        "positive": 8,
+        "negative": 4,
+        "pushes": 1,
+        "positive_rate": 66.67,
+        "wilson_lower_95": 39.06,
+        "mean_settlement_even_odds": 0.23077
+      }
+    },
+    {
+      "fold": 2,
+      "start": "2025-12-28",
+      "end": "2026-01-20",
+      "ah": {
+        "rows": 1654,
+        "picks": 215,
+        "coverage": 13.0,
+        "positive": 109,
+        "negative": 78,
+        "pushes": 28,
+        "positive_rate": 58.29,
+        "wilson_lower_95": 51.12,
+        "mean_settlement_even_odds": 0.12326
+      },
+      "ou": {
+        "rows": 1654,
+        "picks": 10,
+        "coverage": 0.6,
+        "positive": 6,
+        "negative": 4,
+        "pushes": 0,
+        "positive_rate": 60.0,
+        "wilson_lower_95": 31.27,
+        "mean_settlement_even_odds": 0.25
+      }
+    },
+    {
+      "fold": 3,
+      "start": "2026-01-22",
+      "end": "2026-02-22",
+      "ah": {
+        "rows": 2142,
+        "picks": 312,
+        "coverage": 14.57,
+        "positive": 161,
+        "negative": 115,
+        "pushes": 36,
+        "positive_rate": 58.33,
+        "wilson_lower_95": 52.44,
+        "mean_settlement_even_odds": 0.11218
+      },
+      "ou": {
+        "rows": 2142,
+        "picks": 10,
+        "coverage": 0.47,
+        "positive": 8,
+        "negative": 2,
+        "pushes": 0,
+        "positive_rate": 80.0,
+        "wilson_lower_95": 49.02,
+        "mean_settlement_even_odds": 0.55
+      }
+    },
+    {
+      "fold": 4,
+      "start": "2026-02-23",
+      "end": "2026-03-23",
+      "ah": {
+        "rows": 1310,
+        "picks": 167,
+        "coverage": 12.75,
+        "positive": 92,
+        "negative": 65,
+        "pushes": 10,
+        "positive_rate": 58.6,
+        "wilson_lower_95": 50.78,
+        "mean_settlement_even_odds": 0.09281
+      },
+      "ou": {
+        "rows": 1310,
+        "picks": 12,
+        "coverage": 0.92,
+        "positive": 7,
+        "negative": 2,
+        "pushes": 3,
+        "positive_rate": 77.78,
+        "wilson_lower_95": 45.26,
+        "mean_settlement_even_odds": 0.45833
+      }
+    },
+    {
+      "fold": 5,
+      "start": "2026-03-28",
+      "end": "2026-07-11",
+      "ah": {
+        "rows": 1718,
+        "picks": 207,
+        "coverage": 12.05,
+        "positive": 121,
+        "negative": 66,
+        "pushes": 20,
+        "positive_rate": 64.71,
+        "wilson_lower_95": 57.62,
+        "mean_settlement_even_odds": 0.20773
+      },
+      "ou": {
+        "rows": 1718,
+        "picks": 22,
+        "coverage": 1.28,
+        "positive": 15,
+        "negative": 7,
+        "pushes": 0,
+        "positive_rate": 68.18,
+        "wilson_lower_95": 47.32,
+        "mean_settlement_even_odds": 0.31818
+      }
+    }
+  ]
+}
