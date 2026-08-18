@@ -7,7 +7,10 @@ import json
 import sys
 from pathlib import Path
 
-import ijson
+try:
+    import ijson
+except ImportError:
+    ijson = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
@@ -74,32 +77,67 @@ def main() -> None:
     for source in SOURCE_FILES:
         if not source.exists():
             continue
-        with source.open("rb") as handle:
-            for row in ijson.items(handle, "item", use_float=True):
-                if not isinstance(row, dict):
-                    continue
-                match_id = str(row.get("match_id") or row.get("id") or "").strip()
-                if not match_id:
-                    continue
-                compact = compact_row(row)
-                compact["match_id"] = match_id
-                compact["id"] = match_id
-                with payload_path(match_id).open("w", encoding="utf-8") as output:
-                    json.dump(compact, output, ensure_ascii=False, separators=(",", ":"))
+        if ijson is not None:
+            with source.open("rb") as handle:
+                rows_iter = ijson.items(handle, "item", use_float=True)
+                for row in rows_iter:
+                    if not isinstance(row, dict):
+                        continue
+                    match_id = str(row.get("match_id") or row.get("id") or "").strip()
+                    if not match_id:
+                        continue
+                    compact = compact_row(row)
+                    compact["match_id"] = match_id
+                    compact["id"] = match_id
+                    with payload_path(match_id).open("w", encoding="utf-8") as output:
+                        json.dump(compact, output, ensure_ascii=False, separators=(",", ":"))
 
-                odds = compact.get("main_match_odds") if isinstance(compact.get("main_match_odds"), dict) else {}
-                handicap = compact.get("handicap")
-                if handicap in (None, ""):
-                    handicap = odds.get("ah_linea")
-                headers_by_id[match_id] = {
-                    "match_id": match_id,
-                    "handicap": handicap,
-                    "score": compact.get("score") or compact.get("final_score"),
-                    "match_date": compact.get("match_date") or compact.get("date"),
-                    "start_time": compact.get("start_time"),
-                    "time": compact.get("time"),
-                }
-                written += 1
+                    odds = compact.get("main_match_odds") if isinstance(compact.get("main_match_odds"), dict) else {}
+                    handicap = compact.get("handicap")
+                    if handicap in (None, ""):
+                        handicap = odds.get("ah_linea")
+                    headers_by_id[match_id] = {
+                        "match_id": match_id,
+                        "handicap": handicap,
+                        "score": compact.get("score") or compact.get("final_score"),
+                        "match_date": compact.get("match_date") or compact.get("date"),
+                        "start_time": compact.get("start_time"),
+                        "time": compact.get("time"),
+                    }
+                    written += 1
+        else:
+            with source.open("r", encoding="utf-8") as handle:
+                try:
+                    loaded = json.load(handle)
+                except Exception:
+                    loaded = []
+                if isinstance(loaded, dict):
+                    loaded = list(loaded.values())
+                for row in (loaded if isinstance(loaded, list) else []):
+                    if not isinstance(row, dict):
+                        continue
+                    match_id = str(row.get("match_id") or row.get("id") or "").strip()
+                    if not match_id:
+                        continue
+                    compact = compact_row(row)
+                    compact["match_id"] = match_id
+                    compact["id"] = match_id
+                    with payload_path(match_id).open("w", encoding="utf-8") as output:
+                        json.dump(compact, output, ensure_ascii=False, separators=(",", ":"))
+
+                    odds = compact.get("main_match_odds") if isinstance(compact.get("main_match_odds"), dict) else {}
+                    handicap = compact.get("handicap")
+                    if handicap in (None, ""):
+                        handicap = odds.get("ah_linea")
+                    headers_by_id[match_id] = {
+                        "match_id": match_id,
+                        "handicap": handicap,
+                        "score": compact.get("score") or compact.get("final_score"),
+                        "match_date": compact.get("match_date") or compact.get("date"),
+                        "start_time": compact.get("start_time"),
+                        "time": compact.get("time"),
+                    }
+                    written += 1
 
     with INDEX_FILE.open("w", encoding="utf-8") as output:
         json.dump(list(headers_by_id.values()), output, ensure_ascii=False, separators=(",", ":"))
