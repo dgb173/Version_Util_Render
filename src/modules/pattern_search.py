@@ -1417,15 +1417,10 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_home_wdl:
             if not prev_home_data: continue
-            prev_home_sim = get_simulated_wdl(prev_home_data.get('score'), hist_ah, True)
-            if prev_home_sim != target_prev_home_wdl: continue
+            if prev_home_data.get('wdl') != target_prev_home_wdl: continue
         if target_prev_home_real_wdl:
             if not prev_home_data: continue
-            prev_home_real = get_team_real_wdl(
-                prev_home_data.get('score'),
-                infer_team_is_home(prev_home_data, home_team_norm, default_is_home=True)
-            )
-            if prev_home_real != target_prev_home_real_wdl:
+            if prev_home_data.get('wdl') != target_prev_home_real_wdl:
                 continue
 
         if filters.get('prev_home_ah'):
@@ -1435,15 +1430,10 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_away_wdl:
             if not prev_away_data: continue
-            prev_away_sim = get_simulated_wdl(prev_away_data.get('score'), hist_ah, False)
-            if prev_away_sim != target_prev_away_wdl: continue
+            if prev_away_data.get('wdl') != target_prev_away_wdl: continue
         if target_prev_away_real_wdl:
             if not prev_away_data: continue
-            prev_away_real = get_team_real_wdl(
-                prev_away_data.get('score'),
-                infer_team_is_home(prev_away_data, away_team_norm, default_is_home=False)
-            )
-            if prev_away_real != target_prev_away_real_wdl:
+            if prev_away_data.get('wdl') != target_prev_away_real_wdl:
                 continue
 
         if filters.get('prev_away_ah'):

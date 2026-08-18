@@ -804,7 +804,8 @@
                             <div class="multiselect-container mt-1" id="container-filter-prev-home-ah">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
                                 <option value="">Res...</option>
                                 <option value="HOME_WIN">Win</option>
                                 <option value="DRAW">Draw</option>
@@ -816,7 +817,8 @@
                             <div class="multiselect-container mt-1" id="container-filter-prev-away-ah">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;"
+                                onchange="renderTableWithPagination()">
                                 <option value="">Res...</option>
                                 <option value="HOME_WIN">Win</option>
                                 <option value="DRAW">Draw</option>
@@ -1493,10 +1495,8 @@
             const generalMovRaw = params.get('h2h_general_mov');
             const generalResRaw = params.get('h2h_general_res');
 
-            if (applyH2hLinePresets) {
-                hasPreset = applyMultiSelectValue(msH2hGeneralStartAh, generalStartRaw) || hasPreset;
-                hasPreset = applyMultiSelectValue(msH2hGeneralEndAh, generalEndRaw) || hasPreset;
-            }
+            if (generalStartRaw) hasPreset = applyMultiSelectValue(msH2hGeneralStartAh, generalStartRaw) || hasPreset;
+            if (generalEndRaw) hasPreset = applyMultiSelectValue(msH2hGeneralEndAh, generalEndRaw) || hasPreset;
             hasPreset = applySelectRawValue('filter-h2h-general-mov', generalMovRaw, ['UP', 'DOWN', 'SAME']) || hasPreset;
             hasPreset = applySelectRawValue('filter-h2h-general-res', generalResRaw, ['COVER', 'PUSH', 'NO_COVER']) || hasPreset;
 
@@ -1506,10 +1506,8 @@
             const stadiumMovRaw = params.get('h2h_stadium_mov');
             const stadiumResRaw = params.get('h2h_stadium_res');
 
-            if (applyH2hLinePresets) {
-                hasPreset = applyMultiSelectValue(msH2hStadiumStartAh, stadiumStartRaw) || hasPreset;
-                hasPreset = applyMultiSelectValue(msH2hStadiumEndAh, stadiumEndRaw) || hasPreset;
-            }
+            if (stadiumStartRaw) hasPreset = applyMultiSelectValue(msH2hStadiumStartAh, stadiumStartRaw) || hasPreset;
+            if (stadiumEndRaw) hasPreset = applyMultiSelectValue(msH2hStadiumEndAh, stadiumEndRaw) || hasPreset;
             hasPreset = applySelectRawValue('filter-h2h-stadium-mov', stadiumMovRaw, ['UP', 'DOWN', 'SAME']) || hasPreset;
             hasPreset = applySelectRawValue('filter-h2h-stadium-res', stadiumResRaw, ['COVER', 'PUSH', 'NO_COVER']) || hasPreset;
 
@@ -1543,18 +1541,18 @@
             hasPreset = applyMultiSelectValue(msPrevHomeAh, prevHomeAhRaw) || hasPreset;
             const prevHomeResNorm = (() => {
                 const v = (prevHomeResRaw || '').toUpperCase();
-                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
-                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
-                if (v === 'D') return 'DRAW';
+                if (v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'HOME_WIN';
+                if (v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'AWAY_WIN';
+                if (v === 'D' || v === 'DRAW') return 'DRAW';
                 return v;
             })();
             hasPreset = applySelectRawValue('filter-prev-home-res', prevHomeResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
             hasPreset = applyMultiSelectValue(msPrevAwayAh, prevAwayAhRaw) || hasPreset;
             const prevAwayResNorm = (() => {
                 const v = (prevAwayResRaw || '').toUpperCase();
-                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
-                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
-                if (v === 'D') return 'DRAW';
+                if (v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'HOME_WIN';
+                if (v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'AWAY_WIN';
+                if (v === 'D' || v === 'DRAW') return 'DRAW';
                 return v;
             })();
             hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
@@ -1695,11 +1693,11 @@
 
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
                 only_with_history: document.getElementById('filter-only-with-history').checked,
-                analyze_all: true,
+                analyze_all: false,
                 // Las estadísticas detalladas se cargan al desplegar cada ficha.
                 // Evita repetirlas miles de veces en la descarga inicial completa.
                 include_stats: false,
-                limit: 3000
+                limit: 750
             };
 
             // URL fallback (if UI presets were not reflected, keep backend filtering aligned).
@@ -1900,6 +1898,23 @@
                     if (!i.ind_visitante) return false;
                     const ah = isValidValue(i.ind_visitante.ah_line) ? i.ind_visitante.ah_line : i.ind_visitante.ah;
                     return checkAhMatch(ah, indVisitValues);
+                });
+            }
+
+            // --- Filtros Prev Home / Away Res ---
+            const fPrevHomeRes = document.getElementById('filter-prev-home-res')?.value;
+            if (fPrevHomeRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i?.prev_home) return false;
+                    return i.prev_home.wdl === fPrevHomeRes;
+                });
+            }
+
+            const fPrevAwayRes = document.getElementById('filter-prev-away-res')?.value;
+            if (fPrevAwayRes) {
+                filteredResults = filteredResults.filter(i => {
+                    if (!i?.prev_away) return false;
+                    return i.prev_away.wdl === fPrevAwayRes;
                 });
             }
 

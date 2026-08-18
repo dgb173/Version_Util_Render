@@ -2329,23 +2329,6 @@
 
         // Buscar patrones similares en histórico
         async function searchPatterns(matchId, btnElement) {
-            const getFavoritePrevAhWdl = (scoreStr, currentAhValue, favIsHome) => {
-                if (!scoreStr || isNaN(currentAhValue)) return null;
-                const normalizedScore = String(scoreStr).replace('-', ':');
-                const parts = normalizedScore.split(':');
-                if (parts.length !== 2) return null;
-                const h = parseInt(parts[0], 10);
-                const a = parseInt(parts[1], 10);
-                if (isNaN(h) || isNaN(a)) return null;
-
-                const absAh = Math.abs(parseFloat(currentAhValue));
-                const diff = favIsHome ? (h - a) : (a - h);
-                const finalDiff = diff - absAh;
-                if (finalDiff > 0) return 'HOME_WIN';  // Favorito cubrió
-                if (finalDiff < 0) return 'AWAY_WIN';  // Favorito no cubrió
-                return 'DRAW';                         // Push
-            };
-
             const parseMovement = (movementStr) => {
                 if (!movementStr || movementStr === 'N/A' || typeof movementStr !== 'string') {
                     return { start: null, end: null };
@@ -2368,30 +2351,7 @@
             };
 
             const pc = precacheoData ? precacheoData[matchId] : null;
-            const marketData = ((pc || {}).market_analysis_data || {});
-            const generalData = marketData.general || {};
-            const stadiumData = marketData.stadium || {};
-
-            const sources = [];
-            if (generalData.movement && generalData.movement !== 'N/A') {
-                sources.push({
-                    key: 'general',
-                    prefix: 'h2h_general',
-                    movement: generalData.movement,
-                    score: generalData.result || generalData.score || null,
-                    inverted: true
-                });
-            }
-            if (stadiumData.movement && stadiumData.movement !== 'N/A') {
-                sources.push({
-                    key: 'stadium',
-                    prefix: 'h2h_stadium',
-                    movement: stadiumData.movement,
-                    score: stadiumData.result || stadiumData.score || null,
-                    inverted: false
-                });
-            }
-            const selectedSource = sources.length > 0 ? sources[0] : null;
+            if (!pc) return;
 
             let currentAh = NaN;
             const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
@@ -2403,53 +2363,89 @@
             params.set('auto_search', '1');
             params.set('source_match_id', String(matchId));
 
-            if (selectedSource) {
-                params.set('fav_source', selectedSource.key);
-                const mov = parseMovement(selectedSource.movement);
+            if (!isNaN(currentAh)) {
+                params.set('fav_ah_exact', String(currentAh));
+                const favIsHome = currentAh > 0;
+                params.set('fav_side', favIsHome ? 'HOME' : 'AWAY');
 
-                if (isNaN(currentAh) && mov.end !== null) {
-                    currentAh = mov.end;
-                }
+                // Resultado (Win / Draw / Loss) del equipo favorito en su partido previo
+                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
+                const favTeamName = (favIsHome
+                    ? ((pc || {}).home_team || (pc || {}).home_name || '')
+                    : ((pc || {}).away_team || (pc || {}).away_name || '')
+                ).toLowerCase().trim();
 
-                if (mov.start !== null && mov.end !== null) {
-                    // Do not lock H2H start/end from auto preset; it over-filters and often returns 0 rows.
-                    const direction = selectedSource.key === 'general'
-                        ? (() => {
-                            const absStart = Math.abs(mov.start);
-                            const absEnd = Math.abs(mov.end);
-                            return Math.abs(absStart - absEnd) < 0.01 ? 'SAME' : (absEnd > absStart ? 'UP' : 'DOWN');
-                        })()
-                        : (Math.abs(mov.end - mov.start) < 0.01 ? 'SAME' : (mov.end > mov.start ? 'UP' : 'DOWN'));
-                    params.set(`${selectedSource.prefix}_mov`, direction);
+                if (favPrev && favPrev.score && favPrev.score !== '?:?' && favPrev.score !== '??') {
+                    const scoreParts = String(favPrev.score).replace('-', ':').split(':');
+                    if (scoreParts.length === 2) {
+                        const gh = parseInt(scoreParts[0], 10);
+                        const ga = parseInt(scoreParts[1], 10);
+                        if (!isNaN(gh) && !isNaN(ga)) {
+                            const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
+                            const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
+                            let favPlayedHomeInPrev = favIsHome;
+                            if (prevHomeTeam && favTeamName) {
+                                if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
+                                    favPlayedHomeInPrev = true;
+                                } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
+                                    favPlayedHomeInPrev = false;
+                                }
+                            }
 
-                    if (!isNaN(currentAh) && selectedSource.score && selectedSource.score !== '?:?' && selectedSource.score !== '??') {
-                        const coverage = calculateH2HResult(selectedSource.score, currentAh, selectedSource.inverted);
-                        if (coverage) {
-                            params.set(`${selectedSource.prefix}_res`, coverage);
+                            const favGoals = favPlayedHomeInPrev ? gh : ga;
+                            const oppGoals = favPlayedHomeInPrev ? ga : gh;
+
+                            let realWdl = 'DRAW';
+                            if (favGoals > oppGoals) realWdl = 'WIN';
+                            else if (favGoals < oppGoals) realWdl = 'LOSS';
+
+                            if (favIsHome) {
+                                params.set('prev_home_res', realWdl);
+                            } else {
+                                params.set('prev_away_res', realWdl);
+                            }
                         }
                     }
                 }
             }
 
-            if (!isNaN(currentAh)) {
-                params.set('fav_ah_exact', String(currentAh));
-                params.set('fav_side', currentAh > 0 ? 'HOME' : 'AWAY');
+            const marketData = ((pc || {}).market_analysis_data || {});
+            const stadiumData = marketData.stadium || {};
+            const generalData = marketData.general || {};
 
-                // Extra strict layer: previous match of the current favorite (AH + result).
-                const favIsHome = currentAh > 0;
-                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
-                const favPrevAhRaw = favPrev.handicap_line_raw ?? favPrev.ah ?? favPrev.handicap ?? (((favPrev || {}).main_match_odds || {}).ah_linea);
-                const favPrevAh = (favPrevAhRaw !== null && favPrevAhRaw !== undefined && favPrevAhRaw !== '')
-                    ? parseFloat(String(favPrevAhRaw).replace(',', '.'))
-                    : NaN;
-                const favPrevWdl = getFavoritePrevAhWdl(favPrev.score || '', currentAh, favIsHome);
+            // H2H Estadio: Cover status
+            if (stadiumData && stadiumData.movement && stadiumData.movement !== 'N/A') {
+                const score = stadiumData.result || stadiumData.score;
+                if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                    const stadiumCov = calculateH2HResult(score, currentAh, false);
+                    if (stadiumCov) {
+                        params.set('h2h_stadium_res', stadiumCov);
+                    }
+                }
+            }
 
-                if (favIsHome) {
-                    if (!isNaN(favPrevAh)) params.set('prev_home_ah', String(favPrevAh));
-                    if (favPrevWdl) params.set('prev_home_res', favPrevWdl);
-                } else {
-                    if (!isNaN(favPrevAh)) params.set('prev_away_ah', String(favPrevAh));
-                    if (favPrevWdl) params.set('prev_away_res', favPrevWdl);
+            // H2H General: Cover status + Fin AH
+            if (generalData && generalData.movement && generalData.movement !== 'N/A') {
+                const isSameAsStadium = stadiumData &&
+                    stadiumData.date === generalData.date &&
+                    (stadiumData.result || stadiumData.score) === (generalData.result || generalData.score);
+
+                if (!isSameAsStadium) {
+                    const score = generalData.result || generalData.score;
+                    if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                        const generalCov = calculateH2HResult(score, currentAh, true);
+                        if (generalCov) {
+                            params.set('h2h_general_res', generalCov);
+                        }
+                    }
+
+                    const mov = parseMovement(generalData.movement);
+                    if (mov.end !== null && !isNaN(mov.end)) {
+                        const endBucket = toExplorerBucketValue(mov.end);
+                        if (endBucket) {
+                            params.set('h2h_general_end', endBucket);
+                        }
+                    }
                 }
             }
 

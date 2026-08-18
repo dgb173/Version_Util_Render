@@ -387,6 +387,34 @@
         .pre-context-table .ctx-league { width: 13%; text-align: center; font-weight: 900; }
         .pre-context-table .ctx-score { width: 15%; text-align: center; font-weight: 900; }
         .pre-context-table .ctx-ah { width: 15%; text-align: right; }
+        .pre-context-table .ctx-col3 { width: 15%; text-align: center; overflow: visible; }
+        .pre-context-col3-btn { min-width: 44px; padding: 2px 5px; border: 1px solid #7c3aed; border-radius: 4px; background: #fff; color: #6d28d9; font-size: .6rem; font-weight: 900; line-height: 1.25; white-space: nowrap; cursor: pointer; }
+        .pre-context-col3-btn:hover { background: #6d28d9; color: #fff; }
+        .pre-context-col3-btn:disabled { opacity: .55; cursor: wait; }
+        .pre-context-col3-btn.is-visible { border-color: #5b21b6; background: #6d28d9; color: #fff; }
+        .pre-context-col3-btn.is-empty { border-color: #94a3b8; background: #f8fafc; color: #64748b; }
+        .pre-context-col3-result { font-size: .7rem; letter-spacing: .02em; }
+        .pre-context-col3-btn.is-card { display: block; width: 100%; min-width: 0; padding: 4px 3px; border-color: #cbd5e1; background: #fff; color: #334155; white-space: normal; text-align: left; box-shadow: 0 1px 3px rgba(15, 23, 42, .12); }
+        .pre-context-col3-btn.is-card:hover { border-color: #7c3aed; background: #faf7ff; color: #334155; }
+        .pre-col3-card-head { display: flex; align-items: center; justify-content: space-between; gap: 3px; padding-bottom: 2px; border-bottom: 1px solid #e2e8f0; }
+        .pre-col3-status { font-size: .62rem; font-weight: 900; }
+        .pre-col3-status.is-better { color: #16834b; }
+        .pre-col3-status.is-equal { color: #e07a00; }
+        .pre-col3-status.is-worse { color: #c92a3a; }
+        .pre-col3-badge { padding: 1px 3px; border-radius: 3px; color: #fff; font-size: .46rem; font-weight: 900; }
+        .pre-col3-badge.is-direct { background: #0dcaf0; }
+        .pre-col3-badge.is-inverse { background: #f0ad4e; color: #332701; }
+        .pre-col3-date { margin-top: 2px; color: #64748b; text-align: center; font-size: .48rem; }
+        .pre-col3-numbers { display: flex; justify-content: space-between; gap: 4px; margin: 2px 0; color: #111827; font-size: .67rem; font-weight: 900; }
+        .pre-col3-teams { display: block; overflow-wrap: anywhere; color: #64748b; font-size: .52rem; line-height: 1.2; }
+        .pre-col3-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+        .pre-col3-tag { padding: 1px 3px; border-radius: 3px; color: #fff; font-size: .45rem; font-weight: 900; }
+        .pre-col3-tag.is-cover { background: #198754; }
+        .pre-col3-tag.is-fail { background: #dc3545; }
+        .pre-col3-tag.is-push { background: #6c757d; }
+        .pre-col3-tag.is-up { background: #0d6efd; }
+        .pre-col3-tag.is-down { background: #ffc107; color: #332701; }
+        .pre-col3-tag.is-same { background: #6c757d; }
         .pre-context-result-W { color: #16834b; background: #eef9f2; }
         .pre-context-result-D { color: #9a6700; background: #fff9e8; }
         .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
@@ -1548,141 +1576,319 @@
             display: none;
         }
 
-        /* En móvil se conserva la matriz de escritorio completa. Para este
-           análisis comparativo es más útil desplazarse horizontalmente que
-           convertir cada partido en una tarjeta aislada. */
+        /* La lista inicial se sintetiza en móvil. Escritorio conserva intacta
+           la matriz completa y todos sus análisis. */
         @media (max-width: 768px) {
             .table-zoom-toolbar {
-                position: sticky;
-                top: 6px;
-                z-index: 1025;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                width: max-content;
-                max-width: 100%;
-                margin: 8px auto;
-                padding: 6px;
-                border: 1px solid #cbd5e1;
-                border-radius: 10px;
-                background: rgba(255, 255, 255, .96);
-                box-shadow: 0 3px 12px rgba(15, 23, 42, .12);
-            }
-
-            .table-zoom-toolbar .btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                min-width: 42px;
-                min-height: 40px;
-                padding: 7px 10px !important;
-                font-size: .82rem !important;
-                font-weight: 800;
-                touch-action: manipulation;
-            }
-
-            #table-zoom-level {
-                min-width: 62px;
-                font-variant-numeric: tabular-nums;
-            }
-
-            .main-content > .table-responsive {
-                display: block !important;
-                width: 100%;
-                max-width: 100%;
-                overflow-x: auto !important;
-                overflow-y: visible !important;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: thin;
-                border: 1px solid #dee2e6;
-                border-radius: 8px;
-                background: #fff;
-                touch-action: pan-x pan-y pinch-zoom;
-            }
-
-            .main-content > .table-responsive > .excel-table {
-                display: table !important;
-                width: 1900px !important;
-                min-width: 1900px !important;
-                margin-bottom: 0;
-                table-layout: auto;
-                border: 0;
-                background: #fff;
-            }
-
-            .main-content .excel-table thead {
-                display: table-header-group !important;
-            }
-
-            .main-content .excel-table tbody {
-                display: table-row-group !important;
-            }
-
-            .main-content .excel-table thead tr,
-            .main-content .excel-table tbody tr {
-                display: table-row !important;
-                padding: 0 !important;
-                background: #fff;
-                border: 0 !important;
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                transform: none !important;
-            }
-
-            .main-content .excel-table thead th,
-            .main-content .excel-table tbody tr > td,
-            .main-content .excel-table tbody tr > td:nth-child(n) {
-                display: table-cell !important;
-                padding: 6px 8px !important;
-                border: 1px solid #dee2e6 !important;
-                vertical-align: middle !important;
-                font-size: inherit;
-                flex-direction: initial !important;
-                justify-content: initial !important;
-                gap: initial !important;
-            }
-
-            .main-content .excel-table tbody tr > td::before {
-                content: none !important;
                 display: none !important;
             }
 
-            .main-content .excel-table tbody tr > td.col-team {
-                font-size: .8rem !important;
+            .main-content > .table-responsive {
+                width: 100%;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+                border: 0;
+                background: transparent;
             }
 
-            .main-content .excel-table tbody tr > td.col-ah {
-                background-color: #e8f5e9 !important;
+            .main-content > .table-responsive > .excel-table {
+                display: block !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                margin-bottom: 0;
+                border: 0;
+                background: transparent;
             }
 
-            .main-content .excel-table tbody tr > td.col-h2h-col3 {
-                background-color: #ffe4ec !important;
+            .main-content .excel-table thead {
+                display: none !important;
+            }
+
+            .main-content .excel-table tbody {
+                display: flex !important;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .main-content .excel-table tbody tr {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 9px;
+                padding: 13px !important;
+                background: #fff;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 14px !important;
+                box-shadow: 0 3px 12px rgba(15, 23, 42, .08) !important;
+                transform: none !important;
+            }
+
+            .main-content .excel-table tbody tr > td,
+            .main-content .excel-table tbody tr > td:nth-child(n) {
+                display: flex !important;
+                min-width: 0;
+                padding: 8px !important;
+                border: 0 !important;
+                border-radius: 9px;
+                background: #f8fafc !important;
+                font-size: .78rem !important;
+                overflow-wrap: anywhere;
+            }
+
+            .main-content .excel-table tbody tr > td::before {
+                display: block !important;
+                margin-bottom: 5px;
+                color: #64748b;
+                font-size: .58rem;
+                font-weight: 900;
+                letter-spacing: .04em;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(1) {
+                grid-column: 1 / -1;
+                flex-direction: row !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                background: #f1f5f9 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(2),
+            .main-content .excel-table tbody tr > td:nth-child(3) {
+                font-size: .86rem !important;
+                font-weight: 800;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(2) .team-cell-league-stats,
+            .main-content .excel-table tbody tr > td:nth-child(3) .team-cell-league-stats {
+                display: none !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(4) {
+                background: #ecfdf5 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(5) {
+                background: #eff6ff !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 1rem !important;
+                font-weight: 900;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(6)::before {
+                content: 'LOCAL · ÚLTIMO EN CASA' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(7)::before {
+                content: 'VISITANTE · ÚLTIMO FUERA' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(8)::before {
+                content: 'H2H EN ESTE CAMPO' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(9)::before {
+                content: 'ÚLTIMO ENFRENTAMIENTO' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(10)::before {
+                content: 'H2H COL 3' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(11)::before {
+                content: 'COMPARATIVA LOCAL' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(12)::before {
+                content: 'COMPARATIVA VISITANTE' !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(8),
+            .main-content .excel-table tbody tr > td:nth-child(9) {
+                background: #fef2f2 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(10) {
+                background: #ffe4ec !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(11),
+            .main-content .excel-table tbody tr > td:nth-child(12) {
+                background: #fff7ed !important;
             }
 
             .main-content .excel-table tbody tr > td.cell-diff-league {
-                background-color: #fff9c4 !important;
+                background: #fff9c4 !important;
             }
 
             .main-content .excel-table tbody tr > td.cell-no-data {
-                background-color: #ffcdd2 !important;
+                background: #ffcdd2 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(13) {
+                grid-column: 1 / -1;
+                flex-direction: row !important;
+                justify-content: flex-end !important;
+                background: transparent !important;
+                padding: 3px 0 0 !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(13)::before {
+                display: none !important;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(13) .btn[title="Ver Estadísticas"] {
+                flex: 1 1 auto;
+                width: auto !important;
+                max-width: 150px;
+                padding: 0 13px !important;
+                border-radius: 10px !important;
+                font-weight: 900;
+            }
+
+            .main-content .excel-table tbody tr > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
+                content: ' Ver stats';
+                margin-left: 6px;
+                font-size: .72rem;
             }
 
             .main-content .excel-table tbody tr > td:last-child .btn {
                 display: inline-flex !important;
-                width: 22px !important;
-                height: 22px !important;
-                min-height: 22px !important;
+                width: 40px !important;
+                height: 40px !important;
+                min-height: 40px !important;
                 padding: 0 !important;
-                margin: 1px;
+                margin: 2px;
                 align-items: center;
                 justify-content: center;
                 border-radius: 50%;
-                font-size: .7rem !important;
+                font-size: .82rem !important;
+            }
+
+            .main-content .excel-table tbody tr.stats-collapse-row {
+                display: none !important;
+                margin-top: -10px;
+                padding: 0 !important;
+                border-color: #bbf7d0 !important;
+                box-shadow: none !important;
+            }
+
+            .main-content .excel-table tbody tr.stats-collapse-row.is-open {
+                display: grid !important;
+                grid-template-columns: 1fr;
+            }
+
+            .main-content .excel-table tbody tr.stats-collapse-row > td {
+                grid-column: 1 / -1;
+                display: block !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                background: #f0fdf4 !important;
+                overflow: hidden !important;
+            }
+
+            .main-content .excel-table tbody tr.stats-collapse-row > td::before {
+                display: none !important;
+            }
+
+            .main-content .stats-mobile-grid {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr);
+                gap: 8px !important;
+                padding: 10px !important;
+            }
+
+            .main-content .stats-mobile-grid > div {
+                min-width: 0 !important;
+            }
+
+            .main-content .stats-collapse-row .pre-match-context {
+                margin: 8px !important;
+            }
+
+            .main-content .stats-collapse-row .collapse,
+            .main-content .stats-collapse-row .collapse > div {
+                min-width: 0 !important;
+                max-width: 100% !important;
+                overflow: hidden !important;
+            }
+
+            .main-content .stats-collapse-row .pre-context-panel {
+                width: auto !important;
+                min-width: 0 !important;
+                max-width: calc(100% - 16px) !important;
+                margin: 8px !important;
+            }
+
+            .main-content .stats-collapse-row .pre-context-head {
+                flex-wrap: wrap;
+            }
+
+            .main-content .stats-collapse-row .pre-context-team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content .stats-collapse-row .pre-context-team + .pre-context-team {
+                border-top: 1px solid #d7e0e9;
+                border-left: 0;
             }
 
             .mobile-cards-container {
                 display: none !important;
+            }
+
+            .mobile-filters-panel {
+                border: 1px solid #e2e8f0;
+            }
+
+            .mobile-filter-groups {
+                display: grid;
+                gap: 10px;
+            }
+
+            .mobile-filter-group {
+                border: 1px solid #e2e8f0;
+                border-radius: 11px;
+                background: #f8fafc;
+                overflow: visible;
+            }
+
+            .mobile-filter-group > summary {
+                padding: 11px 12px;
+                color: #334155;
+                font-size: .78rem;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+            .mobile-filter-group-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 9px;
+                padding: 0 10px 11px;
+            }
+
+            .mobile-filter-field {
+                min-width: 0;
+            }
+
+            .mobile-filter-field.is-wide {
+                grid-column: 1 / -1;
+            }
+
+            .mobile-filter-label {
+                display: block;
+                margin-bottom: 4px;
+                color: #64748b;
+                font-size: .64rem;
+                font-weight: 900;
+            }
+
+            .mobile-filter-field .header-filter,
+            .mobile-filter-field .multiselect-container,
+            .mobile-filter-field .multiselect-btn {
+                width: 100% !important;
+                max-width: none !important;
             }
         }
     </style>
@@ -2088,6 +2294,25 @@
             </div>
         </div>
 
+        <div class="mobile-filter-groups mb-3" aria-label="Filtros avanzados">
+            <details class="mobile-filter-group" open>
+                <summary>Competición y mercado</summary>
+                <div class="mobile-filter-group-grid" id="mobile-filter-market"></div>
+            </details>
+            <details class="mobile-filter-group">
+                <summary>Últimos partidos</summary>
+                <div class="mobile-filter-group-grid" id="mobile-filter-previous"></div>
+            </details>
+            <details class="mobile-filter-group">
+                <summary>Enfrentamientos H2H</summary>
+                <div class="mobile-filter-group-grid" id="mobile-filter-h2h"></div>
+            </details>
+            <details class="mobile-filter-group">
+                <summary>Comparativas indirectas</summary>
+                <div class="mobile-filter-group-grid" id="mobile-filter-indirect"></div>
+            </details>
+        </div>
+
         <div class="d-flex gap-2 mt-3">
             <button class="btn btn-primary flex-grow-1" onclick="applyFiltersVisually(); closeMobileFilters();">
                 <i class="fa-solid fa-check me-1"></i> Aplicar
@@ -2109,8 +2334,106 @@
         // MultiSelect Instances
         let msLeague, msHandicap, msOu, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
 
+        const mobileFilterOrigins = new Map();
+        const mobileFilterLayout = [
+            {
+                target: 'mobile-filter-market',
+                controls: [
+                    ['container-filter-league', 'Liga', true],
+                    ['container-filter-handicap', 'Hándicap', false],
+                    ['container-filter-ou', 'Línea de goles', false]
+                ]
+            },
+            {
+                target: 'mobile-filter-previous',
+                controls: [
+                    ['container-filter-prev-home-ah', 'Local · AH anterior', false],
+                    ['filter-prev-home-res', 'Local · resultado', false],
+                    ['container-filter-prev-away-ah', 'Visitante · AH anterior', false],
+                    ['filter-prev-away-res', 'Visitante · resultado', false]
+                ]
+            },
+            {
+                target: 'mobile-filter-h2h',
+                controls: [
+                    ['filter-h2h-stadium-mov', 'Estadio · movimiento', false],
+                    ['filter-h2h-stadium-res', 'Estadio · cover', false],
+                    ['filter-h2h-stadium-start-ah', 'Estadio · AH inicial', false],
+                    ['filter-h2h-stadium-end-ah', 'Estadio · AH final', false],
+                    ['filter-h2h-general-mov', 'General · movimiento', false],
+                    ['filter-h2h-general-res', 'General · cover', false],
+                    ['filter-h2h-general-start-ah', 'General · AH inicial', false],
+                    ['filter-h2h-general-end-ah', 'General · AH final', false],
+                    ['filter-h2h-col3-mirror', 'Col 3 · espejo', false],
+                    ['container-filter-h2h-col3-ah', 'Col 3 · AH', false],
+                    ['filter-h2h-col3-cover', 'Col 3 · evolución', true]
+                ]
+            },
+            {
+                target: 'mobile-filter-indirect',
+                controls: [
+                    ['container-filter-ind-local-ah', 'Indirecta local · AH', false],
+                    ['filter-ind-local-res', 'Indirecta local · cover', false],
+                    ['filter-ind-local-loc', 'Indirecta local · localía', false],
+                    ['container-filter-ind-visitante-ah', 'Indirecta visita · AH', false],
+                    ['filter-ind-visitante-res', 'Indirecta visita · cover', false],
+                    ['filter-ind-visitante-loc', 'Indirecta visita · localía', false]
+                ]
+            }
+        ];
+
+        function syncResponsiveFilterControls() {
+            const useMobilePanel = window.matchMedia('(max-width: 992px)').matches;
+
+            if (!useMobilePanel) {
+                mobileFilterOrigins.forEach(({ marker, field, element }) => {
+                    if (marker.parentNode) marker.parentNode.insertBefore(element, marker);
+                    marker.remove();
+                    field.remove();
+                });
+                mobileFilterOrigins.clear();
+                return;
+            }
+
+            mobileFilterLayout.forEach(group => {
+                const target = document.getElementById(group.target);
+                if (!target) return;
+
+                group.controls.forEach(([id, label, wide]) => {
+                    if (mobileFilterOrigins.has(id)) return;
+                    const element = document.getElementById(id);
+                    if (!element || !element.parentNode) return;
+
+                    const marker = document.createComment(`mobile-filter-origin:${id}`);
+                    element.parentNode.insertBefore(marker, element);
+
+                    const field = document.createElement('div');
+                    field.className = `mobile-filter-field${wide ? ' is-wide' : ''}`;
+                    const labelNode = document.createElement('span');
+                    labelNode.className = 'mobile-filter-label';
+                    labelNode.textContent = label;
+                    field.append(labelNode, element);
+                    target.appendChild(field);
+                    mobileFilterOrigins.set(id, { marker, field, element });
+                });
+            });
+        }
+
+        let mobileFilterResizeTimer = null;
+        window.addEventListener('resize', () => {
+            window.clearTimeout(mobileFilterResizeTimer);
+            mobileFilterResizeTimer = window.setTimeout(syncResponsiveFilterControls, 120);
+        }, { passive: true });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', syncResponsiveFilterControls, { once: true });
+        } else {
+            syncResponsiveFilterControls();
+        }
+
         // --- Mobile Filters Functions ---
         function toggleMobileFilters() {
+            syncResponsiveFilterControls();
             const panel = document.getElementById('mobile-filters-panel');
             const overlay = document.getElementById('mobile-overlay');
             panel.classList.add('show');
@@ -7079,8 +7402,10 @@
                 home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
                 away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
             };
-            const currentLeague = resolveLeagueId(pc);
-            const currentLeagueId = currentLeague;
+            const resolvedLeague = resolveLeagueId(pc);
+            const currentLeagueId = resolvedLeague;
+            const parentMatchId = String(pc?.match_id ?? pc?.id ?? current?.match_id ?? '').replace(/\D/g, '');
+            const parentCurrentAh = pc?.handicap ?? pc?.main_match_odds?.ah_linea ?? current?.ah_line ?? '';
 
             const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
             let previous = context.previous || null;
@@ -7123,6 +7448,14 @@
                         ? (item?.away ?? item?.away_team ?? '')
                         : (item?.home ?? item?.home_team ?? '');
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    const rowMatchId = String(item?.match_id ?? item?.matchIndex ?? item?.id ?? '').replace(/\D/g, '');
+                    const rowHome = item?.home ?? item?.home_team ?? '';
+                    const rowAway = item?.away ?? item?.away_team ?? '';
+                    const rowHomeId = item?.home_id ?? '';
+                    const rowAwayId = item?.away_id ?? '';
+                    const rowDate = item?.date || '';
+                    const rowAh = item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '';
+                    const rowScore = item?.score ?? item?.score_raw ?? '';
                     const normCurrent = normLeagueId(currentLeagueId);
                     const normRow = normLeagueId(leagueId);
                     const sameLeague = !!normCurrent && normRow === normCurrent;
@@ -7132,6 +7465,7 @@
                         <td title="${esc(rival)}">${esc(rival || '-')}</td>
                         <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
                         <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
+                        <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Ver</button></td>
                     </tr>`;
                 }).join('');
                 return `<div class="pre-context-team">
@@ -7140,7 +7474,7 @@
                         <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                     </div>
                     ${rows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>
@@ -7228,7 +7562,7 @@
                 return !!currentLeagueId && leagueId === currentLeagueId;
             });
             const currentNeutral = !!current.is_neutral_venue;
-            const currentLeague = String(current.league_id ?? pc.league_id ?? currentLeagueId ?? '').trim();
+            const currentLeague = String(current.league_id ?? pc?.league_id ?? currentLeagueId ?? '').trim();
             const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
             let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
             if (previous) {
@@ -7261,6 +7595,214 @@
             </div>`;
         }
 
+        let preContextCol3Loading = false;
+        let preContextCol3ActiveButton = null;
+
+        function escapePreContextCol3(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function hidePreContextRowCol3(button) {
+            if (!button) return;
+            button.dataset.open = '0';
+            button.classList.remove('is-visible', 'is-empty', 'is-card');
+            button.innerHTML = '<i class="fa-regular fa-eye me-1"></i>Ver';
+            button.title = 'Mostrar de nuevo el H2H Col3 en esta celda';
+        }
+
+        function buildPreContextCol3Card(button, data) {
+            const col3 = data?.h2h_col3 || {};
+            const match = data?.match || {};
+            const comparison = data?.comparison || {};
+            const lastHome = comparison.last_home_match || {};
+            const lastAway = comparison.last_away_match || {};
+            const currentAh = Number.parseFloat(button.dataset.currentAh);
+            const homeName = String(match.home_name || button.dataset.rowHome || '').toLowerCase().trim();
+            const awayName = String(match.away_name || button.dataset.rowAway || '').toLowerCase().trim();
+            const sameName = (a, b) => {
+                const left = String(a || '').toLowerCase().trim();
+                const right = String(b || '').toLowerCase().trim();
+                return !!left && !!right && (left.includes(right) || right.includes(left));
+            };
+            const wdlRank = (score, isHome) => {
+                const parts = String(score || '').replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const gh = Number.parseInt(parts[0], 10);
+                const ga = Number.parseInt(parts[1], 10);
+                if (!Number.isFinite(gh) || !Number.isFinite(ga)) return null;
+                const own = isHome ? gh : ga;
+                const rival = isHome ? ga : gh;
+                return own > rival ? 2 : (own === rival ? 1 : 0);
+            };
+            const homeOf = row => row?.home_team ?? row?.home ?? '';
+            const awayOf = row => row?.away_team ?? row?.away ?? '';
+            const scoreOf = row => row?.score ?? row?.score_raw ?? '';
+
+            const favIsLocal = Number.isFinite(currentAh) && currentAh > 0;
+            const favIsVisitor = Number.isFinite(currentAh) && currentAh < 0;
+            let favWdl = null;
+            let mirrorName = '';
+            if (favIsLocal && scoreOf(lastHome)) {
+                favWdl = wdlRank(scoreOf(lastHome), sameName(homeOf(lastHome), homeName));
+                mirrorName = sameName(homeOf(lastAway), awayName) ? awayOf(lastAway) : homeOf(lastAway);
+            } else if (favIsVisitor && scoreOf(lastAway)) {
+                favWdl = wdlRank(scoreOf(lastAway), sameName(homeOf(lastAway), awayName));
+                mirrorName = sameName(homeOf(lastHome), homeName) ? awayOf(lastHome) : homeOf(lastHome);
+            }
+
+            const col3Home = String(col3.h2h_home_team_name || 'Rival A');
+            const col3Away = String(col3.h2h_away_team_name || 'Rival B');
+            const mirrorIsHome = sameName(col3Home, mirrorName);
+            const mirrorIsAway = sameName(col3Away, mirrorName);
+            let comparisonType = mirrorIsHome ? 'directa' : (mirrorIsAway ? 'inversa' : '');
+            if (favIsVisitor && comparisonType) comparisonType = comparisonType === 'directa' ? 'inversa' : 'directa';
+
+            const score = `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}`;
+            const mirrorWdl = mirrorIsHome ? wdlRank(score, true) : (mirrorIsAway ? wdlRank(score, false) : null);
+            let performance = 'COL3';
+            if (favWdl !== null && mirrorWdl !== null) {
+                performance = favWdl > mirrorWdl ? 'MEJORA' : (favWdl === mirrorWdl ? 'IGUALA' : 'EMPEORA');
+            }
+
+            const col3Ah = Number.parseFloat(col3.handicap);
+            let cover = '';
+            if (Number.isFinite(col3Ah)) {
+                const gh = Number.parseInt(col3.goles_home, 10);
+                const ga = Number.parseInt(col3.goles_away, 10);
+                if (Number.isFinite(gh) && Number.isFinite(ga)) {
+                    const margin = col3Ah < 0 ? ga - gh : gh - ga;
+                    const pressure = Math.abs(col3Ah);
+                    cover = margin > pressure ? 'CUBIERTO' : (margin < pressure ? 'NO_CUBIERTO' : 'PUSH');
+                }
+            }
+
+            const normalizeAh = value => {
+                const absolute = Math.abs(value);
+                const decimal = absolute % 1;
+                const normalized = decimal >= .2 && decimal <= .8 ? Math.floor(absolute) + .5 : Math.round(absolute);
+                return value >= 0 ? normalized : -normalized;
+            };
+            let movement = '';
+            if (Number.isFinite(currentAh) && Number.isFinite(col3Ah)) {
+                const difference = Math.abs(normalizeAh(currentAh)) - Math.abs(normalizeAh(col3Ah));
+                movement = Math.abs(difference) < .01 ? 'IGUAL' : (difference > 0 ? 'SUBE' : 'BAJA');
+            }
+
+            const statusClass = performance === 'MEJORA' ? 'is-better' : (performance === 'EMPEORA' ? 'is-worse' : 'is-equal');
+            const typeHtml = comparisonType
+                ? `<span class="pre-col3-badge ${comparisonType === 'directa' ? 'is-direct' : 'is-inverse'}">${comparisonType === 'directa' ? 'Directa' : 'Inversa'}</span>`
+                : '';
+            const coverHtml = cover === 'CUBIERTO'
+                ? '<span class="pre-col3-tag is-cover">✓ Cubrió</span>'
+                : cover === 'NO_CUBIERTO'
+                    ? '<span class="pre-col3-tag is-fail">✕ No Cubrió</span>'
+                    : cover === 'PUSH' ? '<span class="pre-col3-tag is-push">Push</span>' : '';
+            const movementHtml = movement === 'SUBE'
+                ? '<span class="pre-col3-tag is-up">↑ Sube</span>'
+                : movement === 'BAJA'
+                    ? '<span class="pre-col3-tag is-down">↓ Baja</span>'
+                    : movement === 'IGUAL' ? '<span class="pre-col3-tag is-same">= Igual</span>' : '';
+
+            return `<span class="pre-col3-card-head"><span class="pre-col3-status ${statusClass}">${performance}</span>${typeHtml}</span>
+                <span class="pre-col3-date">${escapePreContextCol3(col3.date || 'Fecha N/D')}</span>
+                <span class="pre-col3-numbers"><span>${escapePreContextCol3(col3.handicap ?? '-')}</span><span>${escapePreContextCol3(score)}</span></span>
+                <span class="pre-col3-teams">${escapePreContextCol3(col3Home)}<br>${escapePreContextCol3(col3Away)}</span>
+                <span class="pre-col3-tags">${coverHtml}${movementHtml}</span>`;
+        }
+
+        function showPreContextRowCol3(button) {
+            if (!button || button.dataset.loaded !== '1') return;
+            const found = button.dataset.found === '1';
+            button.dataset.open = '1';
+            button.classList.toggle('is-visible', found);
+            button.classList.toggle('is-empty', !found);
+            button.classList.toggle('is-card', found);
+            button.innerHTML = found
+                ? (button._col3CardHtml || `<span class="pre-context-col3-result">${escapePreContextCol3(button.dataset.score || '?:?')}</span>`)
+                : '<span class="pre-context-col3-result">Sin H2H</span>';
+            button.title = `${button.dataset.detail || 'H2H Col3'} · Pulsa para ocultar`;
+            preContextCol3ActiveButton = button;
+        }
+
+        function closePreContextRowCol3(button = null) {
+            if (preContextCol3ActiveButton) hidePreContextRowCol3(preContextCol3ActiveButton);
+            preContextCol3ActiveButton = null;
+            if (button) button.blur();
+        }
+
+        async function loadPreContextRowCol3(button, event) {
+            event?.preventDefault();
+            event?.stopPropagation();
+            if (!button || preContextCol3Loading) return;
+            if (button.dataset.open === '1') {
+                closePreContextRowCol3(button);
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
+            if (!matchId && !parentMatchId) return;
+
+            closePreContextRowCol3();
+            if (button.dataset.loaded === '1') {
+                showPreContextRowCol3(button);
+                return;
+            }
+
+            preContextCol3Loading = true;
+            const allButtons = [...document.querySelectorAll('.pre-context-col3-btn')];
+            allButtons.forEach(item => { item.disabled = true; });
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando';
+
+            try {
+                const response = await fetch('/api/precacheo_h2h_col3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: button.dataset.rowDate || '',
+                        row_role: button.dataset.rowRole || '',
+                        row_home: button.dataset.rowHome || '',
+                        row_away: button.dataset.rowAway || '',
+                        row_home_id: button.dataset.rowHomeId || '',
+                        row_away_id: button.dataset.rowAwayId || '',
+                        row_score: button.dataset.rowScore || '',
+                        row_ah: button.dataset.rowAh || '',
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo extraer H2H Col3');
+                }
+
+                const col3 = data.h2h_col3 || {};
+                const match = data.match || {};
+                const found = col3.status === 'found';
+                const cacheLabel = data.cached ? 'caché · sin nuevo scrapeo' : 'extraído ahora';
+                const title = `Col3 de ${match.home_name || 'Local'} vs ${match.away_name || 'Visitante'}`;
+                button.dataset.loaded = '1';
+                button.dataset.found = found ? '1' : '0';
+                button.dataset.score = found ? `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}` : '';
+                button.dataset.detail = found
+                    ? `${title}: ${col3.h2h_home_team_name || 'Rival A'} ${button.dataset.score} ${col3.h2h_away_team_name || 'Rival B'} · Fecha ${col3.date || 'N/D'} · AH ${col3.handicap ?? 'N/D'} · ${cacheLabel}`
+                    : `${title}: ${col3.resultado || 'No encontrado'} · ${cacheLabel}`;
+                button._col3CardHtml = found ? buildPreContextCol3Card(button, data) : '';
+                showPreContextRowCol3(button);
+            } catch (error) {
+                button.innerHTML = '<i class="fa-solid fa-rotate me-1"></i>Reintentar';
+                button.title = `Error: ${error.message}`;
+            } finally {
+                preContextCol3Loading = false;
+                allButtons.forEach(item => { item.disabled = false; });
+            }
+        }
+
         function togglePreMatchPreviousH2H(checkbox) {
             const panel = checkbox?.closest('.pre-context-panel');
             if (!panel) return;
@@ -7280,6 +7822,7 @@
 
         function filterPreMatchContextLeague(checkbox) {
             if (!checkbox) return;
+            closePreContextRowCol3();
             const panel = checkbox.closest('.pre-context-panel');
             if (!panel) return;
             const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
@@ -7287,7 +7830,8 @@
             const onlyCurrentLeague = !!checkbox.checked;
 
             panel.querySelectorAll('.pre-context-team').forEach(team => {
-                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')];
+                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')]
+                    .filter(row => row.dataset.contextCol3Detail !== '1');
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleRows = 0;
 
@@ -9909,7 +10453,7 @@
                     </button>
                 `;
                 globalStatsHtmlContent = `
-                    <div class="d-flex gap-2 w-100" style="padding: 8px 0;">
+                    <div class="d-flex gap-2 w-100 stats-mobile-grid" style="padding: 8px 0;">
                         ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
                     </div>
                     ${renderPreMatchContext(pc, home, away)}
@@ -10099,6 +10643,7 @@
                 // Añadir fila de collapse para stats globales
                 if (globalStatsId && globalStatsHtmlContent) {
                     const collapseTr = document.createElement('tr');
+                    collapseTr.className = 'stats-collapse-row';
                     collapseTr.innerHTML = `
                         <td colspan="13" class="p-0">
                             <div class="collapse" id="${globalStatsId}">
@@ -10108,6 +10653,9 @@
                             </div>
                         </td>
                     `;
+                    const collapseElement = collapseTr.querySelector('.collapse');
+                    collapseElement.addEventListener('show.bs.collapse', () => collapseTr.classList.add('is-open'));
+                    collapseElement.addEventListener('hidden.bs.collapse', () => collapseTr.classList.remove('is-open'));
                     tbody.appendChild(collapseTr);
                 }
             });
@@ -10711,48 +11259,8 @@
 
         // Buscar patrones similares en histórico - abre Explorador en una pestaña nueva
         async function searchPatterns(matchId, btnElement) {
-            const getFavoritePrevAhWdl = (scoreStr, currentAhValue, favIsHome) => {
-                if (!scoreStr || isNaN(currentAhValue)) return null;
-                const normalizedScore = String(scoreStr).replace('-', ':');
-                const parts = normalizedScore.split(':');
-                if (parts.length !== 2) return null;
-                const h = parseInt(parts[0], 10);
-                const a = parseInt(parts[1], 10);
-                if (isNaN(h) || isNaN(a)) return null;
-
-                const absAh = Math.abs(parseFloat(currentAhValue));
-                const diff = favIsHome ? (h - a) : (a - h);
-                const finalDiff = diff - absAh;
-                if (finalDiff > 0) return 'HOME_WIN';  // Favorito cubrió
-                if (finalDiff < 0) return 'AWAY_WIN';  // Favorito no cubrió
-                return 'DRAW';                         // Push
-            };
-
             const pc = precacheoData ? precacheoData[matchId] : null;
-            const marketData = ((pc || {}).market_analysis_data || {});
-            const generalData = marketData.general || {};
-            const stadiumData = marketData.stadium || {};
-
-            const sources = [];
-            if (generalData.movement && generalData.movement !== 'N/A') {
-                sources.push({
-                    key: 'general',
-                    prefix: 'h2h_general',
-                    movement: generalData.movement,
-                    score: generalData.result || generalData.score || null,
-                    inverted: true
-                });
-            }
-            if (stadiumData.movement && stadiumData.movement !== 'N/A') {
-                sources.push({
-                    key: 'stadium',
-                    prefix: 'h2h_stadium',
-                    movement: stadiumData.movement,
-                    score: stadiumData.result || stadiumData.score || null,
-                    inverted: false
-                });
-            }
-            const selectedSource = sources.length > 0 ? sources[0] : null;
+            if (!pc) return;
 
             let currentAh = NaN;
             const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
@@ -10764,49 +11272,89 @@
             params.set('auto_search', '1');
             params.set('source_match_id', String(matchId));
 
-            if (selectedSource) {
-                params.set('fav_source', selectedSource.key);
-                const mov = parseH2HMovement(selectedSource.movement);
+            if (!isNaN(currentAh)) {
+                params.set('fav_ah_exact', String(currentAh));
+                const favIsHome = currentAh > 0;
+                params.set('fav_side', favIsHome ? 'HOME' : 'AWAY');
 
-                if (isNaN(currentAh) && mov.end !== null) {
-                    currentAh = mov.end;
-                }
+                // Resultado (Win / Draw / Loss) del equipo favorito en su partido previo
+                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
+                const favTeamName = (favIsHome
+                    ? ((pc || {}).home_team || (pc || {}).home_name || '')
+                    : ((pc || {}).away_team || (pc || {}).away_name || '')
+                ).toLowerCase().trim();
 
-                if (mov.start !== null && mov.end !== null) {
-                    // Do not lock H2H start/end from auto preset; it over-filters and often returns 0 rows.
-                    const direction = selectedSource.key === 'general'
-                        ? getH2HGeneralMovementDirection(selectedSource.movement)
-                        : getMovementDirection(selectedSource.movement);
-                    if (direction) params.set(`${selectedSource.prefix}_mov`, direction);
+                if (favPrev && favPrev.score && favPrev.score !== '?:?' && favPrev.score !== '??') {
+                    const scoreParts = String(favPrev.score).replace('-', ':').split(':');
+                    if (scoreParts.length === 2) {
+                        const gh = parseInt(scoreParts[0], 10);
+                        const ga = parseInt(scoreParts[1], 10);
+                        if (!isNaN(gh) && !isNaN(ga)) {
+                            const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
+                            const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
+                            let favPlayedHomeInPrev = favIsHome;
+                            if (prevHomeTeam && favTeamName) {
+                                if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
+                                    favPlayedHomeInPrev = true;
+                                } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
+                                    favPlayedHomeInPrev = false;
+                                }
+                            }
 
-                    if (!isNaN(currentAh) && selectedSource.score && selectedSource.score !== '?:?' && selectedSource.score !== '??') {
-                        const coverage = calculateH2HResult(selectedSource.score, currentAh, selectedSource.inverted);
-                        if (coverage) {
-                            params.set(`${selectedSource.prefix}_res`, coverage);
+                            const favGoals = favPlayedHomeInPrev ? gh : ga;
+                            const oppGoals = favPlayedHomeInPrev ? ga : gh;
+
+                            let realWdl = 'DRAW';
+                            if (favGoals > oppGoals) realWdl = 'WIN';
+                            else if (favGoals < oppGoals) realWdl = 'LOSS';
+
+                            if (favIsHome) {
+                                params.set('prev_home_res', realWdl);
+                            } else {
+                                params.set('prev_away_res', realWdl);
+                            }
                         }
                     }
                 }
             }
 
-            if (!isNaN(currentAh)) {
-                params.set('fav_ah_exact', String(currentAh));
-                params.set('fav_side', currentAh > 0 ? 'HOME' : 'AWAY');
+            const marketData = ((pc || {}).market_analysis_data || {});
+            const stadiumData = marketData.stadium || {};
+            const generalData = marketData.general || {};
 
-                // Extra strict layer: previous match of the current favorite (AH + result).
-                const favIsHome = currentAh > 0;
-                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
-                const favPrevAhRaw = favPrev.handicap_line_raw ?? favPrev.ah ?? favPrev.handicap ?? (((favPrev || {}).main_match_odds || {}).ah_linea);
-                const favPrevAh = (favPrevAhRaw !== null && favPrevAhRaw !== undefined && favPrevAhRaw !== '')
-                    ? parseFloat(String(favPrevAhRaw).replace(',', '.'))
-                    : NaN;
-                const favPrevWdl = getFavoritePrevAhWdl(favPrev.score || '', currentAh, favIsHome);
+            // H2H Estadio: Cover status
+            if (stadiumData && stadiumData.movement && stadiumData.movement !== 'N/A') {
+                const score = stadiumData.result || stadiumData.score;
+                if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                    const stadiumCov = calculateH2HResult(score, currentAh, false);
+                    if (stadiumCov) {
+                        params.set('h2h_stadium_res', stadiumCov);
+                    }
+                }
+            }
 
-                if (favIsHome) {
-                    if (!isNaN(favPrevAh)) params.set('prev_home_ah', String(favPrevAh));
-                    if (favPrevWdl) params.set('prev_home_res', favPrevWdl);
-                } else {
-                    if (!isNaN(favPrevAh)) params.set('prev_away_ah', String(favPrevAh));
-                    if (favPrevWdl) params.set('prev_away_res', favPrevWdl);
+            // H2H General: Cover status + Fin AH
+            if (generalData && generalData.movement && generalData.movement !== 'N/A') {
+                const isSameAsStadium = stadiumData &&
+                    stadiumData.date === generalData.date &&
+                    (stadiumData.result || stadiumData.score) === (generalData.result || generalData.score);
+
+                if (!isSameAsStadium) {
+                    const score = generalData.result || generalData.score;
+                    if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                        const generalCov = calculateH2HResult(score, currentAh, true);
+                        if (generalCov) {
+                            params.set('h2h_general_res', generalCov);
+                        }
+                    }
+
+                    const mov = parseH2HMovement(generalData.movement);
+                    if (mov.end !== null && !isNaN(mov.end)) {
+                        const endBucket = toExplorerBucketValue(mov.end);
+                        if (endBucket) {
+                            params.set('h2h_general_end', endBucket);
+                        }
+                    }
                 }
             }
 

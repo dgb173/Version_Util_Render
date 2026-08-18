@@ -37,6 +37,9 @@ SQL_BOOTSTRAP_HISTORY_ONLY = SQL_BOOTSTRAP_MODE == "history_only"
 LIBSQL_URL = os.getenv("LIBSQL_URL", "").strip()
 LIBSQL_AUTH_TOKEN = os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
 LIBSQL_SYNC_INTERVAL_SECONDS = max(0, int(os.getenv("LIBSQL_SYNC_INTERVAL_SECONDS", "60")))
+LIBSQL_REMOTE_ONLY = os.getenv("LIBSQL_REMOTE_ONLY", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
 EXPLORER_BACKFILL_KEY = "explorer_payload_backfill_v1"
 
 if sys.platform == "win32":
@@ -148,15 +151,25 @@ def _connect() -> sqlite3.Connection:
                 "LIBSQL_URL está configurado, pero el paquete 'libsql' no está instalado."
             )
 
-        connect_kwargs: Dict[str, Any] = {
-            "sync_url": LIBSQL_URL,
-        }
-        if LIBSQL_AUTH_TOKEN:
-            connect_kwargs["auth_token"] = LIBSQL_AUTH_TOKEN
-        if LIBSQL_SYNC_INTERVAL_SECONDS > 0:
-            connect_kwargs["sync_interval"] = LIBSQL_SYNC_INTERVAL_SECONDS
+        if LIBSQL_REMOTE_ONLY:
+            # Render Free has an ephemeral filesystem. A local embedded replica in
+            # /tmp has to bootstrap again after a cold start, transferring the full
+            # database and consuming disk/RAM. Remote-only mode keeps Turso as the
+            # durable source and sends SQL over the wire without creating that copy.
+            connect_kwargs: Dict[str, Any] = {}
+            if LIBSQL_AUTH_TOKEN:
+                connect_kwargs["auth_token"] = LIBSQL_AUTH_TOKEN
+            conn = _libsql.connect(database=LIBSQL_URL, **connect_kwargs)
+        else:
+            connect_kwargs = {
+                "sync_url": LIBSQL_URL,
+            }
+            if LIBSQL_AUTH_TOKEN:
+                connect_kwargs["auth_token"] = LIBSQL_AUTH_TOKEN
+            if LIBSQL_SYNC_INTERVAL_SECONDS > 0:
+                connect_kwargs["sync_interval"] = LIBSQL_SYNC_INTERVAL_SECONDS
 
-        conn = _libsql.connect(str(DB_PATH), **connect_kwargs)
+            conn = _libsql.connect(str(DB_PATH), **connect_kwargs)
     else:
         conn = sqlite3.connect(DB_PATH, timeout=30)
 
@@ -177,7 +190,7 @@ def _connect() -> sqlite3.Connection:
             pass
 
     # First sync on process boot ensures local replica has latest remote data.
-    if LIBSQL_URL:
+    if LIBSQL_URL and not LIBSQL_REMOTE_ONLY:
         sync_fn = getattr(conn, "sync", None)
         if callable(sync_fn):
             with _LIBSQL_SYNC_LOCK:

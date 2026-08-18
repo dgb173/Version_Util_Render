@@ -1,7 +1,7 @@
 from modules import llm_exporter
 
 
-def test_copy_prompt_adds_compact_analysis_without_internal_ids():
+def test_copy_prompt_excludes_analysis_request_and_internal_ids():
     match = {
         "match_id": "2997200",
         "state": "precacheo",
@@ -19,11 +19,10 @@ def test_copy_prompt_adds_compact_analysis_without_internal_ids():
     prompt = llm_exporter.generate_llm_prompt(match)
 
     assert "Partido: Equipo Local vs Equipo Visitante" in prompt
-    assert "ANÁLISIS SOLICITADO" in prompt
-    assert "| Equipo | Pos | Registro | Pts | AH cubierto | Tendencia O/U |" in prompt
-    assert "línea actual 3.25" in prompt
-    assert "Eficiencia ofensiva" in prompt
-    assert "NO BET" in prompt
+    assert "ANÁLISIS SOLICITADO" not in prompt
+    assert "| Equipo | Pos | Registro | Pts | AH cubierto | Tendencia O/U |" not in prompt
+    assert "REGLAS DE CÁLCULO" not in prompt
+    assert "Queda PROHIBIDO responder NO BET" not in prompt
     assert "2997200" not in prompt
     assert "data_precacheo.json" not in prompt
     assert "Estado:" not in prompt

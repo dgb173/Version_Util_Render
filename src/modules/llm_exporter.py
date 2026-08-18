@@ -401,11 +401,6 @@ def _plain_clipboard_text(text):
 
 
 def _analysis_instructions(match):
-    goal_line = (
-        match.get("goal_line")
-        or (match.get("main_match_odds") or {}).get("goals_linea")
-        or "N/A"
-    )
     mls_block = ""
     try:
         from . import mls_system
@@ -416,39 +411,7 @@ def _analysis_instructions(match):
     except Exception as e:
         mls_block = ""
 
-    return f"""{mls_block}
-
----
-
-ANÁLISIS SOLICITADO
-
-Actúa como analista de datos deportivos. Usa exclusivamente los datos anteriores y no inventes valores. Si falta un dato, escribe N/A.
-
-Genera primero esta tabla Markdown compacta:
-
-| Equipo | Pos | Registro | Pts | AH cubierto | Tendencia O/U | Tiros | Tiros a puerta | Ataques | Ataques peligrosos | Eficiencia ofensiva | Eficiencia defensiva | Alerta |
-|---|---:|---|---:|---|---|---:|---:|---:|---:|---:|---:|---|
-
-REGLAS DE CÁLCULO
-
-1. Puntos: victorias × 3 + empates.
-2. AH cubierto: calcula CUBRIÓ / (CUBRIÓ + NO CUBRIÓ). Excluye PUSH, desconocidos y partidos sin hándicap. Marca 🟢 si es >=60%, 🔴 si es <40% y 🟡 en el resto.
-3. Over/Under: suma los goles de cada partido. Usa su línea O/U cuando esté indicada; si no aparece, compara con la línea actual {goal_line}. Excluye pushes del porcentaje. Marca 🟢 OVER si Over >=60%, 🔴 UNDER si Over <=40% y 🟡 EQUILIBRADO en el resto.
-4. Promedios: calcula tiros, tiros a puerta, ataques y ataques peligrosos usando solo partidos que tengan esa estadística. Respeta siempre qué equipo es local o visitante en cada encuentro.
-5. Eficiencia ofensiva: goles marcados / tiros a puerta propios. Eficiencia defensiva: goles recibidos / tiros a puerta del rival. Si el denominador es 0 o no existe, usa N/A.
-6. Alerta: más de 60% derrotas = ⚠️ MAL MOMENTO; más de 60% victorias = 🏆 BUEN MOMENTO; más de 2 goles recibidos de media = ⚠️ DEFENSA FRÁGIL; menos de 1 gol marcado de media = 🔴 POBRE ATAQUE.
-
-DEBAJO DE LA TABLA
-
-- Resume los goles medios de ambos equipos.
-- Compara sus porcentajes de cobertura AH.
-- Resume los H2H disponibles.
-- Avisa si ambos superan 55% Over o 55% Under.
-- Sugiere obligatoriamente la mejor apuesta AH y la mejor apuesta O/U basándote en la tendencia de los datos, con una justificación breve. Queda PROHIBIDO responder NO BET.
-
-
-No muestres IDs, buckets, nombres de tablas ni referencias internas del sistema.
-"""
+    return mls_block
 
 def generate_llm_prompt(match):
     """

@@ -27,12 +27,18 @@ services:
         value: "300"
       - key: LIBSQL_SYNC_INTERVAL_SECONDS
         value: "60"
+      - key: LIBSQL_REMOTE_ONLY
+        value: "1"
       - key: LIBSQL_URL
         sync: false
       - key: LIBSQL_AUTH_TOKEN
         sync: false
       - key: EXPLORER_CACHE_TTL_SECONDS
         value: "60"
+      - key: EXPLORER_RESULT_LIMIT
+        value: "750"
+      - key: EXPLORER_SCAN_LIMIT
+        value: "2000"
       - key: PRECACHEO_LIST_DEFAULT_LIMIT
         value: "700"
       - key: PRECACHEO_LIST_MAX_LIMIT

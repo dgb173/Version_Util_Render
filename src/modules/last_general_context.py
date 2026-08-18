@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import threading
 import time
 from pathlib import Path
@@ -13,9 +14,12 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 DATA_DIR.mkdir(exist_ok=True)
 CACHE_PATH = DATA_DIR / "last_general_precacheo.json"
+COLUMN3_CACHE_PATH = DATA_DIR / "pre_context_row_col3.json"
 CACHE_SCHEMA_VERSION = 3
+COL3_CACHE_SCHEMA_VERSION = 3
 
 _cache_lock = threading.Lock()
+_col3_cache_lock = threading.Lock()
 
 
 def _read_cache() -> Dict[str, Dict]:
@@ -46,6 +50,40 @@ def _write_cache(cache: Dict[str, Dict]) -> None:
     except Exception as e:
         import logging
         logging.warning(f"No se pudo escribir la cache de ultimo general: {e}")
+
+
+def _read_col3_cache() -> Dict[str, Dict]:
+    if not COLUMN3_CACHE_PATH.exists():
+        return {}
+    try:
+        with COLUMN3_CACHE_PATH.open("r", encoding="utf-8") as fh:
+            raw = json.load(fh)
+        if isinstance(raw, dict) and isinstance(raw.get("matches"), dict):
+            return raw["matches"]
+    except Exception:
+        return {}
+    return {}
+
+
+def _write_col3_cache(cache: Dict[str, Dict]) -> None:
+    payload = {
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "matches": cache,
+    }
+    temp_path = COLUMN3_CACHE_PATH.with_suffix(
+        f".{os.getpid()}.{threading.get_ident()}.tmp"
+    )
+    try:
+        with temp_path.open("w", encoding="utf-8") as fh:
+            json.dump(payload, fh, ensure_ascii=False, separators=(",", ":"))
+        temp_path.replace(COLUMN3_CACHE_PATH)
+    except Exception as exc:
+        import logging
+        logging.warning(f"No se pudo escribir la cache ligera Col3: {exc}")
+        try:
+            temp_path.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 def _norm(value: str) -> str:
@@ -431,6 +469,162 @@ def analyze(match_id: str) -> Dict:
     }
     normalize_red_card_stats_payload(payload)
     return payload
+
+
+def analyze_col3_only(match_id: str) -> Dict:
+    """Extrae Col3 sin estadisticas, comparativas ni analisis del partido completo."""
+    main_match_id = "".join(filter(str.isdigit, str(match_id)))
+    if not main_match_id:
+        return {"error": "ID de partido inválido."}
+
+    started = time.time()
+    try:
+        soup = es._load_main_match_soup(main_match_id)
+        _, _, league_id, home_name, away_name, _ = es.get_team_league_info_from_script_of(soup)
+        odds_map = es.extract_vs_odds(soup)
+
+        home_matches = _general_matches(
+            soup, "table_v1", home_name, league_id, odds_map, limit=30,
+        )
+        away_matches = _general_matches(
+            soup, "table_v2", away_name, league_id, odds_map, limit=30,
+        )
+        last_home = _pick_last_general(home_matches, league_id)
+        last_away = _pick_last_general(away_matches, league_id)
+        home_rival_name, home_rival_id = _opponent_from_match(last_home, home_name)
+        away_rival_name, away_rival_id = _opponent_from_match(last_away, away_name)
+        key_ids = [
+            (last_home or {}).get("match_id"),
+            (last_away or {}).get("match_id"),
+        ]
+
+        # La busqueda directa normalmente necesita una sola pagina H2H.
+        col3 = _lookup_col3_from_key_matches(
+            key_ids,
+            home_rival_id,
+            away_rival_id,
+            home_rival_name or "Rival A",
+            away_rival_name or "Rival B",
+        )
+        if not col3 or col3.get("status") != "found":
+            col3 = _col3_from_key_match_histories(
+                key_ids,
+                home_rival_name,
+                home_rival_id,
+                away_rival_name,
+                away_rival_id,
+                str(league_id or ""),
+            )
+        if not col3 or col3.get("status") != "found":
+            col3 = _col3_from_loaded_matches(
+                home_matches + away_matches,
+                home_rival_name,
+                home_rival_id,
+                away_rival_name,
+                away_rival_id,
+            )
+
+        return {
+            "match_id": main_match_id,
+            "schema_version": COL3_CACHE_SCHEMA_VERSION,
+            "home_name": home_name,
+            "away_name": away_name,
+            "last_home_match": last_home,
+            "last_away_match": last_away,
+            "h2h_col3_general": col3 or {"status": "not_found"},
+            "elapsed_seconds": round(time.time() - started, 2),
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+    except Exception as exc:
+        return {
+            "error": str(exc),
+            "elapsed_seconds": round(time.time() - started, 2),
+        }
+
+
+def get_or_create_col3(match_id: str, force_refresh: bool = False) -> Tuple[Dict, bool]:
+    """Cache pequena para los botones Col3 de las filas de contexto."""
+    mid = "".join(filter(str.isdigit, str(match_id)))
+    if not mid:
+        return {"error": "ID de partido inválido."}, False
+
+    with _col3_cache_lock:
+        cache = _read_col3_cache()
+        cached = cache.get(mid)
+        if (
+            not force_refresh
+            and isinstance(cached, dict)
+            and cached.get("schema_version") == COL3_CACHE_SCHEMA_VERSION
+        ):
+            return copy.deepcopy(cached), True
+
+    result = analyze_col3_only(mid)
+    if result and "error" not in result:
+        with _col3_cache_lock:
+            cache = _read_col3_cache()
+            cache[mid] = result
+            _write_col3_cache(cache)
+    return copy.deepcopy(result), False
+
+
+def get_or_create_rival_pair_col3(
+    cache_key: str,
+    key_match_ids: List[Optional[str]],
+    rival_a_name: Optional[str],
+    rival_a_id: Optional[str],
+    rival_b_name: Optional[str],
+    rival_b_id: Optional[str],
+    league_id: str = "",
+    force_refresh: bool = False,
+) -> Tuple[Dict, bool]:
+    """Busca el Col3 de dos rivales fijados por el partido principal."""
+    safe_key = str(cache_key or "").strip()
+    if not safe_key or not rival_a_name or not rival_b_name:
+        return {"error": "No se pudieron fijar los dos rivales laterales."}, False
+
+    with _col3_cache_lock:
+        cache = _read_col3_cache()
+        cached = cache.get(safe_key)
+        if (
+            not force_refresh
+            and isinstance(cached, dict)
+            and cached.get("schema_version") == COL3_CACHE_SCHEMA_VERSION
+        ):
+            return copy.deepcopy(cached), True
+
+    started = time.time()
+    col3 = None
+    if rival_a_id and rival_b_id:
+        col3 = _lookup_col3_from_key_matches(
+            key_match_ids,
+            rival_a_id,
+            rival_b_id,
+            rival_a_name,
+            rival_b_name,
+        )
+    if not col3 or col3.get("status") != "found":
+        col3 = _col3_from_key_match_histories(
+            key_match_ids,
+            rival_a_name,
+            rival_a_id,
+            rival_b_name,
+            rival_b_id,
+            str(league_id or ""),
+        )
+
+    result = {
+        "schema_version": COL3_CACHE_SCHEMA_VERSION,
+        "h2h_col3_general": col3 or {"status": "not_found"},
+        "rival_a_name": rival_a_name,
+        "rival_b_name": rival_b_name,
+        "elapsed_seconds": round(time.time() - started, 2),
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    with _col3_cache_lock:
+        cache = _read_col3_cache()
+        cache[safe_key] = result
+        _write_col3_cache(cache)
+    return copy.deepcopy(result), False
 
 
 def get_or_create(match_id: str, force_refresh: bool = False) -> Tuple[Dict, bool]:
