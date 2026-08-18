@@ -607,12 +607,11 @@
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
         .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 13%; }
-        .pre-context-table .ctx-league { width: 8%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-score { width: 8%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-ah { width: 8%; text-align: right; }
-        .pre-context-table .ctx-rival-card { width: 24%; text-align: center; overflow: visible; }
-        .pre-context-table .ctx-col3 { width: 24%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-date { width: 21%; }
+        .pre-context-table .ctx-league { width: 12%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-score { width: 13%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-ah { width: 13%; text-align: right; }
+        .pre-context-table .ctx-col3 { width: 18%; text-align: center; overflow: visible; }
         .pre-context-col3-btn { min-width: 44px; padding: 2px 5px; border: 1px solid #7c3aed; border-radius: 4px; background: #fff; color: #6d28d9; font-size: .6rem; font-weight: 900; line-height: 1.25; white-space: nowrap; cursor: pointer; }
         .pre-context-col3-btn:hover { background: #6d28d9; color: #fff; }
         .pre-context-col3-btn:disabled { opacity: .55; cursor: wait; }
@@ -7657,61 +7656,6 @@
                     away_matches: olderAtVenue(previousAway, 'away'),
                 };
             }
-
-            const buildPreContextRivalCard = (rowItem, subjectTeam, teamRole, curAh) => {
-                const sc = parseScoreValue(rowItem?.score || rowItem?.score_raw || rowItem?.result);
-                const isHome = sameTeamName(rowItem?.home ?? rowItem?.home_team, subjectTeam);
-                const ownG = sc ? (isHome ? sc.home : sc.away) : null;
-                const rivG = sc ? (isHome ? sc.away : sc.home) : null;
-                const resCode = ownG === null ? '' : (ownG > rivG ? 'W' : (ownG < rivG ? 'L' : 'D'));
-
-                const statusClass = resCode === 'W' ? 'is-better' : (resCode === 'L' ? 'is-worse' : 'is-equal');
-                const winStatus = resCode === 'W' ? 'WIN' : (resCode === 'L' ? 'NO WIN' : (resCode === 'D' ? 'EMPATE' : 'N/D'));
-                const locality = isHome ? 'CASA' : 'FUERA';
-                const localityBadge = `<span class="pre-col3-badge ${isHome ? 'is-direct' : 'is-inverse'}">${locality}</span>`;
-
-                const rowAhNum = Number.parseFloat(rowItem?.ahLine ?? rowItem?.ahLine_raw ?? rowItem?.ah_line ?? '');
-                let coverHtml = '';
-                if (Number.isFinite(rowAhNum) && ownG !== null && rivG !== null) {
-                    const margin = rowAhNum < 0 ? rivG - ownG : ownG - rivG;
-                    const pressure = Math.abs(rowAhNum);
-                    if (margin > pressure) {
-                        coverHtml = '<span class="pre-col3-tag is-cover">✓ Cubrió</span>';
-                    } else if (margin < pressure) {
-                        coverHtml = '<span class="pre-col3-tag is-fail">✕ No Cubrió</span>';
-                    } else {
-                        coverHtml = '<span class="pre-col3-tag is-push">Push</span>';
-                    }
-                }
-
-                let movHtml = '';
-                const curAhNum = Number.parseFloat(curAh);
-                if (Number.isFinite(curAhNum) && Number.isFinite(rowAhNum)) {
-                    const diff = Math.abs(curAhNum) - Math.abs(rowAhNum);
-                    if (Math.abs(diff) < 0.01) {
-                        movHtml = '<span class="pre-col3-tag is-same">= Igual</span>';
-                    } else if (diff > 0) {
-                        movHtml = '<span class="pre-col3-tag is-up">↑ Sube</span>';
-                    } else {
-                        movHtml = '<span class="pre-col3-tag is-down">↓ Baja</span>';
-                    }
-                }
-
-                const hName = rowItem?.home ?? rowItem?.home_team ?? (isHome ? subjectTeam : (rowItem?.away ?? rowItem?.away_team ?? ''));
-                const aName = rowItem?.away ?? rowItem?.away_team ?? (!isHome ? subjectTeam : (rowItem?.home ?? rowItem?.home_team ?? ''));
-                const scoreText = rowItem?.score || rowItem?.score_raw || `${ownG ?? '?'}:${rivG ?? '?'}`;
-                const ahText = rowItem?.ahLine ?? rowItem?.ahLine_raw ?? rowItem?.ah_line ?? '-';
-                const dateText = rowItem?.date || 'Fecha N/D';
-
-                return `<div class="pre-context-col3-btn is-card" style="cursor:default;">
-                    <span class="pre-col3-card-head"><span class="pre-col3-status ${statusClass}">${winStatus}</span>${localityBadge}</span>
-                    <span class="pre-col3-date">${esc(dateText)}</span>
-                    <span class="pre-col3-numbers"><span>${esc(String(ahText))}</span><span>${esc(scoreText)}</span></span>
-                    <span class="pre-col3-teams">${esc(hName)}<br>${esc(aName)}</span>
-                    <span class="pre-col3-tags">${coverHtml}${movHtml}</span>
-                </div>`;
-            };
-
             const renderTeam = (teamName, role, matches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
                 const rows = asRows(matches).map(item => {
@@ -7744,7 +7688,6 @@
                         <td title="${esc(rival)}">${esc(rival || '-')}</td>
                         <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
                         <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
-                        <td class="ctx-rival-card">${buildPreContextRivalCard(item, teamName, role, parentCurrentAh)}</td>
                         <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Ver</button></td>
                     </tr>`;
                 }).join('');
@@ -7757,7 +7700,7 @@
                         ${rows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos H2H</button>` : ''}
                     </div>
                     ${rows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-rival-card">Ficha Rival</th><th class="ctx-col3">H2H Col3</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>
