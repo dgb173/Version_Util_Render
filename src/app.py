@@ -4833,11 +4833,12 @@ def api_explorer_search():
         print(f"DEBUG: Explorer Search Request. Filters: {filters}")
 
         # Allow deep analysis while keeping a hard safety ceiling.
+        explorer_result_limit = max(50, min(_env_int('EXPLORER_RESULT_LIMIT', 750), 1500))
         try:
-            req_limit = int(filters.get('limit', 1000))
+            req_limit = int(filters.get('limit', explorer_result_limit))
         except (TypeError, ValueError):
-            req_limit = 1000
-        filters['limit'] = max(1, min(req_limit, 3000))
+            req_limit = explorer_result_limit
+        filters['limit'] = max(1, min(req_limit, explorer_result_limit))
 
         analyze_all = bool(filters.get('analyze_all', False))
         # Keep full stat rows available in explorer unless caller explicitly disables them.
@@ -4881,10 +4882,11 @@ def api_explorer_search():
 
             # Keep first response fast: scan a recent window instead of full table.
             # For stricter searches we scan a bit wider.
+            explorer_scan_limit = max(500, min(_env_int('EXPLORER_SCAN_LIMIT', 2000), 5000))
             if has_strict_filters:
-                scan_limit = min(max(filters['limit'] * 3, 3000), 5000)
+                scan_limit = min(max(filters['limit'] * 3, 1000), explorer_scan_limit)
             else:
-                scan_limit = min(max(filters['limit'] * 2, 2000), 3500)
+                scan_limit = min(max(filters['limit'] * 2, 750), explorer_scan_limit)
 
         if explorer_scope == 'uefa_qualifying':
             uefa_rows = sql_store.fetch_uefa_qualifying_matches(

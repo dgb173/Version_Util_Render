@@ -1695,11 +1695,11 @@
 
                 exclude_empty: document.getElementById('filter-exclude-empty').checked,
                 only_with_history: document.getElementById('filter-only-with-history').checked,
-                analyze_all: true,
+                analyze_all: false,
                 // Las estadísticas detalladas se cargan al desplegar cada ficha.
                 // Evita repetirlas miles de veces en la descarga inicial completa.
                 include_stats: false,
-                limit: 3000
+                limit: 750
             };
 
             // URL fallback (if UI presets were not reflected, keep backend filtering aligned).
