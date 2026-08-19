@@ -7957,7 +7957,11 @@
                     ? '<span class="pre-col3-tag is-down">↓ Baja</span>'
                     : movement === 'IGUAL' ? '<span class="pre-col3-tag is-same">= Igual</span>' : '';
 
-            return `<span class="pre-col3-card-head"><span class="pre-col3-status ${statusClass}">${performance}</span>${typeHtml}</span>
+            const subtleTagText = performance === 'MEJORA' ? 'Mejor vs rival' : (performance === 'EMPEORA' ? 'Peor vs rival' : 'Igual vs rival');
+            const subtleTagClass = statusClass === 'is-better' ? 'is-cover' : (statusClass === 'is-worse' ? 'is-fail' : 'is-same');
+            const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.46rem; padding:0 4px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
+
+            return `<span class="pre-col3-card-head"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}${typeHtml}</span>
                 <span class="pre-col3-date">${escapePreContextCol3(col3.date || 'Fecha N/D')}</span>
                 <span class="pre-col3-numbers"><span>${escapePreContextCol3(col3.handicap ?? '-')}</span><span>${escapePreContextCol3(score)}</span></span>
                 <span class="pre-col3-teams">${escapePreContextCol3(col3Home)}<br>${escapePreContextCol3(col3Away)}</span>
@@ -8079,9 +8083,19 @@
                 const scoreStr = item.score ?? '-';
                 const coverTag = formatCoverBadge(item.cover);
                 const movTag = formatMovBadge(item.movement, ahStr);
+
+                let subtleRelTag = '';
+                if (item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN') {
+                    subtleRelTag = '<span class="pre-col3-tag is-cover" style="font-size:.44rem; padding:0 3px; font-weight:800; margin-left:3px;">Mejor vs rival</span>';
+                } else if (item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN') {
+                    subtleRelTag = '<span class="pre-col3-tag is-fail" style="font-size:.44rem; padding:0 3px; font-weight:800; margin-left:3px;">Peor vs rival</span>';
+                } else if (item.cover === 'PUSH') {
+                    subtleRelTag = '<span class="pre-col3-tag is-same" style="font-size:.44rem; padding:0 3px; font-weight:800; margin-left:3px;">Igual vs rival</span>';
+                }
+
                 return `<div style="font-size:.65rem; border-bottom:1px solid #e0f2fe; padding-bottom:2px; margin-bottom:2px;">
                     <div style="display:flex; justify-content:space-between; font-weight:800; color:#0369a1;">
-                        <span>${icon} ${title}</span>
+                        <span>${icon} ${title}${subtleRelTag}</span>
                         <span style="color:#64748b; font-size:.6rem;">${escapePreContextCol3(dateStr)}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1px;">
