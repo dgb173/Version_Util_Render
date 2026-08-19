@@ -5776,8 +5776,8 @@ def api_precacheo_h2h_mov_historico():
                 'ah': st_ah,
                 'movement': st_mov,
                 'cover': st_cover,
-                'home_team': row_home,
-                'away_team': row_away,
+                'home_team': _get_field(h2h_stadium_raw, 'h2h_stad_home', 'home_team', 'home') or row_home,
+                'away_team': _get_field(h2h_stadium_raw, 'h2h_stad_away', 'away_team', 'away') or row_away,
             }
 
         gen_id = _get_field(h2h_general_raw, 'match6_id', 'matchIndex', 'match_id')
