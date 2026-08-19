@@ -607,12 +607,13 @@
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
         .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 14%; }
-        .pre-context-table .ctx-league { width: 8%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-score { width: 8%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-ah { width: 8%; text-align: right; }
-        .pre-context-table .ctx-col3 { width: 31%; text-align: center; overflow: visible; }
-        .pre-context-table .ctx-mov { width: 31%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-date { width: 13%; font-size: .67rem; }
+        .pre-context-table .ctx-league { width: 7%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
+        .pre-context-table .ctx-rival { width: 26%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table .ctx-score { width: 7%; text-align: center; font-weight: 900; }
+        .pre-context-table .ctx-ah { width: 7%; text-align: right; }
+        .pre-context-table .ctx-col3 { width: 20%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-mov { width: 20%; text-align: center; overflow: visible; }
         .pre-context-col3-btn { min-width: 44px; padding: 2px 5px; border: 1px solid #7c3aed; border-radius: 4px; background: #fff; color: #6d28d9; font-size: .6rem; font-weight: 900; line-height: 1.25; white-space: nowrap; cursor: pointer; }
         .pre-context-col3-btn:hover { background: #6d28d9; color: #fff; }
         .pre-context-col3-btn:disabled { opacity: .55; cursor: wait; }
@@ -7693,7 +7694,7 @@
                     return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-same-league="${sameLeague ? '1' : '0'}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
                         <td class="ctx-league">${esc(leagueId)}</td>
-                        <td title="${esc(rival)}">${esc(rival || '-')}</td>
+                        <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
                         <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
                         <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
                         <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
@@ -7709,7 +7710,7 @@
                         ${rows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button>` : ''}
                     </div>
                     ${rows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>

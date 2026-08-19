@@ -38,6 +38,7 @@ _json_save_lock = threading.Lock()
 
 from modules import league_scraper
 from modules import history_manager
+from modules import estudio_scraper
 
 # ¡Importante! Importa tu nuevo módulo de scraping
 from modules.estudio_scraper import (
