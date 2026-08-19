@@ -5675,6 +5675,114 @@ def api_precacheo_last_general():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/precacheo_h2h_mov_historico', methods=['POST'])
+def api_precacheo_h2h_mov_historico():
+    """Devuelve el H2H historico directo (estadio y fuera) con movimiento para la fila indicada."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        match_id = "".join(filter(str.isdigit, str(payload.get('match_id') or '')))
+        parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
+        row_home = str(payload.get('row_home') or '').strip()
+        row_away = str(payload.get('row_away') or '').strip()
+        row_ah = str(payload.get('row_ah') or '').strip()
+        row_score = str(payload.get('row_score') or '').strip()
+        row_date = str(payload.get('row_date') or '').strip()
+        force_refresh = bool(payload.get('force_refresh'))
+
+        if not match_id and parent_match_id:
+            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id) or {}
+            pre_context = parent.get('pre_match_context') or {}
+            current_context = pre_context.get('current') or pre_context
+            candidate_groups = (
+                current_context.get('home_matches'),
+                current_context.get('away_matches'),
+                parent.get('recent_home_matches'),
+                parent.get('recent_away_matches'),
+            )
+            target_date = row_date
+            target_home = row_home.casefold()
+            target_away = row_away.casefold()
+            for group in candidate_groups:
+                for row in group or []:
+                    r_date = str(row.get('date') or '').strip()
+                    r_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
+                    r_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
+                    if target_date and r_date != target_date:
+                        continue
+                    if target_home and r_home != target_home:
+                        continue
+                    if target_away and r_away != target_away:
+                        continue
+                    match_id = "".join(filter(str.isdigit, str(
+                        row.get('matchIndex') or row.get('match_id') or row.get('id') or ''
+                    )))
+                    if match_id:
+                        break
+                if match_id:
+                    break
+
+        if not match_id:
+            return jsonify({'status': 'not_found', 'message': 'Sin ID de partido para rastrear H2H'}), 200
+
+        # Intentar cargar analisis guardado o generarlo
+        stored = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id)
+        if stored and not force_refresh:
+            market_data = stored.get('market_analysis_data') or {}
+            h2h_data = stored.get('h2h_data') or {}
+        else:
+            analysis = estudio_scraper.analizar_partido_completo(match_id, force_refresh=force_refresh)
+            if not analysis or analysis.get('error'):
+                return jsonify({'status': 'error', 'error': (analysis or {}).get('error', 'Error al scrapear H2H')}), 500
+            market_data = analysis.get('market_analysis_data') or {}
+            h2h_data = analysis.get('h2h_data') or {}
+
+        stadium_info = None
+        general_info = None
+
+        if h2h_data.get('match1_id') or (market_data.get('stadium') and market_data['stadium'].get('date') not in (None, 'N/A', '')):
+            stadium_info = {
+                'match_id': h2h_data.get('match1_id'),
+                'date': h2h_data.get('date1') or market_data.get('stadium', {}).get('date') or 'Fecha N/D',
+                'score': (h2h_data.get('res1_raw') or h2h_data.get('res1') or market_data.get('stadium', {}).get('result') or '-').replace('-', ':'),
+                'ah': h2h_data.get('ah1') or '-',
+                'movement': market_data.get('stadium', {}).get('movement') or '',
+                'cover': market_data.get('stadium', {}).get('is_covered'),
+                'evaluation': market_data.get('stadium', {}).get('evaluation') or '',
+                'home_team': row_home,
+                'away_team': row_away,
+            }
+
+        if h2h_data.get('match6_id') or (market_data.get('general') and market_data['general'].get('date') not in (None, 'N/A', '')):
+            is_same_as_stadium = (h2h_data.get('match1_id') and h2h_data.get('match6_id') and h2h_data.get('match1_id') == h2h_data.get('match6_id'))
+            if not is_same_as_stadium or not stadium_info:
+                general_info = {
+                    'match_id': h2h_data.get('match6_id'),
+                    'date': h2h_data.get('date6') or market_data.get('general', {}).get('date') or 'Fecha N/D',
+                    'score': (h2h_data.get('res6_raw') or h2h_data.get('res6') or market_data.get('general', {}).get('result') or '-').replace('-', ':'),
+                    'ah': h2h_data.get('ah6') or '-',
+                    'movement': market_data.get('general', {}).get('movement') or '',
+                    'cover': market_data.get('general', {}).get('is_covered'),
+                    'evaluation': market_data.get('general', {}).get('evaluation') or '',
+                    'home_team': h2h_data.get('h2h_gen_home') or row_home,
+                    'away_team': h2h_data.get('h2h_gen_away') or row_away,
+                }
+
+        has_any = bool(stadium_info or general_info)
+        return jsonify({
+            'status': 'success' if has_any else 'not_found',
+            'match_id': match_id,
+            'row_home': row_home,
+            'row_away': row_away,
+            'row_ah': row_ah,
+            'row_score': row_score,
+            'stadium': stadium_info,
+            'general': general_info,
+        })
+    except Exception as exc:
+        logging.exception("Error en /api/precacheo_h2h_mov_historico")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/precacheo_h2h_col3', methods=['POST'])
 def api_precacheo_h2h_col3():
     """Devuelve solo el H2H Col3 solicitado para mantener ligera la tabla."""
