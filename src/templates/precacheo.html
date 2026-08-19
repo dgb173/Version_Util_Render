@@ -7684,9 +7684,7 @@
                         const normCurrent = normLeagueId(currentLeagueId);
                         const normRow = normLeagueId(leagueId);
                         const sameLeague = !!normCurrent && normRow === normCurrent;
-                        const parentAhNum = Number.parseFloat(parentCurrentAh);
-                        const rowAhNum = Number.parseFloat(rowAh);
-                        const isSameHa = Number.isFinite(parentAhNum) && Number.isFinite(rowAhNum) && Math.abs(Math.abs(parentAhNum) - Math.abs(rowAhNum)) <= 0.255;
+                        const isSameHa = isSameHaMatch(parentCurrentAh, rowAh);
                         const isRowHidden = mode === 'all';
                         return `<tr class="pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date">${esc(item?.date || '-')}</td>
@@ -7723,7 +7721,48 @@
                 </div>`;
             };
 
-            const formatAhNumber = value => Number.isFinite(Number(value))
+                    function isSameHaMatch(parentAh, rowAh) {
+            const p = Number.parseFloat(parentAh);
+            const r = Number.parseFloat(rowAh);
+            if (!Number.isFinite(p) || !Number.isFinite(r)) return false;
+
+            // Handicap 0 es 0 estricto (DNB no se mezcla con cuartos de gol)
+            if (Math.abs(p) < 0.01) {
+                return Math.abs(r) < 0.01;
+            }
+            if (Math.abs(r) < 0.01) {
+                return false;
+            }
+
+            // Mismo signo / rol (favorito con favorito, no-favorito con no-favorito)
+            const pSign = p > 0 ? 1 : -1;
+            const rSign = r > 0 ? 1 : -1;
+            if (pSign !== rSign) return false;
+
+            const pAbs = Math.abs(p);
+            const rAbs = Math.abs(r);
+            const diff = Math.abs(pAbs - rAbs);
+
+            // Rango de bucket maximo +-0.25 (1.0 es similar a 1.25, pero NO a 1.5)
+            return diff <= 0.255;
+        }
+
+        function formatSameHaLabel(parentAh) {
+            const p = Number.parseFloat(parentAh);
+            if (!Number.isFinite(p)) return 'Same HA';
+            if (Math.abs(p) < 0.01) return 'Same HA (0 DNB)';
+            const sign = p < 0 ? '-' : '+';
+            const absP = Math.abs(p);
+            if (absP === 0.25) return `Same HA (${sign}0.25 / ${sign}0.5)`;
+            if (absP === 0.5) return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
+            if (absP === 0.75) return `Same HA (${sign}0.5 / ${sign}0.75 / ${sign}1.0)`;
+            if (absP === 1.0) return `Same HA (${sign}0.75 / ${sign}1.0 / ${sign}1.25)`;
+            if (absP === 1.25) return `Same HA (${sign}1.0 / ${sign}1.25 / ${sign}1.5)`;
+            if (absP === 1.5) return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
+            return `Same HA (${formatAhNumber(p)}±0.25)`;
+        }
+
+const formatAhNumber = value => Number.isFinite(Number(value))
                 ? `${Number(value) > 0 ? '+' : ''}${Number(value)}`
                 : 'N/D';
             const renderSimilarAh = moment => {
@@ -7823,7 +7862,7 @@
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
-                        <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o rango similar (±0.25)"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> Same HA${Number.isFinite(Number.parseFloat(parentCurrentAh)) ? ` (${formatAhNumber(parentCurrentAh)}±0.25)` : ''}</label>
+                        <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
