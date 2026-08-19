@@ -8055,37 +8055,45 @@
                 return '';
             };
 
-            const buildSection = (title, icon, item) => {
+            const buildSection = (type, icon, item) => {
                 if (!item) return '';
+                const isStadium = type === 'ESTADIO';
                 const dateStr = item.date || 'Fecha N/D';
                 const ahStr = (item.ah !== null && item.ah !== undefined && item.ah !== '') ? item.ah : '-';
                 const scoreStr = item.score ?? '-';
-                const homeTeam = item.home_team || button.dataset.rowHome || 'Local';
-                const awayTeam = item.away_team || button.dataset.rowAway || 'Visitante';
+                const locationName = isStadium ? 'casa' : 'fuera';
+
+                let evalText = '';
+                let evalClass = 'is-same';
+                if (item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN') {
+                    evalText = `Mejor en ${locationName}`;
+                    evalClass = 'is-cover';
+                } else if (item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN') {
+                    evalText = `Peor en ${locationName}`;
+                    evalClass = 'is-fail';
+                } else if (item.cover === 'PUSH') {
+                    evalText = `Igual en ${locationName}`;
+                    evalClass = 'is-same';
+                } else {
+                    evalText = isStadium ? 'Casa' : 'Fuera';
+                    evalClass = 'is-same';
+                }
+
                 const coverTag = formatCoverBadge(item.cover);
                 const movTag = formatMovBadge(item.movement, ahStr);
 
-                let subtleRelTag = '';
-                if (item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN') {
-                    subtleRelTag = '<span class="pre-col3-tag is-cover" style="font-size:.44rem; padding:0 3px; font-weight:800; white-space:nowrap;">Mejor vs rival</span>';
-                } else if (item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN') {
-                    subtleRelTag = '<span class="pre-col3-tag is-fail" style="font-size:.44rem; padding:0 3px; font-weight:800; white-space:nowrap;">Peor vs rival</span>';
-                } else if (item.cover === 'PUSH') {
-                    subtleRelTag = '<span class="pre-col3-tag is-same" style="font-size:.44rem; padding:0 3px; font-weight:800; white-space:nowrap;">Igual vs rival</span>';
-                }
-
-                return `<div style="padding: 3px 0; border-bottom:1px solid #e0f2fe; margin-bottom:3px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:3px;">
-                        <span style="font-weight:900; color:#0369a1; font-size:.65rem;">${icon} ${title}</span>
-                        ${subtleRelTag}
+                return `<div style="background:#fff; border:1px solid #e0f2fe; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                        <span style="font-weight:900; font-size:.65rem; color:#0369a1;">${icon} ${isStadium ? 'ESTADIO' : 'FUERA'}</span>
+                        <span class="pre-col3-tag ${evalClass}" style="font-size:.5rem; padding:1px 5px; font-weight:900; border-radius:3px; white-space:nowrap;">${evalText}</span>
                     </div>
-                    <div class="pre-col3-date" style="text-align:left; margin:1px 0;">${escapePreContextCol3(dateStr)}</div>
-                    <div class="pre-col3-numbers">
-                        <span>AH ${escapePreContextCol3(String(ahStr))}</span>
-                        <strong style="color:#0f172a;">${escapePreContextCol3(String(scoreStr))}</strong>
+                    <div style="font-size:.58rem; color:#64748b; font-weight:700; margin:1px 0;">
+                        📅 ${escapePreContextCol3(dateStr)}
                     </div>
-                    <span class="pre-col3-teams">${escapePreContextCol3(homeTeam)}<br>${escapePreContextCol3(awayTeam)}</span>
-                    <span class="pre-col3-tags">${coverTag}${movTag}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.68rem; font-weight:900; margin-top:2px;">
+                        <span>AH <strong style="color:#0f172a;">${escapePreContextCol3(String(ahStr))}</strong> · <strong style="color:#2563eb;">${escapePreContextCol3(String(scoreStr))}</strong></span>
+                        <span class="pre-col3-tags" style="margin:0;">${coverTag}${movTag}</span>
+                    </div>
                 </div>`;
             };
 
@@ -8103,7 +8111,7 @@
             }
 
             const headerScope = (stadium && general) ? 'ESTADIO & FUERA' : (stadium ? 'ESTADIO' : 'FUERA');
-            return `<span class="pre-col3-card-head" style="margin-bottom:2px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></span>
+            return `<div class="pre-col3-card-head" style="margin-bottom:3px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
                 ${sectionsHtml}`;
         }
 
