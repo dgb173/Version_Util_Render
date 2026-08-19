@@ -7652,6 +7652,13 @@
             const renderTeam = (teamName, role, venueMatches, allVenueMatches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
 
+                // Determinar el targetAh para este equipo (Local mantiene el signo, Visitante tiene el signo opuesto)
+                const baseParentAh = Number.parseFloat(parentCurrentAh);
+                let teamTargetAh = baseParentAh;
+                if (Number.isFinite(baseParentAh) && role === 'away') {
+                    teamTargetAh = -baseParentAh;
+                }
+
                 const buildRows = (matchesList, mode) => {
                     return asRows(matchesList).map((item, idx) => {
                         const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
@@ -7672,26 +7679,30 @@
                         const rival = subjectHome
                             ? (item?.away ?? item?.away_team ?? '')
                             : (item?.home ?? item?.home_team ?? '');
-                        const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                        const leagueId = item?.league_id_hist ?? item?.league_id ?? item?.league ?? item?.league_name ?? item?.title ?? '-';
                         const rowMatchId = String(item?.match_id ?? item?.matchIndex ?? item?.id ?? '').replace(/\D/g, '');
                         const rowHome = item?.home ?? item?.home_team ?? '';
                         const rowAway = item?.away ?? item?.away_team ?? '';
                         const rowHomeId = item?.home_id ?? '';
                         const rowAwayId = item?.away_id ?? '';
-                        const rowDate = item?.date || '';
-                        const rowAh = item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '';
-                        const rowScore = item?.score ?? item?.score_raw ?? '';
+                        const rowDate = item?.date || item?.match_date || item?.date_txt || item?.date_str || '-';
+                        const rawAh = (item?.ahLine !== undefined && item?.ahLine !== null && item?.ahLine !== '')
+                            ? item.ahLine
+                            : (item?.ahLine_raw ?? item?.ah_line ?? item?.ah ?? item?.handicap ?? '-');
+                        const rowAh = rawAh !== 'N/A' && rawAh !== '' ? rawAh : '-';
+                        const rowScore = item?.score || item?.score_raw || item?.result || '-';
                         const normCurrent = normLeagueId(currentLeagueId);
                         const normRow = normLeagueId(leagueId);
                         const sameLeague = !!normCurrent && normRow === normCurrent;
-                        const isSameHa = isSameHaMatch(parentCurrentAh, rowAh);
+
+                        const isSameHa = isSameHaMatch(teamTargetAh, rowAh);
                         const isRowHidden = mode === 'all';
                         return `<tr class="pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
-                            <td class="ctx-date">${esc(item?.date || '-')}</td>
+                            <td class="ctx-date">${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
-                            <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
-                            <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
+                            <td class="ctx-score">${esc(rowScore)}</td>
+                            <td class="ctx-ah">${esc(rowAh)}</td>
                             <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
                             <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo y movimiento en este estadio y fuera"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
                         </tr>`;
@@ -7721,8 +7732,8 @@
                 </div>`;
             };
 
-                    function isSameHaMatch(parentAh, rowAh) {
-            const p = Number.parseFloat(parentAh);
+            function isSameHaMatch(targetAh, rowAh) {
+            const p = Number.parseFloat(targetAh);
             const r = Number.parseFloat(rowAh);
             if (!Number.isFinite(p) || !Number.isFinite(r)) return false;
 
@@ -7734,7 +7745,7 @@
                 return false;
             }
 
-            // Mismo signo / rol (favorito con favorito, no-favorito con no-favorito)
+            // Signos estrictos: positivos con positivos (+), negativos con negativos (-)
             const pSign = p > 0 ? 1 : -1;
             const rSign = r > 0 ? 1 : -1;
             if (pSign !== rSign) return false;
@@ -7743,7 +7754,7 @@
             const rAbs = Math.abs(r);
             const diff = Math.abs(pAbs - rAbs);
 
-            // Rango de bucket maximo +-0.25 (1.0 es similar a 1.25, pero NO a 1.5)
+            // Rango de bucket maximo +-0.25 dentro del mismo signo
             return diff <= 0.255;
         }
 

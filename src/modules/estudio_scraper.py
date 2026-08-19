@@ -2437,6 +2437,14 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
             soup_completo, "table_v2", away_name, league_id, False, odds_map,
             limit=10, is_neutral_venue=True,
         )
+        recent_home_all = extract_recent_matches(
+            soup_completo, "table_v1", home_name, None, True, odds_map,
+            limit=100, is_neutral_venue=True,
+        )
+        recent_away_all = extract_recent_matches(
+            soup_completo, "table_v2", away_name, None, False, odds_map,
+            limit=100, is_neutral_venue=True,
+        )
         recent_home_matches = recent_home_specific or recent_home_general
         recent_away_matches = recent_away_specific or recent_away_general
         recent_away_matches_all = recent_away_general
@@ -2610,6 +2618,8 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
                 "is_neutral_venue": is_neutral_venue,
                 "home_matches": context_home_matches,
                 "away_matches": context_away_matches,
+                "home_matches_all": recent_home_all,
+                "away_matches_all": recent_away_all,
             },
             "previous": previous_h2h_context,
         },
@@ -2641,7 +2651,8 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         "h2h_general": {**h2h_data, "stats_rows": h2h_general_stats},
         "recent_home_matches": recent_home_matches,
         "recent_away_matches": recent_away_matches,
-        "recent_away_matches_all": recent_away_matches_all,
+        "recent_home_matches_all": recent_home_all,
+        "recent_away_matches_all": recent_away_all,
         "recent_home_matches_same_league_specific": recent_home_specific,
         "recent_away_matches_same_league_specific": recent_away_specific,
         "recent_home_matches_same_league_general": recent_home_general,
