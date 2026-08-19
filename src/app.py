@@ -5727,46 +5727,80 @@ def api_precacheo_h2h_mov_historico():
 
         # Intentar cargar analisis guardado o generarlo
         stored = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id)
+        market_data = {}
+        h2h_stadium_raw = {}
+        h2h_general_raw = {}
+
         if stored and not force_refresh:
             market_data = stored.get('market_analysis_data') or {}
-            h2h_data = stored.get('h2h_data') or {}
-        else:
+            h2h_stadium_raw = stored.get('h2h_stadium') or stored.get('h2h_data') or {}
+            h2h_general_raw = stored.get('h2h_general') or stored.get('h2h_data') or {}
+
+        if not h2h_stadium_raw and not h2h_general_raw:
             analysis = estudio_scraper.analizar_partido_completo(match_id, force_refresh=force_refresh)
-            if not analysis or analysis.get('error'):
-                return jsonify({'status': 'error', 'error': (analysis or {}).get('error', 'Error al scrapear H2H')}), 500
-            market_data = analysis.get('market_analysis_data') or {}
-            h2h_data = analysis.get('h2h_data') or {}
+            if analysis and not analysis.get('error'):
+                market_data = analysis.get('market_analysis_data') or {}
+                h2h_stadium_raw = analysis.get('h2h_stadium') or analysis.get('h2h_data') or {}
+                h2h_general_raw = analysis.get('h2h_general') or analysis.get('h2h_data') or {}
+
+        def _get_field(d, *keys):
+            for k in keys:
+                if isinstance(d, dict) and d.get(k) not in (None, '', 'N/A', '?'):
+                    return d.get(k)
+            return None
+
+        def _calc_mov(c_ah, p_ah):
+            try:
+                c = float(c_ah)
+                p = float(p_ah)
+                diff = abs(c) - abs(p)
+                return 'IGUAL' if abs(diff) < 0.01 else ('SUBE' if diff > 0 else 'BAJA')
+            except Exception:
+                return ''
 
         stadium_info = None
         general_info = None
 
-        if h2h_data.get('match1_id') or (market_data.get('stadium') and market_data['stadium'].get('date') not in (None, 'N/A', '')):
+        st_id = _get_field(h2h_stadium_raw, 'match1_id', 'matchIndex', 'match_id')
+        st_date = _get_field(h2h_stadium_raw, 'date1', 'date') or (market_data.get('stadium') or {}).get('date')
+        st_ah = _get_field(h2h_stadium_raw, 'ah1', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or '-'
+        st_score = (_get_field(h2h_stadium_raw, 'res1_raw', 'res1', 'score_raw', 'score') or (market_data.get('stadium') or {}).get('result') or '-').replace('-', ':')
+        st_mov = (market_data.get('stadium') or {}).get('movement') or _calc_mov(row_ah, st_ah)
+        st_cover = (market_data.get('stadium') or {}).get('is_covered')
+
+        if st_id or (st_date and st_date != 'Fecha N/D') or (st_score and st_score != '-'):
             stadium_info = {
-                'match_id': h2h_data.get('match1_id'),
-                'date': h2h_data.get('date1') or market_data.get('stadium', {}).get('date') or 'Fecha N/D',
-                'score': (h2h_data.get('res1_raw') or h2h_data.get('res1') or market_data.get('stadium', {}).get('result') or '-').replace('-', ':'),
-                'ah': h2h_data.get('ah1') or '-',
-                'movement': market_data.get('stadium', {}).get('movement') or '',
-                'cover': market_data.get('stadium', {}).get('is_covered'),
-                'evaluation': market_data.get('stadium', {}).get('evaluation') or '',
+                'match_id': st_id,
+                'date': st_date or 'Fecha N/D',
+                'score': st_score,
+                'ah': st_ah,
+                'movement': st_mov,
+                'cover': st_cover,
                 'home_team': row_home,
                 'away_team': row_away,
             }
 
-        if h2h_data.get('match6_id') or (market_data.get('general') and market_data['general'].get('date') not in (None, 'N/A', '')):
-            is_same_as_stadium = (h2h_data.get('match1_id') and h2h_data.get('match6_id') and h2h_data.get('match1_id') == h2h_data.get('match6_id'))
-            if not is_same_as_stadium or not stadium_info:
-                general_info = {
-                    'match_id': h2h_data.get('match6_id'),
-                    'date': h2h_data.get('date6') or market_data.get('general', {}).get('date') or 'Fecha N/D',
-                    'score': (h2h_data.get('res6_raw') or h2h_data.get('res6') or market_data.get('general', {}).get('result') or '-').replace('-', ':'),
-                    'ah': h2h_data.get('ah6') or '-',
-                    'movement': market_data.get('general', {}).get('movement') or '',
-                    'cover': market_data.get('general', {}).get('is_covered'),
-                    'evaluation': market_data.get('general', {}).get('evaluation') or '',
-                    'home_team': h2h_data.get('h2h_gen_home') or row_home,
-                    'away_team': h2h_data.get('h2h_gen_away') or row_away,
-                }
+        gen_id = _get_field(h2h_general_raw, 'match6_id', 'matchIndex', 'match_id')
+        gen_date = _get_field(h2h_general_raw, 'date6', 'date') or (market_data.get('general') or {}).get('date')
+        gen_ah = _get_field(h2h_general_raw, 'ah6', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or st_ah
+        gen_score = (_get_field(h2h_general_raw, 'res6_raw', 'res6', 'score_raw', 'score') or (market_data.get('general') or {}).get('result') or '-').replace('-', ':')
+        gen_mov = (market_data.get('general') or {}).get('movement') or _calc_mov(row_ah, gen_ah)
+        gen_cover = (market_data.get('general') or {}).get('is_covered')
+        gen_home = _get_field(h2h_general_raw, 'h2h_gen_home', 'home', 'home_team') or row_home
+        gen_away = _get_field(h2h_general_raw, 'h2h_gen_away', 'away', 'away_team') or row_away
+
+        is_same_match = (st_id and gen_id and st_id == gen_id) or (st_date and gen_date and st_date == gen_date and st_score == gen_score)
+        if (gen_id or (gen_date and gen_date != 'Fecha N/D') or (gen_score and gen_score != '-')) and (not is_same_match or not stadium_info):
+            general_info = {
+                'match_id': gen_id,
+                'date': gen_date or 'Fecha N/D',
+                'score': gen_score,
+                'ah': gen_ah,
+                'movement': gen_mov,
+                'cover': gen_cover,
+                'home_team': gen_home,
+                'away_team': gen_away,
+            }
 
         has_any = bool(stadium_info or general_info)
         return jsonify({
@@ -5784,7 +5818,7 @@ def api_precacheo_h2h_mov_historico():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
-@app.route('/api/precacheo_h2h_col3', methods=['POST'])
+@app.route('/api/precacheo_h2h_col3' , methods=['POST'])
 def api_precacheo_h2h_col3():
     """Devuelve solo el H2H Col3 solicitado para mantener ligera la tabla."""
     try:

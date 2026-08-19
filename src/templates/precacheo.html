@@ -8049,10 +8049,16 @@
         function buildPreContextMovCard(button, data) {
             const stadium = data?.stadium;
             const general = data?.general;
-            const currentAh = Number.parseFloat(button.dataset.currentAh || button.dataset.rowAh);
+            const rowAh = button.dataset.rowAh || button.dataset.currentAh || '';
+            const rowAhNum = Number.parseFloat(rowAh);
 
-            const formatMovBadge = (mov) => {
-                const m = String(mov || '').toUpperCase();
+            const formatMovBadge = (mov, prevAh) => {
+                let m = String(mov || '').toUpperCase();
+                if (!m && Number.isFinite(rowAhNum) && Number.isFinite(Number.parseFloat(prevAh))) {
+                    const p = Number.parseFloat(prevAh);
+                    const diff = Math.abs(rowAhNum) - Math.abs(p);
+                    m = Math.abs(diff) < 0.01 ? 'IGUAL' : (diff > 0 ? 'SUBE' : 'BAJA');
+                }
                 if (m === 'SUBE' || m.includes('SUBE')) return '<span class="pre-col3-tag is-up">↑ Sube</span>';
                 if (m === 'BAJA' || m.includes('BAJA')) return '<span class="pre-col3-tag is-down">↓ Baja</span>';
                 if (m === 'IGUAL' || m.includes('IGUAL')) return '<span class="pre-col3-tag is-same">= Igual</span>';
@@ -8069,10 +8075,10 @@
             const buildSection = (title, icon, item) => {
                 if (!item) return '';
                 const dateStr = item.date || 'Fecha N/D';
-                const ahStr = item.ah ?? '-';
+                const ahStr = (item.ah !== null && item.ah !== undefined && item.ah !== '') ? item.ah : '-';
                 const scoreStr = item.score ?? '-';
                 const coverTag = formatCoverBadge(item.cover);
-                const movTag = formatMovBadge(item.movement);
+                const movTag = formatMovBadge(item.movement, ahStr);
                 return `<div style="font-size:.65rem; border-bottom:1px solid #e0f2fe; padding-bottom:2px; margin-bottom:2px;">
                     <div style="display:flex; justify-content:space-between; font-weight:800; color:#0369a1;">
                         <span>${icon} ${title}</span>
