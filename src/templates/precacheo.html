@@ -7649,58 +7649,75 @@
                     away_matches: olderAtVenue(previousAway, 'away'),
                 };
             }
-            const renderTeam = (teamName, role, matches, allVenues = false) => {
+            const renderTeam = (teamName, role, venueMatches, allVenueMatches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
-                const rows = asRows(matches).map(item => {
-                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
-                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
-                    const own = score ? (subjectHome ? score.home : score.away) : null;
-                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
-                    const result = own === null ? '' : (own > rivalGoals ? 'W' : (own < rivalGoals ? 'L' : 'D'));
-                    if (result === 'W') wins += 1;
-                    else if (result === 'D') draws += 1;
-                    else if (result === 'L') losses += 1;
-                    const rival = subjectHome
-                        ? (item?.away ?? item?.away_team ?? '')
-                        : (item?.home ?? item?.home_team ?? '');
-                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    const rowMatchId = String(item?.match_id ?? item?.matchIndex ?? item?.id ?? '').replace(/\D/g, '');
-                    const rowHome = item?.home ?? item?.home_team ?? '';
-                    const rowAway = item?.away ?? item?.away_team ?? '';
-                    const rowHomeId = item?.home_id ?? '';
-                    const rowAwayId = item?.away_id ?? '';
-                    const rowDate = item?.date || '';
-                    const rowAh = item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '';
-                    const rowScore = item?.score ?? item?.score_raw ?? '';
-                    const normCurrent = normLeagueId(currentLeagueId);
-                    const normRow = normLeagueId(leagueId);
-                    const sameLeague = !!normCurrent && normRow === normCurrent;
-                    const parentAhNum = Number.parseFloat(parentCurrentAh);
-                    const rowAhNum = Number.parseFloat(rowAh);
-                    const isSameHa = Number.isFinite(parentAhNum) && Number.isFinite(rowAhNum) && Math.abs(Math.abs(parentAhNum) - Math.abs(rowAhNum)) <= 0.255;
-                    return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}">
-                        <td class="ctx-date">${esc(item?.date || '-')}</td>
-                        <td class="ctx-league">${esc(leagueId)}</td>
-                        <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
-                        <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
-                        <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
-                        <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
-                        <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo y movimiento en este estadio y fuera"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
-                    </tr>`;
-                }).join('');
-                return `<div class="pre-context-team">
+
+                const buildRows = (matchesList, mode) => {
+                    return asRows(matchesList).map((item, idx) => {
+                        const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                        const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                        const own = score ? (subjectHome ? score.home : score.away) : null;
+                        const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                        let result = 'D';
+                        if (own !== null) {
+                            if (own > rivalGoals) result = 'W';
+                            else if (own < rivalGoals) result = 'L';
+                            else result = 'D';
+                        }
+                        if (mode === 'specific') {
+                            if (result === 'W') wins += 1;
+                            else if (result === 'D') draws += 1;
+                            else if (result === 'L') losses += 1;
+                        }
+                        const rival = subjectHome
+                            ? (item?.away ?? item?.away_team ?? '')
+                            : (item?.home ?? item?.home_team ?? '');
+                        const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                        const rowMatchId = String(item?.match_id ?? item?.matchIndex ?? item?.id ?? '').replace(/\D/g, '');
+                        const rowHome = item?.home ?? item?.home_team ?? '';
+                        const rowAway = item?.away ?? item?.away_team ?? '';
+                        const rowHomeId = item?.home_id ?? '';
+                        const rowAwayId = item?.away_id ?? '';
+                        const rowDate = item?.date || '';
+                        const rowAh = item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '';
+                        const rowScore = item?.score ?? item?.score_raw ?? '';
+                        const normCurrent = normLeagueId(currentLeagueId);
+                        const normRow = normLeagueId(leagueId);
+                        const sameLeague = !!normCurrent && normRow === normCurrent;
+                        const parentAhNum = Number.parseFloat(parentCurrentAh);
+                        const rowAhNum = Number.parseFloat(rowAh);
+                        const isSameHa = Number.isFinite(parentAhNum) && Number.isFinite(rowAhNum) && Math.abs(Math.abs(parentAhNum) - Math.abs(rowAhNum)) <= 0.255;
+                        const isRowHidden = mode === 'all';
+                        return `<tr class="pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+                            <td class="ctx-date">${esc(item?.date || '-')}</td>
+                            <td class="ctx-league">${esc(leagueId)}</td>
+                            <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
+                            <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
+                            <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
+                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
+                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo y movimiento en este estadio y fuera"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                        </tr>`;
+                    }).join('');
+                };
+
+                const specificRows = buildRows(venueMatches, 'specific');
+                const allRowsList = allVenueMatches && allVenueMatches.length ? allVenueMatches : venueMatches;
+                const allRows = buildRows(allRowsList, 'all');
+                const totalRows = specificRows + allRows;
+
+                return `<div class="pre-context-team" data-default-role="${esc(role)}">
                     <div class="pre-context-team-head">
                         <div class="pre-context-team-title-wrap">
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${rows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Lectura Patrones</button>` : ''}
+                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Lectura Patrones</button>` : ''}
                     </div>
-                    ${rows ? `<table class="pre-context-table">
+                    ${totalRows ? `<table class="pre-context-table">
                         <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
-                        <tbody>${rows}</tbody>
+                        <tbody>${totalRows}</tbody>
                     </table>
-                    <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>
+                    <div class="pre-context-filter-empty">Sin partidos disponibles</div>
                     <div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>`
                     : '<div class="pre-context-empty">Sin historial previo disponible</div>'}
                 </div>`;
@@ -7748,8 +7765,8 @@
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     <div class="pre-context-team-grid">
-                        ${renderTeam(momentHome, 'home', moment.home_matches, homeAllVenues)}
-                        ${renderTeam(momentAway, 'away', moment.away_matches, awayAllVenues)}
+                        ${renderTeam(momentHome, 'home', moment.home_matches, moment.home_matches_all || pc?.recent_home_matches_all || pc?.recent_home_matches_same_league_general || moment.home_matches, homeAllVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, moment.away_matches_all || pc?.recent_away_matches_all || pc?.recent_away_matches_same_league_general || moment.away_matches, awayAllVenues)}
                     </div>
                     ${renderSimilarAh(moment)}
                 </section>`;
@@ -8409,15 +8426,36 @@
             const normCurrent = normLeagueId(rawCurrentLeague);
 
             panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const roleBadge = team.querySelector('.pre-context-role');
+                const defaultRole = team.dataset.defaultRole || 'home';
+                if (roleBadge) {
+                    if (onlyRecent5) {
+                        roleBadge.textContent = 'TODOS (ÚLT. 5)';
+                        roleBadge.className = 'pre-context-role is-all';
+                    } else {
+                        roleBadge.textContent = defaultRole === 'home' ? 'CASA' : 'FUERA';
+                        roleBadge.className = `pre-context-role is-${defaultRole}`;
+                    }
+                }
+
                 const rows = [...team.querySelectorAll('tr[data-context-result]')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleCount = 0;
 
                 rows.forEach(row => {
+                    const rowVenueMode = row.dataset.venueMode || 'specific';
                     let visible = true;
 
+                    // Si es Últimos 5 (Forma general / sin contar estadio), usar los partidos de all
+                    // Si no, usar los partidos de venueMode específico (casa / fuera)
+                    if (onlyRecent5) {
+                        if (rowVenueMode !== 'all') visible = false;
+                    } else {
+                        if (rowVenueMode !== 'specific') visible = false;
+                    }
+
                     // Filtro Liga
-                    if (onlyLeague) {
+                    if (visible && onlyLeague) {
                         const rawRowLeague = String(row.dataset.contextLeague || '').trim();
                         const normRow = normLeagueId(rawRowLeague);
                         if (!normCurrent || normRow !== normCurrent) {
@@ -8432,7 +8470,7 @@
                         }
                     }
 
-                    // Filtro Últimos 5 (de los que van resultando visibles)
+                    // Limitar a 5 partidos si está activo Últimos 5
                     if (visible && onlyRecent5) {
                         if (visibleCount >= 5) {
                             visible = false;
