@@ -608,6 +608,11 @@
         .pre-context-mov-btn.is-card:hover { border-color: #0284c7; background: #e0f2fe; }
         .pre-context-team-mov-btn { padding: 2px 7px; border: 1px solid #0284c7; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-size: .62rem; font-weight: 800; cursor: pointer; line-height: 1.3; margin-left: 4px; }
         .pre-context-team-mov-btn:hover { background: #0284c7; color: #fff; }
+        .pre-context-team-pattern-btn { padding: 2px 7px; border: 1px solid #7c3aed; border-radius: 4px; background: #f5f3ff; color: #6d28d9; font-size: .62rem; font-weight: 800; cursor: pointer; line-height: 1.3; margin-left: 4px; }
+        .pre-context-team-pattern-btn:hover { background: #6d28d9; color: #fff; }
+        .pre-context-team-pattern-btn.is-active { background: #6d28d9; color: #fff; }
+        .pre-context-pattern-banner { display: none; margin: 4px 0; }
+        .pre-context-pattern-banner.is-active { display: block; }
         .pre-col3-card-head { display: flex; align-items: center; justify-content: space-between; gap: 3px; padding-bottom: 2px; border-bottom: 1px solid #e2e8f0; }
         .pre-col3-status { font-size: .62rem; font-weight: 900; }
         .pre-col3-status.is-better { color: #16834b; }
@@ -7686,7 +7691,7 @@
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${rows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button>` : ''}
+                        ${rows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Lectura Patrones</button>` : ''}
                     </div>
                     ${rows ? `<table class="pre-context-table">
                         <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
@@ -8175,6 +8180,120 @@
                     alert(err.message || 'No se pudo cargar el H2H histórico');
                 }
             }
+        }
+
+        function computeTeamPatternSynthesis(container) {
+            if (!container) return '';
+            const col3Cards = Array.from(container.querySelectorAll('.pre-context-col3-btn.is-card'));
+            const movCards = Array.from(container.querySelectorAll('.pre-context-mov-btn.is-card'));
+
+            let col3Mejora = 0, col3Empeora = 0, col3Iguala = 0;
+            col3Cards.forEach(card => {
+                const text = card.innerText || '';
+                if (text.includes('MEJORA')) col3Mejora++;
+                else if (text.includes('EMPEORA')) col3Empeora++;
+                else if (text.includes('IGUALA')) col3Iguala++;
+            });
+
+            let h2hMejor = 0, h2hPeor = 0, h2hIgual = 0;
+            movCards.forEach(card => {
+                const text = card.innerText || '';
+                if (text.includes('Mejor')) h2hMejor++;
+                else if (text.includes('Peor')) h2hPeor++;
+                else if (text.includes('Igual')) h2hIgual++;
+            });
+
+            let patternBadge = '';
+            let diagnosis = '';
+            let bgStyle = '';
+
+            if (col3Mejora > col3Empeora && h2hMejor >= h2hPeor) {
+                patternBadge = '<span class="pre-col3-tag is-cover" style="font-size:.56rem; padding:2px 6px; font-weight:900;">🔥 CONVERGENCIA FAVORABLE</span>';
+                diagnosis = 'La triangulación Col3 mejora con balance positivo y los antecedentes directos H2H respaldan la cobertura.';
+                bgStyle = 'background:#f0fdf4; border-color:#86efac;';
+            } else if (col3Empeora > col3Mejora && h2hPeor >= h2hMejor) {
+                patternBadge = '<span class="pre-col3-tag is-fail" style="font-size:.56rem; padding:2px 6px; font-weight:900;">⚠️ CONFIRMACIÓN DESFAVORABLE</span>';
+                diagnosis = 'Col3 empeora frente a rivales espejo y los precedentes directos muestran falta de cobertura de la línea.';
+                bgStyle = 'background:#fef2f2; border-color:#fca5a5;';
+            } else if (col3Mejora > col3Empeora && h2hPeor > h2hMejor) {
+                patternBadge = '<span class="pre-col3-tag is-up" style="font-size:.56rem; padding:2px 6px; font-weight:900; background:#2563eb;">⚡ DIVERGENCIA DE MERCADO</span>';
+                diagnosis = 'Col3 muestra superioridad triangulada pero el H2H directo previo no cubrió. Ojo a trampas o valor de cuota.';
+                bgStyle = 'background:#eff6ff; border-color:#bfdbfe;';
+            } else if (col3Empeora > col3Mejora && h2hMejor > h2hPeor) {
+                patternBadge = '<span class="pre-col3-tag is-down" style="font-size:.56rem; padding:2px 6px; font-weight:900; background:#d97706; color:#fff;">🛡️ MEMORIA DE MATCHUP</span>';
+                diagnosis = 'Aunque Col3 es débil, la memoria directa de matchup en este estadio/rival es favorable al equipo.';
+                bgStyle = 'background:#fffbeb; border-color:#fde68a;';
+            } else {
+                patternBadge = '<span class="pre-col3-tag is-same" style="font-size:.56rem; padding:2px 6px; font-weight:900;">⚖️ PATRÓN EQUILIBRADO</span>';
+                diagnosis = 'Rendimientos triangulados y directos sin sesgo dominante.';
+                bgStyle = 'background:#f8fafc; border-color:#cbd5e1;';
+            }
+
+            return `<div style="${bgStyle} border:1px solid; border-radius:6px; padding:6px 8px; margin:4px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="font-weight:900; color:#1e293b; font-size:.7rem;"><i class="fa-solid fa-bolt text-warning me-1"></i>LECTURA DE PATRÓN:</span>
+                        ${patternBadge}
+                    </div>
+                    <div style="font-size:.58rem; color:#64748b; font-weight:800;">
+                        Col3: <span style="color:#16a34a;">+${col3Mejora}</span> / <span style="color:#dc2626;">-${col3Empeora}</span> · H2H: <span style="color:#16a34a;">+${h2hMejor}</span> / <span style="color:#dc2626;">-${h2hPeor}</span>
+                    </div>
+                </div>
+                <div style="font-size:.65rem; color:#334155; font-weight:700;">
+                    ${diagnosis}
+                </div>
+            </div>`;
+        }
+
+        async function togglePreContextTeamPattern(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn ? btn.closest('.pre-context-team') : null;
+            if (!container) return;
+
+            let banner = container.querySelector('.pre-context-pattern-banner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.className = 'pre-context-pattern-banner';
+                const head = container.querySelector('.pre-context-team-head');
+                if (head && head.nextSibling) {
+                    container.insertBefore(banner, head.nextSibling);
+                } else {
+                    container.appendChild(banner);
+                }
+            }
+
+            if (banner.classList.contains('is-active') && banner.dataset.loaded === '1') {
+                banner.classList.remove('is-active');
+                btn.classList.remove('is-active');
+                btn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Lectura Patrones';
+                return;
+            }
+
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Analizando...';
+
+            const col3Buttons = Array.from(container.querySelectorAll('.pre-context-col3-btn:not(.is-card)'));
+            const movButtons = Array.from(container.querySelectorAll('.pre-context-mov-btn:not(.is-card)'));
+
+            const BATCH_SIZE = 3;
+            for (let i = 0; i < col3Buttons.length; i += BATCH_SIZE) {
+                const batch = col3Buttons.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(b => executeLoadPreContextRowCol3(b)));
+            }
+            for (let i = 0; i < movButtons.length; i += BATCH_SIZE) {
+                const batch = movButtons.slice(i, i + BATCH_SIZE);
+                await Promise.all(batch.map(b => loadPreContextRowMovHistorico(b, null, { silent: true })));
+            }
+
+            const synthesisHtml = computeTeamPatternSynthesis(container);
+            banner.innerHTML = synthesisHtml;
+            banner.classList.add('is-active');
+            banner.dataset.loaded = '1';
+
+            btn.disabled = false;
+            btn.classList.add('is-active');
+            btn.innerHTML = '<i class="fa-solid fa-eye-slash me-1"></i>Ocultar Patrón';
         }
 
         async function toggleAllPreContextTeamMov(button, event) {
