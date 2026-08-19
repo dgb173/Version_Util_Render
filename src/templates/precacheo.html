@@ -8053,51 +8053,43 @@
                 return '';
             };
 
-            const formatCoverBadge = (cover) => {
-                if (cover === true || cover === 'CUBIERTO' || cover === 'WIN') return '<span class="pre-col3-tag is-cover">✓ Cubrió</span>';
-                if (cover === false || cover === 'NO_CUBIERTO' || cover === 'NO_WIN') return '<span class="pre-col3-tag is-fail">✕ No Cubrió</span>';
-                if (cover === 'PUSH') return '<span class="pre-col3-tag is-push">Push</span>';
-                return '';
-            };
-
             const buildSection = (type, icon, item) => {
                 if (!item) return '';
-                const isStadium = type === 'ESTADIO';
+                const isSameStadium = type === 'ESTADIO';
                 const dateStr = item.date || 'Fecha N/D';
                 const ahStr = (item.ah !== null && item.ah !== undefined && item.ah !== '') ? item.ah : '-';
                 const scoreStr = item.score ?? '-';
-                const locationName = isStadium ? 'casa' : 'fuera';
 
-                let evalText = '';
-                let evalClass = 'is-same';
-                if (item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN') {
-                    evalText = `Mejor en ${locationName}`;
-                    evalClass = 'is-cover';
-                } else if (item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN') {
-                    evalText = `Peor en ${locationName}`;
-                    evalClass = 'is-fail';
-                } else if (item.cover === 'PUSH') {
-                    evalText = `Igual en ${locationName}`;
-                    evalClass = 'is-same';
-                } else {
-                    evalText = isStadium ? 'Casa' : 'Fuera';
-                    evalClass = 'is-same';
-                }
+                const isCover = item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN';
+                const isFail = item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN';
+                const isPush = item.cover === 'PUSH';
 
-                const coverTag = formatCoverBadge(item.cover);
+                let evalText = isCover ? 'Cubre' : (isFail ? 'No cubre' : (isPush ? 'Push' : (isSameStadium ? 'Estadio' : 'Diferente')));
+                let evalClass = isCover ? 'is-cover' : (isFail ? 'is-fail' : 'is-same');
+                let evalBg = isCover ? '#16a34a' : (isFail ? '#dc2626' : '#64748b');
+
                 const movTag = formatMovBadge(item.movement, ahStr);
+                const titleLabel = isSameStadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE';
 
-                return `<div style="background:#fff; border:1px solid #e0f2fe; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                // Fondo amarillo crema para MISMO ESTADIO, fondo blanco para ESTADIO DIFERENTE
+                const boxStyle = isSameStadium
+                    ? 'background:#fefce8; border:1px solid #fef08a; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(234, 179, 8, 0.08);'
+                    : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
+
+                const titleColor = isSameStadium ? '#854d0e' : '#0369a1';
+                const numbersColor = isCover ? '#15803d' : (isFail ? '#b91c1c' : '#0f172a');
+
+                return `<div style="${boxStyle}">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                        <span style="font-weight:900; font-size:.65rem; color:#0369a1;">${icon} ${isStadium ? 'ESTADIO' : 'FUERA'}</span>
-                        <span class="pre-col3-tag ${evalClass}" style="font-size:.5rem; padding:1px 5px; font-weight:900; border-radius:3px; white-space:nowrap;">${evalText}</span>
+                        <span style="font-weight:900; font-size:.64rem; color:${titleColor};">${icon} ${titleLabel}</span>
+                        <span class="pre-col3-tag ${evalClass}" style="font-size:.52rem; padding:1px 6px; font-weight:900; background:${evalBg}; color:#fff; border-radius:3px; white-space:nowrap;">${evalText}</span>
                     </div>
                     <div style="font-size:.58rem; color:#64748b; font-weight:700; margin:1px 0;">
                         📅 ${escapePreContextCol3(dateStr)}
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:.68rem; font-weight:900; margin-top:2px;">
-                        <span>AH <strong style="color:#0f172a;">${escapePreContextCol3(String(ahStr))}</strong> · <strong style="color:#2563eb;">${escapePreContextCol3(String(scoreStr))}</strong></span>
-                        <span class="pre-col3-tags" style="margin:0;">${coverTag}${movTag}</span>
+                        <span style="color:${numbersColor};">AH <strong>${escapePreContextCol3(String(ahStr))}</strong> · <strong>${escapePreContextCol3(String(scoreStr))}</strong></span>
+                        <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
                     </div>
                 </div>`;
             };
@@ -8115,7 +8107,7 @@
                     <span style="font-size:.65rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</span>`;
             }
 
-            const headerScope = (stadium && general) ? 'ESTADIO & FUERA' : (stadium ? 'ESTADIO' : 'FUERA');
+            const headerScope = (stadium && general) ? 'MISMO & DIFERENTE' : (stadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE');
             return `<div class="pre-col3-card-head" style="margin-bottom:3px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
                 ${sectionsHtml}`;
         }
