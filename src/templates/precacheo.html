@@ -753,6 +753,51 @@
             color: #ffffff;
         }
 
+        .pre-context-stats-btn {
+            min-width: 42px;
+            padding: 2px 5px;
+            border: 1px solid #059669;
+            border-radius: 4px;
+            background: #fff;
+            color: #059669;
+            font-size: .6rem;
+            font-weight: 900;
+            line-height: 1.25;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .pre-context-stats-btn:hover, .pre-context-stats-btn.is-active {
+            background: #059669 !important;
+            color: #ffffff !important;
+            border-color: #047857 !important;
+            font-weight: 900;
+        }
+        .pre-context-stats-btn:disabled {
+            opacity: .55;
+            cursor: wait;
+        }
+        .pre-context-detail-slot.match-stats-slot {
+            border-top: 3px solid #059669;
+        }
+        .pre-context-team-stats-btn {
+            padding: 2px 7px;
+            border: 1px solid #059669;
+            border-radius: 4px;
+            background: #ecfdf5;
+            color: #059669;
+            font-size: .62rem;
+            font-weight: 800;
+            cursor: pointer;
+            line-height: 1.3;
+            margin-left: 4px;
+        }
+        .pre-context-team-stats-btn:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+
+
         .pre-card-stats-wrap {
             margin-top: 4px;
             border-top: 1px dashed #e2e8f0;
@@ -8073,17 +8118,19 @@
                             <td class="ctx-rival" title="${esc(rival)}">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
                                     <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto;">${esc(rival || '-')}</span>
-                                    <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov. Histórico) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                    <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
                                 </div>
                             </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah">${esc(rowAh)}</td>
+                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
                             <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
                             <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
                         </tr>
                         <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
-                            <td colspan="7" class="pre-context-detail-cell">
+                            <td colspan="8" class="pre-context-detail-cell">
                                 <div class="pre-context-detail-container">
+                                    <div class="pre-context-detail-slot match-stats-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                     <div class="pre-context-detail-slot col3-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                     <div class="pre-context-detail-slot mov-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                 </div>
@@ -8103,10 +8150,10 @@
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver 2</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
+                        ${totalRows ? `<button type="button" class="pre-context-team-stats-btn" onclick="toggleAllPreContextTeamStats(this, event)" title="Desplegar todas las estadísticas (ataques, tiros, córners) de los partidos de ${esc(teamName)} debajo"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button><button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
                     </div>
                     ${totalRows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                         <tbody>${totalRows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos disponibles</div>
@@ -8295,9 +8342,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             return {
                 parentRow,
                 detailRow,
+                statsBtn: parentRow?.querySelector('.pre-context-stats-btn'),
                 col3Btn: parentRow?.querySelector('.pre-context-col3-btn'),
                 movBtn: parentRow?.querySelector('.pre-context-mov-btn'),
                 bothBtn: parentRow?.querySelector('.pre-context-both-btn'),
+                statsSlot: detailRow.querySelector('.match-stats-slot'),
                 col3Slot: detailRow.querySelector('.col3-slot'),
                 movSlot: detailRow.querySelector('.mov-slot'),
             };
@@ -8316,20 +8365,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
         function syncDetailRowState(ctx) {
             if (!ctx || !ctx.detailRow) return;
+            const statsVisible = ctx.statsSlot && ctx.statsSlot.style.display !== 'none';
             const col3Visible = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
             const movVisible = ctx.movSlot && ctx.movSlot.style.display !== 'none';
-            const anyVisible = col3Visible || movVisible;
-            const bothVisible = col3Visible && movVisible;
+            const anyVisible = statsVisible || col3Visible || movVisible;
+            const allVisible = statsVisible && col3Visible && movVisible;
 
             ctx.detailRow.dataset.open = anyVisible ? '1' : '0';
             ctx.detailRow.style.display = anyVisible ? '' : 'none';
             ctx.detailRow.hidden = !anyVisible;
 
+            if (ctx.statsBtn) ctx.statsBtn.classList.toggle('is-active', !!statsVisible);
             if (ctx.col3Btn) ctx.col3Btn.classList.toggle('is-active', !!col3Visible);
             if (ctx.movBtn) ctx.movBtn.classList.toggle('is-active', !!movVisible);
-            if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!bothVisible);
+            if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!allVisible);
         }
-
 
         function formatStatsTableHtml(stats) {
             if (!Array.isArray(stats) || stats.length === 0) return '';
@@ -8369,6 +8419,123 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 `;
             }).join('');
             return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;"><tbody>${rows}</tbody></table>`;
+        }
+
+        async function loadPreContextRowMatchStats(button, event, options = {}) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.statsSlot) return;
+
+            const isCurrentlyOpen = ctx.statsSlot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                ctx.statsSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            ctx.statsSlot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const rowHome = button.dataset.rowHome || '';
+            const rowAway = button.dataset.rowAway || '';
+            const rowScore = button.dataset.rowScore || '';
+            const rowDate = button.dataset.rowDate || '';
+            const rowAh = button.dataset.rowAh || '';
+            const leagueId = button.dataset.leagueId || '';
+
+            if (!matchId) {
+                ctx.statsSlot.innerHTML = `<div class="pre-col3-card-head"><span class="pre-col3-status is-equal">STATS</span></div><div style="font-size:.65rem; color:#94a3b8; text-align:center; padding:4px;">Sin ID para este partido</div>`;
+                return;
+            }
+
+            button.disabled = true;
+            ctx.statsSlot.innerHTML = `<div style="font-size:.68rem; color:#059669; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando Ataques, Tiros y Córners...</div>`;
+
+            try {
+                const response = await fetch(`/api/match_stats/${matchId}`);
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+
+                const stats = data.stats || [];
+                button.dataset.loaded = '1';
+                ctx.statsSlot.classList.add('is-card');
+                ctx.statsSlot.innerHTML = `
+                    <div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="pre-col3-status is-better" style="background:#f0fdf4; color:#166534;">📊 ESTADÍSTICAS DEL PARTIDO</span>
+                        <span class="pre-col3-badge is-direct" style="background:#0284c7;">LIGA ${escapePreContextCol3(leagueId)}</span>
+                    </div>
+                    <div style="font-size:.62rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(rowDate)}</div>
+                    <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:4px;">
+                        <span style="color:#0f172a;">${escapePreContextCol3(rowHome)} <strong style="color:#16a34a;">${escapePreContextCol3(rowScore)}</strong> ${escapePreContextCol3(rowAway)}</span>
+                        <span style="color:#64748b;">AH <strong>${escapePreContextCol3(rowAh)}</strong></span>
+                    </div>
+                    <div style="margin-top:3px;">
+                        ${stats.length ? formatStatsTableHtml(stats) : '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas de ataques/tiros registradas</div>'}
+                    </div>
+                `;
+            } catch (error) {
+                ctx.statsSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
+            } finally {
+                button.disabled = false;
+                syncDetailRowState(ctx);
+            }
+        }
+
+        async function togglePreContextRowBoth(button, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx) return;
+
+            const statsOpen = ctx.statsSlot && ctx.statsSlot.style.display !== 'none';
+            const col3Open = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movOpen = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const allOpen = statsOpen && col3Open && movOpen;
+
+            if (allOpen) {
+                if (ctx.statsSlot) ctx.statsSlot.style.display = 'none';
+                if (ctx.col3Slot) ctx.col3Slot.style.display = 'none';
+                if (ctx.movSlot) ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+            } else {
+                if (ctx.statsBtn) loadPreContextRowMatchStats(ctx.statsBtn, event, { force_open: true });
+                if (ctx.col3Btn) loadPreContextRowCol3(ctx.col3Btn, event, { force_open: true });
+                if (ctx.movBtn) loadPreContextRowMovHistorico(ctx.movBtn, event, { force_open: true });
+            }
+        }
+
+        async function toggleAllPreContextTeamStats(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const statsButtons = visibleRows.map(r => r.querySelector('.pre-context-stats-btn')).filter(Boolean);
+            if (!statsButtons.length) return;
+
+            const anyOpen = statsButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.statsSlot && ctx.statsSlot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                statsButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.statsSlot) ctx.statsSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of statsButtons) {
+                    loadPreContextRowMatchStats(b, event, { force_open: true });
+                }
+            }
         }
 
         async function toggleCardStats(btn, event, matchId) {
