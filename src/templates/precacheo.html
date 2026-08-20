@@ -7603,6 +7603,23 @@
             return bestLg;
         }
 
+        function normLeagueId(val) {
+            if (val === undefined || val === null) return '';
+            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+        }
+
+        function togglePreMatchPreviousH2H(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const momentsContainer = panel.querySelector('.pre-context-moments');
+            if (!momentsContainer) return;
+            if (checkbox.checked) {
+                momentsContainer.classList.remove('hide-previous');
+            } else {
+                momentsContainer.classList.add('hide-previous');
+            }
+        }
+
         function renderPreMatchContext(pc, currentHome, currentAway) {
             const esc = value => String(value ?? '')
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -7735,14 +7752,23 @@
 
                         const isSameHa = isSameHaMatch(teamTargetAh, rowAh);
                         const isRowHidden = mode === 'all';
-                        return `<tr class="pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+                        return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date">${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah">${esc(rowAh)}</td>
-                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Scrapear y mostrar la ficha H2H Col3"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
-                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo y movimiento en este estadio y fuera"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
+                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                            <td class="ctx-both"><button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov. Histórico) debajo"><i class="fa-solid fa-bolt me-1"></i>2</button></td>
+                        </tr>
+                        <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
+                            <td colspan="8" class="pre-context-detail-cell">
+                                <div class="pre-context-detail-container">
+                                    <div class="pre-context-detail-slot col3-slot" style="display:none;"></div>
+                                    <div class="pre-context-detail-slot mov-slot" style="display:none;"></div>
+                                </div>
+                            </td>
                         </tr>`;
                     }).join('');
                 };
@@ -7758,10 +7784,10 @@
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Scrapear y visualizar todas las fichas H2H Col3 de ${esc(teamName)}"><i class="fa-solid fa-layer-group me-1"></i>Ver todos Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Scrapear y visualizar todos los movimientos históricos de ${esc(teamName)}"><i class="fa-solid fa-clock-rotate-left me-1"></i>Ver Mov. Histórico</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Lectura Patrones</button>` : ''}
+                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver 2</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
                     </div>
                     ${totalRows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th><th class="ctx-both" title="Desbloquear las 2 fichas debajo">⚡</th></tr></thead>
                         <tbody>${totalRows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos disponibles</div>
@@ -7771,47 +7797,47 @@
             };
 
             function isSameHaMatch(targetAh, rowAh) {
-            const p = Number.parseFloat(targetAh);
-            const r = Number.parseFloat(rowAh);
-            if (!Number.isFinite(p) || !Number.isFinite(r)) return false;
+                const p = Number.parseFloat(targetAh);
+                const r = Number.parseFloat(rowAh);
+                if (!Number.isFinite(p) || !Number.isFinite(r)) return false;
 
-            // Handicap 0 es 0 estricto (DNB no se mezcla con cuartos de gol)
-            if (Math.abs(p) < 0.01) {
-                return Math.abs(r) < 0.01;
+                // Handicap 0 es 0 estricto (DNB no se mezcla con cuartos de gol)
+                if (Math.abs(p) < 0.01) {
+                    return Math.abs(r) < 0.01;
+                }
+                if (Math.abs(r) < 0.01) {
+                    return false;
+                }
+
+                // Signos estrictos: positivos con positivos (+), negativos con negativos (-)
+                const pSign = p > 0 ? 1 : -1;
+                const rSign = r > 0 ? 1 : -1;
+                if (pSign !== rSign) return false;
+
+                const pAbs = Math.abs(p);
+                const rAbs = Math.abs(r);
+                const diff = Math.abs(pAbs - rAbs);
+
+                // Rango de bucket maximo +-0.25 dentro del mismo signo
+                return diff <= 0.255;
             }
-            if (Math.abs(r) < 0.01) {
-                return false;
+
+            function formatSameHaLabel(parentAh) {
+                const p = Number.parseFloat(parentAh);
+                if (!Number.isFinite(p)) return 'Same HA';
+                if (Math.abs(p) < 0.01) return 'Same HA (0 DNB)';
+                const sign = p < 0 ? '-' : '+';
+                const absP = Math.abs(p);
+                if (absP === 0.25) return `Same HA (${sign}0.25 / ${sign}0.5)`;
+                if (absP === 0.5) return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
+                if (absP === 0.75) return `Same HA (${sign}0.5 / ${sign}0.75 / ${sign}1.0)`;
+                if (absP === 1.0) return `Same HA (${sign}0.75 / ${sign}1.0 / ${sign}1.25)`;
+                if (absP === 1.25) return `Same HA (${sign}1.0 / ${sign}1.25 / ${sign}1.5)`;
+                if (absP === 1.5) return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
+                return `Same HA (${formatAhNumber(p)}±0.25)`;
             }
 
-            // Signos estrictos: positivos con positivos (+), negativos con negativos (-)
-            const pSign = p > 0 ? 1 : -1;
-            const rSign = r > 0 ? 1 : -1;
-            if (pSign !== rSign) return false;
-
-            const pAbs = Math.abs(p);
-            const rAbs = Math.abs(r);
-            const diff = Math.abs(pAbs - rAbs);
-
-            // Rango de bucket maximo +-0.25 dentro del mismo signo
-            return diff <= 0.255;
-        }
-
-        function formatSameHaLabel(parentAh) {
-            const p = Number.parseFloat(parentAh);
-            if (!Number.isFinite(p)) return 'Same HA';
-            if (Math.abs(p) < 0.01) return 'Same HA (0 DNB)';
-            const sign = p < 0 ? '-' : '+';
-            const absP = Math.abs(p);
-            if (absP === 0.25) return `Same HA (${sign}0.25 / ${sign}0.5)`;
-            if (absP === 0.5) return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
-            if (absP === 0.75) return `Same HA (${sign}0.5 / ${sign}0.75 / ${sign}1.0)`;
-            if (absP === 1.0) return `Same HA (${sign}0.75 / ${sign}1.0 / ${sign}1.25)`;
-            if (absP === 1.25) return `Same HA (${sign}1.0 / ${sign}1.25 / ${sign}1.5)`;
-            if (absP === 1.5) return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
-            return `Same HA (${formatAhNumber(p)}±0.25)`;
-        }
-
-const formatAhNumber = value => Number.isFinite(Number(value))
+            const formatAhNumber = value => Number.isFinite(Number(value))
                 ? `${Number(value) > 0 ? '+' : ''}${Number(value)}`
                 : 'N/D';
             const renderSimilarAh = moment => {
@@ -7875,7 +7901,9 @@ const formatAhNumber = value => Number.isFinite(Number(value))
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
                     return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
                 });
-                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
+                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}
+${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}
+Resumen: V ${wins} | E ${draws} | D ${losses}`;
             };
             const similarAhText = moment => {
                 const analysis = moment?.similar_ah;
@@ -7937,12 +7965,39 @@ const formatAhNumber = value => Number.isFinite(Number(value))
                 .replace(/'/g, '&#39;');
         }
 
-        function hidePreContextRowCol3(button) {
-            if (!button) return;
-            button.dataset.open = '0';
-            button.classList.remove('is-visible', 'is-empty', 'is-card');
-            button.innerHTML = '<i class="fa-regular fa-eye me-1"></i>Ver';
-            button.title = 'Mostrar de nuevo el H2H Col3 en esta celda';
+        function getRowDetailElements(button) {
+            const tr = button?.closest('tr');
+            if (!tr) return null;
+            const detailRow = tr.classList.contains('pre-context-detail-row')
+                ? tr
+                : (tr.nextElementSibling && tr.nextElementSibling.classList.contains('pre-context-detail-row') ? tr.nextElementSibling : null);
+            if (!detailRow) return null;
+            const parentRow = tr.classList.contains('pre-context-detail-row') ? tr.previousElementSibling : tr;
+            return {
+                parentRow,
+                detailRow,
+                col3Btn: parentRow?.querySelector('.pre-context-col3-btn'),
+                movBtn: parentRow?.querySelector('.pre-context-mov-btn'),
+                bothBtn: parentRow?.querySelector('.pre-context-both-btn'),
+                col3Slot: detailRow.querySelector('.col3-slot'),
+                movSlot: detailRow.querySelector('.mov-slot'),
+            };
+        }
+
+        function syncDetailRowState(ctx) {
+            if (!ctx || !ctx.detailRow) return;
+            const col3Visible = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movVisible = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const anyVisible = col3Visible || movVisible;
+            const bothVisible = col3Visible && movVisible;
+
+            ctx.detailRow.dataset.open = anyVisible ? '1' : '0';
+            ctx.detailRow.style.display = anyVisible ? '' : 'none';
+            ctx.detailRow.hidden = !anyVisible;
+
+            if (ctx.col3Btn) ctx.col3Btn.classList.toggle('is-active', !!col3Visible);
+            if (ctx.movBtn) ctx.movBtn.classList.toggle('is-active', !!movVisible);
+            if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!bothVisible);
         }
 
         function buildPreContextCol3Card(button, data) {
@@ -8053,95 +8108,19 @@ const formatAhNumber = value => Number.isFinite(Number(value))
 
             const subtleTagText = performance === 'MEJORA' ? 'Mejor vs rival' : (performance === 'EMPEORA' ? 'Peor vs rival' : 'Igual vs rival');
             const subtleTagClass = statusClass === 'is-better' ? 'is-cover' : (statusClass === 'is-worse' ? 'is-fail' : 'is-same');
-            const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.46rem; padding:0 4px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
+            const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.55rem; padding:1px 5px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
 
-            return `<span class="pre-col3-card-head"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}${typeHtml}</span>
-                <span class="pre-col3-date">${escapePreContextCol3(col3.date || 'Fecha N/D')}</span>
-                <span class="pre-col3-numbers"><span>${escapePreContextCol3(col3.handicap ?? '-')}</span><span>${escapePreContextCol3(score)}</span></span>
-                <span class="pre-col3-teams">${escapePreContextCol3(col3Home)}<br>${escapePreContextCol3(col3Away)}</span>
-                <span class="pre-col3-tags">${coverHtml}${movementHtml}</span>`;
-        }
-
-        function showPreContextRowCol3(button) {
-            if (!button || button.dataset.loaded !== '1') return;
-            const found = button.dataset.found === '1';
-            button.dataset.open = '1';
-            button.classList.toggle('is-visible', found);
-            button.classList.toggle('is-empty', !found);
-            button.classList.toggle('is-card', found);
-            button.innerHTML = found
-                ? (button._col3CardHtml || `<span class="pre-context-col3-result">${escapePreContextCol3(button.dataset.score || '?:?')}</span>`)
-                : '<span class="pre-context-col3-result">Sin H2H</span>';
-            button.title = `${button.dataset.detail || 'H2H Col3'} · Pulsa para ocultar`;
-        }
-
-        function hidePreContextRowCol3(button) {
-            if (!button) return;
-            button.dataset.open = '0';
-            button.classList.remove('is-visible', 'is-empty', 'is-card');
-            button.innerHTML = '<i class="fa-regular fa-eye me-1"></i>Ver';
-            button.title = 'Mostrar de nuevo el H2H Col3 en esta celda';
-        }
-
-        function closePreContextRowCol3(button = null) {
-            if (button) hidePreContextRowCol3(button);
-        }
-
-        async function executeLoadPreContextRowCol3(button) {
-            if (!button) return;
-            if (button.dataset.loaded === '1') {
-                showPreContextRowCol3(button);
-                return;
-            }
-
-            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
-            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
-            if (!matchId && !parentMatchId) return;
-
-            button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando';
-
-            try {
-                const response = await fetch('/api/precacheo_h2h_col3', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        match_id: matchId,
-                        parent_match_id: parentMatchId,
-                        row_date: button.dataset.rowDate || '',
-                        row_role: button.dataset.rowRole || '',
-                        row_home: button.dataset.rowHome || '',
-                        row_away: button.dataset.rowAway || '',
-                        row_home_id: button.dataset.rowHomeId || '',
-                        row_away_id: button.dataset.rowAwayId || '',
-                        row_score: button.dataset.rowScore || '',
-                        row_ah: button.dataset.rowAh || '',
-                    }),
-                });
-                const data = await response.json();
-                if (!response.ok || data.status !== 'success') {
-                    throw new Error(data.error || 'No se pudo extraer H2H Col3');
-                }
-
-                const col3 = data.h2h_col3 || {};
-                const match = data.match || {};
-                const found = col3.status === 'found';
-                const cacheLabel = data.cached ? 'caché · sin nuevo scrapeo' : 'extraído ahora';
-                const title = `Col3 de ${match.home_name || 'Local'} vs ${match.away_name || 'Visitante'}`;
-                button.dataset.loaded = '1';
-                button.dataset.found = found ? '1' : '0';
-                button.dataset.score = found ? `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}` : '';
-                button.dataset.detail = found
-                    ? `${title}: ${col3.h2h_home_team_name || 'Rival A'} ${button.dataset.score} ${col3.h2h_away_team_name || 'Rival B'} · Fecha ${col3.date || 'N/D'} · AH ${col3.handicap ?? 'N/D'} · ${cacheLabel}`
-                    : `${title}: ${col3.resultado || 'No encontrado'} · ${cacheLabel}`;
-                button._col3CardHtml = found ? buildPreContextCol3Card(button, data) : '';
-                showPreContextRowCol3(button);
-            } catch (error) {
-                button.innerHTML = '<i class="fa-solid fa-rotate me-1"></i>Reintentar';
-                button.title = `Error: ${error.message}`;
-            } finally {
-                button.disabled = false;
-            }
+            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:4px;"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}</div>
+                    ${typeHtml}
+                </div>
+                <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
+                <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:2px;">
+                    <span>AH <strong>${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
+                    <span>Res <strong>${escapePreContextCol3(score)}</strong></span>
+                </div>
+                <div style="font-size:.68rem; color:#334155; font-weight:700; line-height:1.2; margin-bottom:4px;">${escapePreContextCol3(col3Home)} vs ${escapePreContextCol3(col3Away)}</div>
+                <div class="pre-col3-tags" style="display:flex; gap:4px; margin:0;">${coverHtml}${movementHtml}</div>`;
         }
 
         function buildPreContextMovCard(button, data) {
@@ -8181,23 +8160,22 @@ const formatAhNumber = value => Number.isFinite(Number(value))
                 const movTag = formatMovBadge(item.movement, ahStr);
                 const titleLabel = isSameStadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE';
 
-                // Fondo amarillo crema para MISMO ESTADIO, fondo blanco para ESTADIO DIFERENTE
                 const boxStyle = isSameStadium
-                    ? 'background:#fefce8; border:1px solid #fef08a; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(234, 179, 8, 0.08);'
-                    : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
+                    ? 'background:#fefce8; border:1px solid #fef08a; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(234, 179, 8, 0.08);'
+                    : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
 
                 const titleColor = isSameStadium ? '#854d0e' : '#0369a1';
                 const numbersColor = isCover ? '#15803d' : (isFail ? '#b91c1c' : '#0f172a');
 
                 return `<div style="${boxStyle}">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                        <span style="font-weight:900; font-size:.64rem; color:${titleColor};">${icon} ${titleLabel}</span>
-                        <span class="pre-col3-tag ${evalClass}" style="font-size:.52rem; padding:1px 6px; font-weight:900; background:${evalBg}; color:#fff; border-radius:3px; white-space:nowrap;">${evalText}</span>
+                        <span style="font-weight:900; font-size:.68rem; color:${titleColor};">${icon} ${titleLabel}</span>
+                        <span class="pre-col3-tag ${evalClass}" style="font-size:.56rem; padding:1px 6px; font-weight:900; background:${evalBg}; color:#fff; border-radius:3px; white-space:nowrap;">${evalText}</span>
                     </div>
-                    <div style="font-size:.58rem; color:#64748b; font-weight:700; margin:1px 0;">
+                    <div style="font-size:.62rem; color:#64748b; font-weight:700; margin:1px 0;">
                         📅 ${escapePreContextCol3(dateStr)}
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.68rem; font-weight:900; margin-top:2px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.72rem; font-weight:900; margin-top:2px;">
                         <span style="color:${numbersColor};">AH <strong>${escapePreContextCol3(String(ahStr))}</strong> · <strong>${escapePreContextCol3(String(scoreStr))}</strong></span>
                         <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
                     </div>
@@ -8205,26 +8183,111 @@ const formatAhNumber = value => Number.isFinite(Number(value))
             };
 
             let sectionsHtml = '';
-            if (stadium) {
-                sectionsHtml += buildSection('ESTADIO', '🏟️', stadium);
-            }
-            if (general) {
-                sectionsHtml += buildSection('GENERAL', '✈️', general);
-            }
+            if (stadium) sectionsHtml += buildSection('ESTADIO', '🏟️', stadium);
+            if (general) sectionsHtml += buildSection('GENERAL', '✈️', general);
 
             if (!sectionsHtml) {
-                return `<span class="pre-col3-card-head"><span class="pre-col3-status is-equal">DIRECTO</span><span class="pre-col3-badge is-inverse">N/D</span></span>
-                    <span style="font-size:.65rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</span>`;
+                return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;"><span class="pre-col3-status is-equal">DIRECTO</span><span class="pre-col3-badge is-inverse">N/D</span></div>
+                    <div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</div>`;
             }
 
             const headerScope = (stadium && general) ? 'MISMO & DIFERENTE' : (stadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE');
-            return `<div class="pre-col3-card-head" style="margin-bottom:3px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
+            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
                 ${sectionsHtml}`;
+        }
+
+        async function loadPreContextRowCol3(button, event, options = {}) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.col3Slot) return;
+
+            const isCurrentlyOpen = ctx.col3Slot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                // Alternar a cerrado
+                ctx.col3Slot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            // Mostrar el slot en la sub-fila de abajo
+            ctx.col3Slot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
+            if (!matchId && !parentMatchId) {
+                ctx.col3Slot.innerHTML = '<div style="font-size:.65rem; color:#94a3b8; text-align:center;">Sin ID de partido</div>';
+                return;
+            }
+
+            button.disabled = true;
+            ctx.col3Slot.innerHTML = '<div style="font-size:.68rem; color:#3b82f6; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando H2H Col3...</div>';
+
+            try {
+                const response = await fetch('/api/precacheo_h2h_col3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: button.dataset.rowDate || '',
+                        row_role: button.dataset.rowRole || '',
+                        row_home: button.dataset.rowHome || '',
+                        row_away: button.dataset.rowAway || '',
+                        row_home_id: button.dataset.rowHomeId || '',
+                        row_away_id: button.dataset.rowAwayId || '',
+                        row_score: button.dataset.rowScore || '',
+                        row_ah: button.dataset.rowAh || '',
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo extraer H2H Col3');
+                }
+
+                const col3 = data.h2h_col3 || {};
+                const found = col3.status === 'found';
+                button.dataset.loaded = '1';
+                button.dataset.found = found ? '1' : '0';
+                ctx.col3Slot.classList.add('is-card');
+                ctx.col3Slot.innerHTML = found
+                    ? buildPreContextCol3Card(button, data)
+                    : '<div class="pre-col3-card-head"><span class="pre-col3-status is-equal">COL3</span><span class="pre-col3-badge is-inverse">N/D</span></div><div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H directo encontrado para este rival</div>';
+            } catch (error) {
+                ctx.col3Slot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
+            } finally {
+                button.disabled = false;
+                syncDetailRowState(ctx);
+            }
         }
 
         async function loadPreContextRowMovHistorico(button, event, options = {}) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.movSlot) return;
+
+            const isCurrentlyOpen = ctx.movSlot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                // Alternar a cerrado
+                ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            // Mostrar el slot en la sub-fila de abajo
+            ctx.movSlot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
             const matchId = String(button.dataset.matchId || '').trim();
             const parentMatchId = String(button.dataset.parentMatchId || '').trim();
             const rowDate = String(button.dataset.rowDate || '').trim();
@@ -8234,14 +8297,12 @@ const formatAhNumber = value => Number.isFinite(Number(value))
             const rowAh = String(button.dataset.rowAh || '').trim();
 
             if (!matchId && !parentMatchId) {
-                button.disabled = true;
-                button.textContent = 'Sin ID';
+                ctx.movSlot.innerHTML = '<div style="font-size:.65rem; color:#94a3b8; text-align:center;">Sin ID de partido</div>';
                 return;
             }
 
-            const originalHtml = button.innerHTML;
             button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            ctx.movSlot.innerHTML = '<div style="font-size:.68rem; color:#eab308; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando Mov. Histórico...</div>';
 
             try {
                 const response = await fetch('/api/precacheo_h2h_mov_historico', {
@@ -8263,31 +8324,123 @@ const formatAhNumber = value => Number.isFinite(Number(value))
                     throw new Error(data.error || 'Error al cargar H2H histórico');
                 }
 
-                if (data.status === 'not_found') {
-                    button.classList.add('is-card');
-                    button.innerHTML = `<span class="pre-col3-card-head"><span class="pre-col3-status is-equal">DIRECTO</span><span class="pre-col3-badge is-inverse">N/D</span></span>
-                        <span style="font-size:.65rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</span>`;
-                    button.disabled = false;
-                    return;
-                }
-
-                button.classList.add('is-card');
-                button.innerHTML = buildPreContextMovCard(button, data);
-                button.disabled = false;
+                button.dataset.loaded = '1';
+                ctx.movSlot.classList.add('is-card');
+                ctx.movSlot.innerHTML = buildPreContextMovCard(button, data);
             } catch (err) {
                 console.error('Error al cargar Mov. Histórico:', err);
+                ctx.movSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${err.message}</div>`;
+            } finally {
                 button.disabled = false;
-                button.innerHTML = '<span class="text-danger" style="font-size:.6rem;">Error</span>';
-                if (!options.silent) {
-                    alert(err.message || 'No se pudo cargar el H2H histórico');
+                syncDetailRowState(ctx);
+            }
+        }
+
+        async function togglePreContextRowBoth(button, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx) return;
+
+            const col3Open = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movOpen = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const bothOpen = col3Open && movOpen;
+
+            if (bothOpen) {
+                // Cerrar ambos
+                if (ctx.col3Slot) ctx.col3Slot.style.display = 'none';
+                if (ctx.movSlot) ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+            } else {
+                // Abrir y cargar ambos
+                if (ctx.col3Btn) loadPreContextRowCol3(ctx.col3Btn, event, { force_open: true });
+                if (ctx.movBtn) loadPreContextRowMovHistorico(ctx.movBtn, event, { force_open: true });
+            }
+        }
+
+        async function toggleAllPreContextTeamCol3(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const col3Buttons = visibleRows.map(r => r.querySelector('.pre-context-col3-btn')).filter(Boolean);
+            if (!col3Buttons.length) return;
+
+            const anyOpen = col3Buttons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.col3Slot && ctx.col3Slot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                col3Buttons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.col3Slot) ctx.col3Slot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of col3Buttons) {
+                    loadPreContextRowCol3(b, event, { force_open: true });
+                }
+            }
+        }
+
+        async function toggleAllPreContextTeamMov(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const movButtons = visibleRows.map(r => r.querySelector('.pre-context-mov-btn')).filter(Boolean);
+            if (!movButtons.length) return;
+
+            const anyOpen = movButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.movSlot && ctx.movSlot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                movButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.movSlot) ctx.movSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of movButtons) {
+                    loadPreContextRowMovHistorico(b, event, { force_open: true });
+                }
+            }
+        }
+
+        async function toggleAllPreContextTeamBoth(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const bothButtons = visibleRows.map(r => r.querySelector('.pre-context-both-btn')).filter(Boolean);
+            if (!bothButtons.length) return;
+
+            const anyOpen = bothButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.detailRow && ctx.detailRow.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                bothButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.col3Slot) ctx.col3Slot.style.display = 'none';
+                    if (ctx?.movSlot) ctx.movSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of bothButtons) {
+                    togglePreContextRowBoth(b, event);
                 }
             }
         }
 
         function computeTeamPatternSynthesis(container) {
             if (!container) return '';
-            const col3Cards = Array.from(container.querySelectorAll('.pre-context-col3-btn.is-card'));
-            const movCards = Array.from(container.querySelectorAll('.pre-context-mov-btn.is-card'));
+            const col3Cards = Array.from(container.querySelectorAll('.pre-context-detail-slot.col3-slot.is-card'));
+            const movCards = Array.from(container.querySelectorAll('.pre-context-detail-slot.mov-slot.is-card'));
 
             let col3Mejora = 0, col3Empeora = 0, col3Iguala = 0;
             col3Cards.forEach(card => {
@@ -8300,9 +8453,9 @@ const formatAhNumber = value => Number.isFinite(Number(value))
             let h2hMejor = 0, h2hPeor = 0, h2hIgual = 0;
             movCards.forEach(card => {
                 const text = card.innerText || '';
-                if (text.includes('Mejor')) h2hMejor++;
-                else if (text.includes('Peor')) h2hPeor++;
-                else if (text.includes('Igual')) h2hIgual++;
+                if (text.includes('Cubre') || text.includes('Mejor')) h2hMejor++;
+                else if (text.includes('No cubre') || text.includes('Peor')) h2hPeor++;
+                else if (text.includes('Push') || text.includes('Igual')) h2hIgual++;
             });
 
             let patternBadge = '';
@@ -8349,152 +8502,58 @@ const formatAhNumber = value => Number.isFinite(Number(value))
 
         async function togglePreContextTeamPattern(btn, event) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            const container = btn ? btn.closest('.pre-context-team') : null;
+            const container = btn.closest('.pre-context-team');
             if (!container) return;
 
             let banner = container.querySelector('.pre-context-pattern-banner');
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.className = 'pre-context-pattern-banner';
-                const head = container.querySelector('.pre-context-team-head');
-                if (head && head.nextSibling) {
-                    container.insertBefore(banner, head.nextSibling);
-                } else {
-                    container.appendChild(banner);
-                }
-            }
-
-            if (banner.classList.contains('is-active') && banner.dataset.loaded === '1') {
-                banner.classList.remove('is-active');
+            if (banner) {
+                banner.remove();
                 btn.classList.remove('is-active');
-                btn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Lectura Patrones';
                 return;
             }
 
-            const origHtml = btn.innerHTML;
             btn.disabled = true;
+            const originalHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Analizando...';
 
-            const col3Buttons = Array.from(container.querySelectorAll('.pre-context-col3-btn:not(.is-card)'));
-            const movButtons = Array.from(container.querySelectorAll('.pre-context-mov-btn:not(.is-card)'));
+            try {
+                const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+                const col3Buttons = visibleRows.map(r => r.querySelector('.pre-context-col3-btn')).filter(Boolean);
+                const movButtons = visibleRows.map(r => r.querySelector('.pre-context-mov-btn')).filter(Boolean);
 
-            const BATCH_SIZE = 3;
-            for (let i = 0; i < col3Buttons.length; i += BATCH_SIZE) {
-                const batch = col3Buttons.slice(i, i + BATCH_SIZE);
-                await Promise.all(batch.map(b => executeLoadPreContextRowCol3(b)));
-            }
-            for (let i = 0; i < movButtons.length; i += BATCH_SIZE) {
-                const batch = movButtons.slice(i, i + BATCH_SIZE);
-                await Promise.all(batch.map(b => loadPreContextRowMovHistorico(b, null, { silent: true })));
-            }
+                // Disparar carga de todos los visibles
+                for (const b of col3Buttons) {
+                    if (b.dataset.loaded !== '1') {
+                        loadPreContextRowCol3(b, event, { force_open: true });
+                    }
+                }
+                for (const b of movButtons) {
+                    if (b.dataset.loaded !== '1') {
+                        loadPreContextRowMovHistorico(b, event, { force_open: true });
+                    }
+                }
 
-            const synthesisHtml = computeTeamPatternSynthesis(container);
-            banner.innerHTML = synthesisHtml;
-            banner.classList.add('is-active');
-            banner.dataset.loaded = '1';
+                // Esperar 400ms a que se resuelvan
+                await new Promise(r => setTimeout(r, 400));
 
-            btn.disabled = false;
-            btn.classList.add('is-active');
-            btn.innerHTML = '<i class="fa-solid fa-eye-slash me-1"></i>Ocultar Patrón';
-        }
+                const bannerHtml = computeTeamPatternSynthesis(container);
+                const bannerDiv = document.createElement('div');
+                bannerDiv.className = 'pre-context-pattern-banner';
+                bannerDiv.innerHTML = bannerHtml;
 
-        async function toggleAllPreContextTeamMov(button, event) {
-            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            const container = button ? button.closest('.pre-context-team') : null;
-            if (!container) return;
-
-            const buttons = Array.from(container.querySelectorAll('.pre-context-mov-btn:not(.is-card)'));
-            if (!buttons.length) return;
-
-            const origHtml = button.innerHTML;
-            button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando...';
-
-            const BATCH_SIZE = 3;
-            for (let i = 0; i < buttons.length; i += BATCH_SIZE) {
-                const batch = buttons.slice(i, i + BATCH_SIZE);
-                await Promise.all(batch.map(btn => loadPreContextRowMovHistorico(btn, null, { silent: true })));
-            }
-
-            button.disabled = false;
-            button.innerHTML = origHtml;
-        }
-
-        async function loadPreContextRowCol3(button, event) {
-            event?.preventDefault();
-            event?.stopPropagation();
-            if (!button || button.disabled) return;
-            if (button.dataset.open === '1') {
-                hidePreContextRowCol3(button);
-                return;
-            }
-            if (button.dataset.loaded === '1') {
-                showPreContextRowCol3(button);
-                return;
-            }
-            await executeLoadPreContextRowCol3(button);
-        }
-
-        async function toggleAllPreContextTeamCol3(btn, event) {
-            event?.preventDefault();
-            event?.stopPropagation();
-            const teamContainer = btn?.closest('.pre-context-team');
-            if (!teamContainer) return;
-            const col3Buttons = [...teamContainer.querySelectorAll('.pre-context-col3-btn')]
-                .filter(b => {
-                    const row = b.closest('tr');
-                    return !row || (row.style.display !== 'none' && !row.hidden);
-                });
-            if (!col3Buttons.length) return;
-
-            const allOpen = col3Buttons.every(b => b.dataset.open === '1');
-            if (allOpen) {
-                col3Buttons.forEach(b => hidePreContextRowCol3(b));
-                btn.classList.remove('is-active');
-                btn.innerHTML = '<i class="fa-solid fa-layer-group me-1"></i>Ver todos H2H';
-                return;
-            }
-
-            // Mostrar inmediatamente los ya cargados
-            col3Buttons.filter(b => b.dataset.loaded === '1').forEach(b => showPreContextRowCol3(b));
-
-            // Cargar / scrapear los pendientes
-            const toLoad = col3Buttons.filter(b => b.dataset.loaded !== '1');
-            if (!toLoad.length) {
+                const table = container.querySelector('.pre-context-table');
+                if (table) {
+                    table.parentNode.insertBefore(bannerDiv, table);
+                } else {
+                    container.appendChild(bannerDiv);
+                }
                 btn.classList.add('is-active');
-                btn.innerHTML = '<i class="fa-solid fa-eye-slash me-1"></i>Ocultar todos H2H';
-                return;
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
-
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i>Scrapeando (${toLoad.length})...`;
-
-            const BATCH_SIZE = 3;
-            for (let i = 0; i < toLoad.length; i += BATCH_SIZE) {
-                const chunk = toLoad.slice(i, i + BATCH_SIZE);
-                await Promise.all(chunk.map(b => executeLoadPreContextRowCol3(b)));
-            }
-
-            btn.disabled = false;
-            btn.classList.add('is-active');
-            btn.innerHTML = '<i class="fa-solid fa-eye-slash me-1"></i>Ocultar todos H2H';
-        }
-
-        function togglePreMatchPreviousH2H(checkbox) {
-            const panel = checkbox?.closest('.pre-context-panel');
-            if (!panel) return;
-            const momentsContainer = panel.querySelector('.pre-context-moments');
-            if (!momentsContainer) return;
-            if (checkbox.checked) {
-                momentsContainer.classList.remove('hide-previous');
-            } else {
-                momentsContainer.classList.add('hide-previous');
-            }
-        }
-
-        function normLeagueId(val) {
-            if (val === undefined || val === null) return '';
-            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
         }
 
         function applyPreMatchContextFilters(element) {
