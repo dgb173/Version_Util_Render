@@ -401,285 +401,7 @@
             color: #6c757d;
         }
 
-        /* --- Contexto Previo CSS (Letra ajustada más grande y legible) --- */
-        .pre-context-panel {
-            margin: 6px 0 12px;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 9px;
-            background: #f8fafc;
-            color: #334155;
-            transition: box-shadow .2s ease, border-color .2s ease;
-            text-align: left;
-        }
-
-        .pre-context-panel.is-focused {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
-        }
-
-        .pre-context-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 8px;
-            padding-bottom: 7px;
-            border-bottom: 2px solid #dbe5ef;
-        }
-
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
-            }
-
-            .sidebar-overlay.active {
-                display: block;
-            }
-
-            /* Table optimizations for mobile */
-            .excel-table {
-                font-size: 0.75rem;
-            }
-
-            .excel-table th,
-            .excel-table td {
-                padding: 4px;
-            }
-
-            .header-filter {
-                font-size: 0.7rem;
-                padding: 2px;
-            }
-
-            .col-ah,
-            .col-res {
-                width: 50px;
-                font-size: 0.85rem;
-            }
-
-            .col-team {
-                font-size: 0.8rem;
-                min-width: 100px;
-            }
-
-            .col-prev {
-                min-width: 110px;
-            }
-        }
-
-        .mobile-header {
-            display: none;
-        }
-
-        /* H2H Col3 - Fondo rosa para distinguirla */
-        .col-h2h-col3 {
-            background-color: #ffe4ec !important;
-        }
-
-        /* Fondo rojo claro para celdas sin datos */
-        .cell-no-data {
-            background-color: #ffcdd2 !important;
-        }
-
-        /* MultiSelect Styles */
-        .multiselect-container {
-            position: relative;
-            width: 100%;
-        }
-
-        .h2h-ah-filter-pair {
-            display: flex;
-            gap: 3px;
-            width: 100%;
-        }
-
-        .h2h-ah-filter-pair .multiselect-container {
-            flex: 1 1 0;
-            min-width: 0;
-        }
-
-        .h2h-ah-filter-pair .multiselect-btn {
-            min-height: 25px;
-            padding: 3px 4px;
-            font-size: 0.65rem;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .multiselect-btn {
-            width: 100%;
-            text-align: left;
-            background: linear-gradient(to bottom, #fff, #f8f9fa);
-            border: 1px solid #adb5bd;
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 4px;
-            font-weight: 500;
-            color: #495057;
-            transition: all 0.2s ease;
-        }
-
-        .multiselect-btn:hover {
-            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-            border-color: #6c757d;
-        }
-
-        .multiselect-btn::after {
-            content: '▼';
-            font-size: 0.6rem;
-            margin-left: 5px;
-            color: #6c757d;
-        }
-
-        .multiselect-dropdown {
-            display: none;
-            position: fixed;
-            /* Fixed instead of absolute to escape overflow:hidden containers */
-            width: 260px;
-            max-height: 350px;
-            overflow-y: auto;
-            background: #fff;
-            border: 1px solid #adb5bd;
-            z-index: 9999;
-            /* Very high z-index */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            border-radius: 6px;
-            padding: 4px 0;
-        }
-
-        .multiselect-dropdown.show {
-            display: block;
-        }
-
-        .multiselect-option {
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.15s;
-        }
-
-        .multiselect-option:last-child {
-            border-bottom: none;
-        }
-
-        .multiselect-option:hover {
-            background-color: #e3f2fd;
-        }
-
-        .multiselect-option input {
-            margin-right: 8px;
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-
-        /* Color coding for positive/negative handicaps */
-        .multiselect-option[data-positive="true"] {
-            color: #0d6efd;
-        }
-
-        .multiselect-option[data-negative="true"] {
-            color: #dc3545;
-        }
-
-        .multiselect-option strong {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-
-        /* --- Contexto Previo CSS (Letra ajustada más grande y legible) --- */
-        .pre-context-panel {
-            margin: 6px 0 12px;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 9px;
-            background: #f8fafc;
-            color: #334155;
-            transition: box-shadow .2s ease, border-color .2s ease;
-            text-align: left;
-        }
-
-        .pre-context-panel.is-focused {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
-        }
-
-        .pre-context-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 8px;
-            padding-bottom: 7px;
-            border-bottom: 2px solid #dbe5ef;
-        }
-
-        .pre-context-title { font-size: .95rem; font-weight: 900; color: #1e3a5f; }
-        .pre-context-note { font-size: .78rem; font-weight: 700; color: #64748b; }
-        .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
-        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .75rem; font-weight: 900; cursor: pointer; white-space: nowrap; user-select: none; }
-        .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
-        .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
-        .pre-context-copy:hover { background: #0d6efd; color: #fff; }
-        .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .pre-context-moments.hide-previous { grid-template-columns: minmax(0, 1fr); }
-        .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
-        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
-        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
-        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
-        .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
-        .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .pre-context-team { min-width: 0; }
-        .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
-        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
-        .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
-        .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
-        .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
-        .pre-context-role.is-all { color: #245a91; background: #e7f1fb; }
-        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
-        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 22%; }
-        .pre-context-table .ctx-league { width: 13%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-score { width: 15%; text-align: center; font-weight: 900; }
-        .pre-context-table .ctx-ah { width: 15%; text-align: right; }
-        .pre-context-result-W { color: #16834b; background: #eef9f2; }
-        .pre-context-result-D { color: #9a6700; background: #fff9e8; }
-        .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
-        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
-        .pre-context-summary .is-win { color: #16834b; }
-        .pre-context-summary .is-draw { color: #9a6700; }
-        .pre-context-summary .is-loss { color: #c92a3a; }
-        .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .78rem; font-weight: 700; }
-        .pre-context-filter-empty { display: none; padding: 12px 10px; text-align: center; color: #64748b; background: #f8fafc; font-size: .75rem; font-weight: 700; }
-
-        .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 8px; }
-        .pre-context-ah-title { margin-bottom: 6px; color: #475569; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
-        .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-        .pre-context-ah-team { padding: 6px; border: 1px solid #dbe3ec; border-radius: 5px; background: #fff; font-size: .72rem; line-height: 1.35; }
-        .pre-context-ah-team strong { color: #1e3a5f; }
-        .pre-context-correlation { margin-top: 6px; padding: 6px 8px; border-radius: 5px; text-align: center; font-size: .75rem; font-weight: 900; }
-        .pre-context-correlation.is-home { color: #137047; background: #e4f5eb; }
-        .pre-context-correlation.is-away { color: #b4232f; background: #fdebec; }
-        .pre-context-correlation.is-balanced { color: #9a6700; background: #fff7d6; }
-        .pre-context-correlation.is-insufficient { color: #64748b; background: #edf2f7; }
-
-        @media (max-width: 900px) {
-            .pre-context-moments { grid-template-columns: 1fr; }
-            .pre-context-panel { min-width: 100%; }
-            .pre-context-note { display: none; }
-        }
-    </style>
+        </style>
 </head>
 
 <body>
@@ -3007,128 +2729,92 @@
             }).join('');
         }
 
-        function renderPreMatchContextCard(pc, matchPayload) {
-            if (!pc) return '';
-            const current = pc.current || {};
-            const previous = pc.previous || null;
-            const currentHome = current.home_name || pc.home_name || matchPayload?.home_team || matchPayload?.home_name || 'Local';
-            const currentAway = current.away_name || pc.away_name || matchPayload?.away_team || matchPayload?.away_name || 'Visitante';
-            const currentNeutral = !!current.is_neutral_venue;
-            const currentLeague = typeof resolveLeagueId === 'function' ? resolveLeagueId(pc, matchPayload) : String(current.league_id || pc.league_id || '').trim();
-
-            const esc = str => lgEscape(str);
-            const sameTeamName = (a, b) => {
-                if (!a || !b) return false;
-                const norm = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
-                const na = norm(a), nb = norm(b);
-                return na === nb || na.includes(nb) || nb.includes(na);
-            };
-            const parseScoreValue = val => {
-                if (!val) return null;
-                const str = String(val).replace(':', '-').trim();
-                const parts = str.split('-');
-                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                    return { home: parseInt(parts[0], 10), away: parseInt(parts[1], 10) };
-                }
-                return null;
-            };
-            const asRows = arr => Array.isArray(arr) ? arr : [];
-
-            const renderTeam = (teamName, role, matches, allVenues = false) => {
-                let wins = 0, draws = 0, losses = 0;
-                const rows = asRows(matches).map(item => {
-                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
-                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
-                    const own = score ? (subjectHome ? score.home : score.away) : null;
-                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
-                    let result = own === null ? '' : (own > rivalGoals ? 'W' : (own < rivalGoals ? 'L' : 'D'));
-                    if (result === 'W') wins += 1;
-                    else if (result === 'D') draws += 1;
-                    else if (result === 'L') losses += 1;
-                    const rival = subjectHome ? (item?.away ?? item?.away_team ?? '') : (item?.home ?? item?.home_team ?? '');
-                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}"><td class="ctx-date">${esc(item?.date || '-')}</td><td class="ctx-league">${esc(leagueId)}</td><td title="${esc(rival)}">${esc(rival || '-')}</td><td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td><td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td></tr>`;
-                }).join('');
-                return `<div class="pre-context-team"><div class="pre-context-team-head"><span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span><span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span></div>${rows ? `<table class="pre-context-table"><thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead><tbody>${rows}</tbody></table><div class="pre-context-filter-empty">Sin partidos de la liga actual</div><div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>` : '<div class="pre-context-empty">Sin historial previo disponible</div>'}</div>`;
-            };
-
-            const formatAhNumber = value => Number.isFinite(Number(value)) ? `${Number(value) > 0 ? '+' : ''}${Number(value)}` : 'N/D';
-            const renderSimilarAh = moment => {
-                const analysis = moment?.similar_ah;
-                if (!analysis) return '';
-                const summary = (label, data) => {
-                    const samples = Number(data?.samples) || 0;
-                    const cover = Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D';
-                    const gf = Number.isFinite(Number(data?.goals_for_avg)) ? Number(data.goals_for_avg).toFixed(1) : 'N/D';
-                    const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
-                    return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
+        
+        function beginDeferredClipboardWrite() {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                return {
+                    finish: async function (text) {
+                        await navigator.clipboard.writeText(text);
+                    },
+                    cancel: function (err) {
+                        console.warn('Clipboard write cancelled:', err);
+                    }
                 };
-                return `<div class="pre-context-ah-summary"><div class="pre-context-ah-title"><i class="fa-solid fa-scale-balanced me-1"></i>Hándicap similar ${moment === current ? '(partido actual)' : '(previo)'}</div><div class="pre-context-ah-grid">${summary(moment?.home_name || currentHome, analysis.home)}${summary(moment?.away_name || currentAway, analysis.away)}</div></div>`;
-            };
-
-            const renderMoment = (title, moment, isPrevious = false) => {
-                if (!moment) return '';
-                const hName = moment.home_name || currentHome;
-                const aName = moment.away_name || currentAway;
-                const venueNeutral = !!moment.is_neutral_venue;
-                const useAllVenuesHome = isPrevious ? false : !!moment.home_all_venues_fallback;
-                const useAllVenuesAway = isPrevious ? false : !!moment.away_all_venues_fallback;
-                const invertNote = isPrevious && sameTeamName(hName, currentAway) ? ' · <span class="text-warning fw-bold">LOCALÍAS INVERTIDAS</span>' : '';
-                return `<div class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${esc(title)}</div><div class="pre-context-moment-meta">${esc(hName)} vs ${esc(aName)}${invertNote}</div></div><div class="pre-context-team-grid">${renderTeam(hName, 'home', moment.home_matches, useAllVenuesHome)}${renderTeam(aName, 'away', moment.away_matches, useAllVenuesAway)}</div>${renderSimilarAh(moment)}</div>`;
-            };
-
-            const teamText = (teamName, role, matches, allVenues = false, leagueFilter = '') => {
-                let wins = 0, draws = 0, losses = 0;
-                const filteredMatches = asRows(matches).filter(item => {
-                    if (!leagueFilter) return true;
-                    return String(item?.league_id_hist ?? item?.league_id ?? '').trim() === leagueFilter;
-                });
-                const lines = filteredMatches.map(item => {
-                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
-                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
-                    const own = score ? (subjectHome ? score.home : score.away) : null;
-                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
-                    if (own !== null) { if (own > rivalGoals) wins += 1; else if (own < rivalGoals) losses += 1; else draws += 1; }
-                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
-                });
-                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}\n${lines.length ? lines.join('\n') : (leagueFilter ? 'Sin partidos de la liga actual' : 'Sin historial previo disponible')}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
-            };
-
-            const similarAhText = moment => {
-                const analysis = moment?.similar_ah;
-                if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
-                const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
-                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
-                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
-                return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
-            };
-
-            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
-            let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
-            if (previous) {
-                const previousHome = previous.home_name || currentHome;
-                const previousAway = previous.away_name || currentAway;
-                const previousNeutral = !!previous.is_neutral_venue;
-                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
-                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
             }
-            const contextScope = currentNeutral ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS' : 'CASA VS FUERA · TODAS LAS LIGAS';
-            const currentLeagueText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}`;
-            let previousLeagueText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
-            if (previous) {
-                const previousHome = previous.home_name || currentHome;
-                const previousAway = previous.away_name || currentAway;
-                const previousNeutral = !!previous.is_neutral_venue;
-                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
-                previousLeagueText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral, currentLeague || '__NO_CURRENT_LEAGUE__')}`;
+            return {
+                finish: async function (text) {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                },
+                cancel: function (err) {}
+            };
+        }
+    
+        // --- MODERN PRE-CONTEXT SYSTEM SYNCED WITH PRECACHEO ---
+        function resolveLeagueId(pc, matchPayload) {
+            if (!pc && !matchPayload) return '';
+            const candidates = [
+                pc?.league_id,
+                pc?.current?.league_id,
+                pc?.candidate?.league_id,
+                pc?.market_analysis_data?.league_id,
+                matchPayload?.league_id,
+                matchPayload?.candidate?.league_id,
+                matchPayload?.market_analysis_data?.league_id
+            ];
+            for (const val of candidates) {
+                if (val !== undefined && val !== null && val !== '' && val !== 'null' && val !== 'undefined') {
+                    const str = String(val).trim();
+                    if (str && str !== 'null' && str !== 'undefined' && str !== '-') return str;
+                }
             }
-            const leagueTitle = currentLeague ? `LIGA ACTUAL · ID ${currentLeague}` : 'LIGA ACTUAL · ID NO DISPONIBLE';
-            const copyText = `CONTEXTO PREVIO DIVIDIDO POR ÁMBITO\n\n${leagueTitle}\n${'-'.repeat(72)}\n${currentLeagueText}\n\n${previousLeagueText}\n\n${'='.repeat(72)}\n\nGLOBAL · TODAS LAS LIGAS\n${'-'.repeat(72)}\nCONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
-            const filterDisabled = !currentLeague;
-            const hasPrevious = !!previous;
+            const homeMatches = pc?.current?.home_matches || pc?.home_matches || pc?.recent_home_matches || [];
+            const awayMatches = pc?.current?.away_matches || pc?.away_matches || pc?.recent_away_matches || [];
+            const allMatches = [...(Array.isArray(homeMatches) ? homeMatches : []), ...(Array.isArray(awayMatches) ? awayMatches : [])];
+            const counts = {};
+            for (const m of allMatches) {
+                const lid = m?.league_id_hist ?? m?.league_id;
+                if (lid !== undefined && lid !== null && lid !== '' && lid !== 'null' && lid !== 'undefined' && lid !== '-') {
+                    const clean = String(lid).trim();
+                    if (clean && clean !== 'null' && clean !== 'undefined' && clean !== '-') {
+                        counts[clean] = (counts[clean] || 0) + 1;
+                    }
+                }
+            }
+            let maxCount = 0;
+            let bestLg = '';
+            for (const [lg, count] of Object.entries(counts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestLg = lg;
+                }
+            }
+            return bestLg;
+        }
 
-            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}"><div class="pre-context-head"><div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo <span class="badge bg-secondary ms-1" style="font-size:0.58rem;">Vista previa - No guardado en BD</span></div><div class="pre-context-actions"><label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}<button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar Liga actual + Global</button></div></div><div class="pre-context-moments hide-previous">${renderMoment('Partido actual', current)}${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}</div></div>`;
+        function normLeagueId(val) {
+            if (val === undefined || val === null) return '';
+            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+        }
+
+        function toggleSummaryBoxes(id, btn) {
+            if (!id) return;
+            const container = document.getElementById(id);
+            if (!container) return;
+            const isHidden = container.style.display === 'none' || container.hasAttribute('hidden');
+            if (isHidden) {
+                container.style.display = 'block';
+                container.removeAttribute('hidden');
+                if (btn) btn.classList.add('is-active');
+            } else {
+                container.style.display = 'none';
+                container.setAttribute('hidden', '');
+                if (btn) btn.classList.remove('is-active');
+            }
         }
 
         function togglePreMatchPreviousH2H(checkbox) {
@@ -3143,183 +2829,1217 @@
             }
         }
 
-        function normLeagueId(val) {
-            if (val === undefined || val === null) return '';
-            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
-        }
+        function renderPreMatchContext(pc, currentHome, currentAway, summaryBoxesHtml = "", summaryBoxesId = "") {
+            const esc = value => String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const asRows = value => Array.isArray(value) ? value : [];
+            const context = pc?.pre_match_context || {};
+            const current = context.current || {
+                date: pc?.match_date || pc?.date || '',
+                home_name: currentHome,
+                away_name: currentAway,
+                league_id: pc?.league_id || '',
+                league_name: pc?.league_name || '',
+                is_neutral_venue: !!pc?.is_neutral_venue,
+                home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
+                away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
+                home_matches_all: pc?.recent_home_matches_all || pc?.recent_home_matches_same_league_general || pc?.recent_home_matches || [],
+                away_matches_all: pc?.recent_away_matches_all || pc?.recent_away_matches_same_league_general || pc?.recent_away_matches || [],
+            };
+            const resolvedLeague = resolveLeagueId(pc);
+            const currentLeagueId = resolvedLeague;
+            const parentMatchId = String(pc?.match_id ?? pc?.id ?? current?.match_id ?? '').replace(/\D/g, '');
+            const parentCurrentAh = pc?.handicap ?? pc?.main_match_odds?.ah_linea ?? current?.ah_line ?? '';
 
-        function filterPreMatchContextLeague(checkbox) {
-            if (!checkbox) return;
-            const panel = checkbox.closest('.pre-context-panel');
-            if (!panel) return;
-            const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
-            const normCurrent = normLeagueId(rawCurrentLeague);
-            const onlyCurrentLeague = !!checkbox.checked;
-
-            panel.querySelectorAll('.pre-context-team').forEach(team => {
-                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')];
-                const counts = { W: 0, D: 0, L: 0 };
-                let visibleRows = 0;
-
-                rows.forEach(row => {
-                    let visible = true;
-                    if (onlyCurrentLeague) {
-                        const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
-                        const normRow = normLeagueId(rawRowLeague);
-                        visible = !!normCurrent && normRow === normCurrent;
-                    }
-                    row.style.display = visible ? '' : 'none';
-                    row.hidden = !visible;
-                    if (visible) {
-                        visibleRows += 1;
-                        const result = row.dataset.contextResult || row.dataset.result;
-                        if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
-                    }
+            const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
+            let previous = context.previous || null;
+            if (!previous && rawH2h?.match6_id) {
+                const cutoff = String(rawH2h.date6 || '');
+                const historyFor = team => sameTeamName(team, currentHome)
+                    ? asRows(pc?.recent_home_matches_same_league_general || pc?.recent_home_matches_all || pc?.recent_home_matches)
+                    : asRows(pc?.recent_away_matches_same_league_general || pc?.recent_away_matches_all || pc?.recent_away_matches);
+                const olderAtVenue = (team, role) => historyFor(team).filter(item => {
+                    const correctRole = role === 'home'
+                        ? sameTeamName(item?.home ?? item?.home_team, team)
+                        : sameTeamName(item?.away ?? item?.away_team, team);
+                    return correctRole && (!cutoff || !item?.date || String(item.date) < cutoff);
                 });
-
-                const table = team.querySelector('.pre-context-table');
-                if (table) table.style.display = rows.length && !visibleRows ? 'none' : '';
-
-                team.querySelectorAll('[data-summary-result]').forEach(summary => {
-                    const result = summary.dataset.summaryResult;
-                    const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
-                    summary.textContent = `${prefix} ${counts[result] || 0}`;
-                });
-
-                const summaryDiv = team.querySelector('.pre-context-summary');
-                if (summaryDiv) {
-                    summaryDiv.style.display = rows.length && !visibleRows ? 'none' : 'flex';
-                    const win = summaryDiv.querySelector('.is-win');
-                    const draw = summaryDiv.querySelector('.is-draw');
-                    const loss = summaryDiv.querySelector('.is-loss');
-                    if (win && !win.dataset.summaryResult) win.textContent = `V ${counts.W}`;
-                    if (draw && !draw.dataset.summaryResult) draw.textContent = `E ${counts.D}`;
-                    if (loss && !loss.dataset.summaryResult) loss.textContent = `D ${counts.L}`;
-                }
-
-                const empty = team.querySelector('.pre-context-filter-empty');
-                if (empty) {
-                    empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
-                    empty.hidden = !(onlyCurrentLeague && rows.length && !visibleRows);
-                }
-            });
-
-            panel.querySelectorAll('[data-all-text][data-same-league-text]').forEach(element => {
-                element.textContent = onlyCurrentLeague ? element.dataset.sameLeagueText : element.dataset.allText;
-            });
-
-            const copyButton = panel.querySelector('.pre-context-copy');
-            if (copyButton && copyButton.dataset.sameLeagueContext) {
-                copyButton.dataset.context = onlyCurrentLeague ? copyButton.dataset.sameLeagueContext : copyButton.dataset.allContext;
+                const previousHome = rawH2h.h2h_gen_home || currentHome;
+                const previousAway = rawH2h.h2h_gen_away || currentAway;
+                previous = {
+                    date: rawH2h.date6,
+                    score: rawH2h.res6,
+                    ah_line: rawH2h.ah6,
+                    home_name: previousHome,
+                    away_name: previousAway,
+                    home_matches: olderAtVenue(previousHome, 'home'),
+                    away_matches: olderAtVenue(previousAway, 'away'),
+                };
             }
-        }
+            const renderTeam = (teamName, role, venueMatches, allVenueMatches, allVenues = false) => {
+                let wins = 0, draws = 0, losses = 0;
 
-        const togglePreMatchLeagueFilter = filterPreMatchContextLeague;
+                // Determinar el targetAh para este equipo (Local mantiene el signo, Visitante tiene el signo opuesto)
+                const baseParentAh = Number.parseFloat(parentCurrentAh);
+                let teamTargetAh = baseParentAh;
+                if (Number.isFinite(baseParentAh) && role === 'away') {
+                    teamTargetAh = -baseParentAh;
+                }
 
-        async function copyPreMatchContext(button, matchId) {
-            const encoded = button?.dataset?.context || '';
-            const contextText = decodeURIComponent(encoded);
-            if (!contextText) return;
-            const original = button.innerHTML;
-            button.disabled = true;
-            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando...';
-            try {
-                let promptText = '';
-                if (matchId) {
-                    const response = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
-                    const data = await response.json();
-                    if (data.success && data.prompt) {
-                        promptText = data.prompt;
+                // Auto-enriquecer partidos con datos de venueMatches si algún registro antiguo viene compactado/incompleto
+                const enrichMatchItem = (item) => {
+                    if (!item || typeof item !== 'object') return item;
+                    const hasDate = !!(item.date || item.match_date || item.date_txt);
+                    const hasAh = !!(item.ahLine || item.ahLine_raw || item.ah_line || item.ah || item.handicap);
+                    const hasLeague = !!(item.league_id_hist || item.league_id || item.league || item.title);
+                    const hasMid = !!(item.matchIndex || item.match_id || item.id);
+                    if (hasDate && hasAh && hasLeague && hasMid) return item;
+
+                    const rowScore = item.score || item.score_raw || '';
+                    const rowRival = item.home && !sameTeamName(item.home, teamName) ? item.home : (item.away || item.rival || '');
+
+                    const found = asRows(venueMatches).find(vm => {
+                        const vmScore = vm.score || vm.score_raw || '';
+                        const vmRival = vm.home && !sameTeamName(vm.home, teamName) ? vm.home : (vm.away || vm.rival || '');
+                        if (rowScore && vmScore && rowScore !== vmScore) return false;
+                        if (rowRival && vmRival && !sameTeamName(rowRival, vmRival)) return false;
+                        return true;
+                    });
+
+                    if (found) {
+                        return {
+                            ...found,
+                            ...item,
+                            date: item.date || found.date || found.match_date || found.date_txt || '',
+                            league_id_hist: item.league_id_hist || found.league_id_hist || found.league_id || found.title || found.name || '-',
+                            ahLine: item.ahLine || found.ahLine || found.ahLine_raw || found.ah_line || '-',
+                            ahLine_raw: item.ahLine_raw || found.ahLine_raw || found.ahLine || '-',
+                            matchIndex: item.matchIndex || found.matchIndex || found.match_id || found.id || '',
+                            home_id: item.home_id || found.home_id || '',
+                            away_id: item.away_id || found.away_id || '',
+                        };
                     }
-                }
-                const divider = '='.repeat(72);
-                const combined = promptText 
-                    ? `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}`
-                    : contextText;
-                await navigator.clipboard.writeText(combined);
-                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
-                button.style.background = '#198754';
-                button.style.color = '#ffffff';
-                setTimeout(() => {
-                    button.innerHTML = original;
-                    button.style.background = '';
-                    button.style.color = '';
-                    button.disabled = false;
-                }, 1800);
-            } catch (error) {
-                console.error('Error al copiar contexto:', error);
-                try {
-                    await navigator.clipboard.writeText(contextText);
-                    button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto copiado';
-                } catch(e) {
-                    alert('Error al copiar contexto');
-                }
-                button.disabled = false;
-                setTimeout(() => { button.innerHTML = original; }, 1800);
-            }
-        }
+                    return item;
+                };
 
-        async function copyLLMPrompt(matchId, btnElement) {
-            // 1. Si ya existe el botón .pre-context-copy renderizado en el DOM, usarlo directamente
-            const preCtxBtn = document.querySelector(`#global-stats-${matchId} .pre-context-copy`);
-            if (preCtxBtn && preCtxBtn.dataset && preCtxBtn.dataset.context) {
-                return copyPreMatchContext(preCtxBtn, matchId);
-            }
-
-            // 2. Obtener prompt LLM y contexto previo en paralelo
-            const originalHtml = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btnElement.disabled = true;
-
-            try {
-                const [promptRes, ctxRes] = await Promise.all([
-                    fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`),
-                    fetch('/api/explorer_context_preview', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ match_id: matchId, force_refresh: false })
-                    }).catch(() => null)
-                ]);
-
-                const promptData = await promptRes.json();
-                if (!promptRes.ok || !promptData.success || !promptData.prompt) {
-                    throw new Error(promptData.error || 'No se pudo generar el prompt LLM');
-                }
-
-                let contextText = '';
-                if (ctxRes && ctxRes.ok) {
-                    try {
-                        const ctxData = await ctxRes.json();
-                        if (ctxData.status === 'success' && ctxData.pre_match_context) {
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = renderPreMatchContextCard(ctxData.pre_match_context);
-                            const tempBtn = tempDiv.querySelector('.pre-context-copy');
-                            if (tempBtn && tempBtn.dataset && tempBtn.dataset.context) {
-                                contextText = decodeURIComponent(tempBtn.dataset.context);
-                            }
+                const buildRows = (matchesList, mode) => {
+                    return asRows(matchesList).map((rawItem, idx) => {
+                        const item = enrichMatchItem(rawItem);
+                        const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                        const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                        const own = score ? (subjectHome ? score.home : score.away) : null;
+                        const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                        let result = 'D';
+                        if (own !== null) {
+                            if (own > rivalGoals) result = 'W';
+                            else if (own < rivalGoals) result = 'L';
+                            else result = 'D';
                         }
-                    } catch (e) {
-                        console.warn('No se pudo parsear el contexto previo para combinar:', e);
+                        if (mode === 'specific') {
+                            if (result === 'W') wins += 1;
+                            else if (result === 'D') draws += 1;
+                            else if (result === 'L') losses += 1;
+                        }
+                        const rival = subjectHome
+                            ? (item?.away ?? item?.away_team ?? '')
+                            : (item?.home ?? item?.home_team ?? '');
+                        const leagueId = item?.league_id_hist ?? item?.league_id ?? item?.league ?? item?.league_name ?? item?.title ?? '-';
+                        const rowMatchId = String(item?.match_id ?? item?.matchIndex ?? item?.id ?? '').replace(/\D/g, '');
+                        const rowHome = item?.home ?? item?.home_team ?? '';
+                        const rowAway = item?.away ?? item?.away_team ?? '';
+                        const rowHomeId = item?.home_id ?? '';
+                        const rowAwayId = item?.away_id ?? '';
+                        const rowDate = item?.date || item?.match_date || item?.date_txt || item?.date_str || '-';
+                        const rawAh = (item?.ahLine !== undefined && item?.ahLine !== null && item?.ahLine !== '')
+                            ? item.ahLine
+                            : (item?.ahLine_raw ?? item?.ah_line ?? item?.ah ?? item?.handicap ?? '-');
+                        const rowAh = rawAh !== 'N/A' && rawAh !== '' ? rawAh : '-';
+                        const rowScore = item?.score || item?.score_raw || item?.result || '-';
+                        const normCurrent = normLeagueId(currentLeagueId);
+                        const normRow = normLeagueId(leagueId);
+                        const sameLeague = !!normCurrent && normRow === normCurrent;
+
+                        const isSameHa = isSameHaMatch(teamTargetAh, rowAh);
+                        const isRowHidden = mode === 'all';
+                        return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+                            <td class="ctx-date">${esc(rowDate)}</td>
+                            <td class="ctx-league">${esc(leagueId)}</td>
+                            <td class="ctx-rival" title="${esc(rival)}">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto;">${esc(rival || '-')}</span>
+                                    <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                </div>
+                            </td>
+                            <td class="ctx-score">${esc(rowScore)}</td>
+                            <td class="ctx-ah">${esc(rowAh)}</td>
+                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
+                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
+                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                        </tr>
+                        <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
+                            <td colspan="8" class="pre-context-detail-cell">
+                                <div class="pre-context-detail-container">
+                                    <div class="pre-context-detail-slot match-stats-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                    <div class="pre-context-detail-slot col3-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                    <div class="pre-context-detail-slot mov-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                };
+
+                const specificRows = buildRows(venueMatches, 'specific');
+                const allRowsList = allVenueMatches && allVenueMatches.length ? allVenueMatches : venueMatches;
+                const allRows = buildRows(allRowsList, 'all');
+                const totalRows = specificRows + allRows;
+
+                return `<div class="pre-context-team" data-default-role="${esc(role)}">
+                    <div class="pre-context-team-head">
+                        <div class="pre-context-team-title-wrap">
+                            <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
+                            <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
+                        </div>
+                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
+                    </div>
+                    ${totalRows ? `<table class="pre-context-table">
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                        <tbody>${totalRows}</tbody>
+                    </table>
+                    <div class="pre-context-filter-empty">Sin partidos disponibles</div>
+                    <div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>`
+                    : '<div class="pre-context-empty">Sin historial previo disponible</div>'}
+                </div>`;
+            };
+
+            function isSameHaMatch(targetAh, rowAh) {
+                const p = Number.parseFloat(targetAh);
+                const r = Number.parseFloat(rowAh);
+                if (!Number.isFinite(p) || !Number.isFinite(r)) return false;
+
+                // Handicap 0 es 0 estricto (DNB no se mezcla con cuartos de gol)
+                if (Math.abs(p) < 0.01) {
+                    return Math.abs(r) < 0.01;
+                }
+                if (Math.abs(r) < 0.01) {
+                    return false;
+                }
+
+                // Signos estrictos: positivos con positivos (+), negativos con negativos (-)
+                const pSign = p > 0 ? 1 : -1;
+                const rSign = r > 0 ? 1 : -1;
+                if (pSign !== rSign) return false;
+
+                const pAbs = Math.abs(p);
+                const rAbs = Math.abs(r);
+                const diff = Math.abs(pAbs - rAbs);
+
+                // Rango de bucket maximo +-0.25 dentro del mismo signo
+                return diff <= 0.255;
+            }
+
+            function formatSameHaLabel(parentAh) {
+                const p = Number.parseFloat(parentAh);
+                if (!Number.isFinite(p)) return 'Same HA';
+                if (Math.abs(p) < 0.01) return 'Same HA (0 DNB)';
+                const sign = p < 0 ? '-' : '+';
+                const absP = Math.abs(p);
+                if (absP === 0.25) return `Same HA (${sign}0.25 / ${sign}0.5)`;
+                if (absP === 0.5) return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
+                if (absP === 0.75) return `Same HA (${sign}0.5 / ${sign}0.75 / ${sign}1.0)`;
+                if (absP === 1.0) return `Same HA (${sign}0.75 / ${sign}1.0 / ${sign}1.25)`;
+                if (absP === 1.25) return `Same HA (${sign}1.0 / ${sign}1.25 / ${sign}1.5)`;
+                if (absP === 1.5) return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
+                return `Same HA (${formatAhNumber(p)}±0.25)`;
+            }
+
+            const formatAhNumber = value => Number.isFinite(Number(value))
+                ? `${Number(value) > 0 ? '+' : ''}${Number(value)}`
+                : 'N/D';
+            const renderSimilarAh = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return '';
+                const summary = (label, data) => {
+                    const samples = Number(data?.samples) || 0;
+                    const cover = Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D';
+                    const gf = Number.isFinite(Number(data?.goals_for_avg)) ? Number(data.goals_for_avg).toFixed(1) : 'N/D';
+                    const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
+                    return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
+                };
+                const correlation = analysis.correlation || {};
+                const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
+                const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `<div class="pre-context-ah-analysis">
+                    <div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div>
+                    <div class="pre-context-ah-grid">${summary(homeLabel, analysis.home)}${summary(awayLabel, analysis.away)}</div>
+                    <div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div>
+                </div>`;
+            };
+
+            const renderMoment = (title, moment, isPrevious = false) => {
+                if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
+                const momentHome = moment.home_name || currentHome;
+                const momentAway = moment.away_name || currentAway;
+                const allVenues = !!moment.is_neutral_venue;
+                const homeAllVenues = allVenues || !!moment.home_all_venues_fallback;
+                const awayAllVenues = allVenues || !!moment.away_all_venues_fallback;
+                const reversed = isPrevious && sameTeamName(momentHome, currentAway);
+                const metaText = isPrevious
+                    ? `${moment.date || 'Fecha N/D'} · ${momentHome} ${moment.score || '-'} ${momentAway}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
+                    : (allVenues
+                        ? `${momentHome} + ${momentAway} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
+                        : `${momentHome} en casa · ${momentAway} fuera · TODAS LAS LIGAS`);
+                const filteredMetaText = `${isPrevious ? `${moment.date || 'Fecha N/D'} · ` : ''}LIGA ID ${currentLeagueId || 'N/D'}`;
+                return `<section class="pre-context-moment">
+                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
+                    <div class="pre-context-team-grid">
+                        ${renderTeam(momentHome, 'home', moment.home_matches, (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : ((pc?.recent_home_matches_all && pc.recent_home_matches_all.length) ? pc.recent_home_matches_all : ((pc?.recent_home_matches_same_league_general && pc.recent_home_matches_same_league_general.length) ? pc.recent_home_matches_same_league_general : moment.home_matches)), homeAllVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : ((pc?.recent_away_matches_all && pc.recent_away_matches_all.length) ? pc.recent_away_matches_all : ((pc?.recent_away_matches_same_league_general && pc.recent_away_matches_same_league_general.length) ? pc.recent_away_matches_same_league_general : moment.away_matches)), awayAllVenues)}
+                    </div>
+                    ${renderSimilarAh(moment)}
+                </section>`;
+            };
+
+            const teamText = (teamName, role, matches, allVenues = false) => {
+                let wins = 0, draws = 0, losses = 0;
+                const lines = asRows(matches).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    if (own !== null) {
+                        if (own > rivalGoals) wins += 1;
+                        else if (own < rivalGoals) losses += 1;
+                        else draws += 1;
+                    }
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                });
+                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}
+${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}
+Resumen: V ${wins} | E ${draws} | D ${losses}`;
+            };
+            const similarAhText = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
+                const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
+            };
+            const sameLeagueMatches = matches => asRows(matches).filter(item => {
+                const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                return !!currentLeagueId && leagueId === currentLeagueId;
+            });
+            const currentNeutral = !!current.is_neutral_venue;
+            const currentLeague = String(current.league_id ?? pc?.league_id ?? currentLeagueId ?? '').trim();
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            if (previous) {
+                const previousHome = previous.home_name || currentHome;
+                const previousAway = previous.away_name || currentAway;
+                const previousNeutral = !!previous.is_neutral_venue;
+                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
+            }
+            const contextScope = currentNeutral
+                ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
+                : 'CASA VS FUERA · TODAS LAS LIGAS';
+            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const filterDisabled = !currentLeague;
+            const hasPrevious = !!previous;
+
+            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}">
+                <div class="pre-context-head">
+                    <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
+                    <div class="pre-context-actions">
+                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
+                        <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
+                        <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
+                        <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
+                        ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
+                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
+                    </div>
+                </div>
+                ${summaryBoxesHtml || ''}
+                <div class="pre-context-moments hide-previous">
+                    ${renderMoment('Partido actual', current)}
+                    ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
+                </div>
+            </div>`;
+        }
+
+        let preContextCol3Loading = false;
+        let preContextCol3ActiveButton = null;
+
+        function escapePreContextCol3(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getRowDetailElements(button) {
+            const tr = button?.closest('tr');
+            if (!tr) return null;
+            const detailRow = tr.classList.contains('pre-context-detail-row')
+                ? tr
+                : (tr.nextElementSibling && tr.nextElementSibling.classList.contains('pre-context-detail-row') ? tr.nextElementSibling : null);
+            if (!detailRow) return null;
+            const parentRow = tr.classList.contains('pre-context-detail-row') ? tr.previousElementSibling : tr;
+            return {
+                parentRow,
+                detailRow,
+                statsBtn: parentRow?.querySelector('.pre-context-stats-btn'),
+                col3Btn: parentRow?.querySelector('.pre-context-col3-btn'),
+                movBtn: parentRow?.querySelector('.pre-context-mov-btn'),
+                bothBtn: parentRow?.querySelector('.pre-context-both-btn'),
+                statsSlot: detailRow.querySelector('.match-stats-slot'),
+                col3Slot: detailRow.querySelector('.col3-slot'),
+                movSlot: detailRow.querySelector('.mov-slot'),
+            };
+        }
+
+        function closeDetailSlot(slot, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            if (!slot) return;
+            const ctx = getRowDetailElements(slot);
+            slot.style.display = 'none';
+            if (ctx) syncDetailRowState(ctx);
+        }
+
+        function syncDetailRowState(ctx) {
+            if (!ctx || !ctx.detailRow) return;
+            const statsVisible = ctx.statsSlot && ctx.statsSlot.style.display !== 'none';
+            const col3Visible = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movVisible = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const anyVisible = statsVisible || col3Visible || movVisible;
+            const allVisible = statsVisible && col3Visible && movVisible;
+
+            ctx.detailRow.dataset.open = anyVisible ? '1' : '0';
+            ctx.detailRow.style.display = anyVisible ? '' : 'none';
+            ctx.detailRow.hidden = !anyVisible;
+
+            if (ctx.statsBtn) ctx.statsBtn.classList.toggle('is-active', !!statsVisible);
+            if (ctx.col3Btn) ctx.col3Btn.classList.toggle('is-active', !!col3Visible);
+            if (ctx.movBtn) ctx.movBtn.classList.toggle('is-active', !!movVisible);
+            if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!allVisible);
+        }
+
+        function formatStatsTableHtml(stats) {
+            if (!Array.isArray(stats) || stats.length === 0) return '';
+            const rows = stats.map(stat => {
+                const label = stat.label ?? '';
+                const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
+                const parseVal = (str) => {
+                    if (!str) return 0;
+                    const match = String(str).match(/(\d+)/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                const hVal = parseVal(stat.home);
+                const aVal = parseVal(stat.away);
+                let hClass = 'text-dark';
+                let aClass = 'text-dark';
+                let labelClass = 'text-muted';
+                if (isRedCardRow) {
+                    hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                    aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                    labelClass = 'text-danger fw-bold';
+                } else if (hVal > aVal) {
+                    hClass = 'text-success fw-bold';
+                    aClass = 'text-danger';
+                } else if (hVal < aVal) {
+                    hClass = 'text-danger';
+                    aClass = 'text-success fw-bold';
+                }
+                const hColor = hClass.includes('text-success') ? '#16a34a' : (hClass.includes('text-danger') ? '#dc2626' : '#1e293b');
+                const aColor = aClass.includes('text-success') ? '#16a34a' : (aClass.includes('text-danger') ? '#dc2626' : '#1e293b');
+                const lblColor = labelClass.includes('text-danger') ? '#dc2626' : '#64748b';
+                return `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="text-align:left; font-weight:800; font-size:.65rem; padding:2px 4px; color:${hColor};">${escapePreContextCol3(stat.home ?? '')}</td>
+                        <td style="text-align:center; font-size:.62rem; color:${lblColor}; padding:2px 4px; font-weight:700; white-space:nowrap;">${escapePreContextCol3(label)}</td>
+                        <td style="text-align:right; font-weight:800; font-size:.65rem; padding:2px 4px; color:${aColor};">${escapePreContextCol3(stat.away ?? '')}</td>
+                    </tr>
+                `;
+            }).join('');
+            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;"><tbody>${rows}</tbody></table>`;
+        }
+
+        async function loadPreContextRowMatchStats(button, event, options = {}) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.statsSlot) return;
+
+            const isCurrentlyOpen = ctx.statsSlot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                ctx.statsSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            ctx.statsSlot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
+            const rowHome = button.dataset.rowHome || '';
+            const rowAway = button.dataset.rowAway || '';
+            const rowScore = button.dataset.rowScore || '';
+            const rowDate = button.dataset.rowDate || '';
+            const rowAh = button.dataset.rowAh || '';
+            const leagueId = button.dataset.leagueId || '';
+
+            button.disabled = true;
+            ctx.statsSlot.innerHTML = `<div style="font-size:.68rem; color:#059669; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando Ataques, Tiros y Córners...</div>`;
+
+            try {
+                const response = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: rowDate,
+                        row_home: rowHome,
+                        row_away: rowAway,
+                        row_score: rowScore,
+                        row_ah: rowAh,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+
+                const stats = data.stats || [];
+                if (data.match_id) {
+                    button.dataset.matchId = data.match_id;
+                }
+                button.dataset.loaded = '1';
+                ctx.statsSlot.classList.add('is-card');
+                ctx.statsSlot.innerHTML = `
+                    <div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="pre-col3-status is-better" style="background:#f0fdf4; color:#166534;">📊 ESTADÍSTICAS DEL PARTIDO</span>
+                        <span class="pre-col3-badge is-direct" style="background:#0284c7;">LIGA ${escapePreContextCol3(leagueId)}</span>
+                    </div>
+                    <div style="font-size:.62rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(rowDate)}</div>
+                    <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:4px;">
+                        <span style="color:#0f172a;">${escapePreContextCol3(rowHome)} <strong style="color:#16a34a;">${escapePreContextCol3(rowScore)}</strong> ${escapePreContextCol3(rowAway)}</span>
+                        <span style="color:#64748b;">AH <strong>${escapePreContextCol3(rowAh)}</strong></span>
+                    </div>
+                    <div style="margin-top:3px;">
+                        ${stats.length ? formatStatsTableHtml(stats) : '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas de ataques/tiros registradas</div>'}
+                    </div>
+                `;
+            } catch (error) {
+                ctx.statsSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
+            } finally {
+                button.disabled = false;
+                syncDetailRowState(ctx);
+            }
+        }
+
+        async function togglePreContextRowBoth(button, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx) return;
+
+            const statsOpen = ctx.statsSlot && ctx.statsSlot.style.display !== 'none';
+            const col3Open = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movOpen = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const allOpen = statsOpen && col3Open && movOpen;
+
+            if (allOpen) {
+                if (ctx.statsSlot) ctx.statsSlot.style.display = 'none';
+                if (ctx.col3Slot) ctx.col3Slot.style.display = 'none';
+                if (ctx.movSlot) ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+            } else {
+                if (ctx.statsBtn) loadPreContextRowMatchStats(ctx.statsBtn, event, { force_open: true });
+                if (ctx.col3Btn) loadPreContextRowCol3(ctx.col3Btn, event, { force_open: true });
+                if (ctx.movBtn) loadPreContextRowMovHistorico(ctx.movBtn, event, { force_open: true });
+            }
+        }
+
+        async function toggleAllPreContextTeamStats(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const statsButtons = visibleRows.map(r => r.querySelector('.pre-context-stats-btn')).filter(Boolean);
+            if (!statsButtons.length) return;
+
+            const anyOpen = statsButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.statsSlot && ctx.statsSlot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                statsButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.statsSlot) ctx.statsSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of statsButtons) {
+                    loadPreContextRowMatchStats(b, event, { force_open: true });
+                }
+            }
+        }
+
+        async function toggleCardStats(btn, event, matchId) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            if (!btn) return;
+            const wrap = btn.closest('.pre-col3-stats-wrap') || btn.parentElement;
+            if (!wrap) return;
+            let container = wrap.querySelector('.pre-card-stats-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'pre-card-stats-container';
+                container.style.display = 'none';
+                wrap.appendChild(container);
+            }
+
+            if (container.style.display !== 'none') {
+                container.style.display = 'none';
+                btn.classList.remove('is-active');
+                return;
+            }
+
+            if (container.dataset.loaded === '1') {
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+                return;
+            }
+
+            const cleanId = String(matchId || '').replace(/\D/g, '');
+            if (!cleanId) {
+                container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:3px;">Estadísticas no disponibles para este partido</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Descargando stats...';
+
+            try {
+                const response = await fetch(`/api/match_stats/${cleanId}`);
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+
+                const stats = data.stats || [];
+                if (!stats.length) {
+                    container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin ataques/tiros registrados para este encuentro</div>';
+                } else {
+                    container.innerHTML = formatStatsTableHtml(stats);
+                }
+
+                container.dataset.loaded = '1';
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+            } catch (err) {
+                container.innerHTML = `<div style="font-size:.62rem; color:#dc2626; text-align:center; padding:3px;">Error: ${err.message}</div>`;
+                container.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function buildPreContextCol3Card(button, data) {
+            const col3 = data?.h2h_col3 || {};
+            const match = data?.match || {};
+            const comparison = data?.comparison || {};
+            const lastHome = comparison.last_home_match || {};
+            const lastAway = comparison.last_away_match || {};
+            const currentAh = Number.parseFloat(button.dataset.currentAh);
+            const parentHome = String(match.home_name || '').toLowerCase().trim();
+            const parentAway = String(match.away_name || '').toLowerCase().trim();
+
+            const sameName = (a, b) => {
+                const left = String(a || '').toLowerCase().trim();
+                const right = String(b || '').toLowerCase().trim();
+                return !!left && !!right && (left.includes(right) || right.includes(left));
+            };
+
+            const wdlRank = (score, isHome) => {
+                const parts = String(score || '').replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const gh = Number.parseInt(parts[0], 10);
+                const ga = Number.parseInt(parts[1], 10);
+                if (!Number.isFinite(gh) || !Number.isFinite(ga)) return null;
+                const own = isHome ? gh : ga;
+                const rival = isHome ? ga : gh;
+                return own > rival ? 2 : (own === rival ? 1 : 0);
+            };
+
+            const homeOf = row => row?.home_team ?? row?.home ?? '';
+            const awayOf = row => row?.away_team ?? row?.away ?? '';
+            const scoreOf = row => row?.score ?? row?.score_raw ?? '';
+
+            const favIsLocal = Number.isFinite(currentAh) && currentAh > 0;
+            const favIsVisitor = Number.isFinite(currentAh) && currentAh <= 0;
+            let favWdl = null;
+            let mirrorName = '';
+
+            if (favIsLocal && scoreOf(lastHome)) {
+                favWdl = wdlRank(scoreOf(lastHome), sameName(homeOf(lastHome), parentHome));
+                mirrorName = sameName(homeOf(lastAway), parentAway) ? awayOf(lastAway) : homeOf(lastAway);
+            } else if (favIsVisitor && scoreOf(lastAway)) {
+                favWdl = wdlRank(scoreOf(lastAway), sameName(homeOf(lastAway), parentAway));
+                mirrorName = sameName(homeOf(lastHome), parentHome) ? awayOf(lastHome) : homeOf(lastHome);
+            }
+
+            const col3Home = String(col3.h2h_home_team_name || 'Rival A');
+            const col3Away = String(col3.h2h_away_team_name || 'Rival B');
+            const mirrorIsHome = sameName(col3Home, mirrorName);
+            const mirrorIsAway = sameName(col3Away, mirrorName);
+            let comparisonType = mirrorIsHome ? 'directa' : (mirrorIsAway ? 'inversa' : '');
+            if (favIsVisitor && comparisonType) comparisonType = comparisonType === 'directa' ? 'inversa' : 'directa';
+
+            const score = `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}`;
+            const mirrorWdl = mirrorIsHome ? wdlRank(score, true) : (mirrorIsAway ? wdlRank(score, false) : null);
+            let performance = 'IGUALA';
+            let statusClass = 'is-equal';
+            if (favWdl !== null && mirrorWdl !== null) {
+                if (favWdl > mirrorWdl) {
+                    performance = 'MEJORA';
+                    statusClass = 'is-better';
+                } else if (favWdl < mirrorWdl) {
+                    performance = 'EMPEORA';
+                    statusClass = 'is-worse';
+                } else {
+                    performance = 'IGUALA';
+                    statusClass = 'is-equal';
+                }
+            }
+
+            const col3Ah = Number.parseFloat(col3.handicap);
+            let cover = '';
+            if (Number.isFinite(col3Ah)) {
+                const gh = Number.parseInt(col3.goles_home, 10);
+                const ga = Number.parseInt(col3.goles_away, 10);
+                if (Number.isFinite(gh) && Number.isFinite(ga)) {
+                    const margin = col3Ah < 0 ? ga - gh : gh - ga;
+                    const pressure = Math.abs(col3Ah);
+                    cover = margin > pressure ? 'CUBIERTO' : (margin < pressure ? 'NO_CUBIERTO' : 'PUSH');
+                }
+            }
+
+            const normalizeAh = value => {
+                const absolute = Math.abs(value);
+                const decimal = absolute % 1;
+                const normalized = decimal >= .2 && decimal <= .8 ? Math.floor(absolute) + .5 : Math.round(absolute);
+                return value >= 0 ? normalized : -normalized;
+            };
+            let movement = '';
+            if (Number.isFinite(currentAh) && Number.isFinite(col3Ah)) {
+                const difference = Math.abs(normalizeAh(currentAh)) - Math.abs(normalizeAh(col3Ah));
+                movement = Math.abs(difference) < .01 ? 'IGUAL' : (difference > 0 ? 'SUBE' : 'BAJA');
+            }
+
+            const typeHtml = comparisonType
+                ? `<span class="pre-col3-badge ${comparisonType === 'directa' ? 'is-direct' : 'is-inverse'}">${comparisonType === 'directa' ? 'Directa' : 'Inversa'}</span>`
+                : '';
+            const coverHtml = cover === 'CUBIERTO'
+                ? '<span class="pre-col3-tag is-cover">✓ Cubrió</span>'
+                : cover === 'NO_CUBIERTO'
+                    ? '<span class="pre-col3-tag is-fail">✕ No Cubrió</span>'
+                    : cover === 'PUSH' ? '<span class="pre-col3-tag is-push">Push</span>' : '';
+            const movementHtml = movement === 'SUBE'
+                ? '<span class="pre-col3-tag is-up">↑ Sube</span>'
+                : movement === 'BAJA'
+                    ? '<span class="pre-col3-tag is-down">↓ Baja</span>'
+                    : movement === 'IGUAL' ? '<span class="pre-col3-tag is-same">= Igual</span>' : '';
+
+            const subtleTagText = performance === 'MEJORA' ? 'Mejor vs rival' : (performance === 'EMPEORA' ? 'Peor vs rival' : 'Igual vs rival');
+            const subtleTagClass = statusClass === 'is-better' ? 'is-cover' : (statusClass === 'is-worse' ? 'is-fail' : 'is-same');
+            const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.55rem; padding:1px 5px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
+
+            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:4px;"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}</div>
+                    ${typeHtml}
+                </div>
+                <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
+                <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:2px;">
+                    <span>AH <strong>${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
+                    <span>Res <strong>${escapePreContextCol3(score)}</strong></span>
+                </div>
+                <div style="font-size:.68rem; color:#334155; font-weight:700; line-height:1.2; margin-bottom:4px;">${escapePreContextCol3(col3Home)} vs ${escapePreContextCol3(col3Away)}</div>
+                <div class="pre-col3-tags" style="display:flex; gap:4px; margin:0;">${coverHtml}${movementHtml}</div>
+                <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
+                    <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                        <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
+                    </button>
+                    <div class="pre-card-stats-container" style="display:none;"></div>
+                </div>`;
+        }
+
+        function buildPreContextMovCard(button, data) {
+            const stadium = data?.stadium;
+            const general = data?.general;
+            const rowAh = button.dataset.rowAh || button.dataset.currentAh || '';
+            const rowAhNum = Number.parseFloat(rowAh);
+
+            const formatMovBadge = (mov, prevAh) => {
+                let m = String(mov || '').toUpperCase();
+                if (!m && Number.isFinite(rowAhNum) && Number.isFinite(Number.parseFloat(prevAh))) {
+                    const p = Number.parseFloat(prevAh);
+                    const diff = Math.abs(rowAhNum) - Math.abs(p);
+                    m = Math.abs(diff) < 0.01 ? 'IGUAL' : (diff > 0 ? 'SUBE' : 'BAJA');
+                }
+                if (m === 'SUBE' || m.includes('SUBE')) return '<span class="pre-col3-tag is-up">↑ Sube</span>';
+                if (m === 'BAJA' || m.includes('BAJA')) return '<span class="pre-col3-tag is-down">↓ Baja</span>';
+                if (m === 'IGUAL' || m.includes('IGUAL')) return '<span class="pre-col3-tag is-same">= Igual</span>';
+                return '';
+            };
+
+            const buildSection = (type, icon, item) => {
+                if (!item) return '';
+                const isSameStadium = type === 'ESTADIO';
+                const dateStr = item.date || 'Fecha N/D';
+                const ahStr = (item.ah !== null && item.ah !== undefined && item.ah !== '') ? item.ah : '-';
+                const scoreStr = item.score ?? '-';
+
+                const isCover = item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN';
+                const isFail = item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN';
+                const isPush = item.cover === 'PUSH';
+
+                let evalText = isCover ? 'Cubre' : (isFail ? 'No cubre' : (isPush ? 'Push' : (isSameStadium ? 'Estadio' : 'Diferente')));
+                let evalClass = isCover ? 'is-cover' : (isFail ? 'is-fail' : 'is-same');
+                let evalBg = isCover ? '#16a34a' : (isFail ? '#dc2626' : '#64748b');
+
+                const movTag = formatMovBadge(item.movement, ahStr);
+                const titleLabel = isSameStadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE';
+
+                const boxStyle = isSameStadium
+                    ? 'background:#fefce8; border:1px solid #fef08a; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(234, 179, 8, 0.08);'
+                    : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
+
+                const titleColor = isSameStadium ? '#854d0e' : '#0369a1';
+                const numbersColor = isCover ? '#15803d' : (isFail ? '#b91c1c' : '#0f172a');
+
+                return `<div style="${boxStyle}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                        <span style="font-weight:900; font-size:.68rem; color:${titleColor};">${icon} ${titleLabel}</span>
+                        <span class="pre-col3-tag ${evalClass}" style="font-size:.56rem; padding:1px 6px; font-weight:900; background:${evalBg}; color:#fff; border-radius:3px; white-space:nowrap;">${evalText}</span>
+                    </div>
+                    <div style="font-size:.62rem; color:#64748b; font-weight:700; margin:1px 0;">
+                        📅 ${escapePreContextCol3(dateStr)}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.72rem; font-weight:900; margin-top:2px;">
+                        <span style="color:${numbersColor};">AH <strong>${escapePreContextCol3(String(ahStr))}</strong> · <strong>${escapePreContextCol3(String(scoreStr))}</strong></span>
+                        <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
+                    </div>
+                    <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
+                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                            <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
+                        </button>
+                        <div class="pre-card-stats-container" style="display:none;"></div>
+                    </div>
+                </div>`;
+            };
+
+            let sectionsHtml = '';
+            if (stadium) sectionsHtml += buildSection('ESTADIO', '🏟️', stadium);
+            if (general) sectionsHtml += buildSection('GENERAL', '✈️', general);
+
+            if (!sectionsHtml) {
+                return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;"><span class="pre-col3-status is-equal">DIRECTO</span><span class="pre-col3-badge is-inverse">N/D</span></div>
+                    <div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</div>`;
+            }
+
+            const headerScope = (stadium && general) ? 'MISMO & DIFERENTE' : (stadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE');
+            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
+                ${sectionsHtml}`;
+        }
+
+        async function loadPreContextRowCol3(button, event, options = {}) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.col3Slot) return;
+
+            const isCurrentlyOpen = ctx.col3Slot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                // Alternar a cerrado
+                ctx.col3Slot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            // Mostrar el slot en la sub-fila de abajo
+            ctx.col3Slot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
+            if (!matchId && !parentMatchId) {
+                ctx.col3Slot.innerHTML = '<div style="font-size:.65rem; color:#94a3b8; text-align:center;">Sin ID de partido</div>';
+                return;
+            }
+
+            button.disabled = true;
+            ctx.col3Slot.innerHTML = '<div style="font-size:.68rem; color:#3b82f6; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando H2H Col3...</div>';
+
+            try {
+                const response = await fetch('/api/precacheo_h2h_col3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: button.dataset.rowDate || '',
+                        row_role: button.dataset.rowRole || '',
+                        row_home: button.dataset.rowHome || '',
+                        row_away: button.dataset.rowAway || '',
+                        row_home_id: button.dataset.rowHomeId || '',
+                        row_away_id: button.dataset.rowAwayId || '',
+                        row_score: button.dataset.rowScore || '',
+                        row_ah: button.dataset.rowAh || '',
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo extraer H2H Col3');
+                }
+
+                const col3 = data.h2h_col3 || {};
+                const found = col3.status === 'found';
+                button.dataset.loaded = '1';
+                button.dataset.found = found ? '1' : '0';
+                ctx.col3Slot.classList.add('is-card');
+                ctx.col3Slot.innerHTML = found
+                    ? buildPreContextCol3Card(button, data)
+                    : '<div class="pre-col3-card-head"><span class="pre-col3-status is-equal">COL3</span><span class="pre-col3-badge is-inverse">N/D</span></div><div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H directo encontrado para este rival</div>';
+            } catch (error) {
+                ctx.col3Slot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
+            } finally {
+                button.disabled = false;
+                syncDetailRowState(ctx);
+            }
+        }
+
+        async function loadPreContextRowMovHistorico(button, event, options = {}) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx || !ctx.movSlot) return;
+
+            const isCurrentlyOpen = ctx.movSlot.style.display !== 'none';
+            if (isCurrentlyOpen && !options.force_open) {
+                // Alternar a cerrado
+                ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+                return;
+            }
+
+            // Mostrar el slot en la sub-fila de abajo
+            ctx.movSlot.style.display = 'block';
+            syncDetailRowState(ctx);
+
+            if (button.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(button.dataset.matchId || '').trim();
+            const parentMatchId = String(button.dataset.parentMatchId || '').trim();
+            const rowDate = String(button.dataset.rowDate || '').trim();
+            const rowHome = String(button.dataset.rowHome || '').trim();
+            const rowAway = String(button.dataset.rowAway || '').trim();
+            const rowScore = String(button.dataset.rowScore || '').trim();
+            const rowAh = String(button.dataset.rowAh || '').trim();
+
+            if (!matchId && !parentMatchId) {
+                ctx.movSlot.innerHTML = '<div style="font-size:.65rem; color:#94a3b8; text-align:center;">Sin ID de partido</div>';
+                return;
+            }
+
+            button.disabled = true;
+            ctx.movSlot.innerHTML = '<div style="font-size:.68rem; color:#eab308; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando Mov. Histórico...</div>';
+
+            try {
+                const response = await fetch('/api/precacheo_h2h_mov_historico', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: rowDate,
+                        row_home: rowHome,
+                        row_away: rowAway,
+                        row_score: rowScore,
+                        row_ah: rowAh,
+                        force_refresh: !!options.force_refresh,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.status === 'error') {
+                    throw new Error(data.error || 'Error al cargar H2H histórico');
+                }
+
+                button.dataset.loaded = '1';
+                ctx.movSlot.classList.add('is-card');
+                ctx.movSlot.innerHTML = buildPreContextMovCard(button, data);
+            } catch (err) {
+                console.error('Error al cargar Mov. Histórico:', err);
+                ctx.movSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${err.message}</div>`;
+            } finally {
+                button.disabled = false;
+                syncDetailRowState(ctx);
+            }
+        }
+
+        async function togglePreContextRowBoth(button, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!button) return;
+            const ctx = getRowDetailElements(button);
+            if (!ctx) return;
+
+            const col3Open = ctx.col3Slot && ctx.col3Slot.style.display !== 'none';
+            const movOpen = ctx.movSlot && ctx.movSlot.style.display !== 'none';
+            const bothOpen = col3Open && movOpen;
+
+            if (bothOpen) {
+                // Cerrar ambos
+                if (ctx.col3Slot) ctx.col3Slot.style.display = 'none';
+                if (ctx.movSlot) ctx.movSlot.style.display = 'none';
+                syncDetailRowState(ctx);
+            } else {
+                // Abrir y cargar ambos
+                if (ctx.col3Btn) loadPreContextRowCol3(ctx.col3Btn, event, { force_open: true });
+                if (ctx.movBtn) loadPreContextRowMovHistorico(ctx.movBtn, event, { force_open: true });
+            }
+        }
+
+        async function toggleAllPreContextTeamCol3(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const col3Buttons = visibleRows.map(r => r.querySelector('.pre-context-col3-btn')).filter(Boolean);
+            if (!col3Buttons.length) return;
+
+            const anyOpen = col3Buttons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.col3Slot && ctx.col3Slot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                col3Buttons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.col3Slot) ctx.col3Slot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of col3Buttons) {
+                    loadPreContextRowCol3(b, event, { force_open: true });
+                }
+            }
+        }
+
+        async function toggleAllPreContextTeamMov(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const movButtons = visibleRows.map(r => r.querySelector('.pre-context-mov-btn')).filter(Boolean);
+            if (!movButtons.length) return;
+
+            const anyOpen = movButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.movSlot && ctx.movSlot.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                movButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.movSlot) ctx.movSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of movButtons) {
+                    loadPreContextRowMovHistorico(b, event, { force_open: true });
+                }
+            }
+        }
+
+        async function toggleAllPreContextTeamBoth(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const bothButtons = visibleRows.map(r => r.querySelector('.pre-context-both-btn')).filter(Boolean);
+            if (!bothButtons.length) return;
+
+            const anyOpen = bothButtons.some(b => {
+                const ctx = getRowDetailElements(b);
+                return ctx?.detailRow && ctx.detailRow.style.display !== 'none';
+            });
+
+            if (anyOpen) {
+                bothButtons.forEach(b => {
+                    const ctx = getRowDetailElements(b);
+                    if (ctx?.col3Slot) ctx.col3Slot.style.display = 'none';
+                    if (ctx?.movSlot) ctx.movSlot.style.display = 'none';
+                    syncDetailRowState(ctx);
+                });
+            } else {
+                for (const b of bothButtons) {
+                    togglePreContextRowBoth(b, event);
+                }
+            }
+        }
+
+        function computeTeamPatternSynthesis(container) {
+            if (!container) return '';
+            const col3Cards = Array.from(container.querySelectorAll('.pre-context-detail-slot.col3-slot.is-card'));
+            const movCards = Array.from(container.querySelectorAll('.pre-context-detail-slot.mov-slot.is-card'));
+
+            let col3Mejora = 0, col3Empeora = 0, col3Iguala = 0;
+            col3Cards.forEach(card => {
+                const text = card.innerText || '';
+                if (text.includes('MEJORA')) col3Mejora++;
+                else if (text.includes('EMPEORA')) col3Empeora++;
+                else if (text.includes('IGUALA')) col3Iguala++;
+            });
+
+            let h2hMejor = 0, h2hPeor = 0, h2hIgual = 0;
+            movCards.forEach(card => {
+                const text = card.innerText || '';
+                if (text.includes('Cubre') || text.includes('Mejor')) h2hMejor++;
+                else if (text.includes('No cubre') || text.includes('Peor')) h2hPeor++;
+                else if (text.includes('Push') || text.includes('Igual')) h2hIgual++;
+            });
+
+            let patternBadge = '';
+            let diagnosis = '';
+            let bgStyle = '';
+
+            if (col3Mejora > col3Empeora && h2hMejor >= h2hPeor) {
+                patternBadge = '<span class="pre-col3-tag is-cover" style="font-size:.56rem; padding:2px 6px; font-weight:900;">🔥 CONVERGENCIA FAVORABLE</span>';
+                diagnosis = 'La triangulación Col3 mejora con balance positivo y los antecedentes directos H2H respaldan la cobertura.';
+                bgStyle = 'background:#f0fdf4; border-color:#86efac;';
+            } else if (col3Empeora > col3Mejora && h2hPeor >= h2hMejor) {
+                patternBadge = '<span class="pre-col3-tag is-fail" style="font-size:.56rem; padding:2px 6px; font-weight:900;">⚠️ CONFIRMACIÓN DESFAVORABLE</span>';
+                diagnosis = 'Col3 empeora frente a rivales espejo y los precedentes directos muestran falta de cobertura de la línea.';
+                bgStyle = 'background:#fef2f2; border-color:#fca5a5;';
+            } else if (col3Mejora > col3Empeora && h2hPeor > h2hMejor) {
+                patternBadge = '<span class="pre-col3-tag is-up" style="font-size:.56rem; padding:2px 6px; font-weight:900; background:#2563eb;">⚡ DIVERGENCIA DE MERCADO</span>';
+                diagnosis = 'Col3 muestra superioridad triangulada pero el H2H directo previo no cubrió. Ojo a trampas o valor de cuota.';
+                bgStyle = 'background:#eff6ff; border-color:#bfdbfe;';
+            } else if (col3Empeora > col3Mejora && h2hMejor > h2hPeor) {
+                patternBadge = '<span class="pre-col3-tag is-down" style="font-size:.56rem; padding:2px 6px; font-weight:900; background:#d97706; color:#fff;">🛡️ MEMORIA DE MATCHUP</span>';
+                diagnosis = 'Aunque Col3 es débil, la memoria directa de matchup en este estadio/rival es favorable al equipo.';
+                bgStyle = 'background:#fffbeb; border-color:#fde68a;';
+            } else {
+                patternBadge = '<span class="pre-col3-tag is-same" style="font-size:.56rem; padding:2px 6px; font-weight:900;">⚖️ PATRÓN EQUILIBRADO</span>';
+                diagnosis = 'Rendimientos triangulados y directos sin sesgo dominante.';
+                bgStyle = 'background:#f8fafc; border-color:#cbd5e1;';
+            }
+
+            return `<div style="${bgStyle} border:1px solid; border-radius:6px; padding:6px 8px; margin:4px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="font-weight:900; color:#1e293b; font-size:.7rem;"><i class="fa-solid fa-bolt text-warning me-1"></i>LECTURA DE PATRÓN:</span>
+                        ${patternBadge}
+                    </div>
+                    <div style="font-size:.58rem; color:#64748b; font-weight:800;">
+                        Col3: <span style="color:#16a34a;">+${col3Mejora}</span> / <span style="color:#dc2626;">-${col3Empeora}</span> · H2H: <span style="color:#16a34a;">+${h2hMejor}</span> / <span style="color:#dc2626;">-${h2hPeor}</span>
+                    </div>
+                </div>
+                <div style="font-size:.65rem; color:#334155; font-weight:700;">
+                    ${diagnosis}
+                </div>
+            </div>`;
+        }
+
+        async function togglePreContextTeamPattern(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const container = btn.closest('.pre-context-team');
+            if (!container) return;
+
+            let banner = container.querySelector('.pre-context-pattern-banner');
+            if (banner) {
+                banner.remove();
+                btn.classList.remove('is-active');
+                return;
+            }
+
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Analizando...';
+
+            try {
+                const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+                const col3Buttons = visibleRows.map(r => r.querySelector('.pre-context-col3-btn')).filter(Boolean);
+                const movButtons = visibleRows.map(r => r.querySelector('.pre-context-mov-btn')).filter(Boolean);
+
+                // Disparar carga de todos los visibles
+                for (const b of col3Buttons) {
+                    if (b.dataset.loaded !== '1') {
+                        loadPreContextRowCol3(b, event, { force_open: true });
+                    }
+                }
+                for (const b of movButtons) {
+                    if (b.dataset.loaded !== '1') {
+                        loadPreContextRowMovHistorico(b, event, { force_open: true });
                     }
                 }
 
-                let finalPayload = promptData.prompt;
-                if (contextText) {
-                    const divider = '='.repeat(72);
-                    finalPayload = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptData.prompt}`;
-                }
+                // Esperar 400ms a que se resuelvan
+                await new Promise(r => setTimeout(r, 400));
 
-                await navigator.clipboard.writeText(finalPayload);
-                btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+                const bannerHtml = computeTeamPatternSynthesis(container);
+                const bannerDiv = document.createElement('div');
+                bannerDiv.className = 'pre-context-pattern-banner';
+                bannerDiv.innerHTML = bannerHtml;
+
+                const table = container.querySelector('.pre-context-table');
+                if (table) {
+                    table.parentNode.insertBefore(bannerDiv, table);
+                } else {
+                    container.appendChild(bannerDiv);
+                }
+                btn.classList.add('is-active');
             } catch (err) {
-                alert('Error al copiar contexto + prompt: ' + err.message);
-                btnElement.innerHTML = originalHtml;
+                console.error(err);
             } finally {
-                setTimeout(() => {
-                    btnElement.innerHTML = originalHtml;
-                    btnElement.disabled = false;
-                }, 2000);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
+        }
+
+        function renderPreMatchContextCard(pc, matchPayload) {
+            if (!pc) return '';
+            const current = pc.current || pc.pre_match_context?.current || {};
+            const currentHome = current.home_name || pc.home_name || matchPayload?.home_team || matchPayload?.home_name || 'Local';
+            const currentAway = current.away_name || pc.away_name || matchPayload?.away_team || matchPayload?.away_name || 'Visitante';
+            return renderPreMatchContext(pc, currentHome, currentAway);
         }
 
         async function fetchContextPreviewOnDemand(containerId, matchId, btn = null) {

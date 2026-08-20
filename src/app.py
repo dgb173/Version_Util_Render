@@ -5446,26 +5446,17 @@ def api_precacheo_context_fast():
         if not match_id:
             return jsonify({'error': 'Falta match_id'}), 400
 
-        existing = data_manager.get_precacheo_match(match_id) or {}
-        cached_context = existing.get('pre_match_context') if isinstance(existing, dict) else None
-        cached_version = int((cached_context or {}).get('context_data_version') or 0)
-        generated_epoch = float((cached_context or {}).get('generated_at_epoch') or 0)
-        cache_age = time.time() - generated_epoch if generated_epoch else None
-        if cached_context and cached_version >= 2 and cache_age is not None and 0 <= cache_age < 8 * 3600 and not payload.get('force'):
-            return jsonify({
-                'status': 'success',
-                'context': cached_context,
-                'cached': True,
-                'elapsed_seconds': 0,
-            })
-
-        main_odds = existing.get('main_match_odds') or {}
-        context = analizar_contexto_previo_rapido(
-            match_id,
-            current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
-            current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
-            is_neutral_venue=True if existing.get('is_neutral_venue') is True else None,
-        )
+        existing = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id) or {}
+        if not force_refresh and existing.get('pre_match_context'):
+            pre_match_ctx = existing.get('pre_match_context')
+        else:
+            main_odds = existing.get('main_match_odds') or {}
+            pre_match_ctx = analizar_contexto_previo_rapido(
+                match_id,
+                current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
+                current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
+                is_neutral_venue=True if existing.get('is_neutral_venue') is True else None,
+            )
         if not context or context.get('error'):
             return jsonify({'error': (context or {}).get('error', 'No se pudo generar el contexto')}), 500
 

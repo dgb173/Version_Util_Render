@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-18T14:47:39",
+  "updated_at": "2026-08-20T12:37:46",
   "matches": {
     "3024998": {
       "match_id": "3024998",
@@ -310229,6 +310229,380 @@
         }
       },
       "created_at": "2026-08-18T14:47:39"
+    },
+    "3057401": {
+      "match_id": "3057401",
+      "schema_version": 3,
+      "home_name": "CA Independiente (W)",
+      "away_name": "Belgrano (W)",
+      "league_id": "1539",
+      "league_name": "The women＇s league of Argentina",
+      "final_score": "0:6",
+      "match_date": "8/10/2026",
+      "time": "20:00",
+      "main_match_odds": {
+        "ah_linea": "-0.75",
+        "goals_linea": "2"
+      },
+      "last_general_home": {
+        "date": "2026-08-03",
+        "home_team": "River Plate (W)",
+        "away_team": "CA Independiente (W)",
+        "home_id": "15952",
+        "away_id": "27796",
+        "score": "1:0",
+        "handicap_line_raw": "1.5",
+        "ah_line": "1.5",
+        "ou_line": "N/A",
+        "match_id": "3049452",
+        "league_id_hist": "1539",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "River Plate (W)",
+        "rival_id": "15952",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "17"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "89",
+            "away": "106"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "60",
+            "away": "80"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-08-02",
+        "home_team": "Belgrano (W)",
+        "away_team": "Huracan (W)",
+        "home_id": "60276",
+        "away_id": "27625",
+        "score": "2:0",
+        "handicap_line_raw": "0.5",
+        "ah_line": "0.5",
+        "ou_line": "N/A",
+        "match_id": "3049426",
+        "league_id_hist": "1539",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Huracan (W)",
+        "rival_id": "27625",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "7",
+            "away": "4"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "108",
+            "away": "86"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "57",
+            "away": "31"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "1",
+        "goles_away": "0",
+        "handicap": "-0.75",
+        "match_id": "3045487",
+        "h2h_home_team_name": "Huracan (W)",
+        "h2h_away_team_name": "River Plate (W)",
+        "date": "2026-07-28",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "9",
+            "away": "2"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "2"
+          },
+          {
+            "label": "Ataques",
+            "home": "117",
+            "away": "130"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "69",
+            "away": "49"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:1",
+          "ah_line": "0",
+          "localia": "H",
+          "home_team": "CA Independiente (W)",
+          "away_team": "Huracan (W)",
+          "match_id": "2977917",
+          "date": "2026-04-26",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Huracan (W)",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "5",
+              "away": "15"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "1",
+              "away": "6"
+            },
+            {
+              "label": "Ataques",
+              "home": "114",
+              "away": "129"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "74",
+              "away": "83"
+            }
+          ]
+        },
+        "right": {
+          "score": "2:1",
+          "ah_line": "0",
+          "localia": "H",
+          "home_team": "Belgrano (W)",
+          "away_team": "River Plate (W)",
+          "match_id": "3031829",
+          "date": "2026-07-17",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "River Plate (W)",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "6",
+              "away": "5"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "3",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "79",
+              "away": "82"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "46",
+              "away": "42"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 1,
+          "draws": 0,
+          "losses": 7,
+          "gf": 4,
+          "ga": 20,
+          "form": "D-D-D-V-D-D-D-D",
+          "matches": [
+            {
+              "date": "2026-08-03",
+              "home_team": "River Plate (W)",
+              "away_team": "CA Independiente (W)",
+              "score": "1:0",
+              "ah": "1.5",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-07-25",
+              "home_team": "CA Independiente (W)",
+              "away_team": "Banfield (W)",
+              "score": "0:3",
+              "ah": "-0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-07-17",
+              "home_team": "CA Independiente (W)",
+              "away_team": "Gimnasia LP (W)",
+              "score": "0:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-07-12",
+              "home_team": "Newells Old Boys (W)",
+              "away_team": "CA Independiente (W)",
+              "score": "0:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-07-09",
+              "home_team": "CA Independiente (W)",
+              "away_team": "Racing Club (W)",
+              "score": "1:3",
+              "ah": "-1.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-07-04",
+              "home_team": "San Lorenzo (W)",
+              "away_team": "CA Independiente (W)",
+              "score": "2:0",
+              "ah": "2",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-06-26",
+              "home_team": "CA Independiente (W)",
+              "away_team": "CA Talleres de Cordoba (W)",
+              "score": "1:3",
+              "ah": "-0.75",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-06-20",
+              "home_team": "Ferro Carril Oeste (W)",
+              "away_team": "CA Independiente (W)",
+              "score": "6:1",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 5,
+          "draws": 2,
+          "losses": 1,
+          "gf": 8,
+          "ga": 3,
+          "form": "V-D-V-V-V-V-E-E",
+          "matches": [
+            {
+              "date": "2026-08-02",
+              "home_team": "Belgrano (W)",
+              "away_team": "Huracan (W)",
+              "score": "2:0",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-07-26",
+              "home_team": "Belgrano (W)",
+              "away_team": "Social Atletico Television (W)",
+              "score": "0:1",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-07-17",
+              "home_team": "Belgrano (W)",
+              "away_team": "River Plate (W)",
+              "score": "2:1",
+              "ah": "0",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-07-13",
+              "home_team": "Banfield (W)",
+              "away_team": "Belgrano (W)",
+              "score": "0:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-07-08",
+              "home_team": "Belgrano (W)",
+              "away_team": "Gimnasia LP (W)",
+              "score": "2:1",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-07-04",
+              "home_team": "Newells Old Boys (W)",
+              "away_team": "Belgrano (W)",
+              "score": "0:1",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-06-26",
+              "home_team": "Belgrano (W)",
+              "away_team": "Racing Club (W)",
+              "score": "0:0",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-06-19",
+              "home_team": "San Lorenzo (W)",
+              "away_team": "Belgrano (W)",
+              "score": "0:0",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "E"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T12:37:45"
     }
   }
 }
