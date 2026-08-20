@@ -5818,6 +5818,26 @@ def api_precacheo_h2h_mov_historico():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+
+
+@app.route('/api/match_stats/<match_id>', methods=['GET'])
+def api_match_stats(match_id):
+    """Devuelve las estadísticas detalladas (ataques peligrosos, tiros, corners, etc.) bajo demanda."""
+    try:
+        clean_id = "".join(filter(str.isdigit, str(match_id or '')))
+        if not clean_id:
+            return jsonify({'status': 'error', 'error': 'ID de partido no válido'}), 400
+        from modules.last_general_context import _get_stats_rows
+        stats = _get_stats_rows(clean_id)
+        return jsonify({
+            'status': 'success',
+            'match_id': clean_id,
+            'stats': stats or []
+        })
+    except Exception as exc:
+        logging.exception(f"Error en /api/match_stats/{match_id}")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
 @app.route('/api/precacheo_h2h_col3' , methods=['POST'])
 def api_precacheo_h2h_col3():
     """Devuelve solo el H2H Col3 solicitado para mantener ligera la tabla."""
@@ -6008,6 +6028,7 @@ def api_precacheo_h2h_col3():
             'status', 'goles_home', 'goles_away', 'handicap', 'match_id',
             'h2h_home_team_name', 'h2h_away_team_name', 'date', 'source',
             'is_different_league', 'resultado', 'home_red', 'away_red',
+            'stats_rows',
         )
         col3 = {key: raw_col3.get(key) for key in allowed_fields if key in raw_col3}
 

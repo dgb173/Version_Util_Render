@@ -753,6 +753,42 @@
             color: #ffffff;
         }
 
+        .pre-card-stats-wrap {
+            margin-top: 4px;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 3px;
+        }
+        .pre-card-stats-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #0369a1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .pre-card-stats-toggle:hover, .pre-card-stats-toggle.is-active {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0369a1;
+        }
+        .pre-card-stats-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 4px;
+            margin-top: 3px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+            cursor: default;
+        }
+
+
 
         .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 8px; }
         .pre-context-ah-title { margin-bottom: 6px; color: #475569; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
@@ -8127,6 +8163,112 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!bothVisible);
         }
 
+
+        function formatStatsTableHtml(stats) {
+            if (!Array.isArray(stats) || stats.length === 0) return '';
+            const rows = stats.map(stat => {
+                const label = stat.label ?? '';
+                const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
+                const parseVal = (str) => {
+                    if (!str) return 0;
+                    const match = String(str).match(/(\d+)/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                const hVal = parseVal(stat.home);
+                const aVal = parseVal(stat.away);
+                let hClass = 'text-dark';
+                let aClass = 'text-dark';
+                let labelClass = 'text-muted';
+                if (isRedCardRow) {
+                    hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                    aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                    labelClass = 'text-danger fw-bold';
+                } else if (hVal > aVal) {
+                    hClass = 'text-success fw-bold';
+                    aClass = 'text-danger';
+                } else if (hVal < aVal) {
+                    hClass = 'text-danger';
+                    aClass = 'text-success fw-bold';
+                }
+                const hColor = hClass.includes('text-success') ? '#16a34a' : (hClass.includes('text-danger') ? '#dc2626' : '#1e293b');
+                const aColor = aClass.includes('text-success') ? '#16a34a' : (aClass.includes('text-danger') ? '#dc2626' : '#1e293b');
+                const lblColor = labelClass.includes('text-danger') ? '#dc2626' : '#64748b';
+                return `
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="text-align:left; font-weight:800; font-size:.65rem; padding:2px 4px; color:${hColor};">${escapePreContextCol3(stat.home ?? '')}</td>
+                        <td style="text-align:center; font-size:.62rem; color:${lblColor}; padding:2px 4px; font-weight:700; white-space:nowrap;">${escapePreContextCol3(label)}</td>
+                        <td style="text-align:right; font-weight:800; font-size:.65rem; padding:2px 4px; color:${aColor};">${escapePreContextCol3(stat.away ?? '')}</td>
+                    </tr>
+                `;
+            }).join('');
+            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;"><tbody>${rows}</tbody></table>`;
+        }
+
+        async function toggleCardStats(btn, event, matchId) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            if (!btn) return;
+            const wrap = btn.closest('.pre-col3-stats-wrap') || btn.parentElement;
+            if (!wrap) return;
+            let container = wrap.querySelector('.pre-card-stats-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'pre-card-stats-container';
+                container.style.display = 'none';
+                wrap.appendChild(container);
+            }
+
+            if (container.style.display !== 'none') {
+                container.style.display = 'none';
+                btn.classList.remove('is-active');
+                return;
+            }
+
+            if (container.dataset.loaded === '1') {
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+                return;
+            }
+
+            const cleanId = String(matchId || '').replace(/\D/g, '');
+            if (!cleanId) {
+                container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:3px;">Estadísticas no disponibles para este partido</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Descargando stats...';
+
+            try {
+                const response = await fetch(`/api/match_stats/${cleanId}`);
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+
+                const stats = data.stats || [];
+                if (!stats.length) {
+                    container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin ataques/tiros registrados para este encuentro</div>';
+                } else {
+                    container.innerHTML = formatStatsTableHtml(stats);
+                }
+
+                container.dataset.loaded = '1';
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+            } catch (err) {
+                container.innerHTML = `<div style="font-size:.62rem; color:#dc2626; text-align:center; padding:3px;">Error: ${err.message}</div>`;
+                container.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
         function buildPreContextCol3Card(button, data) {
             const col3 = data?.h2h_col3 || {};
             const match = data?.match || {};
@@ -8247,7 +8389,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <span>Res <strong>${escapePreContextCol3(score)}</strong></span>
                 </div>
                 <div style="font-size:.68rem; color:#334155; font-weight:700; line-height:1.2; margin-bottom:4px;">${escapePreContextCol3(col3Home)} vs ${escapePreContextCol3(col3Away)}</div>
-                <div class="pre-col3-tags" style="display:flex; gap:4px; margin:0;">${coverHtml}${movementHtml}</div>`;
+                <div class="pre-col3-tags" style="display:flex; gap:4px; margin:0;">${coverHtml}${movementHtml}</div>
+                <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
+                    <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                        <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
+                    </button>
+                    <div class="pre-card-stats-container" style="display:none;"></div>
+                </div>`;
         }
 
         function buildPreContextMovCard(button, data) {
@@ -8305,6 +8453,12 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:.72rem; font-weight:900; margin-top:2px;">
                         <span style="color:${numbersColor};">AH <strong>${escapePreContextCol3(String(ahStr))}</strong> · <strong>${escapePreContextCol3(String(scoreStr))}</strong></span>
                         <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
+                    </div>
+                    <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
+                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                            <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
+                        </button>
+                        <div class="pre-card-stats-container" style="display:none;"></div>
                     </div>
                 </div>`;
             };
@@ -13726,7 +13880,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         ${data.date ? `<span class="text-muted">${lgEscape(data.date)}</span>` : ''}
                         ${ah ? `<span style="font-weight:800;color:#0f172a;">AH: ${lgEscape(ah)}</span>` : ''}
                     </div>
-                    ${statsRows.length ? `<div style="margin-top:7px;border-top:1px solid rgba(15,23,42,0.12);padding-top:5px;background:rgba(255,255,255,0.42);">${renderLastGeneralStatsRows(statsRows)}</div>` : ''}
+                    <div class="pre-col3-stats-wrap" style="margin-top:6px;border-top:1px solid rgba(15,23,42,0.12);padding-top:3px;" onclick="event.stopPropagation();">
+                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${lgEscape(data.match?.match_id || data.match?.matchIndex || data.matchIndex || data.match_id || data.id || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                            <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
+                        </button>
+                        <div class="pre-card-stats-container" style="display:${statsRows.length ? 'block' : 'none'}; margin-top:3px;" data-loaded="${statsRows.length ? '1' : '0'}">
+                            ${statsRows.length ? renderLastGeneralStatsRows(statsRows) : ''}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
