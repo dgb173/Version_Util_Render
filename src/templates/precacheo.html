@@ -8349,7 +8349,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
-                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las 7 fichas de comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>7 Fichas Resumen</button>` : ''}
+                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las 7 fichas de comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>+5 H2H / Ind</button>` : ''}
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
@@ -11748,17 +11748,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const BG_H2H = '#fff8e1';         // Amarillo/naranja claro
                 const BG_IND = '#e3f2fd';         // Azul claro
 
-                // 1. Prev Home
+                // 1. Prev Home (Local en CASA)
                 const prevHomeData = prevHomeStats || null;
                 const isDiffLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_different_league);
                 const isGeneralFallbackLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_general_fallback);
-                statBoxes.push(createStatBox('Prev Home', prevHomeData, !prevHomeData, 'text-success', BG_PREV_HOME, isGeneralFallbackLhm ? 'general' : isDiffLhm));
+                const prevHomeBox = createStatBox('Prev Home', prevHomeData, !prevHomeData, 'text-success', BG_PREV_HOME, isGeneralFallbackLhm ? 'general' : isDiffLhm);
 
-                // 2. Prev Away
+                // 2. Prev Away (Visitante FUERA)
                 const prevAwayData = prevAwayStats || null;
                 const isDiffLam = !!(pc && pc.last_away_match && pc.last_away_match.is_different_league);
                 const isGeneralFallbackLam = !!(pc && pc.last_away_match && pc.last_away_match.is_general_fallback);
-                statBoxes.push(createStatBox('Prev Away', prevAwayData, !prevAwayData, 'text-danger', BG_PREV_AWAY, isGeneralFallbackLam ? 'general' : isDiffLam));
+                const prevAwayBox = createStatBox('Prev Away', prevAwayData, !prevAwayData, 'text-danger', BG_PREV_AWAY, isGeneralFallbackLam ? 'general' : isDiffLam);
 
                 // 3. H2H Estadio
                 let h2hStadiumData = null;
@@ -11788,7 +11788,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const isDiffStadium = !!(stadium && stadium.is_different_league);
                 const BG_STADIUM = '#e3f2fd';
-                statBoxes.push(createStatBox('H2H Estadio', h2hStadiumData, !h2hStadiumData, 'text-info', BG_STADIUM, isDiffStadium));
+                const stadiumBox = createStatBox('H2H Estadio', h2hStadiumData, !h2hStadiumData, 'text-info', BG_STADIUM, isDiffStadium);
 
                 // 4. H2H General
                 let h2hGeneralData = null;
@@ -11818,9 +11818,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const isDiffGeneral = !!(general && general.is_different_league);
                 const BG_GENERAL = '#e3f2fd';
-                statBoxes.push(createStatBox('H2H General', h2hGeneralData, !h2hGeneralData, 'text-info', BG_GENERAL, isDiffGeneral));
+                const generalBox = createStatBox('H2H General', h2hGeneralData, !h2hGeneralData, 'text-info', BG_GENERAL, isDiffGeneral);
 
-                // 3. H2H Col3
+                // 5. H2H Col3
                 let h2hCol3Data = null;
                 let isDiffCol3 = !!(pc && pc.h2h_col3 && pc.h2h_col3.is_different_league);
                 if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
@@ -11839,7 +11839,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         };
                     }
                 }
-                statBoxes.push(createStatBox('H2H Col3', h2hCol3Data, !h2hCol3Data, 'text-warning', BG_H2H, isDiffCol3));
+                const col3Box = createStatBox('H2H Col3', h2hCol3Data, !h2hCol3Data, 'text-warning', BG_H2H, isDiffCol3);
 
                 // 6. Ind. Local
                 let indLocalData = null;
@@ -11855,7 +11855,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         };
                     }
                 }
-                statBoxes.push(createStatBox('Ind. Local', indLocalData, !indLocalData, 'text-info', BG_IND, isDiffIndL));
+                const indLocalBox = createStatBox('Ind. Local', indLocalData, !indLocalData, 'text-info', BG_IND, isDiffIndL);
 
                 // 7. Ind. Visitante
                 let indVisitanteData = null;
@@ -11871,7 +11871,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         };
                     }
                 }
-                statBoxes.push(createStatBox('Ind. Visitante', indVisitanteData, !indVisitanteData, 'text-info', BG_IND, isDiffIndR));
+                const indVisitanteBox = createStatBox('Ind. Visitante', indVisitanteData, !indVisitanteData, 'text-info', BG_IND, isDiffIndR);
+
+                // Fichas secundarias (las 5 restantes para el toggle)
+                const secondaryBoxes = [stadiumBox, generalBox, col3Box, indLocalBox, indVisitanteBox];
 
                 // Boton compacto de estadisticas: conserva tiros, ataques y ataques peligrosos.
                 let globalStatsBtn = '';
@@ -11891,13 +11894,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 `;
                 const summaryBoxesId = `summary-boxes-${matchId}`;
                 const summaryBoxesHtml = `
-                    <div id="${summaryBoxesId}" class="precacheo-summary-boxes-container" style="display: none; padding: 6px 0 10px 0; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1;" hidden>
+                    <!-- 1. Prev Home (Local Casa) & Prev Away (Visitante Fuera): SIEMPRE VISIBLES POR DEFECTO -->
+                    <div class="d-flex gap-2 w-100 stats-mobile-grid mb-2" style="padding: 4px 0;">
+                        <div style="flex: 1 1 0; min-width: 0;">${prevHomeBox}</div>
+                        <div style="flex: 1 1 0; min-width: 0;">${prevAwayBox}</div>
+                    </div>
+
+                    <!-- 2. Las 5 fichas de H2H e Indirectas: Ocultas por defecto, toggleables con el botón superior -->
+                    <div id="${summaryBoxesId}" class="precacheo-summary-boxes-container" style="display: none; padding: 4px 0 8px 0; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1;" hidden>
                         <div class="d-flex gap-2 w-100 stats-mobile-grid" style="padding: 4px 0;">
-                            ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
+                            ${secondaryBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
                         </div>
                     </div>
                 `;
-                globalStatsHtmlContent = `
+                                globalStatsHtmlContent = `
                     ${renderPreMatchContext(pc, home, away, summaryBoxesHtml, summaryBoxesId)}
                 `;
 
