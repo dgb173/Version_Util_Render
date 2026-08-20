@@ -586,13 +586,14 @@
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
         .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 13%; font-size: .67rem; }
-        .pre-context-table .ctx-league { width: 7%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
+        .pre-context-table .ctx-date { width: 14%; font-size: .67rem; }
+        .pre-context-table .ctx-league { width: 6%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
         .pre-context-table .ctx-rival { width: 26%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table .ctx-score { width: 7%; text-align: center; font-weight: 900; }
         .pre-context-table .ctx-ah { width: 7%; text-align: right; }
-        .pre-context-table .ctx-col3 { width: 20%; text-align: center; overflow: visible; }
-        .pre-context-table .ctx-mov { width: 20%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-stats { width: 13%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-col3 { width: 13%; text-align: center; overflow: visible; }
+        .pre-context-table .ctx-mov { width: 14%; text-align: center; overflow: visible; }
         .pre-context-col3-btn { min-width: 44px; padding: 2px 5px; border: 1px solid #7c3aed; border-radius: 4px; background: #fff; color: #6d28d9; font-size: .6rem; font-weight: 900; line-height: 1.25; white-space: nowrap; cursor: pointer; }
         .pre-context-col3-btn:hover { background: #6d28d9; color: #fff; }
         .pre-context-col3-btn:disabled { opacity: .55; cursor: wait; }
@@ -8151,7 +8152,7 @@
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${totalRows ? `<button type="button" class="pre-context-team-stats-btn" onclick="toggleAllPreContextTeamStats(this, event)" title="Desplegar todas las estadísticas (ataques, tiros, córners) de los partidos de ${esc(teamName)} debajo"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button><button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
+                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
                     </div>
                     ${totalRows ? `<table class="pre-context-table">
                         <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>

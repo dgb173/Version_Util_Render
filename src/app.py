@@ -5831,7 +5831,13 @@ def api_match_stats(match_id=None):
 
         # Si no viene clean_id directamente, resolverlo usando parent_match_id y metadatos de la fila
         if not clean_id and parent_match_id:
-            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id) or {}
+            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
+            if not parent:
+                for pm in data_manager.load_precacheo_matches() or []:
+                    if str(pm.get('match_id') or pm.get('id')) == str(parent_match_id):
+                        parent = pm
+                        break
+            parent = parent or {}
             pre_context = parent.get('pre_match_context') or {}
             current_context = pre_context.get('current') or pre_context
             candidate_groups = (
