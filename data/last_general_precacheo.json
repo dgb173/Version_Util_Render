@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-20T12:37:46",
+  "updated_at": "2026-08-20T14:07:13",
   "matches": {
     "3024998": {
       "match_id": "3024998",
@@ -310603,6 +310603,1782 @@
         }
       },
       "created_at": "2026-08-20T12:37:45"
+    },
+    "2759895": {
+      "match_id": "2759895",
+      "schema_version": 3,
+      "home_name": "Yoogali SC",
+      "away_name": "Tuggeranong United",
+      "league_id": "1063",
+      "league_name": "National Premier Leagues Capital Football",
+      "final_score": "1:4",
+      "match_date": "8/10/2025",
+      "time": "07:00",
+      "main_match_odds": {
+        "ah_linea": "-0.75",
+        "goals_linea": "3.25"
+      },
+      "last_general_home": {
+        "date": "2025-08-02",
+        "home_team": "Canberra FC",
+        "away_team": "Yoogali SC",
+        "home_id": "9808",
+        "away_id": "49410",
+        "score": "1:2",
+        "handicap_line_raw": "1.75",
+        "ah_line": "1.75",
+        "ou_line": "N/A",
+        "match_id": "2759891",
+        "league_id_hist": "1063",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Canberra FC",
+        "rival_id": "9808",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "21",
+            "away": "14"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "13",
+            "away": "8"
+          },
+          {
+            "label": "Ataques",
+            "home": "124",
+            "away": "77"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "57",
+            "away": "38"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2025-08-02",
+        "home_team": "Tuggeranong United",
+        "away_team": "Monaro Panthers",
+        "home_id": "14324",
+        "away_id": "14326",
+        "score": "1:1",
+        "handicap_line_raw": "-1.25",
+        "ah_line": "-1.25",
+        "ou_line": "N/A",
+        "match_id": "2759890",
+        "league_id_hist": "1063",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Monaro Panthers",
+        "rival_id": "14326",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "5",
+            "away": "6"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "87",
+            "away": "88"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "87",
+            "away": "94"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "2",
+        "handicap": "1.75",
+        "match_id": "2759877",
+        "h2h_home_team_name": "Canberra FC",
+        "h2h_away_team_name": "Monaro Panthers",
+        "date": "2025-07-12",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "8"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "93",
+            "away": "77"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "84",
+            "away": "80"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "1:1",
+          "ah_line": "2.5",
+          "localia": "A",
+          "home_team": "Monaro Panthers",
+          "away_team": "Yoogali SC",
+          "match_id": "2759869",
+          "date": "2025-06-28",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Monaro Panthers",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "9",
+              "away": "7"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "4",
+              "away": "2"
+            },
+            {
+              "label": "Ataques",
+              "home": "114",
+              "away": "65"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "106",
+              "away": "60"
+            }
+          ]
+        },
+        "right": {
+          "score": "1:7",
+          "ah_line": "-1.75",
+          "localia": "H",
+          "home_team": "Tuggeranong United",
+          "away_team": "Canberra FC",
+          "match_id": "2759882",
+          "date": "2025-07-20",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Canberra FC",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "5",
+              "away": "28"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "3",
+              "away": "20"
+            },
+            {
+              "label": "Ataques",
+              "home": "62",
+              "away": "109"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "19",
+              "away": "49"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 2,
+          "draws": 1,
+          "losses": 5,
+          "gf": 9,
+          "ga": 13,
+          "form": "V-D-V-D-D-E-D-D",
+          "matches": [
+            {
+              "date": "2025-08-02",
+              "home_team": "Canberra FC",
+              "away_team": "Yoogali SC",
+              "score": "1:2",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-27",
+              "home_team": "Yoogali SC",
+              "away_team": "Queanbeyan City",
+              "score": "0:1",
+              "ah": "-0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-07-19",
+              "home_team": "OConnor Knights",
+              "away_team": "Yoogali SC",
+              "score": "0:2",
+              "ah": "1.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-13",
+              "home_team": "Yoogali SC",
+              "away_team": "Cooma Tigers",
+              "score": "1:2",
+              "ah": "-1.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-07-06",
+              "home_team": "Gungahlin United",
+              "away_team": "Yoogali SC",
+              "score": "3:1",
+              "ah": "1",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-28",
+              "home_team": "Monaro Panthers",
+              "away_team": "Yoogali SC",
+              "score": "1:1",
+              "ah": "2.5",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2025-06-22",
+              "home_team": "Tuggeranong United",
+              "away_team": "Yoogali SC",
+              "score": "2:1",
+              "ah": "1.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-15",
+              "home_team": "Yoogali SC",
+              "away_team": "Canberra FC",
+              "score": "1:3",
+              "ah": "-3",
+              "localia": "H",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 3,
+          "draws": 1,
+          "losses": 4,
+          "gf": 10,
+          "ga": 19,
+          "form": "E-V-D-D-V-D-V-D",
+          "matches": [
+            {
+              "date": "2025-08-02",
+              "home_team": "Tuggeranong United",
+              "away_team": "Monaro Panthers",
+              "score": "1:1",
+              "ah": "-1.25",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-07-27",
+              "home_team": "Tuggeranong United",
+              "away_team": "Gungahlin United",
+              "score": "2:1",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-20",
+              "home_team": "Tuggeranong United",
+              "away_team": "Canberra FC",
+              "score": "1:7",
+              "ah": "-1.75",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-07-12",
+              "home_team": "Tuggeranong United",
+              "away_team": "Queanbeyan City",
+              "score": "1:3",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-07-05",
+              "home_team": "OConnor Knights",
+              "away_team": "Tuggeranong United",
+              "score": "2:3",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-29",
+              "home_team": "Tuggeranong United",
+              "away_team": "Cooma Tigers",
+              "score": "0:3",
+              "ah": "-0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-22",
+              "home_team": "Tuggeranong United",
+              "away_team": "Yoogali SC",
+              "score": "2:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-15",
+              "home_team": "Tuggeranong United",
+              "away_team": "Monaro Panthers",
+              "score": "0:1",
+              "ah": "-1",
+              "localia": "H",
+              "result": "D"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T12:43:27"
+    },
+    "2964285": {
+      "match_id": "2964285",
+      "schema_version": 3,
+      "home_name": "Hrvace",
+      "away_name": "HNK Cibalia",
+      "league_id": "1612",
+      "league_name": "Croatia 2.HNL",
+      "final_score": "2:1",
+      "match_date": "3/28/2026",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "-0.25",
+        "goals_linea": "2.25"
+      },
+      "last_general_home": {
+        "date": "2026-03-20",
+        "home_team": "Karlovac",
+        "away_team": "Hrvace",
+        "home_id": "7506",
+        "away_id": "3083",
+        "score": "0:1",
+        "handicap_line_raw": "0.75",
+        "ah_line": "0.75",
+        "ou_line": "N/A",
+        "match_id": "2962354",
+        "league_id_hist": "1612",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Karlovac",
+        "rival_id": "7506",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "16",
+            "away": "5"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "113",
+            "away": "103"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "67",
+            "away": "51"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-03-21",
+        "home_team": "HNK Cibalia",
+        "away_team": "NK Opatija",
+        "home_id": "962",
+        "away_id": "15425",
+        "score": "2:0",
+        "handicap_line_raw": "0.75",
+        "ah_line": "0.75",
+        "ou_line": "N/A",
+        "match_id": "2962351",
+        "league_id_hist": "1612",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "NK Opatija",
+        "rival_id": "15425",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "6",
+            "away": "4"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "85",
+            "away": "68"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "45",
+            "away": "40"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "2",
+        "goles_away": "1",
+        "handicap": "0",
+        "match_id": "2802338",
+        "h2h_home_team_name": "NK Opatija",
+        "h2h_away_team_name": "Karlovac",
+        "date": "2026-02-20",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "5",
+            "away": "9"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "127",
+            "away": "151"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "56",
+            "away": "82"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:0",
+          "ah_line": "0.75",
+          "localia": "A",
+          "home_team": "NK Opatija",
+          "away_team": "Hrvace",
+          "match_id": "2802351",
+          "date": "2026-03-06",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "NK Opatija",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "7",
+              "away": "12"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "3",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "121",
+              "away": "119"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "65",
+              "away": "56"
+            }
+          ]
+        },
+        "right": {
+          "score": "1:2",
+          "ah_line": "0.75",
+          "localia": "H",
+          "home_team": "HNK Cibalia",
+          "away_team": "Karlovac",
+          "match_id": "2802349",
+          "date": "2026-03-08",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Karlovac",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "12",
+              "away": "14"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "5",
+              "away": "8"
+            },
+            {
+              "label": "Ataques",
+              "home": "163",
+              "away": "112"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "91",
+              "away": "57"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 2,
+          "draws": 1,
+          "losses": 5,
+          "gf": 4,
+          "ga": 9,
+          "form": "V-D-E-V-D-D-D-D",
+          "matches": [
+            {
+              "date": "2026-03-20",
+              "home_team": "Karlovac",
+              "away_team": "Hrvace",
+              "score": "0:1",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "Hrvace",
+              "away_team": "Radnik Sesvete",
+              "score": "1:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-06",
+              "home_team": "NK Opatija",
+              "away_team": "Hrvace",
+              "score": "0:0",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-28",
+              "home_team": "Hrvace",
+              "away_team": "Bijelo Brdo",
+              "score": "1:0",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-20",
+              "home_team": "Rudes",
+              "away_team": "Hrvace",
+              "score": "1:0",
+              "ah": "1",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-15",
+              "home_team": "NK Croatia Zmijavci",
+              "away_team": "Hrvace",
+              "score": "2:1",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-12-05",
+              "home_team": "Karlovac",
+              "away_team": "Hrvace",
+              "score": "3:0",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-11-29",
+              "home_team": "Hrvace",
+              "away_team": "NK Dugopolje",
+              "score": "0:1",
+              "ah": "0",
+              "localia": "H",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 5,
+          "draws": 0,
+          "losses": 3,
+          "gf": 16,
+          "ga": 9,
+          "form": "V-D-D-D-V-V-V-V",
+          "matches": [
+            {
+              "date": "2026-03-21",
+              "home_team": "HNK Cibalia",
+              "away_team": "NK Opatija",
+              "score": "2:0",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "NK Dugopolje",
+              "away_team": "HNK Cibalia",
+              "score": "2:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-08",
+              "home_team": "HNK Cibalia",
+              "away_team": "Karlovac",
+              "score": "1:2",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-27",
+              "home_team": "NK Dubrava Zagreb",
+              "away_team": "HNK Cibalia",
+              "score": "2:1",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-22",
+              "home_team": "HNK Cibalia",
+              "away_team": "NK Jarun",
+              "score": "3:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-15",
+              "home_team": "NK Orijent Rijeka",
+              "away_team": "HNK Cibalia",
+              "score": "2:3",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-12-04",
+              "home_team": "HNK Cibalia",
+              "away_team": "Radnik Sesvete",
+              "score": "1:0",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-11-30",
+              "home_team": "HNK Cibalia",
+              "away_team": "NK Croatia Zmijavci",
+              "score": "4:0",
+              "ah": "1",
+              "localia": "H",
+              "result": "V"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T12:45:59"
+    },
+    "2829274": {
+      "match_id": "2829274",
+      "schema_version": 3,
+      "home_name": "Brentwood Town",
+      "away_name": "Chatham Town",
+      "league_id": "566",
+      "league_name": "England Ryman(Isthmian) League Premier Division",
+      "final_score": "0:0",
+      "match_date": "3/28/2026",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "-0.25",
+        "goals_linea": "2.75"
+      },
+      "last_general_home": {
+        "date": "2026-03-21",
+        "home_team": "Brentwood Town",
+        "away_team": "Folkestone",
+        "home_id": "10829",
+        "away_id": "11422",
+        "score": "0:2",
+        "handicap_line_raw": "-0.25",
+        "ah_line": "-0.25",
+        "ou_line": "N/A",
+        "match_id": "2829262",
+        "league_id_hist": "566",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Folkestone",
+        "rival_id": "11422",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": []
+      },
+      "last_general_away": {
+        "date": "2026-03-21",
+        "home_team": "Burgess Hill Town",
+        "away_team": "Chatham Town",
+        "home_id": "3901",
+        "away_id": "3769",
+        "score": "0:3",
+        "handicap_line_raw": "-0.5",
+        "ah_line": "-0.5",
+        "ou_line": "N/A",
+        "match_id": "2829263",
+        "league_id_hist": "566",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Burgess Hill Town",
+        "rival_id": "3901",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": []
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "1",
+        "goles_away": "1",
+        "handicap": "1.25",
+        "match_id": "2829169",
+        "h2h_home_team_name": "Folkestone",
+        "h2h_away_team_name": "Burgess Hill Town",
+        "date": "2026-01-17",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "6"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "90",
+            "away": "69"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "51",
+            "away": "39"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "rival_name": "Burgess Hill Town",
+          "stats_rows": null
+        },
+        "right": {
+          "score": "1:2",
+          "ah_line": "0.25",
+          "localia": "A",
+          "home_team": "Folkestone",
+          "away_team": "Chatham Town",
+          "match_id": "2829148",
+          "date": "2026-01-03",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Folkestone",
+          "stats_rows": []
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 6,
+          "draws": 0,
+          "losses": 2,
+          "gf": 15,
+          "ga": 10,
+          "form": "D-V-V-V-V-D-V-V",
+          "matches": [
+            {
+              "date": "2026-03-21",
+              "home_team": "Brentwood Town",
+              "away_team": "Folkestone",
+              "score": "0:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "Hashtag United",
+              "away_team": "Brentwood Town",
+              "score": "2:3",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-07",
+              "home_team": "Brentwood Town",
+              "away_team": "lewes",
+              "score": "2:1",
+              "ah": "1",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-28",
+              "home_team": "Wingate Finchley",
+              "away_team": "Brentwood Town",
+              "score": "1:2",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-21",
+              "home_team": "Brentwood Town",
+              "away_team": "Whitehawk",
+              "score": "4:0",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "Ramsgate",
+              "away_team": "Brentwood Town",
+              "score": "3:0",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-07",
+              "home_team": "Brentwood Town",
+              "away_team": "Cray Valley Paper Mills",
+              "score": "3:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-03",
+              "home_team": "Chatham Town",
+              "away_team": "Brentwood Town",
+              "score": "0:1",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "V"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 6,
+          "draws": 1,
+          "losses": 1,
+          "gf": 15,
+          "ga": 3,
+          "form": "V-V-V-V-V-E-D-V",
+          "matches": [
+            {
+              "date": "2026-03-21",
+              "home_team": "Burgess Hill Town",
+              "away_team": "Chatham Town",
+              "score": "0:3",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-17",
+              "home_team": "Canvey Island",
+              "away_team": "Chatham Town",
+              "score": "0:1",
+              "ah": "-1.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "Chatham Town",
+              "away_team": "Canvey Island",
+              "score": "3:0",
+              "ah": "1.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-07",
+              "home_team": "Chatham Town",
+              "away_team": "Hashtag United",
+              "score": "3:0",
+              "ah": "1.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-03",
+              "home_team": "Chatham Town",
+              "away_team": "Whitehawk",
+              "score": "2:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-28",
+              "home_team": "Whitehawk",
+              "away_team": "Chatham Town",
+              "score": "0:0",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-24",
+              "home_team": "Dulwich Hamlet",
+              "away_team": "Chatham Town",
+              "score": "1:0",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-21",
+              "home_team": "Chatham Town",
+              "away_team": "Welling United",
+              "score": "3:1",
+              "ah": "1.5",
+              "localia": "H",
+              "result": "V"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T13:07:29"
+    },
+    "2759876": {
+      "match_id": "2759876",
+      "schema_version": 3,
+      "home_name": "Tuggeranong United",
+      "away_name": "Queanbeyan City",
+      "league_id": "1063",
+      "league_name": "National Premier Leagues Capital Football",
+      "final_score": "1:3",
+      "match_date": "7/12/2025",
+      "time": "09:15",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "3.5"
+      },
+      "last_general_home": {
+        "date": "2025-07-05",
+        "home_team": "OConnor Knights",
+        "away_team": "Tuggeranong United",
+        "home_id": "37423",
+        "away_id": "14324",
+        "score": "2:3",
+        "handicap_line_raw": "0.5",
+        "ah_line": "0.5",
+        "ou_line": "N/A",
+        "match_id": "2759872",
+        "league_id_hist": "1063",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "OConnor Knights",
+        "rival_id": "37423",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "9",
+            "away": "14"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "7",
+            "away": "11"
+          },
+          {
+            "label": "Ataques",
+            "home": "46",
+            "away": "69"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "26",
+            "away": "49"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2025-07-05",
+        "home_team": "Monaro Panthers",
+        "away_team": "Queanbeyan City",
+        "home_id": "14326",
+        "away_id": "38176",
+        "score": "1:2",
+        "handicap_line_raw": "1.75",
+        "ah_line": "1.75",
+        "ou_line": "N/A",
+        "match_id": "2759873",
+        "league_id_hist": "1063",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Monaro Panthers",
+        "rival_id": "14326",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "14",
+            "away": "3"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "6",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "82",
+            "away": "44"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "76",
+            "away": "25"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "1",
+        "goles_away": "5",
+        "handicap": "0.25",
+        "match_id": "2759865",
+        "h2h_home_team_name": "OConnor Knights",
+        "h2h_away_team_name": "Monaro Panthers",
+        "date": "2025-06-21",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "5",
+            "away": "9"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "6"
+          },
+          {
+            "label": "Ataques",
+            "home": "85",
+            "away": "95"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "53",
+            "away": "92"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:1",
+          "ah_line": "-1",
+          "localia": "H",
+          "home_team": "Tuggeranong United",
+          "away_team": "Monaro Panthers",
+          "match_id": "2759862",
+          "date": "2025-06-15",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Monaro Panthers",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "5",
+              "away": "10"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "4",
+              "away": "6"
+            },
+            {
+              "label": "Ataques",
+              "home": "62",
+              "away": "111"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "25",
+              "away": "45"
+            }
+          ]
+        },
+        "right": {
+          "score": "3:2",
+          "ah_line": "0",
+          "localia": "H",
+          "home_team": "Queanbeyan City",
+          "away_team": "OConnor Knights",
+          "match_id": "2759868",
+          "date": "2025-06-28",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "OConnor Knights",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "6",
+              "away": "10"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "3",
+              "away": "5"
+            },
+            {
+              "label": "Ataques",
+              "home": "85",
+              "away": "92"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "95",
+              "away": "55"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 3,
+          "draws": 2,
+          "losses": 3,
+          "gf": 10,
+          "ga": 15,
+          "form": "V-D-V-D-E-V-D-E",
+          "matches": [
+            {
+              "date": "2025-07-05",
+              "home_team": "OConnor Knights",
+              "away_team": "Tuggeranong United",
+              "score": "2:3",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-29",
+              "home_team": "Tuggeranong United",
+              "away_team": "Cooma Tigers",
+              "score": "0:3",
+              "ah": "-0.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-22",
+              "home_team": "Tuggeranong United",
+              "away_team": "Yoogali SC",
+              "score": "2:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-15",
+              "home_team": "Tuggeranong United",
+              "away_team": "Monaro Panthers",
+              "score": "0:1",
+              "ah": "-1",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-11",
+              "home_team": "Queanbeyan City",
+              "away_team": "Tuggeranong United",
+              "score": "0:0",
+              "ah": "0",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2025-05-30",
+              "home_team": "Gungahlin United",
+              "away_team": "Tuggeranong United",
+              "score": "2:4",
+              "ah": "-1",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-05-25",
+              "home_team": "Canberra FC",
+              "away_team": "Tuggeranong United",
+              "score": "5:0",
+              "ah": "2.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-05-17",
+              "home_team": "Queanbeyan City",
+              "away_team": "Tuggeranong United",
+              "score": "1:1",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "E"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 3,
+          "draws": 3,
+          "losses": 2,
+          "gf": 10,
+          "ga": 10,
+          "form": "V-V-D-E-E-V-D-E",
+          "matches": [
+            {
+              "date": "2025-07-05",
+              "home_team": "Monaro Panthers",
+              "away_team": "Queanbeyan City",
+              "score": "1:2",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-28",
+              "home_team": "Queanbeyan City",
+              "away_team": "OConnor Knights",
+              "score": "3:2",
+              "ah": "0",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-06-21",
+              "home_team": "Queanbeyan City",
+              "away_team": "Canberra FC",
+              "score": "0:2",
+              "ah": "-2",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-06-14",
+              "home_team": "Queanbeyan City",
+              "away_team": "Gungahlin United",
+              "score": "2:2",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-06-11",
+              "home_team": "Queanbeyan City",
+              "away_team": "Tuggeranong United",
+              "score": "0:0",
+              "ah": "0",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-06-01",
+              "home_team": "Yoogali SC",
+              "away_team": "Queanbeyan City",
+              "score": "0:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-05-24",
+              "home_team": "Queanbeyan City",
+              "away_team": "Cooma Tigers",
+              "score": "1:2",
+              "ah": "-1.5",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-05-17",
+              "home_team": "Queanbeyan City",
+              "away_team": "Tuggeranong United",
+              "score": "1:1",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "E"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T13:14:05"
+    },
+    "2822284": {
+      "match_id": "2822284",
+      "schema_version": 3,
+      "home_name": "Asteras Tripolis",
+      "away_name": "Panathinaikos",
+      "league_id": "32",
+      "league_name": "Greece Super League A",
+      "final_score": "1:2",
+      "match_date": "3/22/2026",
+      "time": "18:00",
+      "main_match_odds": {
+        "ah_linea": "-0.75",
+        "goals_linea": "2"
+      },
+      "last_general_home": {
+        "date": "2026-03-14",
+        "home_team": "AEL Larisa",
+        "away_team": "Asteras Tripolis",
+        "home_id": "3519",
+        "away_id": "2845",
+        "score": "1:1",
+        "handicap_line_raw": "0.25",
+        "ah_line": "0.25",
+        "ou_line": "N/A",
+        "match_id": "2822275",
+        "league_id_hist": "32",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "AEL Larisa",
+        "rival_id": "3519",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "15",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "100",
+            "away": "84"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "49",
+            "away": "26"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-03-15",
+        "home_team": "Panathinaikos",
+        "away_team": "Panaitolikos Agrinio",
+        "home_id": "566",
+        "away_id": "3332",
+        "score": "0:0",
+        "handicap_line_raw": "1.5",
+        "ah_line": "1.5",
+        "ou_line": "N/A",
+        "match_id": "2822279",
+        "league_id_hist": "32",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Panaitolikos Agrinio",
+        "rival_id": "3332",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "17",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "6",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "104",
+            "away": "76"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "67",
+            "away": "32"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "1",
+        "goles_away": "4",
+        "handicap": "0.25",
+        "match_id": "2822240",
+        "h2h_home_team_name": "AEL Larisa",
+        "h2h_away_team_name": "Panaitolikos Agrinio",
+        "date": "2026-02-07",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "11",
+            "away": "8"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "102",
+            "away": "61"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "39",
+            "away": "17"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "3:1",
+          "ah_line": "0",
+          "localia": "A",
+          "home_team": "Panaitolikos Agrinio",
+          "away_team": "Asteras Tripolis",
+          "match_id": "2822251",
+          "date": "2026-02-14",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Panaitolikos Agrinio",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "16",
+              "away": "7"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "4",
+              "away": "3"
+            },
+            {
+              "label": "Ataques",
+              "home": "102",
+              "away": "56"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "38",
+              "away": "31"
+            }
+          ]
+        },
+        "right": {
+          "score": "1:1",
+          "ah_line": "1.25",
+          "localia": "H",
+          "home_team": "Panathinaikos",
+          "away_team": "AEL Larisa",
+          "match_id": "2822250",
+          "date": "2026-02-15",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "AEL Larisa",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "16",
+              "away": "8"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "4",
+              "away": "3"
+            },
+            {
+              "label": "Ataques",
+              "home": "144",
+              "away": "57"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "82",
+              "away": "18"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 1,
+          "draws": 1,
+          "losses": 6,
+          "gf": 6,
+          "ga": 15,
+          "form": "E-D-D-D-D-V-D-D",
+          "matches": [
+            {
+              "date": "2026-03-14",
+              "home_team": "AEL Larisa",
+              "away_team": "Asteras Tripolis",
+              "score": "1:1",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-03-08",
+              "home_team": "Asteras Tripolis",
+              "away_team": "Panserraikos",
+              "score": "0:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-01",
+              "home_team": "PAOK Saloniki",
+              "away_team": "Asteras Tripolis",
+              "score": "2:0",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-21",
+              "home_team": "Asteras Tripolis",
+              "away_team": "Atromitos Athens",
+              "score": "1:2",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "Panaitolikos Agrinio",
+              "away_team": "Asteras Tripolis",
+              "score": "3:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-07",
+              "home_team": "Asteras Tripolis",
+              "away_team": "Volos NFC",
+              "score": "2:0",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-04",
+              "home_team": "Asteras Tripolis",
+              "away_team": "Olympiakos Piraeus",
+              "score": "0:3",
+              "ah": "-1.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "Levadiakos",
+              "away_team": "Asteras Tripolis",
+              "score": "3:1",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 6,
+          "draws": 2,
+          "losses": 0,
+          "gf": 18,
+          "ga": 4,
+          "form": "E-V-V-V-V-E-V-V",
+          "matches": [
+            {
+              "date": "2026-03-15",
+              "home_team": "Panathinaikos",
+              "away_team": "Panaitolikos Agrinio",
+              "score": "0:0",
+              "ah": "1.5",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-03-08",
+              "home_team": "Levadiakos",
+              "away_team": "Panathinaikos",
+              "score": "1:4",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-04",
+              "home_team": "Panathinaikos",
+              "away_team": "OFI Crete",
+              "score": "4:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-01",
+              "home_team": "Panathinaikos",
+              "away_team": "Aris Thessaloniki",
+              "score": "3:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-22",
+              "home_team": "OFI Crete",
+              "away_team": "Panathinaikos",
+              "score": "0:2",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-15",
+              "home_team": "Panathinaikos",
+              "away_team": "AEL Larisa",
+              "score": "1:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-08",
+              "home_team": "Olympiakos Piraeus",
+              "away_team": "Panathinaikos",
+              "score": "0:1",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "Panathinaikos",
+              "away_team": "AE Kifisias",
+              "score": "3:0",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T14:07:13"
     }
   }
 }

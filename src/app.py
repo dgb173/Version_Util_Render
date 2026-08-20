@@ -5942,9 +5942,20 @@ def api_precacheo_h2h_col3():
 
         # Cálculo anclado: empareja el rival de esta fila con el rival del último partido del otro equipo.
         row_role = str(payload.get('row_role') or '').strip().lower()
-        if parent and row_role in {'home', 'away'}:
-            parent_home = parent.get('home_name') or parent.get('home_team') or ''
-            parent_away = parent.get('away_name') or parent.get('away_team') or ''
+        if not parent and parent_match_id:
+            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
+            if not parent:
+                for pm in data_manager.load_precacheo_matches() or []:
+                    if str(pm.get('match_id') or pm.get('id')) == str(parent_match_id):
+                        parent = pm
+                        break
+        parent = parent or {}
+
+        parent_home = str(payload.get('parent_home') or parent.get('home_name') or parent.get('home_team') or '').strip()
+        parent_away = str(payload.get('parent_away') or parent.get('away_name') or parent.get('away_team') or '').strip()
+        parent_current_ah = str(payload.get('parent_current_ah') or parent.get('handicap') or '').strip()
+
+        if (parent or (parent_home and parent_away)) and row_role in {'home', 'away'}:
             last_home = parent.get('last_home_match') or parent.get('last_general_home') or {}
             last_away = parent.get('last_away_match') or parent.get('last_general_away') or {}
 
