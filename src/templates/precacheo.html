@@ -642,6 +642,118 @@
         .pre-context-empty { padding: 18px 10px; text-align: center; color: #94a3b8; font-size: .78rem; font-weight: 700; }
         .pre-context-filter-empty { display: none; padding: 12px 10px; text-align: center; color: #64748b; background: #f8fafc; font-size: .75rem; font-weight: 700; }
 
+        /* SUB-ROW FICHAS DEBAJO PRE-CONTEXTO */
+        .pre-context-detail-row {
+            background: #f8fafc !important;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .pre-context-detail-cell {
+            padding: 6px 10px !important;
+            background: #f8fafc !important;
+        }
+        .pre-context-detail-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            padding: 2px;
+        }
+        .pre-context-detail-slot {
+            min-width: 220px;
+            max-width: 350px;
+            flex: 1 1 auto;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            padding: 6px 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-size: 0.75rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.12s ease-in-out;
+        }
+        .pre-context-detail-slot:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+        .pre-context-detail-slot::after {
+            content: '✕ ocultar';
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 0.55rem;
+            font-weight: 800;
+            color: #94a3b8;
+            background: #f1f5f9;
+            padding: 1px 4px;
+            border-radius: 3px;
+            opacity: 0.6;
+            pointer-events: none;
+            transition: all 0.15s ease;
+        }
+        .pre-context-detail-slot:hover::after {
+            opacity: 1;
+            color: #ffffff;
+            background: #ef4444;
+        }
+        .pre-context-detail-slot.col3-slot {
+            border-top: 3px solid #3b82f6;
+        }
+        .pre-context-detail-slot.mov-slot {
+            border-top: 3px solid #eab308;
+        }
+        .pre-context-both-btn {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            padding: 1px 4px;
+            font-size: 0.58rem;
+            font-weight: 800;
+            color: #4f46e5;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .pre-context-both-btn:hover, .pre-context-both-btn.is-active {
+            background: #4f46e5;
+            color: #ffffff;
+            border-color: #4338ca;
+            box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+        }
+        .pre-context-col3-btn.is-active {
+            background: #2563eb !important;
+            color: #ffffff !important;
+            border-color: #1d4ed8 !important;
+            font-weight: 900;
+        }
+        .pre-context-mov-btn.is-active {
+            background: #d97706 !important;
+            color: #ffffff !important;
+            border-color: #b45309 !important;
+            font-weight: 900;
+        }
+        .pre-context-team-both-btn {
+            padding: 2px 7px;
+            border: 1px solid #c7d2fe;
+            border-radius: 4px;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: .62rem;
+            font-weight: 800;
+            cursor: pointer;
+            line-height: 1.3;
+            margin-left: 4px;
+        }
+        .pre-context-team-both-btn:hover {
+            background: #4338ca;
+            color: #ffffff;
+        }
+
+
         .pre-context-ah-analysis { border-top: 1px solid #cbd5e1; background: #f8fafc; padding: 8px; }
         .pre-context-ah-title { margin-bottom: 6px; color: #475569; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
         .pre-context-ah-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -7755,18 +7867,22 @@
                         return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date">${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
-                            <td class="ctx-rival" title="${esc(rival)}">${esc(rival || '-')}</td>
+                            <td class="ctx-rival" title="${esc(rival)}">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto;">${esc(rival || '-')}</span>
+                                    <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov. Histórico) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                </div>
+                            </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah">${esc(rowAh)}</td>
                             <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
                             <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
-                            <td class="ctx-both"><button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov. Histórico) debajo"><i class="fa-solid fa-bolt me-1"></i>2</button></td>
                         </tr>
                         <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
-                            <td colspan="8" class="pre-context-detail-cell">
+                            <td colspan="7" class="pre-context-detail-cell">
                                 <div class="pre-context-detail-container">
-                                    <div class="pre-context-detail-slot col3-slot" style="display:none;"></div>
-                                    <div class="pre-context-detail-slot mov-slot" style="display:none;"></div>
+                                    <div class="pre-context-detail-slot col3-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                    <div class="pre-context-detail-slot mov-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                 </div>
                             </td>
                         </tr>`;
@@ -7787,7 +7903,7 @@
                         ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear ambas fichas (Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver 2</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
                     </div>
                     ${totalRows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th><th class="ctx-both" title="Desbloquear las 2 fichas debajo">⚡</th></tr></thead>
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                         <tbody>${totalRows}</tbody>
                     </table>
                     <div class="pre-context-filter-empty">Sin partidos disponibles</div>
@@ -7982,6 +8098,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 col3Slot: detailRow.querySelector('.col3-slot'),
                 movSlot: detailRow.querySelector('.mov-slot'),
             };
+        }
+
+        function closeDetailSlot(slot, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            if (!slot) return;
+            const ctx = getRowDetailElements(slot);
+            slot.style.display = 'none';
+            if (ctx) syncDetailRowState(ctx);
         }
 
         function syncDetailRowState(ctx) {
