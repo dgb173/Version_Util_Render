@@ -8349,7 +8349,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
-                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las 7 fichas de comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>+5 H2H / Ind</button>` : ''}
+                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
@@ -11894,15 +11894,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 `;
                 const summaryBoxesId = `summary-boxes-${matchId}`;
                 const summaryBoxesHtml = `
-                    <!-- 1. Prev Home (Local Casa) & Prev Away (Visitante Fuera): SIEMPRE VISIBLES POR DEFECTO -->
-                    <div class="d-flex gap-2 w-100 stats-mobile-grid mb-2" style="padding: 4px 0;">
-                        <div style="flex: 1 1 0; min-width: 0;">${prevHomeBox}</div>
-                        <div style="flex: 1 1 0; min-width: 0;">${prevAwayBox}</div>
-                    </div>
-
-                    <!-- 2. Las 5 fichas de H2H e Indirectas: Ocultas por defecto, toggleables con el botón superior -->
-                    <div id="${summaryBoxesId}" class="precacheo-summary-boxes-container" style="display: none; padding: 4px 0 8px 0; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1;" hidden>
-                        <div class="d-flex gap-2 w-100 stats-mobile-grid" style="padding: 4px 0;">
+                    <!-- Fichas de resumen (Prev Home, Prev Away, H2H, Ind): 100% OCULTAS POR DEFECTO -->
+                    <div id="${summaryBoxesId}" class="precacheo-summary-boxes-container" style="display: none; padding: 6px 0 10px 0; margin-bottom: 10px; border-bottom: 1px dashed #cbd5e1;" hidden>
+                        <div class="d-flex gap-2 w-100 stats-mobile-grid mb-2" style="padding: 2px 0;">
+                            <div style="flex: 1 1 0; min-width: 0;">${prevHomeBox}</div>
+                            <div style="flex: 1 1 0; min-width: 0;">${prevAwayBox}</div>
+                        </div>
+                        <div class="d-flex gap-2 w-100 stats-mobile-grid" style="padding: 2px 0;">
                             ${secondaryBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
                         </div>
                     </div>
