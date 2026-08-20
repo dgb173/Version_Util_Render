@@ -8044,7 +8044,8 @@
                     const hasDate = !!(item.date || item.match_date || item.date_txt);
                     const hasAh = !!(item.ahLine || item.ahLine_raw || item.ah_line || item.ah || item.handicap);
                     const hasLeague = !!(item.league_id_hist || item.league_id || item.league || item.title);
-                    if (hasDate && hasAh && hasLeague) return item;
+                    const hasMid = !!(item.matchIndex || item.match_id || item.id);
+                    if (hasDate && hasAh && hasLeague && hasMid) return item;
 
                     const rowScore = item.score || item.score_raw || '';
                     const rowRival = item.home && !sameTeamName(item.home, teamName) ? item.home : (item.away || item.rival || '');
@@ -8442,6 +8443,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
 
             const matchId = String(button.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(button.dataset.parentMatchId || '').replace(/\D/g, '');
             const rowHome = button.dataset.rowHome || '';
             const rowAway = button.dataset.rowAway || '';
             const rowScore = button.dataset.rowScore || '';
@@ -8449,22 +8451,32 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const rowAh = button.dataset.rowAh || '';
             const leagueId = button.dataset.leagueId || '';
 
-            if (!matchId) {
-                ctx.statsSlot.innerHTML = `<div class="pre-col3-card-head"><span class="pre-col3-status is-equal">STATS</span></div><div style="font-size:.65rem; color:#94a3b8; text-align:center; padding:4px;">Sin ID para este partido</div>`;
-                return;
-            }
-
             button.disabled = true;
             ctx.statsSlot.innerHTML = `<div style="font-size:.68rem; color:#059669; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando Ataques, Tiros y Córners...</div>`;
 
             try {
-                const response = await fetch(`/api/match_stats/${matchId}`);
+                const response = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_date: rowDate,
+                        row_home: rowHome,
+                        row_away: rowAway,
+                        row_score: rowScore,
+                        row_ah: rowAh,
+                    }),
+                });
                 const data = await response.json();
                 if (!response.ok || data.status !== 'success') {
                     throw new Error(data.error || 'No se pudieron descargar las estadísticas');
                 }
 
                 const stats = data.stats || [];
+                if (data.match_id) {
+                    button.dataset.matchId = data.match_id;
+                }
                 button.dataset.loaded = '1';
                 ctx.statsSlot.classList.add('is-card');
                 ctx.statsSlot.innerHTML = `

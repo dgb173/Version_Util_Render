@@ -5820,13 +5820,67 @@ def api_precacheo_h2h_mov_historico():
 
 
 
+@app.route('/api/match_stats', methods=['POST'])
 @app.route('/api/match_stats/<match_id>', methods=['GET'])
-def api_match_stats(match_id):
-    """Devuelve las estadísticas detalladas (ataques peligrosos, tiros, corners, etc.) bajo demanda."""
+def api_match_stats(match_id=None):
+    """Devuelve las estadísticas detalladas (ataques peligrosos, tiros, corners, etc.) bajo demanda con resolución automática de ID."""
     try:
-        clean_id = "".join(filter(str.isdigit, str(match_id or '')))
+        payload = request.get_json(silent=True) or {} if request.method == 'POST' else {}
+        clean_id = "".join(filter(str.isdigit, str(match_id or payload.get('match_id') or '')))
+        parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
+
+        # Si no viene clean_id directamente, resolverlo usando parent_match_id y metadatos de la fila
+        if not clean_id and parent_match_id:
+            parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id) or {}
+            pre_context = parent.get('pre_match_context') or {}
+            current_context = pre_context.get('current') or pre_context
+            candidate_groups = (
+                current_context.get('home_matches'),
+                current_context.get('away_matches'),
+                current_context.get('home_matches_all'),
+                current_context.get('away_matches_all'),
+                parent.get('recent_home_matches'),
+                parent.get('recent_away_matches'),
+                parent.get('recent_home_matches_all'),
+                parent.get('recent_away_matches_all'),
+                parent.get('venue_home_matches'),
+                parent.get('venue_away_matches'),
+            )
+            target_date = str(payload.get('row_date') or '').strip()
+            target_home = str(payload.get('row_home') or '').strip().casefold()
+            target_away = str(payload.get('row_away') or '').strip().casefold()
+            target_score = str(payload.get('row_score') or '').replace('-', ':').strip()
+
+            for group in candidate_groups:
+                for row in group or []:
+                    if not isinstance(row, dict):
+                        continue
+                    row_date = str(row.get('date') or row.get('match_date') or row.get('date_txt') or '').strip()
+                    row_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
+                    row_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
+                    row_score = str(row.get('score') or row.get('score_raw') or '').replace('-', ':').strip()
+
+                    if target_date and row_date and target_date != row_date:
+                        continue
+                    if target_score and row_score and target_score != row_score:
+                        continue
+                    if target_home and row_home and (target_home not in row_home and row_home not in target_home):
+                        continue
+                    if target_away and row_away and (target_away not in row_away and row_away not in target_away):
+                        continue
+
+                    found_id = "".join(filter(str.isdigit, str(
+                        row.get('matchIndex') or row.get('match_id') or row.get('id') or ''
+                    )))
+                    if found_id:
+                        clean_id = found_id
+                        break
+                if clean_id:
+                    break
+
         if not clean_id:
-            return jsonify({'status': 'error', 'error': 'ID de partido no válido'}), 400
+            return jsonify({'status': 'error', 'error': 'No se pudo identificar el ID del partido'}), 400
+
         from modules.last_general_context import _get_stats_rows
         stats = _get_stats_rows(clean_id)
         return jsonify({
@@ -5835,7 +5889,7 @@ def api_match_stats(match_id):
             'stats': stats or []
         })
     except Exception as exc:
-        logging.exception(f"Error en /api/match_stats/{match_id}")
+        logging.exception("Error en /api/match_stats")
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 @app.route('/api/precacheo_h2h_col3' , methods=['POST'])
