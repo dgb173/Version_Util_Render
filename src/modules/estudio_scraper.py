@@ -1084,7 +1084,34 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
             ah_cell = cells[ah_idx]
             ah_line_raw = (ah_cell.get('data-o') or ah_cell.text).strip() or 'N/A'
 
-        match_index = row_element.get('index')
+        match_index = row_element.get('index') or row_element.get('data-id') or row_element.get('id')
+        if not match_index:
+            for cell_item in [score_cell] + list(cells):
+                if not cell_item:
+                    continue
+                onclick_attr = cell_item.get('onclick', '')
+                if onclick_attr:
+                    m_idx = re.search(r'(?:soccerInPage\.detail|detail|analysis)\s*\(\s*(\d+)', onclick_attr)
+                    if not m_idx:
+                        m_idx = re.search(r'(\d{5,10})', onclick_attr)
+                    if m_idx:
+                        match_index = m_idx.group(1)
+                        break
+                for ch in cell_item.find_all(True):
+                    ch_onclick = ch.get('onclick', '')
+                    if ch_onclick:
+                        m_idx = re.search(r'(?:soccerInPage\.detail|detail|analysis)\s*\(\s*(\d+)', ch_onclick) or re.search(r'(\d{5,10})', ch_onclick)
+                        if m_idx:
+                            match_index = m_idx.group(1)
+                            break
+                    ch_href = ch.get('href', '')
+                    if ch_href:
+                        m_idx = re.search(r'/(?:analysis|live-)(\d+)', ch_href)
+                        if m_idx:
+                            match_index = m_idx.group(1)
+                            break
+                if match_index:
+                    break
         market_odds = (odds_map or {}).get(match_index)
         mapped_ah = (
             market_odds.get('ah_initial')
