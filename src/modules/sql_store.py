@@ -391,32 +391,29 @@ def _compact_comparativas(raw: Any) -> Optional[Dict[str, Any]]:
 
 
 def _compact_recent_matches(raw: Any) -> List[Dict[str, Any]]:
-    """Conserva solo lo necesario para calcular V/O/U en los listados."""
-    if not isinstance(raw, list):
-        return []
-    return [
-        {
-            "home": row.get("home"),
-            "away": row.get("away"),
-            "score": row.get("score") or row.get("score_raw"),
-        }
-        for row in raw
-        if isinstance(row, dict)
-    ]
+    """Conserva todos los campos de partido para renderizado completo de tablas y contexto."""
+    return _compact_context_matches(raw)
 
 
 def _compact_context_matches(raw: Any) -> List[Dict[str, Any]]:
-    """Filas minimas para pintar el contexto previo en local y en Render."""
+    """Filas completas optimizadas para pintar el contexto previo en local y en Render."""
     if not isinstance(raw, list):
         return []
     return [
         {
-            "date": row.get("date"),
-            "home": row.get("home"),
-            "away": row.get("away"),
-            "score": row.get("score") or row.get("score_raw"),
-            "ahLine": row.get("ahLine") or row.get("ahLine_raw"),
-            "league_id_hist": row.get("league_id_hist"),
+            "date": row.get("date") or row.get("match_date") or row.get("date_txt") or "",
+            "home": row.get("home") or row.get("home_team") or "",
+            "away": row.get("away") or row.get("away_team") or "",
+            "score": row.get("score") or row.get("score_raw") or "",
+            "score_raw": row.get("score_raw") or row.get("score") or "",
+            "ahLine": row.get("ahLine") or row.get("ahLine_raw") or row.get("ah_line") or row.get("ah") or "-",
+            "ahLine_raw": row.get("ahLine_raw") or row.get("ahLine") or row.get("ah_line") or "-",
+            "league_id_hist": row.get("league_id_hist") or row.get("league_id") or row.get("name") or row.get("title") or "-",
+            "matchIndex": str(row.get("matchIndex") or row.get("match_id") or row.get("id") or ""),
+            "home_id": row.get("home_id") or "",
+            "away_id": row.get("away_id") or "",
+            "home_red": row.get("home_red"),
+            "away_red": row.get("away_red"),
         }
         for row in raw
         if isinstance(row, dict)
@@ -439,6 +436,8 @@ def _compact_pre_match_context(raw: Any) -> Dict[str, Any]:
         } | {
             "home_matches": _compact_context_matches(moment.get("home_matches")),
             "away_matches": _compact_context_matches(moment.get("away_matches")),
+            "home_matches_all": _compact_context_matches(moment.get("home_matches_all")),
+            "away_matches_all": _compact_context_matches(moment.get("away_matches_all")),
             "similar_ah": moment.get("similar_ah") if isinstance(moment.get("similar_ah"), dict) else None,
         }
 
@@ -496,6 +495,12 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "home_ou_stats_general": match_data.get("home_ou_stats_general"),
         "away_ou_stats_general": match_data.get("away_ou_stats_general"),
         "pre_match_context": _compact_pre_match_context(match_data.get("pre_match_context")),
+        "recent_home_matches_all": _compact_recent_matches(
+            match_data.get("recent_home_matches_all")
+        ),
+        "recent_away_matches_all": _compact_recent_matches(
+            match_data.get("recent_away_matches_all")
+        ),
         "recent_home_matches_same_league_specific": _compact_recent_matches(
             match_data.get("recent_home_matches_same_league_specific")
         ),

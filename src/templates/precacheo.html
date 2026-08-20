@@ -7618,6 +7618,8 @@
                 is_neutral_venue: !!pc?.is_neutral_venue,
                 home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
                 away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
+                home_matches_all: pc?.recent_home_matches_all || pc?.recent_home_matches_same_league_general || pc?.recent_home_matches || [],
+                away_matches_all: pc?.recent_away_matches_all || pc?.recent_away_matches_same_league_general || pc?.recent_away_matches || [],
             };
             const resolvedLeague = resolveLeagueId(pc);
             const currentLeagueId = resolvedLeague;
@@ -7659,8 +7661,44 @@
                     teamTargetAh = -baseParentAh;
                 }
 
+                // Auto-enriquecer partidos con datos de venueMatches si algún registro antiguo viene compactado/incompleto
+                const enrichMatchItem = (item) => {
+                    if (!item || typeof item !== 'object') return item;
+                    const hasDate = !!(item.date || item.match_date || item.date_txt);
+                    const hasAh = !!(item.ahLine || item.ahLine_raw || item.ah_line || item.ah || item.handicap);
+                    const hasLeague = !!(item.league_id_hist || item.league_id || item.league || item.title);
+                    if (hasDate && hasAh && hasLeague) return item;
+
+                    const rowScore = item.score || item.score_raw || '';
+                    const rowRival = item.home && !sameTeamName(item.home, teamName) ? item.home : (item.away || item.rival || '');
+
+                    const found = asRows(venueMatches).find(vm => {
+                        const vmScore = vm.score || vm.score_raw || '';
+                        const vmRival = vm.home && !sameTeamName(vm.home, teamName) ? vm.home : (vm.away || vm.rival || '');
+                        if (rowScore && vmScore && rowScore !== vmScore) return false;
+                        if (rowRival && vmRival && !sameTeamName(rowRival, vmRival)) return false;
+                        return true;
+                    });
+
+                    if (found) {
+                        return {
+                            ...found,
+                            ...item,
+                            date: item.date || found.date || found.match_date || found.date_txt || '',
+                            league_id_hist: item.league_id_hist || found.league_id_hist || found.league_id || found.title || found.name || '-',
+                            ahLine: item.ahLine || found.ahLine || found.ahLine_raw || found.ah_line || '-',
+                            ahLine_raw: item.ahLine_raw || found.ahLine_raw || found.ahLine || '-',
+                            matchIndex: item.matchIndex || found.matchIndex || found.match_id || found.id || '',
+                            home_id: item.home_id || found.home_id || '',
+                            away_id: item.away_id || found.away_id || '',
+                        };
+                    }
+                    return item;
+                };
+
                 const buildRows = (matchesList, mode) => {
-                    return asRows(matchesList).map((item, idx) => {
+                    return asRows(matchesList).map((rawItem, idx) => {
+                        const item = enrichMatchItem(rawItem);
                         const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
                         const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
                         const own = score ? (subjectHome ? score.home : score.away) : null;
@@ -7815,8 +7853,8 @@ const formatAhNumber = value => Number.isFinite(Number(value))
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     <div class="pre-context-team-grid">
-                        ${renderTeam(momentHome, 'home', moment.home_matches, moment.home_matches_all || pc?.recent_home_matches_all || pc?.recent_home_matches_same_league_general || moment.home_matches, homeAllVenues)}
-                        ${renderTeam(momentAway, 'away', moment.away_matches, moment.away_matches_all || pc?.recent_away_matches_all || pc?.recent_away_matches_same_league_general || moment.away_matches, awayAllVenues)}
+                        ${renderTeam(momentHome, 'home', moment.home_matches, (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : ((pc?.recent_home_matches_all && pc.recent_home_matches_all.length) ? pc.recent_home_matches_all : ((pc?.recent_home_matches_same_league_general && pc.recent_home_matches_same_league_general.length) ? pc.recent_home_matches_same_league_general : moment.home_matches)), homeAllVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : ((pc?.recent_away_matches_all && pc.recent_away_matches_all.length) ? pc.recent_away_matches_all : ((pc?.recent_away_matches_same_league_general && pc.recent_away_matches_same_league_general.length) ? pc.recent_away_matches_same_league_general : moment.away_matches)), awayAllVenues)}
                     </div>
                     ${renderSimilarAh(moment)}
                 </section>`;
