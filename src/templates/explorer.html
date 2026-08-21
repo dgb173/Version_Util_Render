@@ -5254,9 +5254,23 @@
 
                 const pAbs = Math.abs(p);
                 const rAbs = Math.abs(r);
-                const diff = Math.abs(pAbs - rAbs);
 
-                // Rango de bucket maximo +-0.25 dentro del mismo signo
+                // Cluster de 1 gol / cuartos de gol (0.25 / 0.5 / 0.75) -> NUNCA mezclar con 1.0 (Push)
+                if (pAbs >= 0.20 && pAbs <= 0.80) {
+                    return rAbs >= 0.20 && rAbs <= 0.80;
+                }
+
+                // Cluster de 1.0 (1.0 / 1.25) -> nunca mezclar hacia abajo con 0.75
+                if (pAbs >= 0.90 && pAbs <= 1.35) {
+                    return rAbs >= 0.90 && rAbs <= 1.35;
+                }
+
+                // Cluster de 1.5 (1.25 / 1.5 / 1.75)
+                if (pAbs >= 1.40 && pAbs <= 1.85) {
+                    return rAbs >= 1.40 && rAbs <= 1.85;
+                }
+
+                const diff = Math.abs(pAbs - rAbs);
                 return diff <= 0.255;
             }
 
@@ -5266,12 +5280,16 @@
                 if (Math.abs(p) < 0.01) return 'Same HA (0 DNB)';
                 const sign = p < 0 ? '-' : '+';
                 const absP = Math.abs(p);
-                if (absP === 0.25) return `Same HA (${sign}0.25 / ${sign}0.5)`;
-                if (absP === 0.5) return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
-                if (absP === 0.75) return `Same HA (${sign}0.5 / ${sign}0.75 / ${sign}1.0)`;
-                if (absP === 1.0) return `Same HA (${sign}0.75 / ${sign}1.0 / ${sign}1.25)`;
-                if (absP === 1.25) return `Same HA (${sign}1.0 / ${sign}1.25 / ${sign}1.5)`;
-                if (absP === 1.5) return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
+                // 0.25, 0.5 y 0.75 pertenecen al cluster de 1 gol (nunca 1.0)
+                if (absP >= 0.20 && absP <= 0.80) {
+                    return `Same HA (${sign}0.25 / ${sign}0.5 / ${sign}0.75)`;
+                }
+                if (absP >= 0.90 && absP <= 1.35) {
+                    return `Same HA (${sign}1.0 / ${sign}1.25)`;
+                }
+                if (absP >= 1.40 && absP <= 1.85) {
+                    return `Same HA (${sign}1.25 / ${sign}1.5 / ${sign}1.75)`;
+                }
                 return `Same HA (${formatAhNumber(p)}±0.25)`;
             }
 
