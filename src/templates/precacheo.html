@@ -2676,7 +2676,7 @@
                             <div class="multiselect-container mt-1" id="container-filter-prev-home-ah">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;" onchange="currentPage = 1; renderTableWithPagination();">
                                 <option value="">Res...</option>
                                 <option value="WIN">Win</option>
                                 <option value="DRAW">Draw</option>
@@ -2690,7 +2690,7 @@
                             <div class="multiselect-container mt-1" id="container-filter-prev-away-ah">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;" onchange="currentPage = 1; renderTableWithPagination();">
                                 <option value="">Res...</option>
                                 <option value="WIN">Win</option>
                                 <option value="DRAW">Draw</option>
@@ -2795,7 +2795,7 @@
                         </th>
                         <th style="width: 120px;">
                             H2H Col3
-                            <select class="header-filter mt-1" id="filter-h2h-col3-mirror" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-h2h-col3-mirror" style="width: 100%;" onchange="currentPage = 1; renderTableWithPagination();">
                                 <option value="">Espejo...</option>
                                 <option value="directa">Directa</option>
                                 <option value="inversa">Inversa</option>
@@ -2803,7 +2803,7 @@
                             <div class="multiselect-container mt-1" id="container-filter-h2h-col3-ah">
                                 <!-- JS will populate this -->
                             </div>
-                            <select class="header-filter mt-1" id="filter-h2h-col3-cover" style="width: 100%;">
+                            <select class="header-filter mt-1" id="filter-h2h-col3-cover" style="width: 100%;" onchange="currentPage = 1; renderTableWithPagination();">
                                 <option value="">Cover HA...</option>
                                 <option value="MEJORA">MEJORA</option>
                                 <option value="IGUALA">IGUALA</option>
@@ -4426,8 +4426,8 @@
 
         async function loadUpcomingMatchesPage() {
             const params = new URLSearchParams({
-                page: String(currentPage),
-                per_page: String(itemsPerPage)
+                page: '1',
+                per_page: '1000'
             });
             const handicapValues = msHandicap ? msHandicap.getValues() : [];
             handicapValues.forEach(value => params.append('handicap', value));
@@ -4774,35 +4774,17 @@
 
         function renderTableWithPagination() {
             const paginationMatches = getMatchesForCurrentLeagueFilter();
-            if (currentViewMode === 'pendientes') {
-                renderTable(paginationMatches);
-                renderPaginationControls(pendingTotalItems, pendingItemsPerPage);
-                applyFiltersVisually();
-                return;
-            }
-
-            if (currentViewMode === 'proximos') {
-                renderTable(paginationMatches);
-                renderPaginationControls(upcomingTotalItems, itemsPerPage);
-                applyFiltersVisually();
-                return;
-            }
-
-            const totalPages = Math.max(1, Math.ceil(paginationMatches.length / itemsPerPage));
+            const totalItems = paginationMatches.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
             if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
 
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const pageItems = paginationMatches.slice(start, end);
 
             renderTable(pageItems);
-            renderPaginationControls(paginationMatches.length, itemsPerPage);
-
-            // Aplicar filtros visuales automáticamente (incluye ocultar ligas)
-            applyFiltersVisually();
-
-            // La Clave Universal ya llega calculada en la lista compacta. No se
-            // cargan ni mezclan motores de picks legacy bajo demanda.
+            renderPaginationControls(totalItems, itemsPerPage);
         }
 
         // ==================== LAZY LOADING DE PICKS ====================
@@ -5198,24 +5180,18 @@
                 if (page < 1 || page > pendingTotalPages || page === currentPage) return;
                 currentPage = page;
                 triggerSearch();
-                document.querySelector('.table-responsive').scrollTop = 0;
-                return;
-            }
-
-            if (currentViewMode === 'proximos') {
-                if (page < 1 || page > upcomingTotalPages || page === currentPage) return;
-                currentPage = page;
-                triggerSearch();
-                document.querySelector('.table-responsive').scrollTop = 0;
+                const tableResp = document.querySelector('.table-responsive');
+                if (tableResp) tableResp.scrollTop = 0;
                 return;
             }
 
             const totalItems = getMatchesForCurrentLeagueFilter().length;
-            if (page < 1 || page > Math.ceil(totalItems / itemsPerPage)) return;
+            const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+            if (page < 1 || page > totalPages || page === currentPage) return;
             currentPage = page;
             renderTableWithPagination();
-            // Scroll to top of table
-            document.querySelector('.table-responsive').scrollTop = 0;
+            const tableResp = document.querySelector('.table-responsive');
+            if (tableResp) tableResp.scrollTop = 0;
         }
 
         function renderPaginationControls(totalItems = totalFilteredMatches.length, pageSize = itemsPerPage) {
@@ -12788,7 +12764,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             ];
 
             if (!msHandicap) {
-                msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', handleMainHandicapFilterChange);
+                msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', () => { currentPage = 1; renderTableWithPagination(); });
             }
 
             if (!msOu) {

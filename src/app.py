@@ -5535,7 +5535,7 @@ def api_precacheo_pending_list():
         except (TypeError, ValueError):
             page = 1
         try:
-            per_page = max(1, min(int(request.args.get('per_page', '100')), 100))
+            per_page = max(1, min(int(request.args.get('per_page', '100')), 2000))
         except (TypeError, ValueError):
             per_page = 100
 
@@ -5586,7 +5586,7 @@ def api_precacheo_upcoming_list():
         except (TypeError, ValueError):
             page = 1
         try:
-            per_page = max(1, min(int(request.args.get('per_page', '100')), 100))
+            per_page = max(1, min(int(request.args.get('per_page', '100')), 2000))
         except (TypeError, ValueError):
             per_page = 100
         handicap_filters = []
