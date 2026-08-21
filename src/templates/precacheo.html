@@ -2546,18 +2546,18 @@
                 </div>
                 <div class="desktop-inline-filter form-check ms-2">
                     <input class="form-check-input" type="checkbox" id="filter-only-favorites"
-                        onchange="applyFiltersVisually()">
+                        onchange="currentPage = 1; renderTableWithPagination();">
                     <label class="form-check-label small" for="filter-only-favorites">
                         <i class="fa-solid fa-star text-warning"></i> Solo favoritas
                     </label>
                 </div>
                 <div class="desktop-inline-filter d-flex align-items-center gap-1 ms-2">
                     <input class="form-check-input mt-0" type="checkbox" id="filter-no-fav-lose"
-                        onchange="const sel = document.getElementById('filter-no-fav-lose-target'); if(sel) sel.style.display = this.checked ? 'inline-block' : 'none'; applyFiltersVisually()">
+                        onchange="const sel = document.getElementById('filter-no-fav-lose-target'); if(sel) sel.style.display = this.checked ? 'inline-block' : 'none'; currentPage = 1; renderTableWithPagination();">
                     <label class="form-check-label small fw-bold" for="filter-no-fav-lose" style="color: #dc2626; cursor:pointer;" title="Filtrar partidos donde un equipo jugó como No Favorito (+) y perdió el hándicap">
                         <i class="fa-solid fa-arrow-trend-down me-1"></i> No Fav Lose AH
                     </label>
-                    <select id="filter-no-fav-lose-target" class="form-select form-select-sm py-0 px-1" style="font-size:0.68rem; font-weight:800; width:auto; border-color:#fca5a5; color:#991b1b; display:none;" onchange="applyFiltersVisually()">
+                    <select id="filter-no-fav-lose-target" class="form-select form-select-sm py-0 px-1" style="font-size:0.68rem; font-weight:800; width:auto; border-color:#fca5a5; color:#991b1b; display:none;" onchange="currentPage = 1; renderTableWithPagination();">
                         <option value="ANY">Cualquiera (Local o Vis)</option>
                         <option value="HOME">Solo Local (Prev Home +)</option>
                         <option value="AWAY">Solo Visitante (Prev Away +)</option>
@@ -2566,11 +2566,11 @@
                 </div>
                 <div class="desktop-inline-filter d-flex align-items-center gap-1 ms-2">
                     <input class="form-check-input mt-0" type="checkbox" id="filter-fav-cover"
-                        onchange="const sel = document.getElementById('filter-fav-cover-target'); if(sel) sel.style.display = this.checked ? 'inline-block' : 'none'; applyFiltersVisually()">
+                        onchange="const sel = document.getElementById('filter-fav-cover-target'); if(sel) sel.style.display = this.checked ? 'inline-block' : 'none'; currentPage = 1; renderTableWithPagination();">
                     <label class="form-check-label small fw-bold" for="filter-fav-cover" style="color: #16a34a; cursor:pointer;" title="Filtrar partidos donde un equipo jugó como Favorito (-) y ganó/cubrió el hándicap">
                         <i class="fa-solid fa-arrow-trend-up me-1"></i> Fav Gana AH
                     </label>
-                    <select id="filter-fav-cover-target" class="form-select form-select-sm py-0 px-1" style="font-size:0.68rem; font-weight:800; width:auto; border-color:#86efac; color:#15803d; display:none;" onchange="applyFiltersVisually()">
+                    <select id="filter-fav-cover-target" class="form-select form-select-sm py-0 px-1" style="font-size:0.68rem; font-weight:800; width:auto; border-color:#86efac; color:#15803d; display:none;" onchange="currentPage = 1; renderTableWithPagination();">
                         <option value="ANY">Cualquiera (Local o Vis)</option>
                         <option value="HOME">Solo Local (Prev Home -)</option>
                         <option value="AWAY">Solo Visitante (Prev Away -)</option>
@@ -6745,10 +6745,143 @@
             msLeague.renderOptions();
         }
 
-        function getMatchesForCurrentLeagueFilter() {
+        function matchPassesAllGlobalFilters(m) {
+            if (!m) return false;
+            const matchId = m.id;
+            const pc = precacheoData[matchId];
+
+            // 1. Liga seleccionada
             const selectedLeagues = msLeague ? msLeague.getValues() : [];
-            if (!selectedLeagues || selectedLeagues.length === 0) return totalFilteredMatches || [];
-            return (totalFilteredMatches || []).filter(match => selectedLeagues.includes(getMatchLeagueName(match)));
+            if (selectedLeagues.length > 0 && !selectedLeagues.includes(getMatchLeagueName(m))) {
+                return false;
+            }
+
+            // 2. Solo con historial
+            const onlyWithHistory = document.getElementById('filter-only-with-history')?.checked;
+            if (onlyWithHistory) {
+                const hasHistory = !!(pc && pc.last_home_match && pc.last_home_match.score && pc.last_away_match && pc.last_away_match.score);
+                if (!hasHistory) return false;
+            }
+
+            // 3. Solo favoritas
+            const onlyFavorites = document.getElementById('filter-only-favorites')?.checked;
+            if (onlyFavorites) {
+                const league = (pc && pc.league_name && pc.league_name !== 'N/A') ? pc.league_name : (m.league || '');
+                if (!isLigaFavorita(league)) return false;
+            }
+
+            // 4. No Fav Lose AH
+            const onlyNoFavLose = document.getElementById('filter-no-fav-lose')?.checked;
+            if (onlyNoFavLose) {
+                const isHomeNoFavLose = isBlockNoFavLose(pc?.last_home_match, m.home_team);
+                const isAwayNoFavLose = isBlockNoFavLose(pc?.last_away_match, m.away_team);
+                const matchAhNum = parseNumericValue(m.handicap ?? m.ah);
+                const isCurrentDogHome = matchAhNum !== null && matchAhNum > 0.01;
+                const isCurrentDogAway = matchAhNum !== null && matchAhNum < -0.01;
+                const isCurrentDogNoFavLose = (isCurrentDogHome && isHomeNoFavLose) || (isCurrentDogAway && isAwayNoFavLose);
+
+                const targetMode = document.getElementById('filter-no-fav-lose-target')?.value || 'ANY';
+                if (targetMode === 'HOME' && !isHomeNoFavLose) return false;
+                if (targetMode === 'AWAY' && !isAwayNoFavLose) return false;
+                if (targetMode === 'CURRENT_DOG' && !isCurrentDogNoFavLose) return false;
+                if (targetMode === 'ANY' && !(isHomeNoFavLose || isAwayNoFavLose)) return false;
+            }
+
+            // 5. Fav Gana AH
+            const onlyFavCover = document.getElementById('filter-fav-cover')?.checked;
+            if (onlyFavCover) {
+                const isHomeFavCover = isBlockFavCover(pc?.last_home_match, m.home_team);
+                const isAwayFavCover = isBlockFavCover(pc?.last_away_match, m.away_team);
+                const matchAhNum = parseNumericValue(m.handicap ?? m.ah);
+                const isCurrentFavHome = matchAhNum !== null && matchAhNum < -0.01;
+                const isCurrentFavAway = matchAhNum !== null && matchAhNum > 0.01;
+                const isCurrentFavFavCover = (isCurrentFavHome && isHomeFavCover) || (isCurrentFavAway && isAwayFavCover);
+
+                const targetMode = document.getElementById('filter-fav-cover-target')?.value || 'ANY';
+                if (targetMode === 'HOME' && !isHomeFavCover) return false;
+                if (targetMode === 'AWAY' && !isAwayFavCover) return false;
+                if (targetMode === 'CURRENT_FAV' && !isCurrentFavFavCover) return false;
+                if (targetMode === 'ANY' && !(isHomeFavCover || isAwayFavCover)) return false;
+            }
+
+            // 6. Handicap Principal (MultiSelect)
+            const handicapValues = msHandicap ? msHandicap.getValues() : [];
+            if (handicapValues.length > 0) {
+                if (!checkAhMatch(m.handicap, handicapValues)) return false;
+            }
+
+            // 7. O/U (MultiSelect)
+            const ouFilterValues = getOuFilterValues();
+            if (ouFilterValues.length > 0) {
+                const ouValue = pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? pc.main_match_odds.goals_linea : '';
+                if (!checkOuMatch(ouValue, ouFilterValues)) return false;
+            }
+
+            // 8. Prev Home Res & AH
+            const prevHomeRes = document.getElementById('filter-prev-home-res')?.value;
+            if (prevHomeRes) {
+                const isHomeNoFavLose = isBlockNoFavLose(pc?.last_home_match, m.home_team);
+                const isHomeFavCover = isBlockFavCover(pc?.last_home_match, m.home_team);
+                if (prevHomeRes === 'NO_FAV_LOSE' && !isHomeNoFavLose) return false;
+                if (prevHomeRes === 'NO_FAV_COVER' && !isHomeFavCover) return false;
+                if (prevHomeRes === 'FAV_COVER' && !isHomeFavCover) return false;
+                if (prevHomeRes === 'FAV_LOSE') {
+                    const isHomeFavLose = isBlockFavLose(pc?.last_home_match, m.home_team);
+                    if (!isHomeFavLose) return false;
+                }
+                if (['WIN', 'DRAW', 'LOSS'].includes(prevHomeRes)) {
+                    const wdl = pc?.last_home_match?.score ? getPrevHomeWdl(pc.last_home_match.score, m.handicap) : '';
+                    if (wdl !== prevHomeRes) return false;
+                }
+            }
+            const prevHomeAhValues = msPrevHomeAh ? msPrevHomeAh.getValues() : [];
+            if (prevHomeAhValues.length > 0) {
+                const prevAh = pc?.last_home_match?.handicap_line_raw || '';
+                if (!checkAhMatch(prevAh, prevHomeAhValues)) return false;
+            }
+
+            // 9. Prev Away Res & AH
+            const prevAwayRes = document.getElementById('filter-prev-away-res')?.value;
+            if (prevAwayRes) {
+                const isAwayNoFavLose = isBlockNoFavLose(pc?.last_away_match, m.away_team);
+                const isAwayFavCover = isBlockFavCover(pc?.last_away_match, m.away_team);
+                if (prevAwayRes === 'NO_FAV_LOSE' && !isAwayNoFavLose) return false;
+                if (prevAwayRes === 'NO_FAV_COVER' && !isAwayFavCover) return false;
+                if (prevAwayRes === 'FAV_COVER' && !isAwayFavCover) return false;
+                if (prevAwayRes === 'FAV_LOSE') {
+                    const isAwayFavLose = isBlockFavLose(pc?.last_away_match, m.away_team);
+                    if (!isAwayFavLose) return false;
+                }
+                if (['WIN', 'DRAW', 'LOSS'].includes(prevAwayRes)) {
+                    const wdl = pc?.last_away_match?.score ? getPrevAwayWdl(pc.last_away_match.score, m.handicap) : '';
+                    if (wdl !== prevAwayRes) return false;
+                }
+            }
+            const prevAwayAhValues = msPrevAwayAh ? msPrevAwayAh.getValues() : [];
+            if (prevAwayAhValues.length > 0) {
+                const prevAh = pc?.last_away_match?.handicap_line_raw || '';
+                if (!checkAhMatch(prevAh, prevAwayAhValues)) return false;
+            }
+
+            // 10. H2H Col3 Espejo & Cover
+            const h2hCol3Mirror = document.getElementById('filter-h2h-col3-mirror')?.value;
+            if (h2hCol3Mirror) {
+                const col3 = pc?.h2h_col3 || {};
+                const mirrorType = col3.mirror_comp_type || '';
+                if (mirrorType !== h2hCol3Mirror) return false;
+            }
+            const h2hCol3Cover = document.getElementById('filter-h2h-col3-cover')?.value;
+            if (h2hCol3Cover) {
+                const col3 = pc?.h2h_col3 || {};
+                const performance = col3.performance_status || '';
+                if (performance !== h2hCol3Cover) return false;
+            }
+
+            return true;
+        }
+
+        function getMatchesForCurrentLeagueFilter() {
+            return (totalFilteredMatches || []).filter(matchPassesAllGlobalFilters);
         }
 
 
@@ -6760,6 +6893,18 @@
             // Limpiar checkboxes
             document.getElementById('filter-only-with-history').checked = false;
             document.getElementById('filter-only-favorites').checked = false;
+            const cbNoFav = document.getElementById('filter-no-fav-lose');
+            if (cbNoFav) {
+                cbNoFav.checked = false;
+                const sel = document.getElementById('filter-no-fav-lose-target');
+                if (sel) sel.style.display = 'none';
+            }
+            const cbFav = document.getElementById('filter-fav-cover');
+            if (cbFav) {
+                cbFav.checked = false;
+                const sel = document.getElementById('filter-fav-cover-target');
+                if (sel) sel.style.display = 'none';
+            }
 
             // Limpiar dropdowns simples
             document.getElementById('filter-ou').value = '';
@@ -8538,8 +8683,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div class="pre-context-actions">
                         ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
-                        <label class="pre-context-league-filter" title="Filtrar partidos donde el equipo jugó como no favorito (+) y perdió el hándicap"><input type="checkbox" class="pre-filter-no-fav-lose" onchange="applyPreMatchContextFilters(this)"> <i class="fa-solid fa-arrow-trend-down text-danger me-1"></i>No Fav Lose AH</label>
-                        <label class="pre-context-league-filter" title="Filtrar partidos donde el equipo jugó como favorito (-) y ganó/cubrió el hándicap"><input type="checkbox" class="pre-filter-fav-cover" onchange="applyPreMatchContextFilters(this)"> <i class="fa-solid fa-arrow-trend-up text-success me-1"></i>Fav Gana AH</label>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
@@ -8658,6 +8801,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 compSection.style.boxShadow = '0 0 0 2px #3b82f6';
                 setTimeout(() => { compSection.style.boxShadow = ''; }, 1000);
+
+                // Auto-ejecutar comparacion directamente al tener ambos rivales
+                const selectA = compSection.querySelector('.custom-rival-select-a');
+                const selectB = compSection.querySelector('.custom-rival-select-b');
+                if (selectA?.value && selectB?.value) {
+                    const compareBtn = compSection.querySelector('.custom-rival-compare-btn');
+                    if (compareBtn) runCustomRivalCompare(compareBtn);
+                }
             }
         }
 
@@ -9716,11 +9867,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     }
                 }
 
-                const rows = [...team.querySelectorAll('tr[data-context-result]')];
+                const mainRows = [...team.querySelectorAll('tr.pre-context-row')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleCount = 0;
 
-                rows.forEach(row => {
+                mainRows.forEach(row => {
+                    const detailRow = row.nextElementSibling && row.nextElementSibling.classList.contains('pre-context-detail-row')
+                        ? row.nextElementSibling : null;
                     const rowVenueMode = row.dataset.venueMode || 'specific';
                     let visible = true;
 
@@ -9748,21 +9901,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         }
                     }
 
-                    // Filtro No Fav Lose AH (partidos donde jugó como no favorito + y perdió el hándicap)
-                    if (visible && onlyNoFavLose) {
-                        if (row.dataset.noFavLose !== '1') {
-                            visible = false;
-                        }
-                    }
-
-                    // Filtro Fav Gana AH (partidos donde jugó como favorito - y ganó/cubrió el hándicap)
-                    if (visible && onlyFavCover) {
-                        if (row.dataset.favCover !== '1') {
-                            visible = false;
-                        }
-                    }
-
-                    // Limitar a 5 partidos si está activo Últimos 5
+                    // Limitar a exactamente 5 partidos si está activo Últimos 5
                     if (visible && onlyRecent5) {
                         if (visibleCount >= 5) {
                             visible = false;
@@ -9771,6 +9910,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
                     row.style.display = visible ? '' : 'none';
                     row.hidden = !visible;
+
+                    if (detailRow) {
+                        if (!visible) {
+                            detailRow.style.display = 'none';
+                            detailRow.hidden = true;
+                        }
+                    }
 
                     if (visible) {
                         visibleCount++;

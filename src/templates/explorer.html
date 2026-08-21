@@ -5077,11 +5077,13 @@
                     }
                 }
 
-                const rows = [...team.querySelectorAll('tr[data-context-result]')];
+                const mainRows = [...team.querySelectorAll('tr.pre-context-row')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleCount = 0;
 
-                rows.forEach(row => {
+                mainRows.forEach(row => {
+                    const detailRow = row.nextElementSibling && row.nextElementSibling.classList.contains('pre-context-detail-row')
+                        ? row.nextElementSibling : null;
                     const rowVenueMode = row.dataset.venueMode || 'specific';
                     let visible = true;
 
@@ -5105,18 +5107,6 @@
                         }
                     }
 
-                    if (visible && onlyNoFavLose) {
-                        if (row.dataset.noFavLose !== '1') {
-                            visible = false;
-                        }
-                    }
-
-                    if (visible && onlyFavCover) {
-                        if (row.dataset.favCover !== '1') {
-                            visible = false;
-                        }
-                    }
-
                     if (visible && onlyRecent5) {
                         if (visibleCount >= 5) {
                             visible = false;
@@ -5125,6 +5115,13 @@
 
                     row.style.display = visible ? '' : 'none';
                     row.hidden = !visible;
+
+                    if (detailRow) {
+                        if (!visible) {
+                            detailRow.style.display = 'none';
+                            detailRow.hidden = true;
+                        }
+                    }
 
                     if (visible) {
                         visibleCount++;
@@ -5569,8 +5566,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div class="pre-context-actions">
                         ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
-                        <label class="pre-context-league-filter" title="Filtrar partidos donde el equipo jugó como no favorito (+) y perdió el hándicap"><input type="checkbox" class="pre-filter-no-fav-lose" onchange="applyPreMatchContextFilters(this)"> <i class="fa-solid fa-arrow-trend-down text-danger me-1"></i>No Fav Lose AH</label>
-                        <label class="pre-context-league-filter" title="Filtrar partidos donde el equipo jugó como favorito (-) y ganó/cubrió el hándicap"><input type="checkbox" class="pre-filter-fav-cover" onchange="applyPreMatchContextFilters(this)"> <i class="fa-solid fa-arrow-trend-up text-success me-1"></i>Fav Gana AH</label>
+
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
