@@ -5041,6 +5041,108 @@
             }
         }
 
+        
+        function applyPreMatchContextFilters(element) {
+            if (!element) return;
+            const panel = element.closest('.pre-context-panel');
+            if (!panel) return;
+
+            const leagueCheckbox = panel.querySelector('.pre-filter-league');
+            const sameHaCheckbox = panel.querySelector('.pre-filter-same-ha');
+            const noFavLoseCheckbox = panel.querySelector('.pre-filter-no-fav-lose');
+            const recent5Checkbox = panel.querySelector('.pre-filter-recent5');
+
+            const onlyLeague = !!leagueCheckbox?.checked;
+            const onlySameHa = !!sameHaCheckbox?.checked;
+            const onlyNoFavLose = !!noFavLoseCheckbox?.checked;
+            const onlyRecent5 = !!recent5Checkbox?.checked;
+
+            const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
+            const normCurrent = normLeagueId(rawCurrentLeague);
+
+            panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const roleBadge = team.querySelector('.pre-context-role');
+                const defaultRole = team.dataset.defaultRole || 'home';
+                if (roleBadge) {
+                    if (onlyRecent5) {
+                        roleBadge.textContent = 'TODOS (ÚLT. 5)';
+                        roleBadge.className = 'pre-context-role is-all';
+                    } else {
+                        roleBadge.textContent = defaultRole === 'home' ? 'CASA' : 'FUERA';
+                        roleBadge.className = `pre-context-role is-${defaultRole}`;
+                    }
+                }
+
+                const rows = [...team.querySelectorAll('tr[data-context-result]')];
+                const counts = { W: 0, D: 0, L: 0 };
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const rowVenueMode = row.dataset.venueMode || 'specific';
+                    let visible = true;
+
+                    if (onlyRecent5) {
+                        if (rowVenueMode !== 'all') visible = false;
+                    } else {
+                        if (rowVenueMode !== 'specific') visible = false;
+                    }
+
+                    if (visible && onlyLeague) {
+                        const rawRowLeague = String(row.dataset.contextLeague || '').trim();
+                        const normRow = normLeagueId(rawRowLeague);
+                        if (!normCurrent || normRow !== normCurrent) {
+                            visible = false;
+                        }
+                    }
+
+                    if (visible && onlySameHa) {
+                        if (row.dataset.sameHa !== '1') {
+                            visible = false;
+                        }
+                    }
+
+                    if (visible && onlyNoFavLose) {
+                        if (row.dataset.noFavLose !== '1') {
+                            visible = false;
+                        }
+                    }
+
+                    if (visible && onlyRecent5) {
+                        if (visibleCount >= 5) {
+                            visible = false;
+                        }
+                    }
+
+                    row.style.display = visible ? '' : 'none';
+                    row.hidden = !visible;
+
+                    if (visible) {
+                        visibleCount++;
+                        const result = row.dataset.contextResult;
+                        if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
+                    }
+                });
+
+                const table = team.querySelector('.pre-context-table');
+                if (table) table.style.display = rows.length && !visibleCount ? 'none' : '';
+
+                const emptyMsg = team.querySelector('.pre-context-filter-empty');
+                if (emptyMsg) {
+                    emptyMsg.style.display = rows.length && !visibleCount ? 'block' : 'none';
+                    emptyMsg.textContent = onlyNoFavLose
+                        ? 'Sin partidos donde el no favorito haya perdido el hándicap'
+                        : (onlySameHa ? 'Sin partidos con el mismo hándicap' : (onlyLeague ? 'Sin partidos de la liga actual' : 'Sin partidos disponibles'));
+                }
+
+                const summary = team.querySelector('.pre-context-summary');
+                if (summary) {
+                    summary.style.display = rows.length && !visibleCount ? 'none' : '';
+                    summary.innerHTML = `<span class="is-win" data-summary-result="W">V ${counts.W}</span><span class="is-draw" data-summary-result="D">E ${counts.D}</span><span class="is-loss" data-summary-result="L">D ${counts.L}</span>`;
+                }
+            });
+        }
+        
+
         function togglePreMatchPreviousH2H(checkbox) {
             const panel = checkbox?.closest('.pre-context-panel');
             if (!panel) return;
@@ -5184,7 +5286,19 @@
 
                         const isSameHa = isSameHaMatch(teamTargetAh, rowAh);
                         const isRowHidden = mode === 'all';
-                        return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+
+                        // Calcular si en este partido jugó como No Favorito (+) y perdió el hándicap
+                        const rowAhFloat = parseFloat(rowAh);
+                        let isNoFavLoseRow = false;
+                        if (!isNaN(rowAhFloat) && rowAhFloat > 0 && score) {
+                            const isSubjectHome = sameTeamName(rowHome, teamName);
+                            const goalDiff = (isSubjectHome ? score.home : score.away) - (isSubjectHome ? score.away : score.home);
+                            if (goalDiff + rowAhFloat < -0.01) {
+                                isNoFavLoseRow = true;
+                            }
+                        }
+
+                        return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date">${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
@@ -5199,7 +5313,7 @@
                             <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
                             <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
                         </tr>
-                        <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
+                        <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
                             <td colspan="8" class="pre-context-detail-cell">
                                 <div class="pre-context-detail-container">
                                     <div class="pre-context-detail-slot match-stats-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
@@ -5439,6 +5553,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div class="pre-context-actions">
                         ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
+                        <label class="pre-context-league-filter" title="Filtrar partidos donde el equipo jugó como no favorito (+) y perdió el hándicap"><input type="checkbox" class="pre-filter-no-fav-lose" onchange="applyPreMatchContextFilters(this)"> <i class="fa-solid fa-arrow-trend-down text-danger me-1"></i>No Fav Lose AH</label>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
