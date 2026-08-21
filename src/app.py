@@ -5889,6 +5889,58 @@ def api_match_stats(match_id=None):
         logging.exception("Error en /api/match_stats")
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
+
+@app.route('/api/custom_rival_compare', methods=['POST'])
+def api_custom_rival_compare():
+    """Compara dos rivales arbitrarios seleccionados por el usuario para obtener su H2H Col3 y Stats."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
+        rival_a_name = str(payload.get('rival_a_name') or '').strip()
+        rival_b_name = str(payload.get('rival_b_name') or '').strip()
+        rival_a_id = payload.get('rival_a_id') or None
+        rival_b_id = payload.get('rival_b_id') or None
+        match_a_id = "".join(filter(str.isdigit, str(payload.get('match_a_id') or '')))
+        match_b_id = "".join(filter(str.isdigit, str(payload.get('match_b_id') or '')))
+        league_id = str(payload.get('league_id') or '')
+        parent_home = str(payload.get('parent_home') or '')
+        parent_away = str(payload.get('parent_away') or '')
+        current_ah = str(payload.get('current_ah') or '')
+        force_refresh = bool(payload.get('force_refresh'))
+
+        if not rival_a_name or not rival_b_name:
+            return jsonify({'status': 'error', 'error': 'Debes seleccionar dos rivales para comparar'}), 400
+
+        pair_key = f"custom_pair:{parent_match_id}:{rival_a_name}:{rival_b_name}"
+        key_ids = [m for m in [match_a_id, match_b_id, parent_match_id] if m]
+
+        pair_result, cached = last_general_context.get_or_create_rival_pair_col3(
+            pair_key,
+            key_ids,
+            rival_a_name,
+            rival_a_id,
+            rival_b_name,
+            rival_b_id,
+            league_id,
+            force_refresh=force_refresh,
+        )
+
+        col3_general = pair_result.get('h2h_col3_general') or {}
+        return jsonify({
+            'status': 'success',
+            'h2h_col3': col3_general,
+            'rival_a_name': rival_a_name,
+            'rival_b_name': rival_b_name,
+            'parent_home': parent_home,
+            'parent_away': parent_away,
+            'current_ah': current_ah,
+            'cached': cached
+        })
+    except Exception as exc:
+        logger.error(f"Error in custom_rival_compare: {exc}")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/precacheo_h2h_col3' , methods=['POST'])
 def api_precacheo_h2h_col3():
     """Devuelve solo el H2H Col3 solicitado para mantener ligera la tabla."""

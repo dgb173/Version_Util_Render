@@ -5190,7 +5190,7 @@
                             <td class="ctx-rival" title="${esc(rival)}">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
                                     <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto;">${esc(rival || '-')}</span>
-                                    <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                    <button type="button" class="pre-context-pick-btn" style="padding:1px 4px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.55rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(rival)}')" title="Seleccionar '${esc(rival)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot"></i></button><button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
                                 </div>
                             </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
@@ -5332,12 +5332,54 @@
                         ? `${momentHome} + ${momentAway} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
                         : `${momentHome} en casa · ${momentAway} fuera · TODAS LAS LIGAS`);
                 const filteredMetaText = `${isPrevious ? `${moment.date || 'Fecha N/D'} · ` : ''}LIGA ID ${currentLeagueId || 'N/D'}`;
+                const homeMatchesList = (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : moment.home_matches;
+                const awayMatchesList = (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : moment.away_matches;
+                const homeRivalsList = getUniqueRivalsFromMatches(homeMatchesList, momentHome);
+                const awayRivalsList = getUniqueRivalsFromMatches(awayMatchesList, momentAway);
+
+                const customCompareHtml = `
+                    <div class="pre-context-custom-compare" style="margin:8px 10px 10px; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:7px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; flex-wrap:wrap; gap:4px;">
+                            <span style="font-size:.74rem; font-weight:900; color:#1e293b;">
+                                <i class="fa-solid fa-code-compare me-1 text-primary"></i>Comparar Rivales a la Carta (Col3 Custom)
+                            </span>
+                            <span style="font-size:.62rem; font-weight:700; color:#64748b;">
+                                Selecciona un rival de cada equipo para buscar su H2H directo y estadísticas
+                            </span>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <div style="flex:1 1 180px; min-width:160px;">
+                                <label style="display:block; font-size:.6rem; font-weight:900; color:#6d28d9; margin-bottom:2px;">🟣 Rival de ${esc(momentHome)}:</label>
+                                <select class="form-select form-select-sm custom-rival-select-a" style="font-size:.68rem; font-weight:800; border-color:#c4b5fd; background:#f5f3ff; padding:3px 6px;">
+                                    <option value="">Selecciona rival local...</option>
+                                    ${homeRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="font-size:.75rem; font-weight:900; color:#94a3b8; padding-top:10px;">vs</div>
+                            <div style="flex:1 1 180px; min-width:160px;">
+                                <label style="display:block; font-size:.6rem; font-weight:900; color:#b45309; margin-bottom:2px;">🟠 Rival de ${esc(momentAway)}:</label>
+                                <select class="form-select form-select-sm custom-rival-select-b" style="font-size:.68rem; font-weight:800; border-color:#fde68a; background:#fffbeb; padding:3px 6px;">
+                                    <option value="">Selecciona rival visitante...</option>
+                                    ${awayRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="padding-top:10px;">
+                                <button type="button" class="btn btn-sm btn-primary" style="font-size:.68rem; font-weight:900; padding:4px 10px;" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" onclick="runCustomRivalCompare(this, event)">
+                                    <i class="fa-solid fa-bolt me-1"></i>Comparar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="custom-rival-compare-result mt-2" style="display:none;"></div>
+                    </div>
+                `;
+
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     <div class="pre-context-team-grid">
                         ${renderTeam(momentHome, 'home', moment.home_matches, (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : ((pc?.recent_home_matches_all && pc.recent_home_matches_all.length) ? pc.recent_home_matches_all : ((pc?.recent_home_matches_same_league_general && pc.recent_home_matches_same_league_general.length) ? pc.recent_home_matches_same_league_general : moment.home_matches)), homeAllVenues)}
                         ${renderTeam(momentAway, 'away', moment.away_matches, (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : ((pc?.recent_away_matches_all && pc.recent_away_matches_all.length) ? pc.recent_away_matches_all : ((pc?.recent_away_matches_same_league_general && pc.recent_away_matches_same_league_general.length) ? pc.recent_away_matches_same_league_general : moment.away_matches)), awayAllVenues)}
                     </div>
+                    ${customCompareHtml}
                     ${renderSimilarAh(moment)}
                 </section>`;
             };
@@ -5472,6 +5514,192 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (ctx.movBtn) ctx.movBtn.classList.toggle('is-active', !!movVisible);
             if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!allVisible);
         }
+
+        
+        // --- COMPARADOR LIBRE DE RIVALES (COL3 CUSTOM) ---
+        function getUniqueRivalsFromMatches(matchesList, subjectTeam) {
+            const list = Array.isArray(matchesList) ? matchesList : [];
+            const map = new Map();
+            for (const m of list) {
+                const home = m.home || m.home_team || '';
+                const away = m.away || m.away_team || '';
+                const isHome = sameTeamName(home, subjectTeam);
+                const rival = isHome ? (away || m.rival || '') : (home || m.rival || '');
+                if (!rival || map.has(rival.toLowerCase())) continue;
+                map.set(rival.toLowerCase(), {
+                    name: rival,
+                    matchId: String(m.match_id || m.matchIndex || m.id || '').replace(/\D/g, ''),
+                    rivalId: isHome ? (m.away_id || '') : (m.home_id || ''),
+                    ah: m.ahLine || m.ah_line || m.ah || m.handicap || '-',
+                    score: m.score || m.score_raw || m.result || '-',
+                    date: m.date || m.match_date || '-'
+                });
+            }
+            return Array.from(map.values());
+        }
+
+        function quickSelectCustomRival(btn, event, role, rivalName) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!btn) return;
+            const panel = btn.closest('.pre-context-moment') || btn.closest('.pre-context-panel');
+            if (!panel) return;
+            const selector = role === 'home' ? '.custom-rival-select-a' : '.custom-rival-select-b';
+            const selectEl = panel.querySelector(selector);
+            if (!selectEl) return;
+            for (let i = 0; i < selectEl.options.length; i++) {
+                if (sameTeamName(selectEl.options[i].value, rivalName)) {
+                    selectEl.selectedIndex = i;
+                    break;
+                }
+            }
+            const compSection = panel.querySelector('.pre-context-custom-compare');
+            if (compSection) {
+                compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                compSection.style.boxShadow = '0 0 0 2px #3b82f6';
+                setTimeout(() => { compSection.style.boxShadow = ''; }, 1000);
+            }
+        }
+
+        async function runCustomRivalCompare(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!btn) return;
+            const panel = btn.closest('.pre-context-custom-compare');
+            if (!panel) return;
+            const selectA = panel.querySelector('.custom-rival-select-a');
+            const selectB = panel.querySelector('.custom-rival-select-b');
+            const resultBox = panel.querySelector('.custom-rival-compare-result');
+            if (!selectA || !selectB || !resultBox) return;
+
+            const optA = selectA.options[selectA.selectedIndex];
+            const optB = selectB.options[selectB.selectedIndex];
+            const rivalAName = optA?.value || '';
+            const rivalBName = optB?.value || '';
+
+            if (!rivalAName || !rivalBName) {
+                alert('Por favor selecciona un rival para cada equipo.');
+                return;
+            }
+
+            const parentMatchId = btn.dataset.parentMatchId || '';
+            const parentHome = btn.dataset.parentHome || '';
+            const parentAway = btn.dataset.parentAway || '';
+            const currentAh = btn.dataset.currentAh || '';
+            const leagueId = btn.dataset.leagueId || '';
+
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Buscando H2H...';
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = '<div style="font-size:.68rem; color:#3b82f6; text-align:center; padding:8px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Buscando enfrentamiento directo entre ' + escapePreContextCol3(rivalAName) + ' y ' + escapePreContextCol3(rivalBName) + '...</div>';
+
+            try {
+                const response = await fetch('/api/custom_rival_compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        parent_match_id: parentMatchId,
+                        parent_home: parentHome,
+                        parent_away: parentAway,
+                        current_ah: currentAh,
+                        league_id: leagueId,
+                        rival_a_name: rivalAName,
+                        rival_a_id: optA.dataset.rivalId || null,
+                        match_a_id: optA.dataset.matchId || '',
+                        rival_b_name: rivalBName,
+                        rival_b_id: optB.dataset.rivalId || null,
+                        match_b_id: optB.dataset.matchId || '',
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo comparar los rivales');
+                }
+
+                const col3 = data.h2h_col3 || {};
+                const found = col3.status === 'found';
+                if (!found) {
+                    resultBox.innerHTML = `
+                        <div style="background:#fff; border:1px solid #cbd5e1; border-radius:6px; padding:8px; text-align:center;">
+                            <div style="font-size:.72rem; font-weight:800; color:#64748b; margin-bottom:4px;">
+                                <span style="color:#6d28d9;">🟣 ${escapePreContextCol3(rivalAName)}</span> vs <span style="color:#b45309;">🟠 ${escapePreContextCol3(rivalBName)}</span>
+                            </div>
+                            <div style="font-size:.68rem; color:#94a3b8;">Sin H2H directo encontrado entre estos dos rivales en las últimas temporadas.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const score = `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}`;
+                const col3Home = String(col3.h2h_home_team_name || rivalAName);
+                const col3Away = String(col3.h2h_away_team_name || rivalBName);
+
+                const isHomeRivA = sameTeamName(col3Home, rivalAName);
+                const homeColor = isHomeRivA ? '#6d28d9' : '#b45309';
+                const homeBadge = isHomeRivA ? `Rival de ${parentHome || 'Local'}` : `Rival de ${parentAway || 'Visitante'}`;
+                const homeBg = isHomeRivA ? '#ede9fe' : '#fef3c7';
+                const homeBorder = isHomeRivA ? '#c4b5fd' : '#fde68a';
+                const homeIcon = isHomeRivA ? '🟣' : '🟠';
+
+                const awayColor = isHomeRivA ? '#b45309' : '#6d28d9';
+                const awayBadge = isHomeRivA ? `Rival de ${parentAway || 'Visitante'}` : `Rival de ${parentHome || 'Local'}`;
+                const awayBg = isHomeRivA ? '#fef3c7' : '#ede9fe';
+                const awayBorder = isHomeRivA ? '#fde68a' : '#c4b5fd';
+                const awayIcon = isHomeRivA ? '🟠' : '🟣';
+
+                resultBox.innerHTML = `
+                    <div style="background:#ffffff; border:1px solid #3b82f6; border-radius:7px; padding:8px 10px; box-shadow:0 2px 6px rgba(59, 130, 246, 0.1);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-size:.68rem; font-weight:900; color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:2px 7px; border-radius:4px;">
+                                ⚔️ H2H DIRECTO ENTRE RIVALES
+                            </span>
+                            <span style="font-size:.65rem; color:#64748b; font-weight:700;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</span>
+                        </div>
+                        
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:5px 8px; margin:4px 0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:2px;">
+                                <span style="font-size:.74rem; font-weight:900; color:${homeColor};">
+                                    ${homeIcon} ${escapePreContextCol3(col3Home)}
+                                </span>
+                                <span style="font-size:.58rem; font-weight:800; background:${homeBg}; color:${homeColor}; border:1px solid ${homeBorder}; padding:1px 6px; border-radius:4px;">
+                                    ${homeBadge}
+                                </span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:.72rem; font-weight:900; padding:2px 0; border-top:1px dashed #cbd5e1; border-bottom:1px dashed #cbd5e1; margin:3px 0;">
+                                <span style="color:#64748b; font-size:.66rem;">AH <strong style="color:#0f172a;">${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
+                                <span style="color:#0f172a; font-size:.8rem;">Res <strong style="color:#16a34a;">${escapePreContextCol3(score)}</strong></span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:2px;">
+                                <span style="font-size:.74rem; font-weight:900; color:${awayColor};">
+                                    ${awayIcon} ${escapePreContextCol3(col3Away)}
+                                </span>
+                                <span style="font-size:.58rem; font-weight:800; background:${awayBg}; color:${awayColor}; border:1px solid ${awayBorder}; padding:1px 6px; border-radius:4px;">
+                                    ${awayBadge}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pre-col3-stats-wrap mt-2" onclick="event.stopPropagation();">
+                            <button type="button" class="pre-card-stats-toggle" 
+                                data-col3-home="${escapePreContextCol3(col3Home)}" 
+                                data-col3-home-color="${homeColor}" 
+                                data-col3-away="${escapePreContextCol3(col3Away)}" 
+                                data-col3-away-color="${awayColor}" 
+                                onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || '')}')" 
+                                title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                                <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas del Partido
+                            </button>
+                            <div class="pre-card-stats-container" style="display:none;"></div>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                resultBox.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${escapePreContextCol3(err.message || err)}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+    
 
         function formatStatsTableHtml(stats, customHome = null, customAway = null) {
             if (!Array.isArray(stats) || stats.length === 0) return '';
