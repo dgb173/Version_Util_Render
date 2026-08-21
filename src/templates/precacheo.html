@@ -8427,7 +8427,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (ctx.bothBtn) ctx.bothBtn.classList.toggle('is-active', !!allVisible);
         }
 
-        function formatStatsTableHtml(stats) {
+        function formatStatsTableHtml(stats, customHome = null, customAway = null) {
             if (!Array.isArray(stats) || stats.length === 0) return '';
             const rows = stats.map(stat => {
                 const label = stat.label ?? '';
@@ -8464,7 +8464,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     </tr>
                 `;
             }).join('');
-            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;"><tbody>${rows}</tbody></table>`;
+
+            let headerHtml = '';
+            if (customHome && customAway) {
+                headerHtml = `
+                    <thead>
+                        <tr style="border-bottom: 2px solid #e2e8f0; background:#f8fafc;">
+                            <th style="width:38%; text-align:left; font-size:0.62rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
+                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Stats</th>
+                            <th style="width:38%; text-align:right; font-size:0.62rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
+                        </tr>
+                    </thead>
+                `;
+            }
+
+            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;">${headerHtml}<tbody>${rows}</tbody></table>`;
         }
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
@@ -8531,7 +8545,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     </div>
                     <div style="font-size:.62rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(rowDate)}</div>
                     <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:4px;">
-                        <span style="color:#0f172a;">${escapePreContextCol3(rowHome)} <strong style="color:#16a34a;">${escapePreContextCol3(rowScore)}</strong> ${escapePreContextCol3(rowAway)}</span>
+                        <span style="color:#0f172a;"><span style="color:${button.dataset.rowRole === 'home' ? '#166534' : '#6d28d9'}; font-weight:900;">${button.dataset.rowRole === 'home' ? '🏠 ' : '🟣 '}${escapePreContextCol3(rowHome)}</span> <strong style="color:#16a34a; font-size:.8rem; margin:0 2px;">${escapePreContextCol3(rowScore)}</strong> <span style="color:${button.dataset.rowRole === 'home' ? '#6d28d9' : '#166534'}; font-weight:900;">${button.dataset.rowRole === 'home' ? '🟣 ' : '✈️ '}${escapePreContextCol3(rowAway)}</span></span>
                         <span style="color:#64748b;">AH <strong>${escapePreContextCol3(rowAh)}</strong></span>
                     </div>
                     <div style="margin-top:3px;">
@@ -8645,7 +8659,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (!stats.length) {
                     container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin ataques/tiros registrados para este encuentro</div>';
                 } else {
-                    container.innerHTML = formatStatsTableHtml(stats);
+                    const customHome = btn.dataset.col3Home ? { name: btn.dataset.col3Home, color: btn.dataset.col3HomeColor || '#6d28d9' } : null;
+                    const customAway = btn.dataset.col3Away ? { name: btn.dataset.col3Away, color: btn.dataset.col3AwayColor || '#b45309' } : null;
+                    container.innerHTML = formatStatsTableHtml(stats, customHome, customAway);
                 }
 
                 container.dataset.loaded = '1';
@@ -8667,8 +8683,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const lastHome = comparison.last_home_match || {};
             const lastAway = comparison.last_away_match || {};
             const currentAh = Number.parseFloat(button.dataset.currentAh);
-            const parentHome = String(match.home_name || '').toLowerCase().trim();
-            const parentAway = String(match.away_name || '').toLowerCase().trim();
+            const parentHome = String(button.dataset.parentHome || match.home_name || '').toLowerCase().trim();
+            const parentAway = String(button.dataset.parentAway || match.away_name || '').toLowerCase().trim();
+            const rowRole = String(button.dataset.rowRole || 'home').toLowerCase().trim();
 
             const sameName = (a, b) => {
                 const left = String(a || '').toLowerCase().trim();
@@ -8770,19 +8787,79 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const subtleTagClass = statusClass === 'is-better' ? 'is-cover' : (statusClass === 'is-worse' ? 'is-fail' : 'is-same');
             const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.55rem; padding:1px 5px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
 
+            // Identificar los 2 rivales para darles color distintivo
+            const rowSubject = rowRole === 'home' ? (button.dataset.parentHome || 'Local') : (button.dataset.parentAway || 'Visitante');
+            const otherSubject = rowRole === 'home' ? (button.dataset.parentAway || 'Visitante') : (button.dataset.parentHome || 'Local');
+
+            const rowHomeName = button.dataset.rowHome || '';
+            const rowAwayName = button.dataset.rowAway || '';
+            const rowRivalName = sameName(rowHomeName, rowSubject) ? rowAwayName : (sameName(rowAwayName, rowSubject) ? rowHomeName : (rowRole === 'home' ? rowAwayName : rowHomeName));
+
+            const isHomeRowRival = sameName(col3Home, rowRivalName);
+            const isAwayRowRival = sameName(col3Away, rowRivalName);
+
+            const getTeamCol3Meta = (teamName, isRowRiv) => {
+                if (isRowRiv) {
+                    return {
+                        color: '#6d28d9',
+                        bg: '#ede9fe',
+                        border: '#c4b5fd',
+                        badgeText: `Rival de ${rowSubject}`,
+                        icon: '🟣'
+                    };
+                } else {
+                    return {
+                        color: '#b45309',
+                        bg: '#fef3c7',
+                        border: '#fde68a',
+                        badgeText: `Rival de ${otherSubject}`,
+                        icon: '🟠'
+                    };
+                }
+            };
+
+            const homeMeta = getTeamCol3Meta(col3Home, isHomeRowRival || (!isAwayRowRival && mirrorIsAway));
+            const awayMeta = getTeamCol3Meta(col3Away, isAwayRowRival || (!isHomeRowRival && mirrorIsHome));
+
             return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                     <div style="display:flex; align-items:center; gap:4px;"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}</div>
                     ${typeHtml}
                 </div>
-                <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:2px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
-                <div style="display:flex; justify-content:space-between; font-weight:900; font-size:.72rem; margin-bottom:2px;">
-                    <span>AH <strong>${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
-                    <span>Res <strong>${escapePreContextCol3(score)}</strong></span>
+                <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:3px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
+                
+                <!-- Matchup con Colores Diferenciados de Rivales -->
+                <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:2px;">
+                        <span style="font-size:.72rem; font-weight:900; color:${homeMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            ${homeMeta.icon} ${escapePreContextCol3(col3Home)}
+                        </span>
+                        <span style="font-size:.56rem; font-weight:800; background:${homeMeta.bg}; color:${homeMeta.color}; border:1px solid ${homeMeta.border}; padding:1px 5px; border-radius:4px; white-space:nowrap;">
+                            ${homeMeta.badgeText}
+                        </span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.7rem; font-weight:900; padding:2px 0; border-top:1px dashed #e2e8f0; border-bottom:1px dashed #e2e8f0; margin:2px 0;">
+                        <span style="color:#64748b; font-size:.64rem;">AH <strong style="color:#0f172a;">${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
+                        <span style="color:#0f172a; font-size:.75rem;">Res <strong style="color:#16a34a;">${escapePreContextCol3(score)}</strong></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:2px;">
+                        <span style="font-size:.72rem; font-weight:900; color:${awayMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            ${awayMeta.icon} ${escapePreContextCol3(col3Away)}
+                        </span>
+                        <span style="font-size:.56rem; font-weight:800; background:${awayMeta.bg}; color:${awayMeta.color}; border:1px solid ${awayMeta.border}; padding:1px 5px; border-radius:4px; white-space:nowrap;">
+                            ${awayMeta.badgeText}
+                        </span>
+                    </div>
                 </div>
-                <div style="font-size:.68rem; color:#334155; font-weight:700; line-height:1.2; margin-bottom:4px;">${escapePreContextCol3(col3Home)} vs ${escapePreContextCol3(col3Away)}</div>
-                <div class="pre-col3-tags" style="display:flex; gap:4px; margin:0;">${coverHtml}${movementHtml}</div>
+
+                <div class="pre-col3-tags" style="display:flex; gap:4px; margin-bottom:4px;">${coverHtml}${movementHtml}</div>
                 <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
-                    <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                    <button type="button" class="pre-card-stats-toggle" 
+                        data-col3-home="${escapePreContextCol3(col3Home)}" 
+                        data-col3-home-color="${homeMeta.color}" 
+                        data-col3-away="${escapePreContextCol3(col3Away)}" 
+                        data-col3-away-color="${awayMeta.color}" 
+                        onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" 
+                        title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
                         <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
                     </button>
                     <div class="pre-card-stats-container" style="display:none;"></div>
