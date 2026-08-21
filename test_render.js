@@ -1,0 +1,9664 @@
+
+const window = {};
+const document = { querySelectorAll: () => [], getElementById: () => null };
+function lgEscape(s) { return s; }
+function parseScoreValue() { return null; }
+function sameTeamName(a, b) { return a === b; }
+function normLeagueId(l) { return l; }
+let pc = { pre_match_context: { current: {} }, match_date: '2023' };
+
+        let upcomingMatches = [];
+        let precacheoData = {};
+        let currentViewMode = 'proximos'; // 'proximos' o 'pendientes'
+        let precacheDateFormatHint = 'MDY';
+        let quickPickModeEnabled = false;
+        let quickPickModeBusy = false;
+
+        // MultiSelect Instances
+        let msLeague, msHandicap, msOu, msH2hCol3Ah, msPrevHomeAh, msPrevAwayAh, msIndLocalAh, msIndVisitanteAh;
+
+        // --- Mobile Filters Functions ---
+        function toggleMobileFilters() {
+            const panel = document.getElementById('mobile-filters-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            panel.classList.add('show');
+            overlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+
+            // Sync checkbox states from main filters
+            document.getElementById('mobile-filter-only-with-history').checked =
+                document.getElementById('filter-only-with-history').checked;
+            document.getElementById('mobile-filter-only-favorites').checked =
+                document.getElementById('filter-only-favorites').checked;
+        }
+
+        function closeMobileFilters() {
+            const panel = document.getElementById('mobile-filters-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            panel.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            sidebar.classList.toggle('collapsed');
+            sidebar.classList.toggle('mobile-active');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // --- MultiSelect Class ---
+        class MultiSelect {
+            constructor(containerId, options, placeholder = 'Select...', onChangeCallback = null) {
+                this.container = document.getElementById(containerId);
+                this.options = options;
+                this.placeholder = placeholder;
+                this.onChange = onChangeCallback;
+                this.selectedValues = [];
+                this.render();
+            }
+
+            render() {
+                if (!this.container) return;
+                this.container.innerHTML = '';
+                this.container.classList.add('multiselect-container');
+
+                this.btn = document.createElement('div');
+                this.btn.className = 'multiselect-btn';
+                this.updateBtnText();
+                this.btn.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.multiselect-dropdown.show').forEach(el => {
+                        if (el !== this.dropdown) el.classList.remove('show');
+                    });
+
+                    // Calculate position for fixed dropdown
+                    const rect = this.btn.getBoundingClientRect();
+                    this.dropdown.style.top = (rect.bottom + 2) + 'px';
+                    this.dropdown.style.left = rect.left + 'px';
+
+                    // Ensure dropdown doesn't go off-screen to the right
+                    const dropdownWidth = 260;
+                    if (rect.left + dropdownWidth > window.innerWidth) {
+                        this.dropdown.style.left = (window.innerWidth - dropdownWidth - 10) + 'px';
+                    }
+
+                    this.dropdown.classList.toggle('show');
+                };
+                this.container.appendChild(this.btn);
+
+                this.dropdown = document.createElement('div');
+                this.dropdown.className = 'multiselect-dropdown';
+
+                const allOpt = document.createElement('div');
+                allOpt.className = 'multiselect-option';
+                allOpt.innerHTML = '<strong>Limpiar / Todos</strong>';
+                allOpt.onclick = () => {
+                    this.selectedValues = [];
+                    this.updateBtnText();
+                    this.renderOptions();
+                    if (this.onChange) this.onChange();
+                };
+                this.dropdown.appendChild(allOpt);
+
+                this.optionsListCtx = document.createElement('div');
+                this.dropdown.appendChild(this.optionsListCtx);
+                this.renderOptions();
+                this.container.appendChild(this.dropdown);
+
+                document.addEventListener('click', (e) => {
+                    if (!this.container.contains(e.target)) {
+                        this.dropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            renderOptions() {
+                this.optionsListCtx.innerHTML = '';
+                this.options.forEach(opt => {
+                    const div = document.createElement('div');
+                    div.className = 'multiselect-option';
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.checked = this.selectedValues.includes(opt.value);
+                    cb.onchange = (e) => {
+                        if (e.target.checked) {
+                            this.selectedValues.push(opt.value);
+                        } else {
+                            this.selectedValues = this.selectedValues.filter(v => v !== opt.value);
+                        }
+                        this.updateBtnText();
+                        if (this.onChange) this.onChange();
+                    };
+
+                    div.appendChild(cb);
+                    div.appendChild(document.createTextNode(opt.label));
+
+                    div.onclick = (e) => {
+                        if (e.target !== cb) {
+                            cb.checked = !cb.checked;
+                            cb.dispatchEvent(new Event('change'));
+                        }
+                    };
+
+                    this.optionsListCtx.appendChild(div);
+                });
+            }
+
+            updateBtnText() {
+                if (this.selectedValues.length === 0) {
+                    this.btn.textContent = this.placeholder;
+                } else if (this.selectedValues.length <= 2) {
+                    this.btn.textContent = this.selectedValues.join(', ');
+                } else {
+                    this.btn.textContent = `${this.selectedValues.length} sel.`;
+                }
+            }
+
+            getValues() {
+                return this.selectedValues;
+            }
+
+            setValues(values) {
+                this.selectedValues = values || [];
+                this.updateBtnText();
+                this.renderOptions();
+                // No llamamos onChange aquí porque se llama applyAllFilters justo después
+            }
+        }
+
+        // Helper for MultiSelect AH matching - Uses buckets:
+        // 0 = exactly 0
+        // 0.5 = 0.25, 0.5, 0.75
+        // 1 = exactly 1
+        // 1.5 = 1.25, 1.5, 1.75
+        // 2.0 = exacto
+        // 2.5+ = 2.25, 2.5, 2.75, 3, etc.
+        const checkAhMatch = (rowAhStr, selectedValues) => {
+            if (!selectedValues || selectedValues.length === 0) return true;
+            const rowAh = parseFloat(rowAhStr);
+            if (isNaN(rowAh)) return false;
+
+            return selectedValues.some(valStr => {
+                const fAh = parseFloat(valStr);
+                const absFAh = Math.abs(fAh);
+
+                // Bucket 2.5+: Includes 2.25 and higher
+                if (absFAh >= 2.49) {
+                    if (fAh > 0) return rowAh >= 2.24;
+                    else return rowAh <= -2.24;
+                }
+
+                // Bucket 2.0: Strict 2.0 (Range [1.99, 2.01])
+                if (Math.abs(absFAh - 2.0) < 0.01) {
+                    if (fAh > 0) return Math.abs(rowAh - 2) < 0.01;
+                    else return Math.abs(rowAh + 2) < 0.01;
+                }
+
+                // Bucket 1.5: Includes 1.25, 1.5, 1.75 (Range [1.24, 1.76])
+                if (Math.abs(absFAh - 1.5) < 0.1) {
+                    if (fAh > 0) return rowAh >= 1.24 && rowAh <= 1.76;
+                    else return rowAh <= -1.24 && rowAh >= -1.76;
+                }
+
+                // Bucket 1.0: Strict 1.0 (Range [0.99, 1.01])
+                if (Math.abs(absFAh - 1.0) < 0.1) {
+                    return Math.abs(rowAh - fAh) < 0.1;
+                }
+
+                // Bucket 0.5: Includes 0.25, 0.5, 0.75 (Range [0.24, 0.76])
+                if (Math.abs(absFAh - 0.5) < 0.1) {
+                    if (fAh > 0) return rowAh >= 0.24 && rowAh <= 0.76;
+                    else return rowAh <= -0.24 && rowAh >= -0.76;
+                }
+
+                // Bucket 0: Strict 0
+                if (absFAh < 0.1) {
+                    return Math.abs(rowAh) < 0.1;
+                }
+
+                // Fallback: Exact match
+                return Math.abs(rowAh - fAh) < 0.01;
+            });
+        };
+
+        const getOuFilterValues = () => {
+            if (msOu) return msOu.getValues();
+
+            const raw = document.getElementById('filter-ou')?.value || '';
+            return raw
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+        };
+
+        const syncOuFilterInput = () => {
+            const input = document.getElementById('filter-ou');
+            if (!input) return;
+            input.value = getOuFilterValues().join(',');
+        };
+
+        const checkOuMatch = (rowOuStr, selectedValues) => {
+            if (!selectedValues || selectedValues.length === 0) return true;
+
+            const rowOu = parseFloat(rowOuStr);
+            if (isNaN(rowOu)) return false;
+
+            return selectedValues.some(valStr => {
+                const filterOu = parseFloat(String(valStr).replace('+', ''));
+                if (isNaN(filterOu)) return false;
+
+                if (filterOu >= 4.0) {
+                    return rowOu >= 4.0;
+                }
+
+                return Math.abs(rowOu - filterOu) <= 0.26;
+            });
+        };
+
+        const QUICK_PICK_FILTER_VALUES = new Set(['QUICK_ANY', 'QUICK_HOME', 'QUICK_AWAY', 'QUICK_BALANCED']);
+
+        function isQuickPickFilterValue(value) {
+            return QUICK_PICK_FILTER_VALUES.has(String(value || '').toUpperCase());
+        }
+
+        function updateQuickPickButtonState() {
+            const btn = document.getElementById('quick-pick-mode-btn');
+            if (!btn) return;
+
+            btn.classList.remove('btn-outline-secondary', 'btn-warning', 'btn-success');
+
+            if (quickPickModeBusy) {
+                btn.classList.add('btn-warning');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                btn.title = 'Calculando clasificación rápida...';
+                return;
+            }
+
+            if (quickPickModeEnabled) {
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="fa-solid fa-bolt"></i>';
+                btn.title = 'Desactivar clasificación rápida';
+                return;
+            }
+
+            btn.classList.add('btn-outline-secondary');
+            btn.innerHTML = '<i class="fa-solid fa-bolt"></i>';
+            btn.title = 'Activar clasificación rápida: AH + previos + H2H + indirectas';
+        }
+
+        function clearQuickPickRowState(row) {
+            if (!row) return;
+            row.removeAttribute('data-quick-pick-ready');
+            row.removeAttribute('data-quick-pick-side');
+            row.removeAttribute('data-quick-pick-tier');
+
+            const badge = row.querySelector('.quick-pick-badge-wrap');
+            if (badge) badge.remove();
+        }
+
+        function buildQuickPickBadgeHtml(quickData) {
+            const subtitle = quickData.reasons.slice(0, 2).join(' · ');
+            return `
+                <div class="quick-pick-badge-wrap mt-1">
+                    <div style="background:${quickData.bg}; border:1px solid ${quickData.border}; border-radius:6px; padding:4px 6px; width:100%;">
+                        <div class="fw-bold ${quickData.color} text-center" style="font-size:0.6rem; line-height:1.15;">
+                            ${quickData.label}
+                        </div>
+                        <div class="text-muted text-center" style="font-size:0.52rem; line-height:1.15;">
+                            ${subtitle || 'AH + previos + H2H + indirectas'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function computeQuickPickClassificationFromRow(row) {
+            if (!row) return { ready: false, side: '', tier: '', label: 'Sin base', reasons: [] };
+
+            const currentAh = parseFloat(row.getAttribute('data-handicap'));
+            const scores = { HOME: 0, AWAY: 0 };
+            const reasons = [];
+            const hasHistory = row.getAttribute('data-has-history') === '1';
+            const favoriteSide = (!isNaN(currentAh) && Math.abs(currentAh) > 0.01)
+                ? (currentAh > 0 ? 'HOME' : 'AWAY')
+                : null;
+            const otherSide = favoriteSide === 'HOME' ? 'AWAY' : (favoriteSide === 'AWAY' ? 'HOME' : null);
+
+            const addScore = (side, weight, reason) => {
+                if (!side || !Number.isFinite(weight) || weight <= 0) return;
+                scores[side] += weight;
+                if (reason) reasons.push(reason);
+            };
+
+            if (favoriteSide) {
+                const absAh = Math.abs(currentAh);
+                const marketWeight = absAh >= 1.5 ? 2.2 : absAh >= 1.0 ? 1.6 : absAh >= 0.5 ? 1.0 : 0.5;
+                addScore(
+                    favoriteSide,
+                    marketWeight,
+                    favoriteSide === 'HOME'
+                        ? `mercado favorece local (${currentAh})`
+                        : `mercado favorece visita (${currentAh})`
+                );
+            }
+
+            const prevHomeWdl = row.getAttribute('data-prev-home-wdl');
+            if (prevHomeWdl === 'WIN') addScore('HOME', 1.25, 'prev home sólido');
+            else if (prevHomeWdl === 'LOSS') addScore('AWAY', 1.25, 'prev home flojo');
+            else if (prevHomeWdl === 'DRAW') addScore('HOME', 0.35, 'prev home empata');
+
+            const prevAwayWdl = row.getAttribute('data-prev-away-wdl');
+            if (prevAwayWdl === 'WIN') addScore('AWAY', 1.25, 'prev away sólido');
+            else if (prevAwayWdl === 'LOSS') addScore('HOME', 1.25, 'prev away flojo');
+            else if (prevAwayWdl === 'DRAW') addScore('AWAY', 0.35, 'prev away empata');
+
+            const h2hCol3Perf = row.getAttribute('data-h2h-col3-performance');
+            if (favoriteSide && h2hCol3Perf === 'MEJORA') addScore(favoriteSide, 1.5, 'H2H Col3 mejora');
+            else if (favoriteSide && h2hCol3Perf === 'EMPEORA' && otherSide) addScore(otherSide, 1.5, 'H2H Col3 empeora');
+            else if (favoriteSide && h2hCol3Perf === 'IGUALA') addScore(favoriteSide, 0.6, 'H2H Col3 iguala');
+
+            const h2hStadiumRes = row.getAttribute('data-h2h-stadium-res');
+            if (favoriteSide && h2hStadiumRes === 'COVER') addScore(favoriteSide, 0.8, 'H2H estadio cubre');
+            else if (favoriteSide && h2hStadiumRes === 'NO_COVER' && otherSide) addScore(otherSide, 0.8, 'H2H estadio no cubre');
+
+            const h2hGeneralRes = row.getAttribute('data-h2h-general-res');
+            if (favoriteSide && h2hGeneralRes === 'COVER') addScore(favoriteSide, 0.9, 'H2H general cubre');
+            else if (favoriteSide && h2hGeneralRes === 'NO_COVER' && otherSide) addScore(otherSide, 0.9, 'H2H general no cubre');
+
+            const indLocalRes = row.getAttribute('data-ind-local-res');
+            if (indLocalRes === 'COVER') addScore('HOME', 0.9, 'ind local cubre');
+            else if (indLocalRes === 'NO_COVER') addScore('AWAY', 0.9, 'ind local no cubre');
+
+            const indVisitanteRes = row.getAttribute('data-ind-visitante-res');
+            if (indVisitanteRes === 'COVER') addScore('AWAY', 0.9, 'ind visita cubre');
+            else if (indVisitanteRes === 'NO_COVER') addScore('HOME', 0.9, 'ind visita no cubre');
+
+            const diff = scores.HOME - scores.AWAY;
+            const evidenceCount = reasons.length;
+
+            if (!hasHistory && evidenceCount < 2) {
+                return { ready: false, side: '', tier: '', label: 'Sin base', reasons: [] };
+            }
+
+            if (diff >= 2.4) {
+                return {
+                    ready: true,
+                    side: 'HOME',
+                    tier: 'STRONG',
+                    label: '⚡ Local mejor',
+                    reasons,
+                    color: 'text-primary',
+                    bg: '#e3f2fd',
+                    border: '#1e88e5'
+                };
+            }
+
+            if (diff >= 1.0) {
+                return {
+                    ready: true,
+                    side: 'HOME',
+                    tier: 'LEAN',
+                    label: '⚡ Lean local',
+                    reasons,
+                    color: 'text-primary',
+                    bg: '#eef6ff',
+                    border: '#64b5f6'
+                };
+            }
+
+            if (diff <= -2.4) {
+                return {
+                    ready: true,
+                    side: 'AWAY',
+                    tier: 'STRONG',
+                    label: '⚡ Visita mejor',
+                    reasons,
+                    color: 'text-danger',
+                    bg: '#ffebee',
+                    border: '#ef5350'
+                };
+            }
+
+            if (diff <= -1.0) {
+                return {
+                    ready: true,
+                    side: 'AWAY',
+                    tier: 'LEAN',
+                    label: '⚡ Lean visita',
+                    reasons,
+                    color: 'text-danger',
+                    bg: '#fff1f2',
+                    border: '#e57373'
+                };
+            }
+
+            return {
+                ready: true,
+                side: 'BALANCED',
+                tier: 'BALANCED',
+                label: '⚡ Equilibrado',
+                reasons,
+                color: 'text-secondary',
+                bg: '#f5f5f5',
+                border: '#bdbdbd'
+            };
+        }
+
+        function applyQuickPickClassificationToRenderedRows(shouldReapplyFilters = true) {
+            const rows = document.querySelectorAll('#table-body tr[data-match-id]');
+
+            rows.forEach(row => {
+                clearQuickPickRowState(row);
+
+                const quickData = computeQuickPickClassificationFromRow(row);
+                row.setAttribute('data-quick-pick-ready', quickData.ready ? '1' : '0');
+                row.setAttribute('data-quick-pick-side', quickData.side || '');
+                row.setAttribute('data-quick-pick-tier', quickData.tier || '');
+
+                if (!quickData.ready) return;
+
+                const pickCell = row.querySelector('.pick-cell');
+                if (pickCell) {
+                    pickCell.insertAdjacentHTML('beforeend', buildQuickPickBadgeHtml(quickData));
+                }
+            });
+
+            if (shouldReapplyFilters) {
+                applyFiltersVisually();
+            }
+        }
+
+        function disableQuickPickMode() {
+            quickPickModeEnabled = false;
+            quickPickModeBusy = false;
+            document.querySelectorAll('#table-body tr[data-match-id]').forEach(clearQuickPickRowState);
+
+            const pickFilter = document.getElementById('filter-pick');
+            if (pickFilter && isQuickPickFilterValue(pickFilter.value)) {
+                pickFilter.value = '';
+                const mobilePick = document.getElementById('mobile-filter-pick');
+                if (mobilePick) mobilePick.value = '';
+            }
+
+            updateQuickPickButtonState();
+            applyFiltersVisually();
+        }
+
+        function toggleQuickPickMode() {
+            if (quickPickModeBusy) return;
+
+            if (quickPickModeEnabled) {
+                disableQuickPickMode();
+                return;
+            }
+
+            quickPickModeBusy = true;
+            updateQuickPickButtonState();
+
+            window.requestAnimationFrame(() => {
+                quickPickModeEnabled = true;
+                quickPickModeBusy = false;
+                updateQuickPickButtonState();
+                applyQuickPickClassificationToRenderedRows(true);
+            });
+        }
+        const APP_PRECACHEO_ONLY = null;
+        const PRECACHEO_ENABLE_QWEN = null;
+        const PRECACHEO_ENABLE_HEAVY_ACTIONS = null;
+        const PRECACHEO_PICKS_CLIENT_MAX = null;
+        const PRECACHEO_ACTIONS_MODE = 'null';
+        const PRECACHEO_AUTO_SCRAPE_ON_GAP = null;
+        const PRECACHEO_AUTO_SCRAPE_BATCH_MAX = null;
+        const PRECACHEO_AUTO_SCRAPE_CONCURRENCY = null;
+        // Pagination State
+        let currentPage = 1;
+        const itemsPerPage = 100;
+        let upcomingTotalItems = 0;
+        let upcomingTotalPages = 1;
+        const pendingItemsPerPage = 100;
+        let pendingTotalItems = 0;
+        let pendingTotalPages = 1;
+        let pendingHandicapReloadTimer = null;
+        let totalFilteredMatches = [];
+        let leagueFilterSignature = '';
+        let autoScrapeTriggeredOnce = false;
+        const autoScrapeSeenIds = new Set();
+
+        async function cleanupLegacyPrecacheCaches() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    const unregisterTasks = registrations
+                        .filter(reg => {
+                            const scriptUrl = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
+                            return scriptUrl.includes('/precacheo-sw.js');
+                        })
+                        .map(reg => reg.unregister());
+                    if (unregisterTasks.length > 0) {
+                        await Promise.allSettled(unregisterTasks);
+                        console.log('[precacheo] Legacy service worker removido.');
+                    }
+                } catch (err) {
+                    console.warn('[precacheo] No se pudo limpiar service worker legacy:', err);
+                }
+            }
+
+            if ('caches' in window) {
+                try {
+                    const keys = await caches.keys();
+                    const deleteTasks = keys
+                        .filter(key => key.startsWith('precacheo-'))
+                        .map(key => caches.delete(key));
+                    if (deleteTasks.length > 0) {
+                        await Promise.allSettled(deleteTasks);
+                        console.log('[precacheo] Cache legacy limpiada.');
+                    }
+                } catch (err) {
+                    console.warn('[precacheo] No se pudo limpiar cache legacy:', err);
+                }
+            }
+        }
+
+        // Ligas Favoritas - lista de objetos {id, nombre, short, color}
+        let ligasFavoritas = [];
+        // Ligas Ocultas - ligas que no quiero ver nunca
+        let ligasOcultas = [];
+        // Listas de nombres (para ligas no predefinidas)
+        let favoritasNombres = [];
+        let ocultasNombres = [];
+        let neutrasNombres = [];
+
+        // Cargar ligas favoritas y ocultas al inicio
+        async function loadLigasFavoritas() {
+            if (APP_PRECACHEO_ONLY) {
+                ligasFavoritas = [];
+                ligasOcultas = [];
+                favoritasNombres = [];
+                ocultasNombres = [];
+                neutrasNombres = [];
+                return;
+            }
+            try {
+                const res = await fetch('/api/ligas_favoritas_completo');
+                const data = await res.json();
+                ligasFavoritas = data.favoritas || [];
+                ligasOcultas = data.ocultas || [];
+                ligasOcultas = data.ocultas || [];
+                favoritasNombres = data.favoritas_nombres || [];
+                ocultasNombres = data.ocultas_nombres || [];
+                neutrasNombres = data.neutras_nombres || [];
+                console.log('Ligas favoritas:', ligasFavoritas.length, 'nombres:', favoritasNombres.length, 'Ocultas:', ocultasNombres.length, 'Neutras:', neutrasNombres.length);
+            } catch (err) {
+                console.error('Error cargando ligas favoritas:', err);
+                ligasFavoritas = [];
+                ligasOcultas = [];
+                favoritasNombres = [];
+                ocultasNombres = [];
+                neutrasNombres = [];
+            }
+        }
+
+        // Verificar si una liga es favorita (por ID o por nombre)
+        function isLigaFavorita(leagueName) {
+            // Validación: si no hay nombre, no es favorita
+            if (!leagueName || leagueName.trim() === '' || leagueName === 'N/A') {
+                return false;
+            }
+
+            // Normalizar nombre (minúsculas y sin espacios extra)
+            const nombreNorm = leagueName.toLowerCase().trim();
+
+            // Buscar por nombre en la lista de nombres favoritos
+            if (favoritasNombres && favoritasNombres.length > 0) {
+                const found = favoritasNombres.some(n => {
+                    if (!n) return false;
+                    const nNorm = n.toLowerCase().trim();
+                    return nNorm === nombreNorm || nombreNorm.includes(nNorm) || nNorm.includes(nombreNorm);
+                });
+                if (found) return true;
+            }
+
+            // Buscar por nombre en la lista de IDs (ligas predefinidas)
+            if (ligasFavoritas && ligasFavoritas.length > 0) {
+                const found = ligasFavoritas.some(l => {
+                    if (!l || !l.nombre) return false;
+                    return l.nombre.toLowerCase().trim() === nombreNorm;
+                });
+                if (found) return true;
+            }
+
+            return false;
+        }
+
+        // Verificar si una liga está oculta
+        function isLigaOculta(leagueName) {
+            // Validación: si no hay nombre, no está oculta
+            if (!leagueName || leagueName.trim() === '' || leagueName === 'N/A') {
+                return false;
+            }
+
+            const nombreNorm = leagueName.toLowerCase().trim();
+
+            if (ocultasNombres && ocultasNombres.length > 0) {
+                const found = ocultasNombres.some(n => {
+                    if (!n) return false;
+                    const nNorm = n.toLowerCase().trim();
+                    return nNorm === nombreNorm || nombreNorm.includes(nNorm) || nNorm.includes(nombreNorm);
+                });
+                if (found) return true;
+            }
+
+            if (ligasOcultas && ligasOcultas.length > 0) {
+                const found = ligasOcultas.some(l => {
+                    if (!l || !l.nombre) return false;
+                    return l.nombre.toLowerCase().trim() === nombreNorm;
+                });
+                if (found) return true;
+            }
+
+            return false;
+        }
+
+        // Verificar si una liga es neutra
+        function isLigaNeutra(leagueName) {
+            const nombreNorm = leagueName.toLowerCase();
+            return neutrasNombres.some(n => n === nombreNorm);
+        }
+
+        // Toggle liga favorita por nombre
+        async function toggleLigaFavorita(leagueName, btnElement) {
+            const isFav = isLigaFavorita(leagueName);
+
+            if (isFav) {
+                // Quitar de favoritas
+                try {
+                    const res = await fetch(`/api/ligas_favoritas_nombre/${encodeURIComponent(leagueName)}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        favoritasNombres = favoritasNombres.filter(n => n !== leagueName.toLowerCase());
+                        updateAllLigaButtons(leagueName, false);
+                        console.log('Liga quitada de favoritas:', leagueName);
+                    }
+                } catch (err) {
+                    console.error('Error quitando favorita:', err);
+                }
+            } else {
+                // Añadir a favoritas usando el nombre
+                try {
+                    const addRes = await fetch('/api/ligas_favoritas_nombre', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombre: leagueName })
+                    });
+                    if (addRes.ok) {
+                        favoritasNombres.push(leagueName.toLowerCase());
+                        updateAllLigaButtons(leagueName, true);
+                        console.log('Liga añadida a favoritas:', leagueName);
+                    }
+                } catch (err) {
+                    console.error('Error añadiendo favorita:', err);
+                }
+            }
+        }
+
+        // Toggle liga neutra
+        // Wrapper seguro para el onclick
+        function handleNeutralToggle(btnElement) {
+            const leagueName = btnElement.getAttribute('data-league-name');
+            if (leagueName) {
+                toggleLigaNeutra(leagueName, btnElement);
+            }
+        }
+
+        // Toggle liga neutra
+        async function toggleLigaNeutra(leagueName, btnElement) { // Added toggleLigaNeutra function
+            const isNeutra = isLigaNeutra(leagueName);
+
+            // UI provisional loading state
+            const safeLeague = leagueName.replace(/"/g, '\\"');
+            document.querySelectorAll(`.liga-neutral-btn[data-league-name="${safeLeague}"]`).forEach(el => {
+                el.style.opacity = '0.5';
+                el.style.pointerEvents = 'none';
+            });
+
+            if (isNeutra) {
+                // Quitar de neutras
+                try {
+                    const res = await fetch(`/api/ligas_neutras/${encodeURIComponent(leagueName)}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        neutrasNombres = neutrasNombres.filter(n => n !== leagueName.toLowerCase());
+
+                        document.querySelectorAll(`.liga-neutral-btn[data-league-name="${safeLeague}"]`).forEach(el => {
+                            el.className = 'liga-neutral-btn ms-1 border rounded px-1 text-muted';
+                            el.title = "Haz click para marcar como LIGA NEUTRA";
+                            el.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+                            el.style.opacity = '1';
+                            el.style.pointerEvents = 'auto';
+                        });
+                        console.log('Liga quitada de neutras:', leagueName);
+                        // Trigger rescrape for all visible matches of this league
+                        setTimeout(() => triggerLeagueRescrape(leagueName), 100);
+                    }
+                } catch (err) {
+                    console.error('Error quitando neutra:', err);
+                    alert('Error al quitar liga neutra');
+                    document.querySelectorAll(`.liga-neutral-btn[data-league-name="${safeLeague}"]`).forEach(el => {
+                        el.style.opacity = '1';
+                        el.style.pointerEvents = 'auto';
+                    });
+                }
+            } else {
+                // Añadir a neutras
+                try {
+                    const res = await fetch('/api/ligas_neutras', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ liga_nombre: leagueName })
+                    });
+                    if (res.ok) {
+                        neutrasNombres.push(leagueName.toLowerCase());
+
+                        document.querySelectorAll(`.liga-neutral-btn[data-league-name="${safeLeague}"]`).forEach(el => {
+                            el.className = 'liga-neutral-btn ms-1 border rounded px-1 text-white bg-primary';
+                            el.title = "LIGA NEUTRA ACTIVA";
+                            el.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+                            el.style.opacity = '1';
+                            el.style.pointerEvents = 'auto';
+                        });
+                        console.log('Liga añadida a neutras:', leagueName);
+                        // Trigger rescrape
+                        setTimeout(() => triggerLeagueRescrape(leagueName), 100);
+                    }
+                } catch (err) {
+                    console.error('Error añadiendo neutra:', err);
+                    alert('Error al añadir liga neutra');
+                    document.querySelectorAll(`.liga-neutral-btn[data-league-name="${safeLeague}"]`).forEach(el => {
+                        el.style.opacity = '1';
+                        el.style.pointerEvents = 'auto';
+                    });
+                }
+            }
+        }
+
+        // Helper para re-scrapear toda la liga
+        function triggerLeagueRescrape(leagueName) {
+            // Buscar todas las filas visibles que tengan esta liga
+            const rows = document.querySelectorAll('tr[data-match-id]');
+            let matchIds = [];
+            rows.forEach(row => {
+                // Encontrar la celda de liga dentro de la fila
+                // La estructura es td -> span.small... pero data-league-name está en el botón.
+                // Mejor buscamos el botón dentro de la fila
+                const neutralBtn = row.querySelector(`.liga-neutral-btn`);
+                if (neutralBtn) {
+                    const btnLeague = neutralBtn.getAttribute('data-league-name');
+                    if (btnLeague && btnLeague.toLowerCase() === leagueName.toLowerCase()) {
+                        const mid = row.getAttribute('data-match-id');
+                        if (mid) matchIds.push(mid);
+                    }
+                }
+            });
+
+            // Si no encontramos por botón, intentamos lógica alternativa si fuera necesario, 
+            // pero el botón debe existir si acabamos de hacer click en él.
+
+            if (matchIds.length > 0) {
+                if (confirm(`Liga actualizada. Se encontraron ${matchIds.length} partidos visibles de esta liga.\n¿Deseas re-scrapear estos partidos ahora para actualizar los datos con la nueva configuración?`)) {
+                    processBatchRescrape(matchIds);
+                }
+            } else {
+                alert('Liga actualizada. No se encontraron partidos visibles para re-scrapear automáticamente.');
+            }
+        }
+
+        async function processBatchRescrape(matchIds) {
+            const originalCursor = document.body.style.cursor;
+            document.body.style.cursor = 'wait';
+
+            // Feedback visual básico
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:15px;border-radius:5px;z-index:9999;';
+            toast.textContent = `Actualizando ${matchIds.length} partidos...`;
+            document.body.appendChild(toast);
+
+            let successCount = 0;
+
+            // Ejecutar en serie para no saturar
+            for (const mid of matchIds) {
+                try {
+                    // Actualizar texto toast
+                    toast.textContent = `Actualizando ${successCount + 1}/${matchIds.length}...`;
+
+                    const res = await fetch('/api/precacheo_scrape_match', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_id: mid })
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        successCount++;
+                    }
+                } catch (e) {
+                    console.error(`Error scraping ${mid}`, e);
+                }
+            }
+
+            document.body.style.cursor = originalCursor;
+            document.body.removeChild(toast);
+            alert(`Proceso finalizado. ${successCount}/${matchIds.length} partidos actualizados.`);
+
+            // Recargar página o triggerSearch para ver nuevos datos
+            if (typeof triggerSearch === 'function') {
+                triggerSearch();
+            } else {
+                location.reload();
+            }
+        }
+
+        // Función para recargar datos (simplemente recarga la página)
+        function triggerSearch() {
+            location.reload();
+        }
+
+
+        // Actualizar todos los botones de liga con el mismo nombre
+        function updateAllLigaButtons(leagueName, isFavorite) {
+            document.querySelectorAll('.liga-fav-btn').forEach(btn => {
+                const btnLeague = btn.getAttribute('data-league-name') || '';
+                if (btnLeague.toLowerCase() === leagueName.toLowerCase()) {
+                    btn.innerHTML = isFavorite
+                        ? '<i class="fa-solid fa-heart text-danger"></i>'
+                        : '<i class="fa-regular fa-heart text-muted"></i>';
+                }
+            });
+        }
+
+        // Ocultar liga permanentemente (no quiero ver nunca)
+        async function ocultarLiga(leagueName, rowElement) {
+            if (!confirm(`¿Ocultar "${leagueName}" permanentemente?\n\nPuedes restaurarla desde la página "Ligas Favoritas".`)) {
+                return;
+            }
+
+            try {
+                // Usar endpoint por nombre
+                const hideRes = await fetch('/api/ligas_ocultas_nombre', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre: leagueName })
+                });
+
+                if (hideRes.ok) {
+                    // Añadir a ocultas localmente
+                    ocultasNombres.push(leagueName.toLowerCase());
+                    // Quitar de favoritas si estaba
+                    favoritasNombres = favoritasNombres.filter(n => n !== leagueName.toLowerCase());
+
+                    // Ocultar todas las filas con esta liga
+                    document.querySelectorAll(`tr[data-league]`).forEach(row => {
+                        const rowLeague = row.getAttribute('data-league') || '';
+                        if (rowLeague.toLowerCase() === leagueName.toLowerCase() ||
+                            rowLeague.toLowerCase().includes(leagueName.toLowerCase()) ||
+                            leagueName.toLowerCase().includes(rowLeague.toLowerCase())) {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    console.log('Liga ocultada:', leagueName);
+                }
+            } catch (err) {
+                console.error('Error ocultando liga:', err);
+            }
+        }
+
+
+        function showLoading(show, text = 'Cargando...') {
+            document.getElementById('loading-overlay').classList.toggle('d-none', !show);
+            document.getElementById('loading-text').textContent = text;
+        }
+
+        function getSpainParts(date) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Europe/Madrid',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).formatToParts(date);
+            const out = {};
+            for (const p of parts) {
+                if (p.type !== 'literal') out[p.type] = p.value;
+            }
+            return out;
+        }
+
+        function getSpainTimeString(date) {
+            const p = getSpainParts(date);
+            return `${p.hour}:${p.minute}`;
+        }
+
+        function getSpainDateKey(date) {
+            const p = getSpainParts(date);
+            return `${p.year}-${p.month}-${p.day}`;
+        }
+
+        function toScheduleKey(parts) {
+            const y = parseInt(parts.year, 10);
+            const m = parseInt(parts.month, 10);
+            const d = parseInt(parts.day, 10);
+            const h = parseInt(parts.hour, 10);
+            const mi = parseInt(parts.minute, 10);
+            return y * 100000000 + m * 1000000 + d * 10000 + h * 100 + mi;
+        }
+
+        function getNowSpainScheduleKey() {
+            return toScheduleKey(getSpainParts(new Date()));
+        }
+
+        function _normalizeYear(yearRaw) {
+            let y = parseInt(yearRaw, 10);
+            if (isNaN(y)) return null;
+            if (y < 100) y += 2000;
+            return y;
+        }
+
+        function _isValidYMD(year, month, day) {
+            if (!year || !month || !day) return false;
+            const d = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+            return d.getUTCFullYear() === year && (d.getUTCMonth() + 1) === month && d.getUTCDate() === day;
+        }
+
+        function detectPrecacheDateFormatHint(matches) {
+            const rows = Array.isArray(matches) ? matches : [];
+            let mdyOnly = 0;
+            let dmyOnly = 0;
+
+            for (const row of rows) {
+                const dateRaw = (row && (row.match_date || row.date)) ? String(row.match_date || row.date).trim() : '';
+                if (!dateRaw) continue;
+                const m = dateRaw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+                if (!m) continue;
+                const a = parseInt(m[1], 10);
+                const b = parseInt(m[2], 10);
+                if (a > 12 && b <= 12) dmyOnly++;
+                else if (b > 12 && a <= 12) mdyOnly++;
+            }
+
+            if (dmyOnly > mdyOnly) return 'DMY';
+            return 'MDY';
+        }
+
+        function _parseDateCandidates(dateStr, preferredOrder = 'MDY') {
+            if (!dateStr) return [];
+            const raw = String(dateStr).trim();
+            if (!raw) return [];
+
+            const isoMatch = raw.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+            if (isoMatch) {
+                const y = parseInt(isoMatch[1], 10);
+                const mo = parseInt(isoMatch[2], 10);
+                const da = parseInt(isoMatch[3], 10);
+                if (_isValidYMD(y, mo, da)) {
+                    return [{ year: y, month: mo, day: da }];
+                }
+            }
+
+            // Solo confiar en Date.parse para formatos claramente ISO/UTC.
+            if (/[TzZ]|[A-Za-z]/.test(raw)) {
+                const isoDate = new Date(raw);
+                if (!isNaN(isoDate.getTime())) {
+                    const p = getSpainParts(isoDate);
+                    return [{
+                        year: parseInt(p.year, 10),
+                        month: parseInt(p.month, 10),
+                        day: parseInt(p.day, 10)
+                    }];
+                }
+            }
+
+            const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+            if (!m) return [];
+
+            const a = parseInt(m[1], 10);
+            const b = parseInt(m[2], 10);
+            const y = _normalizeYear(m[3]);
+            if (!y) return [];
+
+            const ordered = [];
+            const pushUnique = (month, day) => {
+                if (!_isValidYMD(y, month, day)) return;
+                const exists = ordered.some(c => c.year === y && c.month === month && c.day === day);
+                if (!exists) ordered.push({ year: y, month, day });
+            };
+
+            if (a > 12 && b <= 12) {
+                // Solo válido como dd/mm
+                pushUnique(b, a);
+                return ordered;
+            }
+            if (b > 12 && a <= 12) {
+                // Solo válido como mm/dd
+                pushUnique(a, b);
+                return ordered;
+            }
+
+            const primary = preferredOrder === 'DMY' ? 'DMY' : 'MDY';
+            const secondary = primary === 'MDY' ? 'DMY' : 'MDY';
+            const applyOrder = (order) => {
+                if (order === 'MDY') pushUnique(a, b);
+                else pushUnique(b, a);
+            };
+
+            applyOrder(primary);
+            applyOrder(secondary);
+            return ordered;
+        }
+
+        function _pickBestDateCandidate(candidates, hour, minute) {
+            if (!candidates || candidates.length === 0) return null;
+            const c = candidates[0];
+            const parts = {
+                year: String(c.year),
+                month: String(c.month).padStart(2, '0'),
+                day: String(c.day).padStart(2, '0'),
+                hour: String(hour).padStart(2, '0'),
+                minute: String(minute).padStart(2, '0')
+            };
+            return { ...c, key: toScheduleKey(parts) };
+        }
+
+        function getMatchScheduleParts(match) {
+            if (match && match._schedule_parts) return match._schedule_parts;
+
+            if (match && match.start_time) {
+                const d = new Date(match.start_time);
+                if (!isNaN(d.getTime())) {
+                    const p = getSpainParts(d);
+                    const parsed = {
+                        year: parseInt(p.year, 10),
+                        month: parseInt(p.month, 10),
+                        day: parseInt(p.day, 10),
+                        hour: parseInt(p.hour, 10),
+                        minute: parseInt(p.minute, 10),
+                        key: toScheduleKey(p)
+                    };
+                    if (match) match._schedule_parts = parsed;
+                    return parsed;
+                }
+            }
+
+            const dateSource = (match && (match.match_date || match.date)) ? (match.match_date || match.date) : '';
+            const timeSource = (match && match.time) ? String(match.time) : '';
+            const parsedTime = parseMatchTime(timeSource) || { hours: 0, minutes: 0 };
+            const hint = (match && match._date_format_hint) ? match._date_format_hint : precacheDateFormatHint;
+            const candidates = _parseDateCandidates(dateSource, hint);
+            const picked = _pickBestDateCandidate(candidates, parsedTime.hours, parsedTime.minutes);
+            if (!picked) return null;
+
+            const parsed = {
+                year: picked.year,
+                month: picked.month,
+                day: picked.day,
+                hour: parsedTime.hours,
+                minute: parsedTime.minutes,
+                key: picked.key
+            };
+            if (match) match._schedule_parts = parsed;
+            return parsed;
+        }
+
+        function hasValidResultScore(match) {
+            const scoreRaw = match ? (match.score || match.final_score || '') : '';
+            const score = String(scoreRaw || '').trim();
+            if (!score) return false;
+            if (score.includes('?')) return false;
+            return score.includes(':') || score.includes('-');
+        }
+
+        function formatMatchDateTime(match) {
+            const schedule = getMatchScheduleParts(match);
+            if (!schedule) {
+                const fallback = parseMatchTime(match && match.time ? String(match.time) : '');
+                if (fallback) {
+                    return `${String(fallback.hours).padStart(2, '0')}:${String(fallback.minutes).padStart(2, '0')}`;
+                }
+                const raw = match && match.time ? String(match.time) : '-';
+                return raw.replace(/:+$/, '') || '-';
+            }
+
+            const now = new Date();
+            const todayKey = getSpainDateKey(now);
+            const tomorrowKey = getSpainDateKey(new Date(now.getTime() + 86400000));
+            const matchKey = `${String(schedule.year).padStart(4, '0')}-${String(schedule.month).padStart(2, '0')}-${String(schedule.day).padStart(2, '0')}`;
+            const hh = String(schedule.hour).padStart(2, '0');
+            const mm = String(schedule.minute).padStart(2, '0');
+            const matchTime = `${hh}:${mm}`;
+
+            if (matchKey === todayKey) return matchTime;
+            if (matchKey === tomorrowKey) return `Mañana ${matchTime}`;
+            return `${String(schedule.day).padStart(2, '0')}/${String(schedule.month).padStart(2, '0')} ${matchTime}`;
+        }
+
+        function updateCurrentTimeDisplay() {
+            const now = new Date();
+            document.getElementById('current-time-badge').textContent = `Hora España: ${getSpainTimeString(now)}`;
+        }
+
+        function syncViewModeButtons(mode) {
+            const desktopProximos = document.getElementById('btn-proximos');
+            const desktopPendientes = document.getElementById('btn-pendientes');
+            const mobileProximos = document.getElementById('mobile-btn-proximos');
+            const mobilePendientes = document.getElementById('mobile-btn-pendientes');
+            const copyPrecache = document.getElementById('btn-copy-all-precache');
+
+            if (desktopProximos) desktopProximos.classList.toggle('active', mode === 'proximos');
+            if (desktopPendientes) desktopPendientes.classList.toggle('active', mode === 'pendientes');
+            if (mobileProximos) mobileProximos.classList.toggle('active', mode === 'proximos');
+            if (mobilePendientes) mobilePendientes.classList.toggle('active', mode === 'pendientes');
+            if (copyPrecache) {
+                copyPrecache.classList.remove('d-none');
+                copyPrecache.dataset.viewMode = mode;
+                copyPrecache.title = mode === 'pendientes'
+                    ? 'Copiar los datos completos de todos los resultados pendientes filtrados visibles'
+                    : 'Copiar los datos completos de todos los próximos partidos filtrados visibles';
+            }
+        }
+
+        function setViewMode(mode) {
+            if (APP_PRECACHEO_ONLY && mode !== 'proximos') {
+                mode = 'proximos';
+            }
+            currentViewMode = mode;
+            currentPage = 1;
+            syncViewModeButtons(mode);
+
+            // Recargar tabla
+            triggerSearch();
+        }
+
+        function handleMainHandicapFilterChange() {
+            currentPage = 1;
+            if (pendingHandicapReloadTimer) clearTimeout(pendingHandicapReloadTimer);
+            pendingHandicapReloadTimer = setTimeout(() => {
+                pendingHandicapReloadTimer = null;
+                triggerSearch();
+            }, 120);
+        }
+
+        // Parsear hora del partido (formato HH:MM)
+        function parseMatchTime(timeStr) {
+            if (!timeStr) return null;
+
+            // El formato típico es "HH:MM" como "05:10", "06:00", etc.
+            const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+            if (!match) return null;
+            const hours = parseInt(match[1], 10);
+            const minutes = parseInt(match[2], 10);
+            if (isNaN(hours) || isNaN(minutes)) return null;
+            if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+            return {
+                hours,
+                minutes
+            };
+        }
+
+        // Comparar si el partido es futuro respecto a la hora actual de España
+        function isMatchUpcoming(match) {
+            if (hasValidResultScore(match)) {
+                return false;
+            }
+
+            const schedule = getMatchScheduleParts(match);
+            if (schedule && schedule.key) {
+                const now = new Date();
+                const nowParts = getSpainParts(now);
+                const todayKey = `${nowParts.year}-${nowParts.month}-${nowParts.day}`;
+                const matchKey = `${String(schedule.year).padStart(4, '0')}-${String(schedule.month).padStart(2, '0')}-${String(schedule.day).padStart(2, '0')}`;
+
+                if (matchKey === todayKey) {
+                    // Próximos termina exactamente a la hora de inicio. La espera
+                    // de 30 minutos se aplica solo en Resultados Pendientes.
+                    const nowMinutes = parseInt(nowParts.hour, 10) * 60 + parseInt(nowParts.minute, 10);
+                    const matchMinutes = schedule.hour * 60 + schedule.minute;
+                    return nowMinutes < matchMinutes;
+                }
+
+                return schedule.key > getNowSpainScheduleKey();
+            }
+
+            // Prefer using full ISO start_time if available
+            if (match.start_time) {
+                const startTime = new Date(match.start_time);
+                if (!isNaN(startTime.getTime())) {
+                    return startTime.getTime() > Date.now();
+                }
+            }
+
+            // Fallback to simple time comparison (only works for same-day assumptions)
+            const matchTimeStr = match.time;
+            const matchTime = parseMatchTime(matchTimeStr);
+            if (!matchTime) return false;
+
+            const nowParts = getSpainParts(new Date());
+            const currentMinutes = parseInt(nowParts.hour, 10) * 60 + parseInt(nowParts.minute, 10);
+            const matchMinutes = matchTime.hours * 60 + matchTime.minutes;
+            
+            return currentMinutes < matchMinutes;
+        }
+
+        // Comparar si el partido ya pasó (es candidato a resultado pendiente)
+        function isMatchPast(match) {
+            return !isMatchUpcoming(match);
+        }
+
+        function isWithinPendingWindow(match, maxHours = 48) {
+            const schedule = getMatchScheduleParts(match);
+            if (!schedule) return false;
+            const nowParts = getSpainParts(new Date());
+            const nowClock = Date.UTC(
+                parseInt(nowParts.year, 10), parseInt(nowParts.month, 10) - 1,
+                parseInt(nowParts.day, 10), parseInt(nowParts.hour, 10),
+                parseInt(nowParts.minute, 10)
+            );
+            const matchClock = Date.UTC(
+                schedule.year, schedule.month - 1, schedule.day,
+                schedule.hour, schedule.minute
+            );
+            const ageHours = (nowClock - matchClock) / 3600000;
+            return ageHours >= 0.5 && ageHours <= maxHours;
+        }
+
+        function hasDetailedPrecacheData(row) {
+            if (!row || typeof row !== 'object') return false;
+
+            const hasPrevHome = row.last_home_match && (
+                isValidValue(row.last_home_match.score) ||
+                isValidValue(row.last_home_match.handicap_line_raw)
+            );
+            const hasPrevAway = row.last_away_match && (
+                isValidValue(row.last_away_match.score) ||
+                isValidValue(row.last_away_match.handicap_line_raw)
+            );
+            const hasMarket = row.market_analysis_data && (
+                row.market_analysis_data.stadium ||
+                row.market_analysis_data.general
+            );
+            const hasCol3 = row.h2h_col3 && (
+                row.h2h_col3.status === 'found' ||
+                (isValidValue(row.h2h_col3.goles_home) && isValidValue(row.h2h_col3.goles_away))
+            );
+            const hasIndirect = row.comparativas_indirectas && (
+                row.comparativas_indirectas.left ||
+                row.comparativas_indirectas.right
+            );
+
+            return !!(hasPrevHome || hasPrevAway || hasMarket || hasCol3 || hasIndirect);
+        }
+
+        function mergePrecacheoRow(matchId, responseMatch) {
+            const normalizedId = String((responseMatch && (responseMatch.id || responseMatch.match_id)) || matchId || '');
+            if (!normalizedId) return null;
+
+            const existingRow = precacheoData[normalizedId] || precacheoData[String(matchId)] || {};
+            const merged = {
+                ...existingRow,
+                ...(responseMatch && typeof responseMatch === 'object' ? responseMatch : {})
+            };
+
+            merged.id = normalizedId;
+            merged.match_id = normalizedId;
+            if (!merged.home_team) merged.home_team = merged.home_name || '';
+            if (!merged.away_team) merged.away_team = merged.away_name || '';
+            if (!merged.league) merged.league = merged.league_name || '';
+
+            precacheoData[normalizedId] = merged;
+            if (matchId && String(matchId) !== normalizedId) {
+                delete precacheoData[String(matchId)];
+            }
+            return normalizedId;
+        }
+
+        async function autoScrapeMissingDetails(matchesToShow) {
+            if (!PRECACHEO_AUTO_SCRAPE_ON_GAP || autoScrapeTriggeredOnce) return;
+            if (!Array.isArray(matchesToShow) || matchesToShow.length === 0) return;
+
+            const candidateIds = [];
+            for (const row of matchesToShow) {
+                if (!row || typeof row !== 'object') continue;
+                const rawId = row.id || row.match_id;
+                if (rawId === undefined || rawId === null) continue;
+                const id = String(rawId);
+                if (!id || autoScrapeSeenIds.has(id)) continue;
+
+                const pc = precacheoData[id];
+                if (pc && hasDetailedPrecacheData(pc)) continue;
+
+                autoScrapeSeenIds.add(id);
+                candidateIds.push(id);
+                if (candidateIds.length >= PRECACHEO_AUTO_SCRAPE_BATCH_MAX) break;
+            }
+
+            if (candidateIds.length === 0) return;
+            autoScrapeTriggeredOnce = true;
+            console.log(`[precacheo] auto-scrape warming ${candidateIds.length} matches (concurrency=${PRECACHEO_AUTO_SCRAPE_CONCURRENCY})`);
+
+            let cursor = 0;
+            const workers = Math.max(1, parseInt(PRECACHEO_AUTO_SCRAPE_CONCURRENCY, 10) || 1);
+            const runWorker = async () => {
+                while (cursor < candidateIds.length) {
+                    const idx = cursor++;
+                    const mid = candidateIds[idx];
+                    try {
+                        const res = await fetch('/api/precacheo_scrape', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ match_id: mid })
+                        });
+                        const data = await res.json();
+                        if (!data.error) {
+                            mergePrecacheoRow(mid, data.match);
+                        } else {
+                            console.warn('[precacheo] auto-scrape error for', mid, data.error);
+                        }
+                    } catch (err) {
+                        console.warn('[precacheo] auto-scrape network error for', mid, err);
+                    }
+                }
+            };
+
+            await Promise.all(Array.from({ length: workers }, () => runWorker()));
+            await triggerSearch();
+        }
+
+        async function loadUpcomingMatchesPage() {
+            const params = new URLSearchParams({
+                page: String(currentPage),
+                per_page: String(itemsPerPage)
+            });
+            const handicapValues = msHandicap ? msHandicap.getValues() : [];
+            handicapValues.forEach(value => params.append('handicap', value));
+
+            const response = await fetch(`/api/precacheo_upcoming_list?${params.toString()}`, {
+                cache: 'no-store'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            const rows = Array.isArray(data.matches) ? data.matches : [];
+            precacheDateFormatHint = detectPrecacheDateFormatHint(rows);
+            precacheoData = {};
+            upcomingMatches = [];
+            totalFilteredMatches = rows.map(raw => {
+                const idRaw = raw && (raw.id || raw.match_id);
+                const id = (idRaw !== undefined && idRaw !== null) ? String(idRaw) : '';
+                const odds = raw && raw.main_match_odds && typeof raw.main_match_odds === 'object'
+                    ? raw.main_match_odds
+                    : {};
+                let handicap = raw ? raw.handicap : '';
+                if (handicap === undefined || handicap === null || handicap === '') {
+                    const parsed = parseFloat(odds.ah_linea);
+                    handicap = isNaN(parsed) ? '' : parsed;
+                }
+                const normalized = {
+                    ...(raw || {}),
+                    id,
+                    match_id: id,
+                    home_team: (raw && (raw.home_team || raw.home_name)) || '',
+                    away_team: (raw && (raw.away_team || raw.away_name)) || '',
+                    league: (raw && (raw.league || raw.league_name)) || '',
+                    handicap,
+                    time: (raw && raw.time) || '',
+                    _date_format_hint: precacheDateFormatHint
+                };
+                const schedule = getMatchScheduleParts(normalized);
+                if (schedule) normalized._schedule_parts = schedule;
+                if (id) precacheoData[id] = normalized;
+                return normalized;
+            }).filter(row => row.id);
+            upcomingMatches = totalFilteredMatches;
+            upcomingTotalItems = Math.max(0, parseInt(data.total, 10) || 0);
+            upcomingTotalPages = Math.max(1, parseInt(data.total_pages, 10) || 1);
+            currentPage = Math.max(1, Math.min(parseInt(data.page, 10) || 1, upcomingTotalPages));
+            populateLeagueFilters(totalFilteredMatches);
+            renderTableWithPagination();
+        }
+
+        async function loadPendingResultsPage() {
+            const params = new URLSearchParams({
+                page: String(currentPage),
+                per_page: String(pendingItemsPerPage)
+            });
+            const handicapValues = msHandicap ? msHandicap.getValues() : [];
+            handicapValues.forEach(value => params.append('handicap', value));
+
+            const response = await fetch(`/api/precacheo_pending_list?${params.toString()}`, {
+                cache: 'no-store'
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+
+            const rows = Array.isArray(data.matches) ? data.matches : [];
+            precacheDateFormatHint = detectPrecacheDateFormatHint(rows);
+            precacheoData = {};
+            upcomingMatches = [];
+
+            totalFilteredMatches = rows.map(raw => {
+                const idRaw = raw && (raw.id || raw.match_id);
+                const id = (idRaw !== undefined && idRaw !== null) ? String(idRaw) : '';
+                const odds = raw && raw.main_match_odds && typeof raw.main_match_odds === 'object'
+                    ? raw.main_match_odds
+                    : {};
+                let handicap = raw ? raw.handicap : '';
+                if (handicap === undefined || handicap === null || handicap === '') {
+                    const parsed = parseFloat(odds.ah_linea);
+                    handicap = isNaN(parsed) ? '' : parsed;
+                }
+                const normalized = {
+                    ...(raw || {}),
+                    id,
+                    match_id: id,
+                    home_team: (raw && (raw.home_team || raw.home_name)) || '',
+                    away_team: (raw && (raw.away_team || raw.away_name)) || '',
+                    league: (raw && (raw.league || raw.league_name)) || '',
+                    handicap,
+                    time: (raw && raw.time) || '',
+                    _date_format_hint: precacheDateFormatHint
+                };
+                const schedule = getMatchScheduleParts(normalized);
+                if (schedule) normalized._schedule_parts = schedule;
+                if (id) precacheoData[id] = normalized;
+                return normalized;
+            }).filter(row => row.id);
+
+            pendingTotalItems = Math.max(0, parseInt(data.total, 10) || 0);
+            pendingTotalPages = Math.max(1, parseInt(data.total_pages, 10) || 1);
+            currentPage = Math.max(1, Math.min(parseInt(data.page, 10) || 1, pendingTotalPages));
+            populateLeagueFilters(totalFilteredMatches);
+            renderTableWithPagination();
+        }
+
+        async function triggerSearch() {
+            const loadingText = currentViewMode === 'proximos'
+                ? 'Cargando partidos próximos...'
+                : 'Cargando resultados pendientes...';
+            showLoading(true, loadingText);
+
+            if (currentViewMode === 'pendientes') {
+                try {
+                    await loadPendingResultsPage();
+                } catch (err) {
+                    alert('Error cargando resultados pendientes: ' + err.message);
+                }
+                showLoading(false);
+                return;
+            }
+
+            if (currentViewMode === 'proximos') {
+                try {
+                    await loadUpcomingMatchesPage();
+                } catch (err) {
+                    alert('Error cargando próximos partidos: ' + err.message);
+                }
+                showLoading(false);
+                return;
+            }
+
+            try {
+                // In strict precacheo-only mode, avoid main snapshot APIs completely.
+                if (!APP_PRECACHEO_ONLY) {
+                    // Load upcoming matches from main page.
+                    // If this fails (external provider/network), we continue with precacheo fallback.
+                    try {
+                        const res = await fetch('/api/matches?limit=1000');
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const data = await res.json();
+                        upcomingMatches = (data.matches || []).map(m => {
+                            const normalized = { ...m };
+                            if (normalized.id !== undefined && normalized.id !== null) {
+                                normalized.id = String(normalized.id);
+                            }
+                            if (!normalized.match_id && normalized.id) {
+                                normalized.match_id = normalized.id;
+                            }
+                            return normalized;
+                        });
+                    } catch (matchesErr) {
+                        console.warn('[precacheo] /api/matches failed, using precacheo fallback:', matchesErr);
+                        upcomingMatches = [];
+                    }
+                } else {
+                    upcomingMatches = [];
+                }
+
+                // Load precacheo data
+                let precacheRows = [];
+                try {
+                    const precRes = await fetch('/api/precacheo_list');
+                    if (!precRes.ok) throw new Error(`HTTP ${precRes.status}`);
+                    const precData = await precRes.json();
+                    precacheRows = precData.matches || [];
+                } catch (precErr) {
+                    console.warn('[precacheo] /api/precacheo_list failed:', precErr);
+                }
+                precacheDateFormatHint = detectPrecacheDateFormatHint(precacheRows);
+                precacheoData = {};
+
+                const normalizePrecacheoMatch = (m) => {
+                    const idRaw = m.id || m.match_id;
+                    const id = (idRaw !== undefined && idRaw !== null) ? String(idRaw) : '';
+                    const homeTeam = m.home_team || m.home_name || '';
+                    const awayTeam = m.away_team || m.away_name || '';
+                    const league = m.league || m.league_name || '';
+                    let handicap = m.handicap;
+                    if (handicap === undefined || handicap === null || handicap === '') {
+                        const ahRaw = m.main_match_odds && m.main_match_odds.ah_linea;
+                        const ahParsed = parseFloat(ahRaw);
+                        handicap = isNaN(ahParsed) ? '' : ahParsed;
+                    }
+                    const normalized = {
+                        ...m,
+                        id,
+                        match_id: id || (m.match_id ? String(m.match_id) : ''),
+                        home_team: homeTeam,
+                        away_team: awayTeam,
+                        league,
+                        handicap,
+                        time: m.time || '',
+                        _date_format_hint: precacheDateFormatHint
+                    };
+                    const schedule = getMatchScheduleParts(normalized);
+                    if (schedule) normalized._schedule_parts = schedule;
+                    return normalized;
+                };
+
+                precacheRows.forEach(raw => {
+                    const normalized = normalizePrecacheoMatch(raw);
+                    if (!normalized.match_id) return;
+                    precacheoData[normalized.match_id] = normalized;
+                });
+
+                const precacheMatches = Object.values(precacheoData);
+                const upcomingFromPrecache = precacheMatches.filter(m => isMatchUpcoming(m));
+                const pendingFromPrecache = precacheMatches.filter(m => (
+                    isMatchPast(m) && isWithinPendingWindow(m) && !hasValidResultScore(m)
+                ));
+                const hasPlaceholderRows = precacheRows.some(row => row && row.precache_placeholder);
+
+                // Filtrar por modo de vista PRIMERO
+                let matchesToShow = upcomingMatches;
+
+                if (currentViewMode === 'proximos') {
+                    // Solo partidos con hora > hora actual España
+                    matchesToShow = upcomingMatches.filter(m => {
+                        return isMatchUpcoming(m);
+                    });
+                } else if (currentViewMode === 'pendientes') {
+                    // Unir el feed principal con SQL/Precacheo: el feed de próximos
+                    // deja de incluir muchos partidos apenas comienzan.
+                    const pendingFromMain = upcomingMatches.filter(m => {
+                        if (!isMatchPast(m) || !isWithinPendingWindow(m)) return false;
+
+                        // Verificar si tiene resultado final
+                        const pc = precacheoData[String(m.id || '')];
+                        if (!pc) return true; // No scrapeado = pendiente
+
+                        return !hasValidResultScore(pc); // Pendiente si no tiene score final válido
+                    });
+                    const pendingById = new Map();
+                    [...pendingFromMain, ...pendingFromPrecache].forEach(row => {
+                        const id = String((row && (row.id || row.match_id)) || '');
+                        if (id) pendingById.set(id, row);
+                    });
+                    matchesToShow = [...pendingById.values()];
+                }
+
+                // Fallback: usar precacheo respetando el modo activo
+                if (!matchesToShow || matchesToShow.length === 0) {
+                    if (currentViewMode === 'proximos') {
+                        matchesToShow = upcomingFromPrecache;
+                    } else {
+                        matchesToShow = pendingFromPrecache;
+                    }
+                }
+
+                // En Próximos sí aceptamos un último fallback. En Pendientes no:
+                // mezclaría partidos futuros o ya finalizados en una vista vacía.
+                if (currentViewMode === 'proximos' && (!matchesToShow || matchesToShow.length === 0) && precacheMatches.length > 0) {
+                    matchesToShow = [...precacheMatches];
+                }
+
+                // Enriquecer la lista visible con datos de precacheo cuando existan (sin perder fecha/hora del feed principal).
+                matchesToShow = (matchesToShow || []).map(m => {
+                    if (!m || typeof m !== 'object') return m;
+                    const rawId = m.id || m.match_id;
+                    const matchId = (rawId !== undefined && rawId !== null) ? String(rawId) : '';
+                    if (!matchId) return m;
+
+                    const pc = precacheoData[matchId];
+                    if (!pc) {
+                        return {
+                            ...m,
+                            id: matchId,
+                            match_id: matchId
+                        };
+                    }
+
+                    const merged = {
+                        ...pc,
+                        ...m,
+                        id: matchId,
+                        match_id: matchId,
+                    };
+
+                    if (!merged.home_team) merged.home_team = pc.home_team || pc.home_name || '';
+                    if (!merged.away_team) merged.away_team = pc.away_team || pc.away_name || '';
+                    if (!merged.league) merged.league = pc.league || pc.league_name || '';
+                    if (merged.handicap === undefined || merged.handicap === null || merged.handicap === '') {
+                        const ahRaw = pc.main_match_odds && pc.main_match_odds.ah_linea;
+                        const ahParsed = parseFloat(ahRaw);
+                        merged.handicap = isNaN(ahParsed) ? '' : ahParsed;
+                    }
+                    return merged;
+                });
+
+                // Si la lista actual no tiene filas enriquecidas, preferir filas de precacheo con datos reales.
+                const visibleHasDetails = matchesToShow.some(m => {
+                    const id = String((m && (m.id || m.match_id)) || '');
+                    const pc = id ? precacheoData[id] : null;
+                    return hasDetailedPrecacheData(pc);
+                });
+
+                if (!visibleHasDetails) {
+                    const detailedPrecacheRows = (
+                        currentViewMode === 'proximos' ? upcomingFromPrecache : pendingFromPrecache
+                    ).filter(hasDetailedPrecacheData);
+
+                    if (detailedPrecacheRows.length > 0) {
+                        matchesToShow = detailedPrecacheRows;
+                    } else if (hasPlaceholderRows) {
+                        console.warn('[precacheo] precache rows are placeholders (fallback without full analysis data).');
+                    }
+
+                    // Warm up missing rows in background with constrained batch/concurrency.
+                    void autoScrapeMissingDetails(matchesToShow);
+                }
+
+                // Ordenar por fecha/hora de España (también para fallback precacheo)
+                // Próximos: primero el más cercano. Pendientes: primero el más reciente.
+                const sortAsc = currentViewMode !== 'pendientes';
+                matchesToShow.sort((a, b) => {
+                    const sa = getMatchScheduleParts(a);
+                    const sb = getMatchScheduleParts(b);
+                    const hasA = !!(sa && Number.isFinite(sa.key));
+                    const hasB = !!(sb && Number.isFinite(sb.key));
+
+                    if (hasA !== hasB) return hasA ? -1 : 1;
+                    if (hasA && hasB && sa.key !== sb.key) {
+                        return sortAsc ? (sa.key - sb.key) : (sb.key - sa.key);
+                    }
+                    return String(a.id || '').localeCompare(String(b.id || ''));
+                });
+
+                // NO aplicar filtros adicionales aquí - ahora se hace visualmente con applyFiltersVisually()
+                // Esto preserva las filas de patrones expandidas cuando el usuario filtra
+                // const filteredMatches = applyFilters(matchesToShow);
+
+                // Store globally for pagination (ahora SIN filtros adicionales)
+                totalFilteredMatches = matchesToShow;
+                populateLeagueFilters(totalFilteredMatches);
+                currentPage = 1; // Reset to page 1 on search
+
+                renderTableWithPagination();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+
+            showLoading(false);
+        }
+
+        function renderTableWithPagination() {
+            const paginationMatches = getMatchesForCurrentLeagueFilter();
+            if (currentViewMode === 'pendientes') {
+                renderTable(paginationMatches);
+                renderPaginationControls(pendingTotalItems, pendingItemsPerPage);
+                applyFiltersVisually();
+                return;
+            }
+
+            if (currentViewMode === 'proximos') {
+                renderTable(paginationMatches);
+                renderPaginationControls(upcomingTotalItems, itemsPerPage);
+                applyFiltersVisually();
+                return;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(paginationMatches.length / itemsPerPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = paginationMatches.slice(start, end);
+
+            renderTable(pageItems);
+            renderPaginationControls(paginationMatches.length, itemsPerPage);
+
+            // Aplicar filtros visuales automáticamente (incluye ocultar ligas)
+            applyFiltersVisually();
+
+            // La Clave Universal ya llega calculada en la lista compacta. No se
+            // cargan ni mezclan motores de picks legacy bajo demanda.
+        }
+
+        // ==================== LAZY LOADING DE PICKS ====================
+        let picksLoadingInProgress = false;
+        const picksLoadedMatchIds = new Set();
+
+        function hasRenderableSpecialistPicks(pc) {
+            if (!pc || !Array.isArray(pc.specialist_picks)) return false;
+            const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED', 'CLAVE_DICOTOMICA_UNIVERSAL', 'DEFINITIVE_TRADING_ENGINE', 'MLS_DEDICATED_SYSTEM'];
+            return pc.specialist_picks.some(p => p && supportedAlgorithms.includes(p.algorithm) && (p.type === 'AH' || p.type === 'OU'));
+        }
+
+        function mergeSpecialistPicks(existingPicks, incomingPicks) {
+            const merged = [];
+            const seen = new Set();
+            [...(existingPicks || []), ...(incomingPicks || [])].forEach(p => {
+                if (!p || typeof p !== 'object') return;
+                const key = [
+                    p.algorithm || '',
+                    p.type || '',
+                    p.target || p.pick || '',
+                    p.display_pick_label || ''
+                ].join('|');
+                if (seen.has(key)) return;
+                seen.add(key);
+                merged.push(p);
+            });
+            return merged;
+        }
+
+        async function loadPicksForVisibleMatches() {
+            // Evitar llamadas simultáneas
+            if (picksLoadingInProgress) return;
+
+            // Obtener match_ids de las filas visibles que tienen datos de precacheo
+            const visibleRows = document.querySelectorAll('tr[data-match-id]');
+            const matchIds = [];
+
+            visibleRows.forEach(row => {
+                const matchId = row.getAttribute('data-match-id');
+                // Solo los que ya tienen datos de precacheo
+                if (matchId && precacheoData[matchId] && !picksLoadedMatchIds.has(matchId)) {
+                    if (hasRenderableSpecialistPicks(precacheoData[matchId])) {
+                        picksLoadedMatchIds.add(matchId);
+                        return;
+                    }
+                    matchIds.push(matchId);
+                }
+            });
+
+            if (matchIds.length === 0) return;
+            const batchLimit = Math.max(10, parseInt(PRECACHEO_PICKS_CLIENT_MAX, 10) || 180);
+            const matchIdsToRequest = matchIds.slice(0, batchLimit);
+
+            picksLoadingInProgress = true;
+
+            try {
+                const res = await fetch('/api/precacheo_picks_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchIdsToRequest })
+                });
+
+                const data = await res.json();
+
+                if (data.picks) {
+                    matchIdsToRequest.forEach(matchId => picksLoadedMatchIds.add(String(matchId)));
+                    // Actualizar precacheoData con los picks
+                    for (const [matchId, picks] of Object.entries(data.picks)) {
+                        if (precacheoData[matchId]) {
+                            precacheoData[matchId].specialist_picks = mergeSpecialistPicks(
+                                precacheoData[matchId].specialist_picks,
+                                picks
+                            );
+                        }
+                    }
+
+                    // Sincronizar la pagina actual y refrescar sin disparar otro batch.
+                    totalFilteredMatches = totalFilteredMatches.map(m => {
+                        const rowId = String((m && (m.id || m.match_id)) || '');
+                        if (!rowId || !precacheoData[rowId]) return m;
+                        return {
+                            ...m,
+                            specialist_picks: precacheoData[rowId].specialist_picks
+                        };
+                    });
+                    const start = (currentPage - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    renderTable(totalFilteredMatches.slice(start, end));
+                    applyFiltersVisually();
+                }
+            } catch (err) {
+                console.error('Error loading picks:', err);
+            }
+
+            picksLoadingInProgress = false;
+        }
+
+        function updatePicksInUI(picksObj) {
+            // Actualizar las celdas de picks para cada partido
+            // Ahora usamos el nuevo sistema basado en H2H Col3
+            for (const [matchId, picks] of Object.entries(picksObj)) {
+                const row = document.querySelector(`tr[data-match-id="${matchId}"]`);
+                if (!row) continue;
+
+                const pc = precacheoData[matchId];
+                if (!pc) continue;
+
+                // Obtener datos de H2H Col3 ya almacenados en el dataset de la fila
+                const perfStatus = row.dataset.h2hCol3Performance || 'N/A';
+                const compType = row.dataset.h2hCol3Mirror || '';
+
+                // Calcular cover status y movement desde H2H Col3
+                let coverStatus = '';
+                let movement = '';
+
+                if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
+                    const col3 = pc.h2h_col3;
+                    const main_odds = pc.main_match_odds || {};
+                    const currentAhRaw = parseFloat(main_odds.ah_linea || 0);
+                    const mirrorAhCol3 = parseFloat(col3.handicap);
+
+                    // Calcular cobertura
+                    const mirrorScore = (col3.goles_home !== undefined && col3.goles_away !== undefined)
+                        ? `${col3.goles_home}:${col3.goles_away}` : null;
+
+                    if (mirrorScore && !isNaN(mirrorAhCol3)) {
+                        const [golesHome, golesAway] = mirrorScore.split(':').map(g => parseInt(g));
+                        const col3FavIsHome = mirrorAhCol3 > 0;
+                        let margin = col3FavIsHome ? (golesHome - golesAway) : (golesAway - golesHome);
+                        const ahAbsolute = Math.abs(mirrorAhCol3);
+
+                        if (margin > ahAbsolute) coverStatus = 'CUBIERTO';
+                        else if (margin < ahAbsolute) coverStatus = 'NO_CUBIERTO';
+                        else coverStatus = 'PUSH';
+                    }
+
+                    // Calcular movimiento
+                    if (!isNaN(currentAhRaw) && !isNaN(mirrorAhCol3)) {
+                        const diff = Math.abs(currentAhRaw) - Math.abs(mirrorAhCol3);
+                        if (Math.abs(diff) < 0.01) movement = 'IGUAL';
+                        else if (diff > 0) movement = 'SUBE';
+                        else movement = 'BAJA';
+                    }
+                }
+
+                // Obtener datos de indirectas
+                const indLeftRes = row.dataset.indLocalRes || '';
+                const indRightRes = row.dataset.indVisitanteRes || '';
+
+                // Generar etiqueta de Pick usando la misma lógica del renderTable
+                const generateH2HPickLabel = (perfStatus, compType, coverStatus, movement, indLeftRes, indRightRes) => {
+                    if (perfStatus === 'N/A' || !perfStatus) {
+                        return { label: 'DATOS INSUFICIENTES: Sin datos H2H Col3', color: 'text-muted', bg: '#f8f9fa', border: '#dee2e6' };
+                    }
+
+                    if (compType === 'directa') {
+                        if (perfStatus === 'EMPEORA' && coverStatus === 'NO_CUBIERTO' && movement === 'SUBE') {
+                            return { label: 'EMPEORA: Local no cubre HA + HA sube', color: 'text-danger', bg: '#ffebee', border: '#f44336' };
+                        }
+                        if (perfStatus === 'MEJORA' && coverStatus === 'CUBIERTO' && movement === 'BAJA') {
+                            return { label: 'MEJORA: Local cubre HA + HA baja', color: 'text-success', bg: '#e8f5e9', border: '#4caf50' };
+                        }
+                        if (perfStatus === 'IGUALA' && movement === 'IGUAL') {
+                            return { label: 'IGUALA: HA estable + resultados similares', color: 'text-push', bg: '#e0e0e0', border: '#9e9e9e' };
+                        }
+                        if (perfStatus === 'EMPEORA' && coverStatus === 'NO_CUBIERTO' && indRightRes === 'COVER') {
+                            return { label: 'EMPEORA: Local no cubre HA + Visitante cubre', color: 'text-danger', bg: '#ffebee', border: '#e91e63' };
+                        }
+                        if (perfStatus === 'MEJORA' && coverStatus === 'CUBIERTO' && indRightRes === 'NO_COVER') {
+                            return { label: 'MEJORA: Local cubre HA + Visitante no cubre', color: 'text-success', bg: '#e8f5e9', border: '#2e7d32' };
+                        }
+                        if (perfStatus === 'EMPEORA' && coverStatus === 'NO_CUBIERTO') {
+                            return { label: 'EMPEORA Directa: Local no cubrió HA', color: 'text-danger', bg: '#ffcdd2', border: '#ef5350' };
+                        }
+                        if (perfStatus === 'MEJORA' && coverStatus === 'CUBIERTO') {
+                            return { label: 'MEJORA Directa: Local cubrió HA', color: 'text-success', bg: '#c8e6c9', border: '#66bb6a' };
+                        }
+                        if (perfStatus === 'IGUALA') {
+                            return { label: 'IGUALA Directa: Resultado similar al espejo', color: 'text-push', bg: '#e0e0e0', border: '#9e9e9e' };
+                        }
+                        if (perfStatus === 'MEJORA') {
+                            return { label: 'MEJORA Directa: Favorito supera al espejo', color: 'text-success', bg: '#dcedc8', border: '#8bc34a' };
+                        }
+                        if (perfStatus === 'EMPEORA') {
+                            return { label: 'EMPEORA Directa: Favorito peor que espejo', color: 'text-danger', bg: '#ffcdd2', border: '#e57373' };
+                        }
+                    }
+
+                    if (compType === 'inversa') {
+                        if (perfStatus === 'EMPEORA' && coverStatus === 'NO_CUBIERTO') {
+                            return { label: 'INVERSA EMPEORA: Visitante no cubre HA como local', color: 'text-danger', bg: '#ffcdd2', border: '#d32f2f' };
+                        }
+                        if (perfStatus === 'MEJORA' && coverStatus === 'CUBIERTO') {
+                            return { label: 'INVERSA MEJORA: Visitante cubre HA como local', color: 'text-success', bg: '#c8e6c9', border: '#388e3c' };
+                        }
+                        if (perfStatus === 'EMPEORA') {
+                            return { label: 'INVERSA EMPEORA: Espejo rindió peor de visitante', color: 'text-danger', bg: '#ffcdd2', border: '#ef5350' };
+                        }
+                        if (perfStatus === 'MEJORA') {
+                            return { label: 'INVERSA MEJORA: Espejo rindió mejor de visitante', color: 'text-success', bg: '#c8e6c9', border: '#66bb6a' };
+                        }
+                        if (perfStatus === 'IGUALA') {
+                            return { label: 'INVERSA IGUALA: Resultado similar invertido', color: 'text-push', bg: '#e0e0e0', border: '#9e9e9e' };
+                        }
+                    }
+
+                    let neutralDesc = '';
+                    if (perfStatus && compType) {
+                        neutralDesc = `${perfStatus} ${compType.charAt(0).toUpperCase() + compType.slice(1)}`;
+                        if (coverStatus) neutralDesc += ` | Cover: ${coverStatus === 'CUBIERTO' ? 'Sí' : (coverStatus === 'NO_CUBIERTO' ? 'No' : coverStatus)}`;
+                        if (movement) neutralDesc += ` | Mov: ${movement}`;
+                    } else if (perfStatus) {
+                        neutralDesc = perfStatus;
+                    } else {
+                        neutralDesc = 'Patrón no clasificado';
+                    }
+
+                    return { label: `NEUTRO: ${neutralDesc}`, color: 'text-secondary', bg: '#f5f5f5', border: '#9e9e9e' };
+                };
+
+                const pickResult = generateH2HPickLabel(perfStatus, compType, coverStatus, movement, indLeftRes, indRightRes);
+
+                // --- SUPER SPECIALIST CHECK (HANDICAP 0 MASTER PATTERNS) ---
+                const masterPick = checkSuperSpecialistH0(pc, row);
+                const finalPick = masterPick || pickResult;
+
+                // --- SPECIALIST PICKS (PATTERN_V2 / ANTI_UNDERDOG / LEXINGTON / FAV_PROCESS) ---
+                const m = totalFilteredMatches.find(x => x.id == matchId);
+                const currentAh = m ? getLocalPerspectiveAh(m) : null;
+                const specialistPicksHtml = getSpecialistPicksHtml(pc, currentAh);
+
+                // Actualizar atributos de la fila para permitir filtrado por tipo de pick
+                const scoreResult = (pc && pc.specialist_picks && pc.specialist_picks.length > 0)
+                    ? calculateBettingScore(pc, pc.home_team || pc.home_name, pc.away_team || pc.away_name, currentAh)
+                    : null;
+                const hasAHSpecialist = !!(scoreResult && scoreResult.bestAHPick);
+                const hasOUSpecialist = !!(scoreResult && scoreResult.bestOUPick);
+                const hasH2HPick = perfStatus && perfStatus !== 'N/A';
+
+                row.setAttribute('data-has-pick', (hasH2HPick || hasAHSpecialist || hasOUSpecialist) ? '1' : '0');
+                row.setAttribute('data-has-ah-pick', hasAHSpecialist ? '1' : '0');
+                row.setAttribute('data-has-ou-pick', hasOUSpecialist ? '1' : '0');
+
+                // Actualizar la celda de picks
+                const pickCell = row.querySelector('.pick-cell');
+                if (pickCell) {
+                    pickCell.innerHTML = `
+                        <div class="d-flex flex-column align-items-center gap-1" style="width: 100%; max-width: 180px; margin: 0 auto;">
+                            <div style="background: ${finalPick.bg}; border: 2px solid ${finalPick.border}; border-radius: 8px; padding: 6px 8px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <div class="fw-bold ${finalPick.color} text-center" style="font-size: 0.68rem; line-height: 1.3;">
+                                    ${finalPick.label}
+                                </div>
+                            </div>
+                            ${specialistPicksHtml}
+                        </div>`;
+                }
+            }
+
+            if (quickPickModeEnabled) {
+                applyQuickPickClassificationToRenderedRows(false);
+            }
+        }
+
+        // ==================== MASTER PATTERNS LOGIC (HANDICAP 0) ====================
+        function checkSuperSpecialistH0(pc, row) {
+            if (!pc) return null;
+
+            // 1. Validar Handicap 0
+            const mainOdds = pc.main_match_odds || {};
+            const ahLine = parseFloat(mainOdds.ah_linea);
+            if (isNaN(ahLine) || Math.abs(ahLine) > 0.01) return null; // Solo AH 0
+
+            // 2. Helpers WDL
+            const getWDL = (scoreStr, teamName, homeTeamName, awayTeamName) => {
+                if (!scoreStr || !scoreStr.includes(':')) return 'N/A';
+                const [h, a] = scoreStr.split(':').map(x => parseInt(x));
+                let res = 'D';
+                if (h > a) res = 'HOME_WIN';
+                if (a > h) res = 'AWAY_WIN';
+
+                if (teamName === homeTeamName) {
+                    if (res === 'HOME_WIN') return 'W';
+                    if (res === 'AWAY_WIN') return 'L';
+                    return 'D';
+                }
+                if (teamName === awayTeamName) {
+                    if (res === 'AWAY_WIN') return 'W';
+                    if (res === 'HOME_WIN') return 'L';
+                    return 'D';
+                }
+                return 'N/A';
+            };
+
+            // 3. Extraer Datos Previos
+            const curHome = pc.home_team || pc.home_name;
+            const curAway = pc.away_team || pc.away_name;
+
+            const prevH = getWDL(
+                pc.last_home_match?.score,
+                curHome,
+                pc.last_home_match?.home_team,
+                pc.last_home_match?.away_team
+            );
+
+            const prevA = getWDL(
+                pc.last_away_match?.score,
+                curAway,
+                pc.last_away_match?.home_team,
+                pc.last_away_match?.away_team
+            );
+
+            // 4. Extraer H2H Col3
+            const h2hCol3 = pc.h2h_col3 || {};
+            if (h2hCol3.status !== 'found') return null;
+            if (!h2hCol3.goles_home) return null;
+
+            const h2hHomeName = h2hCol3.h2h_home_team_name;
+            const isDirect = (h2hHomeName === curHome);
+            const locality = isDirect ? 'Directa' : 'Inversa'; // Esperamos 'Inversa' para los patrones
+
+            // Resultado del H2H desde perspectiva del LOCAL ACTUAL
+            const [h3h, h3a] = [parseInt(h2hCol3.goles_home), parseInt(h2hCol3.goles_away)];
+            let h3Res = 'D';
+            if (isDirect) {
+                if (h3h > h3a) h3Res = 'W'; else if (h3h < h3a) h3Res = 'L';
+            } else {
+                if (h3a > h3h) h3Res = 'W'; else if (h3a < h3h) h3Res = 'L'; // Perspectiva visitante anterior (local actual)
+            }
+
+            // 5. Extraer Indirectas (usando dataset para rapidez o pc si hace falta)
+            // El dataset indLocalRes ya trae 'W','D','L' computado en backend o null?
+            // En explorer.html se usaba get_indirect_res en backend.
+            // Asumamos que row.dataset tiene W/L/D si está presente
+            // Si no, recalculamos. 
+            // Para asegurar, re-calculamos si pc tiene comparativas_indirectas
+            let indL = 'N/A';
+            let indR = 'N/A';
+
+            if (pc.comparativas_indirectas) {
+                const left = pc.comparativas_indirectas.left || {};
+                const right = pc.comparativas_indirectas.right || {};
+
+                if (left.match_id && right.match_id) {
+                    indL = getWDL(left.score, curHome, left.home_team, left.away_team);
+                    indR = getWDL(right.score, curAway, right.home_team, right.away_team);
+                }
+            }
+
+            // ==================== EVALUAR PATRONES ====================
+
+            // 🟢 EL GRALE DEL LOCAL (Home Win - 100%)
+            // 1. Previos: Local(D) vs Visitante(W)
+            // 2. H2H Col3: Inversa y W (o D segun master) -> Master Script mostró D,W|Inversa W -> 100%
+            // 3. Indirectas: Local(W/D) vs Visitante(L)
+
+            if (prevH === 'D' && prevA === 'W' && locality === 'Inversa') {
+                if (h3Res === 'W') { // && indL in [W,D] && indR == L
+                    if ((indL === 'W' || indL === 'D') && indR === 'L') {
+                        return {
+                            label: '🟢 EL GRALE DEL LOCAL<br><small>H0 Specialist</small>',
+                            color: 'text-white',
+                            bg: '#1b5e20', // Dark Green
+                            border: '#2e7d32'
+                        };
+                    }
+                }
+            }
+
+            // 🔴 EL GRALE DEL VISITANTE (Away Win - 100%)
+            // 1. Previos: Local(L) vs Visitante(D)
+            // 2. H2H Col3: Inversa y L
+            // 3. Indirectas: Local(L) vs Visitante(L)
+
+            if (prevH === 'L' && (prevA === 'D' || prevA === 'L') && locality === 'Inversa') {
+                if (h3Res === 'L') {
+                    if (indL === 'L' && indR === 'L') {
+                        return {
+                            label: '🔴 EL GRALE DEL VISITANTE<br><small>H0 Specialist</small>',
+                            color: 'text-white',
+                            bg: '#b71c1c', // Dark Red
+                            border: '#d32f2f'
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        function changePage(page) {
+            if (currentViewMode === 'pendientes') {
+                if (page < 1 || page > pendingTotalPages || page === currentPage) return;
+                currentPage = page;
+                triggerSearch();
+                document.querySelector('.table-responsive').scrollTop = 0;
+                return;
+            }
+
+            if (currentViewMode === 'proximos') {
+                if (page < 1 || page > upcomingTotalPages || page === currentPage) return;
+                currentPage = page;
+                triggerSearch();
+                document.querySelector('.table-responsive').scrollTop = 0;
+                return;
+            }
+
+            const totalItems = getMatchesForCurrentLeagueFilter().length;
+            if (page < 1 || page > Math.ceil(totalItems / itemsPerPage)) return;
+            currentPage = page;
+            renderTableWithPagination();
+            // Scroll to top of table
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function renderPaginationControls(totalItems = totalFilteredMatches.length, pageSize = itemsPerPage) {
+            const nav = document.getElementById('pagination-nav');
+            const lista = document.getElementById('pagination-lista');
+            const topNav = document.getElementById('pagination-nav-top');
+            const topLista = document.getElementById('pagination-lista-top');
+            const totalPages = Math.ceil(totalItems / pageSize);
+
+            if (totalPages <= 1) {
+                nav.classList.add('d-none');
+                if (topNav) topNav.classList.add('d-none');
+                return;
+            }
+
+            nav.classList.remove('d-none');
+            if (topNav) topNav.classList.remove('d-none');
+            lista.innerHTML = '';
+
+            // Previous
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Anterior</a>`;
+            lista.appendChild(prevLi);
+
+            // Pages
+            // Simple logic: Show all if few, or range if many? 
+            // Let's show: 1 ... current-1 current current+1 ... last
+            // Or just simplified: Prev [Page X of Y] Next
+
+            // "es decir de 200 i si se supera que pueda navegar por paginas"
+            // Let's do simple Prev, Current, Next for now to avoid complexity with many pages
+
+            const infoLi = document.createElement('li');
+            infoLi.className = 'page-item disabled';
+            infoLi.innerHTML = `<span class="page-link">Página ${currentPage} de ${totalPages} (${totalItems} partidos)</span>`;
+            lista.appendChild(infoLi);
+
+            // Next
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Siguiente</a>`;
+            lista.appendChild(nextLi);
+            if (topLista) topLista.innerHTML = lista.innerHTML;
+        }
+
+        // ==================== SISTEMA DE TRIANGULACIÓN V3.0 ====================
+        function calculateTriangulacion(pc, home_name, away_name, current_ah) {
+            // Resultado por defecto
+            const noData = {
+                caso: null,
+                diagnostico: null,
+                senal: null,
+                prioridad: 'N/A',
+                recomendacion_ah: null,
+                explicacion: null
+            };
+
+            if (!pc) return noData;
+
+            // Obtener datos de H2H Col3
+            const h2hCol3 = pc.h2h_col3 || {};
+            if (!h2hCol3 || h2hCol3.status !== 'found') return noData;
+
+            // Obtener partidos previos
+            const prevHome = pc.last_home_match;
+            const prevAway = pc.last_away_match;
+            if (!prevHome || !prevAway) return noData;
+
+            // Parsear scores
+            const parseScore = (s) => (s && s.includes(':')) ? s.split(':').map(n => parseInt(n) || 0) : [null, null];
+
+            // Identificar BOSS/BOT del H2H Col3
+            const [col3Home, col3Away] = parseScore(h2hCol3.goles_home !== undefined ? `${h2hCol3.goles_home}:${h2hCol3.goles_away}` : '');
+
+            if (col3Home === null || col3Away === null) return noData;
+
+            let bossName, botName, tipoH2H;
+            const col3HomeName = h2hCol3.h2h_home_team_name || '';
+            const col3AwayName = h2hCol3.h2h_away_team_name || '';
+
+            if (col3Home > col3Away) {
+                bossName = col3HomeName;
+                botName = col3AwayName;
+                tipoH2H = 'clara';
+            } else if (col3Away > col3Home) {
+                bossName = col3AwayName;
+                botName = col3HomeName;
+                tipoH2H = 'clara';
+            } else {
+                tipoH2H = 'empate';
+                // En empate, usar caso INVERSA
+                return {
+                    caso: 11,
+                    diagnostico: 'BLOQUEO DEFENSIVO',
+                    senal: '🧊',
+                    prioridad: 'MEDIA',
+                    recomendacion_ah: 'UNDER 2.5',
+                    explicacion: 'Empate en H2H Col3 sugiere partido cerrado'
+                };
+            }
+
+            // Determinar favorito/underdog actual
+            const ahNum = parseFloat(current_ah) || 0;
+            let favActual, dogActual;
+            if (ahNum > 0) {
+                favActual = home_name;
+                dogActual = away_name;
+            } else if (ahNum < 0) {
+                favActual = away_name;
+                dogActual = home_name;
+            } else {
+                favActual = home_name;
+                dogActual = away_name;
+            }
+
+            // Obtener datos del partido previo de cada equipo
+            const favPrevData = (favActual === home_name) ? prevHome : prevAway;
+            const dogPrevData = (dogActual === away_name) ? prevAway : prevHome;
+
+            // Identificar rival de cada uno
+            const favRival = (favActual === home_name)
+                ? (prevHome.away_team || prevHome.home_team)
+                : (prevAway.home_team || prevAway.away_team);
+            const dogRival = (dogActual === away_name)
+                ? (prevAway.home_team || prevAway.away_team)
+                : (prevHome.away_team || prevHome.home_team);
+
+            // Determinar si jugaron contra BOSS o BOT
+            const normalizar = (s) => (s || '').toLowerCase().trim();
+            const favVsBoss = normalizar(favRival).includes(normalizar(bossName)) || normalizar(bossName).includes(normalizar(favRival));
+            const favVsBot = normalizar(favRival).includes(normalizar(botName)) || normalizar(botName).includes(normalizar(favRival));
+            const dogVsBoss = normalizar(dogRival).includes(normalizar(bossName)) || normalizar(bossName).includes(normalizar(dogRival));
+            const dogVsBot = normalizar(dogRival).includes(normalizar(botName)) || normalizar(botName).includes(normalizar(dogRival));
+
+            // Verificar cobertura AH
+            const checkCover = (matchData, teamName, isHomeTeam) => {
+                if (!matchData || !matchData.score) return null;
+                const [h, a] = parseScore(matchData.score);
+                if (h === null) return null;
+
+                const ahLine = parseFloat(matchData.handicap_line_raw) || 0;
+
+                // Determinar margen desde perspectiva del equipo
+                let margin;
+                if (isHomeTeam) {
+                    margin = h - a;
+                } else {
+                    margin = a - h;
+                }
+
+                // Comparar con línea
+                const absAh = Math.abs(ahLine);
+                return margin > absAh;
+            };
+
+            const favIsHome = (favActual === home_name);
+            const dogIsHome = (dogActual === home_name);
+
+            // En prev_home, el equipo analizado era home. En prev_away, era away.
+            const favCover = (favActual === home_name)
+                ? checkCover(prevHome, favActual, true)  // Fav era home en prevHome
+                : checkCover(prevAway, favActual, false); // Fav era away en prevAway
+
+            const dogCover = (dogActual === away_name)
+                ? checkCover(prevAway, dogActual, false) // Dog era away en prevAway
+                : checkCover(prevHome, dogActual, true);  // Dog era home en prevHome
+
+            if (favCover === null || dogCover === null) return noData;
+
+            // Determinar si es cruce simétrico o asimétrico
+            const mismoRival = normalizar(favRival) === normalizar(dogRival);
+
+            if (mismoRival) {
+                // TABLA 2: Cruce Simétrico
+                const vsType = favVsBoss ? 'BOSS' : (favVsBot ? 'BOT' : 'UNKNOWN');
+
+                if (vsType === 'BOSS') {
+                    if (favCover && !dogCover) {
+                        return { caso: 7, diagnostico: 'JERARQUÍA CLARA', senal: '✅', prioridad: 'ALTA', recomendacion_ah: 'Favorito -0.75', explicacion: 'Ambos vs BOSS: Fav cubrió, Dog falló' };
+                    } else if (!favCover && dogCover) {
+                        return { caso: 8, diagnostico: 'FALSO FAVORITO', senal: '💎', prioridad: 'MAXIMA', recomendacion_ah: 'Gana Dog (+AH)', explicacion: 'Ambos vs BOSS: Fav falló, Dog cubrió - ¡VALOR DOG!' };
+                    }
+                } else if (vsType === 'BOT') {
+                    if (favCover && !dogCover) {
+                        return { caso: 9, diagnostico: 'CUMPLIMIENTO', senal: '🚀', prioridad: 'MAXIMA', recomendacion_ah: 'Favorito -1.0', explicacion: 'Ambos vs BOT: Fav cubrió, Dog falló' };
+                    } else if (!favCover && dogCover) {
+                        return { caso: 10, diagnostico: 'INCOMPETENCIA', senal: '💣', prioridad: 'MAXIMA', recomendacion_ah: 'Lay Favorito', explicacion: 'Ambos vs BOT: Fav falló, Dog cubrió - ¡TRAMPA!' };
+                    }
+                }
+            } else {
+                // TABLA 1: Cruce Asimétrico
+                if (favVsBoss && dogVsBot) {
+                    // Favorito jugó vs BOSS, Underdog jugó vs BOT
+                    if (favCover && !dogCover) {
+                        return { caso: 1, diagnostico: 'LA APLANADORA', senal: '🚀', prioridad: 'MAXIMA', recomendacion_ah: 'Favorito -1.5', explicacion: 'Fav cubrió vs BOSS + Dog falló vs BOT = MÁXIMO VALOR' };
+                    } else if (!favCover && !dogCover) {
+                        return { caso: 2, diagnostico: 'VALOR OCULTO', senal: '🛡️', prioridad: 'ALTA', recomendacion_ah: 'Favorito -0.5', explicacion: 'Ambos fallaron pero Fav lo hizo vs rival más fuerte' };
+                    }
+                } else if (favVsBot && dogVsBoss) {
+                    // Favorito jugó vs BOT, Underdog jugó vs BOSS
+                    if (!favCover && dogCover) {
+                        return { caso: 3, diagnostico: 'TRAMPA MORTAL', senal: '💣', prioridad: 'MAXIMA', recomendacion_ah: 'Lay Favorito', explicacion: 'Fav falló vs BOT + Dog cubrió vs BOSS = ¡TRAMPA!' };
+                    } else if (favCover && !dogCover) {
+                        return { caso: 4, diagnostico: 'LÓGICA ESTÁNDAR', senal: '⚖️', prioridad: 'MEDIA', recomendacion_ah: 'Pass/Fav -0.25', explicacion: 'Resultado esperado, poco valor' };
+                    }
+                }
+
+                // Casos adicionales
+                if (favCover && dogCover) {
+                    return { caso: 5, diagnostico: 'CHOQUE DE TRENES', senal: '✅', prioridad: 'MEDIA', recomendacion_ah: 'Favorito Win', explicacion: 'Ambos cubrieron, se espera partido competitivo' };
+                } else if (!favCover && !dogCover) {
+                    return { caso: 6, diagnostico: 'CHOQUE DE COJOS', senal: '🗑️', prioridad: 'SKIP', recomendacion_ah: 'SKIP', explicacion: 'Ambos fallaron, evitar este partido' };
+                }
+            }
+
+            return noData;
+        }
+        // ==================== FIN TRIANGULACIÓN ====================
+
+        function calculateBettingScore(pc, home_name, away_name, ah_value) {
+            if (!pc) return { pick: null, display: '-', reason: '', confidence: 'low' };
+
+            // ==================== FEATURE EXTRACTION ====================
+            const safeInt = (v) => parseInt(v) || 0;
+            const parseScore = (s) => (s && s.includes(':')) ? s.split(':').map(safeInt) : [null, null];
+
+            // ==================== NEW HELPERS FOR STATS & MOV ====================
+            const getStatsValue = (stats, teamName, matchHomeTeam) => {
+                let sot = 0, da = 0;
+                if (!stats || !stats.length) return [0, 0];
+                const isHomeInPrev = teamName === matchHomeTeam;
+                stats.forEach(row => {
+                    const lbl = row.label || '';
+                    let val = 0;
+                    try {
+                        val = isHomeInPrev ? parseInt(row.home || 0) : parseInt(row.away || 0);
+                    } catch (e) { }
+                    if (lbl.toLowerCase().includes('tiros a puerta')) sot = val;
+                    if (lbl.toLowerCase().includes('ataques peligrosos')) da = val;
+                });
+                return [sot, da];
+            };
+
+            const getMovDir = (movStr) => {
+                if (!movStr || !movStr.includes('->')) return 'NONE';
+                try {
+                    const parts = movStr.replace(/\s/g, '').split('->');
+                    const s = parseFloat(parts[0]);
+                    const e = parseFloat(parts[1]);
+                    if (e > s) return 'UP';
+                    if (e < s) return 'DOWN';
+                    return 'SAME';
+                } catch (e) { return 'NONE'; }
+            };
+
+            const isFresh = (dateStr) => {
+                if (!dateStr) return false;
+                try {
+                    const d = new Date(dateStr);
+                    const now = new Date();
+                    const diffTime = Math.abs(now - d);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return (diffDays / 30) <= 6;
+                } catch (e) { return false; }
+            };
+
+            // Stats Parsing
+            const phData = pc.last_home_match || {};
+            const [phSOT, phDA] = getStatsValue(phData.stats_rows, pc.home_name, phData.home_team);
+
+            const paData = pc.last_away_match || {};
+            const [paSOT, paDA] = getStatsValue(paData.stats_rows, pc.away_name, paData.home_team);
+
+            const datosFrescos = isFresh(phData.date || phData.fecha) && isFresh(paData.date || paData.fecha);
+
+            // Indirect Left Stats (Home vs Rival)
+            const ilData = (pc.comparativas_indirectas || {}).left || {};
+            const [ilHomeSOT, ilHomeDA] = getStatsValue(ilData.stats_rows, pc.home_name, ilData.home_team);
+            const ilRivalName = (ilData.home_team === pc.home_name) ? ilData.away_team : ilData.home_team;
+            const [ilRivalSOT, ilRivalDA] = getStatsValue(ilData.stats_rows, ilRivalName, ilData.home_team);
+
+            // Indirect Right Stats (Away vs Rival)
+            const irData = (pc.comparativas_indirectas || {}).right || {};
+            const [irAwaySOT, irAwayDA] = getStatsValue(irData.stats_rows, pc.away_name, irData.home_team);
+            const irRivalName = (irData.home_team === pc.away_name) ? irData.away_team : irData.home_team;
+            const [irRivalSOT, irRivalDA] = getStatsValue(irData.stats_rows, irRivalName, irData.home_team);
+
+            // H2H Col3 Stats
+            const h2hData = pc.h2h_col3 || {};
+            const [h2hHomeSOT, h2hHomeDA] = getStatsValue(h2hData.stats_rows, pc.home_name, h2hData.h2h_home_team_name);
+            const [h2hAwaySOT, h2hAwayDA] = getStatsValue(h2hData.stats_rows, pc.away_name, h2hData.h2h_home_team_name);
+
+            // Movement Parsing
+            const movStadium = getMovDir(((pc.market_analysis_data || {}).stadium || {}).movement);
+            const movGeneral = getMovDir(((pc.market_analysis_data || {}).general || {}).movement);
+            // ==================== END NEW HELPERS ====================
+
+            const homeRank = safeInt((pc.home_standings || {}).ranking) || 99;
+            const awayRank = safeInt((pc.away_standings || {}).ranking) || 99;
+            const rankDiff = homeRank - awayRank;
+
+            const phScore = parseScore((pc.last_home_match || {}).score);
+            const prevHomeScore = phScore;
+            const prevHomeGoals = (phScore[0] !== null) ? phScore[0] + phScore[1] : 0;
+            const localGanoPrev = phScore[0] > phScore[1];
+            const localPerdioPrev = phScore[0] < phScore[1];
+            const phGoleo = prevHomeGoals >= 4;
+            const phPorCero = phScore[1] === 0;
+            const phEncajo = phScore[1] >= 2;
+            const phEmpato = phScore[0] === phScore[1] && phScore[0] !== null;
+
+            const paScore = parseScore((pc.last_away_match || {}).score);
+            const prevAwayScore = paScore;
+            const prevAwayGoals = (paScore[0] !== null) ? paScore[0] + paScore[1] : 0;
+            const visitaGanoPrev = paScore[1] > paScore[0];
+            const visitaPerdioPrev = paScore[1] < paScore[0];
+            const paGoleo = prevAwayGoals >= 4;
+            const paPorCero = paScore[0] === 0;
+            const paEncajo = paScore[0] >= 2;
+            const tienePrevAway = paScore[0] !== null;
+            const paEmpato = paScore[0] === paScore[1] && paScore[0] !== null;
+
+            const momentumLocal = localGanoPrev && visitaPerdioPrev;
+            const momentumVisita = visitaGanoPrev && localPerdioPrev;
+            const datosCompletos = phScore[0] !== null && paScore[0] !== null;
+
+            const indLeft = (pc.comparativas_indirectas || {}).left || {};
+            const indRight = (pc.comparativas_indirectas || {}).right || {};
+            const indLeftScoreU = parseScore(indLeft.score);
+            const indRightScoreU = parseScore(indRight.score);
+            const indLeftAH = parseFloat(indLeft.ah_line) || 0;
+            const indRightAH = parseFloat(indRight.ah_line) || 0;
+            const indLeftGoals = (indLeftScoreU[0] !== null) ? indLeftScoreU[0] + indLeftScoreU[1] : 0;
+            const indRightGoals = (indRightScoreU[0] !== null) ? indRightScoreU[0] + indRightScoreU[1] : 0;
+
+            const localGoalsInd = indLeftScoreU[0] || 0;
+            const rivalGoalsIndL = indLeftScoreU[1] || 0;
+            const tieneIndLeftU = indLeftScoreU[0] !== null;
+            const tieneIndRightU = indRightScoreU[0] !== null;
+
+            // Logic from mega_trainer
+            const localGoleoRivalVisita = (indLeftScoreU[0] >= 3) || ((indLeftScoreU[0] - indLeftScoreU[1]) >= 2);
+
+            const visitaGoalsInd = indRightScoreU[1] || 0;
+            const rivalGoalsIndR = indRightScoreU[0] || 0;
+            const irVisitaGano = visitaGoalsInd > rivalGoalsIndR;
+            const irVisitaGoleo = (visitaGoalsInd >= 3) || ((visitaGoalsInd - rivalGoalsIndR) >= 2);
+            const irVisitaPerdio = visitaGoalsInd < rivalGoalsIndR;
+            const ilLocalPerdio = indLeftScoreU[0] < indLeftScoreU[1];
+            const indAlineadasVisita = irVisitaGoleo && ilLocalPerdio;
+            const indAlineadasLocal = localGoleoRivalVisita && irVisitaPerdio;
+            const irOver = indRightGoals >= 3;
+            const irUnder = indRightGoals <= 2;
+            const ilOver = indLeftGoals >= 3;
+            const ilUnder = indLeftGoals <= 2;
+            const indAmbasUnder = ilUnder && irUnder;
+            const irTiene = indRightScoreU[0] !== null;
+            const irAmbos = indRightScoreU[0] > 0 && indRightScoreU[1] > 0;
+            const ilAmbos = indLeftScoreU[0] > 0 && indLeftScoreU[1] > 0;
+            const ambosGolearon = phGoleo && paGoleo;
+
+            // H2H Col3
+            const tieneH2HCol3 = !!(pc.h2h_col3 && pc.h2h_col3.score);
+            const h2hCol3Score = ((pc.h2h_col3 || {}).score || '').split(':');
+            const h2hCol3GoalsCalc = safeInt(h2hCol3Score[0]) + safeInt(h2hCol3Score[1]);
+            const h2hCol3GanoLocal = parseInt(h2hCol3Score[0] || 0) > parseInt(h2hCol3Score[1] || 0);
+            const h2hCol3GanoVisita = parseInt(h2hCol3Score[0] || 0) < parseInt(h2hCol3Score[1] || 0);
+            const h2hCol3Empate = parseInt(h2hCol3Score[0] || 0) === parseInt(h2hCol3Score[1] || 0);
+            const h2hCol3Goleo = h2hCol3GoalsCalc >= 4;
+            const h2hCol3PorCero = (parseInt(h2hCol3Score[0] || 0) === 0) || (parseInt(h2hCol3Score[1] || 0) === 0);
+            const h2hCol3Ambos = parseInt(h2hCol3Score[0] || 0) > 0 && parseInt(h2hCol3Score[1] || 0) > 0;
+
+            // Missing Variables Fix
+            const visitaPerdioContraRivalLocal = irVisitaPerdio;
+            const prevHomeLow = prevHomeGoals <= 2;
+            const prevAwayLow = prevAwayGoals <= 2;
+
+            const h2hAh = parseFloat((pc.h2h_col3 || {}).ah_line || 0);
+            const currentAhVal = parseFloat(ah_value);
+            const handicapRepetidoExacto = Math.abs(h2hAh - currentAhVal) < 0.01;
+            const handicapRepetidoCerca = Math.abs(h2hAh - currentAhVal) <= 0.25;
+
+            // O/U Feature additions for matching
+            const ou_value = pc.main_match_odds ? parseFloat(pc.main_match_odds.goals_linea) : 2.5;
+            const ou_normal = Math.abs(ou_value - 2.5) < 0.3;
+
+            let pick = null;
+            let probability = 0;
+            let confidence = 'low';
+            let reason = '';
+            let ruleUsed = '';
+
+            let pickOU = null;
+            let probOU = 0;
+            let reasonOU = '';
+            let ruleUsedOU = '';
+
+            // ==================== ML PATTERNS START ====================
+
+            // ==================== PATRONES ML ANTIGUOS ELIMINADOS ====================
+            // Los patrones ML1-ML16 hardcodeados fueron eliminados.
+            // Ahora solo se usan patrones v2 del backend (specialist_picks).
+            // Ver sección "INCLUIR PATRONES v2 DEL BACKEND" más abajo.
+
+            // ==================== ML PATTERNS END ====================
+
+
+
+
+            // (Los patrones ML2-ML16 fueron eliminados - ahora solo se usan patrones v2 del backend)
+
+
+
+
+
+
+
+
+            // ==================== PATRONES O/U APRENDIDOS (34 patrones) ====================
+            // === FIN PATRONES ML ===
+            // ==================== ML PATTERNS END ====================
+
+            const result = {
+                pick,
+                probability,
+                display: pick ? (pick === 'LOCAL' ? 'L' : (pick === 'VISITA' ? 'V' : 'L')) : '-', // Fallback to L if something obscure
+                reason,
+                ruleUsed,
+                // ROI REAL ESTIMADO (Cuota 1.90)
+                // 66% WinRate * 1.90 = 1.254 => +25.4% ROI
+                roi: Math.round(((probability / 100) * 1.90 - 1) * 100),
+                pickOU,
+                probOU,
+                reasonOU,
+                ruleUsedOU,
+                roiOU: Math.round(((probOU / 100) * 1.90 - 1) * 100)
+            };
+
+            // INCLUIR PATRONES v2 DEL BACKEND, ANTI_UNDERDOG, LEXINGTON Y FAV_PROCESS
+            if (pc.specialist_picks && pc.specialist_picks.length > 0) {
+                // Solo procesar si tiene historial (prev home y prev away)
+                const hasHistory = pc.last_home_match && pc.last_home_match.score &&
+                    pc.last_away_match && pc.last_away_match.score;
+
+                if (hasHistory) {
+                    // Separar por tipo: AH y OU
+                    const supportedAlgorithms = ['PATTERN_V2', 'ANTI_UNDERDOG', 'LEXINGTON', 'FAV_PROCESS', 'LOCAL_RERATE', 'HIGH_FAV_RERATE', 'DOG_H2H_KILLER', 'COL3_INDIRECT', 'Q025_AWAY_SYSTEM', 'HOUSEMIND_OU', 'UNIVERSAL_MARKET_V3_AUDITED', 'CLAVE_DICOTOMICA_UNIVERSAL', 'DEFINITIVE_TRADING_ENGINE', 'MLS_DEDICATED_SYSTEM'];
+                    const ahPicks = pc.specialist_picks.filter(p => supportedAlgorithms.includes(p.algorithm) && p.type === 'AH');
+                    const ouPicks = pc.specialist_picks.filter(p => supportedAlgorithms.includes(p.algorithm) && p.type === 'OU');
+
+                    // Obtener el mejor de cada tipo (mayor ROI)
+                    const bestAH = ahPicks.sort((a, b) => (b.roi || 0) - (a.roi || 0))[0];
+                    const houseMindOU = ouPicks.find(p => p.algorithm === 'HOUSEMIND_OU');
+                    const bestOU = houseMindOU || ouPicks.sort((a, b) => (b.roi || 0) - (a.roi || 0))[0];
+
+                    // Normalizar picks
+                    const normalizePick = (p) => {
+                        if (!p) return null;
+                        const pickType = (p.pick || '').toLowerCase();
+                        let normalizedPick = p.pick;
+                        let pickLabel = p.display_pick_label || p.pick;
+
+                        if (p.type === 'AH') {
+                            if (pickType.includes('home') || pickType.includes('local')) {
+                                normalizedPick = 'LOCAL';
+                                pickLabel = p.display_pick_label || 'LOCAL';
+                            } else if (pickType.includes('away') || pickType.includes('visita') || pickType.includes('visitante')) {
+                                normalizedPick = 'VISITA';
+                                pickLabel = p.display_pick_label || 'VISITA';
+                            }
+                        } else if (p.type === 'OU') {
+                            if (pickType.includes('over')) {
+                                normalizedPick = 'OVER';
+                                pickLabel = p.display_pick_label || 'OVER';
+                            } else if (pickType.includes('under')) {
+                                normalizedPick = 'UNDER';
+                                pickLabel = p.display_pick_label || 'UNDER';
+                            }
+                        }
+
+                        return {
+                            ...p,
+                            normalizedPick,
+                            pickLabel,
+                            roiPercent: Math.round((p.roi || 0) * 100),
+                            accPercent: Math.round((p.accuracy || 0) * 100)
+                        };
+                    };
+
+                    result.bestAHPick = normalizePick(bestAH);
+                    result.bestOUPick = normalizePick(bestOU);
+                }
+            }
+
+
+            return result;
+        }
+
+
+        // Genera el HTML para los picks especialistas asociados a un partido
+        function getSpecialistPicksHtml(pc, currentAh) {
+            try {
+                if (!pc || !pc.specialist_picks || pc.specialist_picks.length === 0) return '';
+                
+                const scoreResult = calculateBettingScore(pc, pc.home_team || pc.home_name, pc.away_team || pc.away_name, currentAh);
+                if (!scoreResult) return '';
+                
+                let html = '';
+                
+                if (scoreResult.bestAHPick) {
+                    const sp = scoreResult.bestAHPick;
+                    let algLabel = 'PATRÓN AH';
+                    let badgeBg = 'linear-gradient(135deg, #1565c0, #0d47a1)';
+                    let badgeBorder = '#64b5f6';
+
+                    if (sp.algorithm === 'ANTI_UNDERDOG') {
+                        algLabel = 'GANADORES';
+                        badgeBg = 'linear-gradient(135deg, #2e7d32, #1b5e20)';
+                        badgeBorder = '#81c784';
+                    } else if (sp.algorithm === 'LEXINGTON') {
+                        algLabel = 'LEXINGTON';
+                        badgeBg = 'linear-gradient(135deg, #b91c1c, #7f1d1d)';
+                        badgeBorder = '#fca5a5';
+                    } else if (sp.algorithm === 'FAV_PROCESS') {
+                        algLabel = 'FAV PROCESO';
+                        badgeBg = 'linear-gradient(135deg, #047857, #064e3b)';
+                        badgeBorder = '#6ee7b7';
+                    } else if (sp.algorithm === 'LOCAL_RERATE') {
+                        algLabel = 'RE-RATE LOCAL';
+                        badgeBg = 'linear-gradient(135deg, #7c2d12, #c2410c)';
+                        badgeBorder = '#fdba74';
+                    } else if (sp.algorithm === 'HIGH_FAV_RERATE') {
+                        algLabel = 'FAV MARTILLO';
+                        badgeBg = 'linear-gradient(135deg, #991b1b, #ea580c)';
+                        badgeBorder = '#fed7aa';
+                    } else if (sp.algorithm === 'DOG_H2H_KILLER') {
+                        algLabel = 'DOG H2H';
+                        badgeBg = 'linear-gradient(135deg, #312e81, #7c3aed)';
+                        badgeBorder = '#c4b5fd';
+                    } else if (sp.algorithm === 'COL3_INDIRECT') {
+                        algLabel = 'COL3 ROMBO';
+                        badgeBg = 'linear-gradient(135deg, #0f766e, #155e75)';
+                        badgeBorder = '#99f6e4';
+                    } else if (sp.algorithm === 'Q025_AWAY_SYSTEM') {
+                        algLabel = 'Q025 -0.25';
+                        badgeBg = 'linear-gradient(135deg, #0f172a, #2563eb)';
+                        badgeBorder = '#93c5fd';
+                    } else if (sp.algorithm === 'UNIVERSAL_MARKET_V3_AUDITED') {
+                        algLabel = 'UNIVERSAL V3 AUDITADO';
+                        badgeBg = 'linear-gradient(135deg, #4338ca, #0891b2)';
+                        badgeBorder = '#a5f3fc';
+                    }
+                    html += `
+                        <div class="mt-1 text-center specialist-pick-badge" 
+                             style="background: ${badgeBg}; border: 1px solid ${badgeBorder}; border-radius: 6px; padding: 4px 6px; width: 100%; color: white; cursor: help; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"
+                             title="${sp.name || ''}\n${sp.explanation || ''}">
+                            <div style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; line-height: 1.1;">
+                                ${algLabel}
+                            </div>
+                            <div style="font-size: 0.72rem; font-weight: 800; line-height: 1.2;">
+                                ${sp.pickLabel} (ROI: ${sp.roiPercent}%)
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (scoreResult.bestOUPick) {
+                    const sp = scoreResult.bestOUPick;
+                    let ouAlgLabel = 'PATRÓN O/U';
+                    if (sp.algorithm === 'HOUSEMIND_OU') ouAlgLabel = 'HOUSEMIND O/U';
+                    else if (sp.algorithm === 'LOCAL_RERATE') ouAlgLabel = 'OVER RE-RATE';
+                    else if (sp.algorithm === 'HIGH_FAV_RERATE') ouAlgLabel = 'OVER MARTILLO';
+                    else if (sp.algorithm === 'DOG_H2H_KILLER') ouAlgLabel = 'UNDER H2H';
+                    else if (sp.algorithm === 'COL3_INDIRECT') ouAlgLabel = 'COL3 GOL';
+                    else if (sp.algorithm === 'Q025_AWAY_SYSTEM') ouAlgLabel = 'Q025 GOL';
+                    else if (sp.algorithm === 'UNIVERSAL_MARKET_V3_AUDITED') ouAlgLabel = 'UNIVERSAL V3 O/U';
+                    const isDogH2hUnder = sp.algorithm === 'DOG_H2H_KILLER';
+                    const isCol3Ou = sp.algorithm === 'COL3_INDIRECT';
+                    const isQ025Ou = sp.algorithm === 'Q025_AWAY_SYSTEM';
+                    const isHouseMindOu = sp.algorithm === 'HOUSEMIND_OU';
+                    const ouBadgeBg = isHouseMindOu
+                        ? '#0f766e'
+                        : (isDogH2hUnder
+                        ? 'linear-gradient(135deg, #1e3a8a, #312e81)'
+                        : (isCol3Ou ? 'linear-gradient(135deg, #0369a1, #0f766e)' : (isQ025Ou ? 'linear-gradient(135deg, #1e293b, #0e7490)' : 'linear-gradient(135deg, #ef6c00, #e65100)')));
+                    const ouBadgeBorder = isHouseMindOu ? '#5eead4' : (isDogH2hUnder ? '#93c5fd' : (isCol3Ou ? '#67e8f9' : (isQ025Ou ? '#7dd3fc' : '#ffb74d')));
+                    const ouMetric = isHouseMindOu
+                        ? `${sp.pickLabel} · ${Math.round((sp.probability || 0) * 100)}%`
+                        : `${sp.pickLabel} (ROI: ${sp.roiPercent}%)`;
+                    html += `
+                        <div class="mt-1 text-center specialist-pick-badge" 
+                             style="background: ${ouBadgeBg}; border: 1px solid ${ouBadgeBorder}; border-radius: 6px; padding: 4px 6px; width: 100%; color: white; cursor: help; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"
+                             title="${sp.name || ''}\n${sp.explanation || ''}">
+                            <div style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; line-height: 1.1;">
+                                ${ouAlgLabel}
+                            </div>
+                            <div style="font-size: 0.72rem; font-weight: 800; line-height: 1.2;">
+                                ${ouMetric}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return html;
+            } catch (err) {
+                console.error("Error generating specialist picks HTML:", err);
+                return '';
+            }
+        }
+
+        // ==================== FUNCIONES AUXILIARES RESTAURADAS ====================
+
+        // Helper: normalizar bucket de handicap
+        function normalizeBucket(val) {
+            const v = parseFloat(val);
+            if (isNaN(v)) return null;
+            if (Math.abs(v) >= 2.25) return v > 0 ? 2.5 : -2.5;
+            if (Math.abs(v) >= 1.75 && Math.abs(v) <= 2.25) return v > 0 ? 2.0 : -2.0;
+            if (Math.abs(v % 1) === 0.5) return v; // Keep X.5 as is
+            return Math.round(v); // Default
+        }
+
+        // Helper: obtener categoría de resultado Asian Handicap
+        function getAsianResultCategory(teamGoals, oppGoals, ahValue) {
+            if (teamGoals === null || oppGoals === null || ahValue === null || isNaN(ahValue)) return 'UNKNOWN';
+
+            const diff = teamGoals - oppGoals;
+            const line = parseFloat(ahValue);
+            const finalDiff = diff + line;
+
+            if (finalDiff > 0) return 'HOME_WIN';
+            if (finalDiff < 0) return 'AWAY_WIN';
+            return 'DRAW'; // Push
+        }
+
+        // Helper: calcular WDL (Win/Draw/Loss/Push based on AH)
+        function calculateWDL(scoreStr, ahForTeam, isHomePerspective = true) {
+            if (!scoreStr || !scoreStr.includes(':')) return null;
+            const parts = scoreStr.replace('-', ':').split(':');
+            const h = parseInt(parts[0]);
+            const a = parseInt(parts[1]);
+            if (isNaN(h) || isNaN(a)) return null;
+
+            if (isHomePerspective) {
+                return getAsianResultCategory(h, a, ahForTeam);
+            } else {
+                return getAsianResultCategory(a, h, ahForTeam);
+            }
+        }
+
+        // Helper para determinar si cubre el handicap ACTUAL (Indirect Comparisons)
+        const getIndCoverStatus = (score, localia, isSubjectHome, currentAh) => {
+            if (!score || !score.includes(':') || isNaN(currentAh) || !localia) return null;
+            const isSubjectLocalInInd = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home');
+            const subjectAh = isSubjectHome ? currentAh : -currentAh;
+            let wdl = null;
+            if (isSubjectLocalInInd) {
+                wdl = calculateWDL(score, subjectAh, true);
+            } else {
+                wdl = calculateWDL(score, -subjectAh, false);
+            }
+            if (wdl === 'HOME_WIN') return 'COVER';
+            if (wdl === 'AWAY_WIN') return 'NO_COVER';
+            if (wdl === 'DRAW') return 'PUSH';
+            return null;
+        };
+
+        // Helper: calcular WDL real (sin handicap)
+        function calculateRealWDL(scoreStr, isHome) {
+            if (!scoreStr || !scoreStr.includes(':')) return null;
+            const parts = scoreStr.replace('-', ':').split(':');
+            const h = parseInt(parts[0]);
+            const a = parseInt(parts[1]);
+            if (isNaN(h) || isNaN(a)) return null;
+
+            if (h > a) return isHome ? 'WIN' : 'LOSS';
+            if (a > h) return isHome ? 'LOSS' : 'WIN';
+            return 'DRAW';
+        }
+
+        function coverResultToWdl(coverResult) {
+            if (coverResult === 'HOME_WIN') return 'WIN';
+            if (coverResult === 'AWAY_WIN') return 'LOSS';
+            if (coverResult === 'DRAW') return 'DRAW';
+            return '';
+        }
+
+        function getPrevHomeWdl(score, currentAh) {
+            if (!score) return '';
+            if (!isNaN(currentAh)) {
+                const localPerspectiveAh = -currentAh;
+                return coverResultToWdl(calculateWDL(score, localPerspectiveAh, true));
+            }
+            return calculateRealWDL(score, true) || '';
+        }
+
+        function getPrevAwayWdl(score, currentAh) {
+            if (!score) return '';
+            if (!isNaN(currentAh)) {
+                return coverResultToWdl(calculateWDL(score, currentAh, false));
+            }
+            return calculateRealWDL(score, false) || '';
+        }
+
+        function wdlToTextClass(wdl) {
+            if (wdl === 'WIN') return 'text-success';
+            if (wdl === 'LOSS') return 'text-danger';
+            return 'text-push';
+        }
+
+        // Helper: obtener dirección movimiento cuotas
+        // Usa buckets: 0.25/0.5/0.75 son equivalentes (bucket 0.5)
+        // Subió = bucket aumentó al menos 1 nivel, Bajó = disminuyó
+        function getMovementDirection(movStr) {
+            if (!movStr || movStr === 'N/A' || movStr.trim() === '') return null;
+
+            // Normalizar: quitar espacios y soportar → y ->
+            const normalized = movStr.replace(/\s/g, '').replace('→', '->');
+
+            if (!normalized.includes('->')) return null;
+            const parts = normalized.split('->');
+            if (parts.length !== 2) return null;
+
+            const start = parseFloat(parts[0]);
+            const end = parseFloat(parts[1]);
+            if (isNaN(start) || isNaN(end)) return null;
+
+            // Normalizar a buckets (0.25, 0.5, 0.75 -> 0.5; 1.25, 1.5, 1.75 -> 1.5, etc)
+            function toBucket(val) {
+                if (val === 0) return 0;
+                const absVal = Math.abs(val);
+                const sign = val >= 0 ? 1 : -1;
+                const intPart = Math.floor(absVal);
+                const decPart = absVal - intPart;
+
+                if (decPart < 0.01) return sign * intPart;
+                return sign * (intPart + 0.5);
+            }
+
+            const bucketStart = toBucket(start);
+            const bucketEnd = toBucket(end);
+
+            if (bucketEnd > bucketStart) return 'UP';
+            if (bucketEnd < bucketStart) return 'DOWN';
+            return 'SAME';
+        }
+
+        // Helper simple para normalizar buckets
+        function normalizeBucket(ah) {
+            if (ah === null || isNaN(ah)) return null;
+            if (ah === 0) return 0;
+            // Buckets: 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0
+            // If negative, use value as is.
+            let val = Math.abs(ah);
+            const sign = Math.sign(ah);
+
+            if (val >= 2.75) val = 3.0;
+            else if (val >= 2.25) val = 2.5;
+            else if (val >= 1.75) val = 2.0;
+            else if (val >= 1.25) val = 1.5;
+            else if (val >= 0.75) val = 1.0;
+            else if (val >= 0.25) val = 0.5;
+            else val = 0.0;
+
+            return val * sign;
+        }
+
+        // Helper para Grandes Perdedores
+        function checkBigLoser(matchId, side) { // side: 'home' o 'away'
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Determinar qué partido previo revisar
+            const prevMatch = side === 'home' ? pc.last_home_match : pc.last_away_match;
+
+            if (!prevMatch || !prevMatch.score) return false;
+
+            // Determinar si el equipo jugó de Local o Visitante en ESE partido previo
+            const teamName = side === 'home' ? pc.home_name : pc.away_name;
+            const wasHome = prevMatch.home_team === teamName;
+
+            // Verificar Resultado: Debe ser DERROTA (LOSS)
+            const scoreParts = prevMatch.score.replace('-', ':').split(':');
+            if (scoreParts.length !== 2) return false;
+            const hg = parseInt(scoreParts[0]);
+            const ag = parseInt(scoreParts[1]);
+
+            let isLoss = false;
+            if (wasHome) {
+                if (hg < ag) isLoss = true;
+            } else { // wasAway
+                if (ag < hg) isLoss = true;
+            }
+
+            if (!isLoss) return false;
+
+            // Verificar Estadísticas: Concedidas
+            const stats = prevMatch.stats_rows || [];
+            let concededSot = 0;
+            let concededDa = 0;
+
+            for (const row of stats) {
+                const label = row.label;
+                if (!label) continue;
+
+                let val = 0;
+                if (wasHome) {
+                    val = parseInt(row.away || '0');
+                } else {
+                    val = parseInt(row.home || '0');
+                }
+
+                if (['Tiros a Puerta', 'Tiros a puerta'].includes(label)) concededSot = val;
+                if (['Ataques Peligrosos', 'Ataques peligrosos'].includes(label)) concededDa = val;
+            }
+
+            // Umbrales: SOT >= 5 Y DA >= 50
+            if (concededSot >= 5 && concededDa >= 50) return true;
+
+            return false;
+        }
+
+        // Helper para Favoritos Cubren: Verificar si favorito cubrió su handicap y no-favorito no cubrió
+        // Retorna true si:
+        // - El FAVORITO ganó/cubrió el handicap en su partido anterior
+        // - El NO FAVORITO perdió/no cubrió el handicap en su partido anterior
+        function checkFavCover(matchId) {
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Obtener el match original para el handicap actual
+            const m = totalFilteredMatches.find(x => x.id == matchId);
+            if (!m) return false;
+
+            const currentAh = getLocalPerspectiveAh(m);
+            // Si no hay AH o es 0 (no hay favorito claro), descartar
+            if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+            // Determinar quién es favorito y quién no
+            // AH > 0 -> Local es Underdog, Visitante es Favorito
+            // AH < 0 -> Local es Favorito, Visitante es Underdog
+            const localEsFavorito = currentAh < 0;
+
+            // Obtener partidos previos
+            const prevHome = pc.last_home_match;
+            const prevAway = pc.last_away_match;
+
+            // Necesitamos datos de ambos partidos previos
+            if (!prevHome || !prevHome.score || !prevAway || !prevAway.score) return false;
+
+            // Calcular si cubrieron el handicap ACTUAL
+            // Para el LOCAL: perspectiva home en su partido anterior
+            const localPerspectiveAh = -currentAh; // Invertir para perspectiva local
+            const localCoverResult = calculateWDL(prevHome.score, localPerspectiveAh, true);
+            const localCubrio = localCoverResult === 'HOME_WIN'; // Local cubrió
+            const localNoCubrio = localCoverResult === 'AWAY_WIN'; // Local no cubrió
+
+            // Para el VISITANTE: perspectiva away en su partido anterior
+            const awayCoverResult = calculateWDL(prevAway.score, currentAh, false);
+            const visitaCubrio = awayCoverResult === 'HOME_WIN'; // Visita cubrió
+            const visitaNoCubrio = awayCoverResult === 'AWAY_WIN'; // Visita no cubrió
+
+            // Lógica principal:
+            // Si LOCAL es FAVORITO: localCubrio && visitaNoCubrio
+            // Si VISITANTE es FAVORITO: visitaCubrio && localNoCubrio
+            if (localEsFavorito) {
+                // Local es favorito, visita es underdog
+                return localCubrio && visitaNoCubrio;
+            } else {
+                // Visita es favorita, local es underdog
+                return visitaCubrio && localNoCubrio;
+            }
+        }
+
+        // Helper para Favorito Cubre AH: Solo verifica si el FAVORITO cubrió el handicap actual
+        // Retorna true si el favorito ganó/cubrió su handicap en el partido anterior
+        function checkFavWinsAH(matchId) {
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Obtener el match original para el handicap actual
+            const m = totalFilteredMatches.find(x => x.id == matchId);
+            if (!m) return false;
+
+            const currentAh = getLocalPerspectiveAh(m);
+            // Si no hay AH o es 0 (no hay favorito claro), descartar
+            if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+            // Determinar quién es favorito
+            // AH > 0 -> Local es Underdog, Visitante es Favorito
+            // AH < 0 -> Local es Favorito, Visitante es Underdog
+            const localEsFavorito = currentAh < 0;
+
+            // Obtener partido previo del favorito
+            const prevFav = localEsFavorito ? pc.last_home_match : pc.last_away_match;
+
+            // Necesitamos datos del partido previo del favorito
+            if (!prevFav || !prevFav.score) return false;
+
+            // Calcular si el favorito cubrió el handicap ACTUAL
+            // currentAh está desde perspectiva LOCAL siempre
+            if (localEsFavorito) {
+                // Local es favorito (currentAh < 0, ej: -1.5)
+                // En su partido previo jugó de LOCAL
+                // Usar currentAh directamente (negativo = da goles)
+                const coverResult = calculateWDL(prevFav.score, currentAh, true);
+                return coverResult === 'HOME_WIN'; // Favorito cubrió
+            } else {
+                // Visitante es favorito (currentAh > 0, ej: +1.5 significa visita da 1.5)
+                // En su partido previo jugó de VISITANTE
+                // Handicap del visitante = -currentAh (si currentAh=+1.5, visita da 1.5, su AH=-1.5)
+                const coverResult = calculateWDL(prevFav.score, -currentAh, false);
+                return coverResult === 'HOME_WIN'; // Favorito cubrió
+            }
+        }
+
+        // Helper para No Fav. Pierde AH: Solo verifica si el NO FAVORITO NO cubrió el handicap actual
+        // Retorna true si el underdog perdió/no cubrió su handicap en el partido anterior
+        function checkUnderdogLosesAH(matchId) {
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Obtener el match original para el handicap actual
+            const m = totalFilteredMatches.find(x => x.id == matchId);
+            if (!m) return false;
+
+            const currentAh = getLocalPerspectiveAh(m);
+            // Si no hay AH o es 0 (no hay favorito claro), descartar
+            if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+            // Determinar quién es underdog (no favorito)
+            // AH > 0 -> Local es Underdog (recibe goles), Visitante es Favorito
+            // AH < 0 -> Local es Favorito, Visitante es Underdog (recibe goles)
+            const localEsUnderdog = currentAh > 0;
+
+            // Obtener partido previo del underdog
+            const prevUnderdog = localEsUnderdog ? pc.last_home_match : pc.last_away_match;
+
+            // Necesitamos datos del partido previo del underdog
+            if (!prevUnderdog || !prevUnderdog.score) return false;
+
+            // Calcular si el underdog NO cubrió el handicap ACTUAL
+            // currentAh está desde perspectiva LOCAL siempre
+            if (localEsUnderdog) {
+                // Local es underdog (currentAh > 0, ej: +1.5 = local recibe 1.5)
+                // En su partido previo jugó de LOCAL
+                // Usar currentAh directamente (positivo = recibe goles, ventaja para él)
+                const coverResult = calculateWDL(prevUnderdog.score, currentAh, true);
+                return coverResult === 'AWAY_WIN'; // Underdog NO cubrió
+            } else {
+                // Visitante es underdog (currentAh < 0, ej: -1.5 = visita recibe 1.5)
+                // En su partido previo jugó de VISITANTE
+                // Handicap del visitante = -currentAh (si currentAh=-1.5, visita recibe 1.5, su AH=+1.5)
+                const coverResult = calculateWDL(prevUnderdog.score, -currentAh, false);
+                return coverResult === 'AWAY_WIN'; // Underdog NO cubrió
+            }
+        }
+
+        // Helper para Favorito Super Disparador:
+        // El FAVORITO tuvo superioridad de disparos del 50%+ sobre su rival con mínimo 8 disparos
+        // Ejemplo: Favorito 10 disparos, Rival 4 disparos = 10 >= 4 * 1.5 = true
+        function checkFavSuperShooter(matchId) {
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Obtener el match original para el handicap actual
+            const m = totalFilteredMatches.find(x => x.id == matchId);
+            if (!m) return false;
+
+            const currentAh = getLocalPerspectiveAh(m);
+            if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+            // Determinar quién es favorito
+            // AH > 0 -> Visitante es Favorito
+            // AH < 0 -> Local es Favorito
+            const localEsFavorito = currentAh < 0;
+
+            // Obtener partido previo del favorito
+            const prevFav = localEsFavorito ? pc.last_home_match : pc.last_away_match;
+            if (!prevFav) return false;
+
+            // Obtener stats de disparos del partido previo
+            // Buscamos en stats_rows el item con name "Shots on Goal" o "Shots Total" o "Tiros"
+            const stats = prevFav.stats_rows || prevFav.stats || [];
+            if (!stats || !Array.isArray(stats)) return false;
+
+            // Buscar stat de disparos (puede tener diferentes nombres)
+            let favShots = 0;
+            let rivalShots = 0;
+            let foundStat = false;
+
+            for (const stat of stats) {
+                const name = (stat.name || stat.stat_name || '').toLowerCase();
+                if (name.includes('shot') || name.includes('tiro') || name.includes('disparo')) {
+                    // En stats_rows, home y away están desde la perspectiva del partido previo
+                    // Si el favorito jugó de local, favShots = home, rivalShots = away
+                    // Si el favorito jugó de visita, favShots = away, rivalShots = home
+                    if (localEsFavorito) {
+                        // Favorito jugó de LOCAL en su partido previo
+                        favShots = parseInt(stat.home) || 0;
+                        rivalShots = parseInt(stat.away) || 0;
+                    } else {
+                        // Favorito jugó de VISITANTE en su partido previo
+                        favShots = parseInt(stat.away) || 0;
+                        rivalShots = parseInt(stat.home) || 0;
+                    }
+                    foundStat = true;
+                    break;
+                }
+            }
+
+            if (!foundStat) return false;
+
+            // Verificar condiciones: mínimo 8 disparos del favorito y superioridad del 50%
+            if (favShots < 8) return false;
+            if (rivalShots === 0) return favShots >= 8; // Si rival tiene 0, favorito tiene superioridad total
+
+            // Superioridad del 50% = favShots >= rivalShots * 1.5
+            return favShots >= rivalShots * 1.5;
+        }
+
+        // Helper para Underdog Stats Bajos:
+        // El UNDERDOG tuvo inferioridad de disparos del 50%+ con mínimo 8 disparos del favorito
+        function checkUnderdogLowStats(matchId) {
+            const pc = precacheoData[matchId];
+            if (!pc) return false;
+
+            // Obtener el match original para el handicap actual
+            const m = totalFilteredMatches.find(x => x.id == matchId);
+            if (!m) return false;
+
+            const currentAh = getLocalPerspectiveAh(m);
+            if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+            // Determinar quién es underdog
+            // AH > 0 -> Local es Underdog
+            // AH < 0 -> Visitante es Underdog
+            const localEsUnderdog = currentAh > 0;
+
+            // Obtener partido previo del underdog
+            const prevUnderdog = localEsUnderdog ? pc.last_home_match : pc.last_away_match;
+            if (!prevUnderdog) return false;
+
+            // Obtener stats de disparos del partido previo
+            const stats = prevUnderdog.stats_rows || prevUnderdog.stats || [];
+            if (!stats || !Array.isArray(stats)) return false;
+
+            let underdogShots = 0;
+            let rivalShots = 0;
+            let foundStat = false;
+
+            for (const stat of stats) {
+                const name = (stat.name || stat.stat_name || '').toLowerCase();
+                if (name.includes('shot') || name.includes('tiro') || name.includes('disparo')) {
+                    if (localEsUnderdog) {
+                        // Underdog jugó de LOCAL en su partido previo
+                        underdogShots = parseInt(stat.home) || 0;
+                        rivalShots = parseInt(stat.away) || 0;
+                    } else {
+                        // Underdog jugó de VISITANTE en su partido previo
+                        underdogShots = parseInt(stat.away) || 0;
+                        rivalShots = parseInt(stat.home) || 0;
+                    }
+                    foundStat = true;
+                    break;
+                }
+            }
+
+            if (!foundStat) return false;
+
+            // Verificar condiciones: rival tuvo mínimo 8 disparos y underdog tiene 50% menos
+            if (rivalShots < 8) return false;
+            if (underdogShots === 0) return true; // Underdog tiene 0 disparos = stats muy bajos
+
+            // Underdog tiene 50% menos = underdogShots <= rivalShots / 1.5
+            return underdogShots <= rivalShots / 1.5;
+        }
+        // Helper: calcular resultado H2H COVER/PUSH/NO_COVER
+        // COVER = el FAVORITO cubrió el handicap actual
+        // isInverted = true para H2H General (el partido fue en estadio del visitante actual)
+        function calculateH2HResult(resultStr, currentAh, isInverted = false) {
+            if (!resultStr || !resultStr.includes(':')) return null;
+            if (currentAh === null || currentAh === undefined || isNaN(currentAh)) return null;
+
+            const parts = resultStr.replace('-', ':').split(':');
+            let h = parseInt(parts[0]);
+            let a = parseInt(parts[1]);
+
+            if (isNaN(h) || isNaN(a)) return null;
+
+            // Regla Crítica: AH POSITIVO (> 0) = LOCAL FAVORITO. AH CERO O NEGATIVO (<= 0) = VISITANTE FAVORITO.
+            const favIsLocal = currentAh > 0;
+            const absAh = Math.abs(currentAh);
+
+            let diff; // Diferencia goles desde la perspectiva del favorito
+            if (isInverted) {
+                // H2H General: Localías invertidas
+                diff = favIsLocal ? (a - h) : (h - a);
+            } else {
+                // H2H Estadio: Mismas localías
+                diff = favIsLocal ? (h - a) : (a - h);
+            }
+
+            // Aplicar handicap al favorito (lo DA, por eso es -absAh)
+            const finalDiff = diff - absAh;
+
+            if (finalDiff > 0) return 'COVER'; // Verde
+            if (finalDiff < 0) return 'NO_COVER'; // Rojo
+            return 'PUSH'; // Naranja
+        }
+
+        // Helper restaurado para obtener AH perspectiva local
+        function getLocalPerspectiveAh(match) {
+            if (!match || match.handicap === undefined || match.handicap === null) return null;
+            return parseFloat(match.handicap);
+        }
+
+        // Parsear movimiento H2H para obtener AH inicial y final
+        // Ejemplo: "-0.5 → 0" => { start: -0.5, end: 0 }
+        function parseH2HMovement(movementStr) {
+            if (!movementStr || movementStr === 'N/A' || typeof movementStr !== 'string') {
+                return { start: null, end: null };
+            }
+            const normalizedMovement = movementStr.replace(/,/g, '.');
+            // Soportar múltiples formatos: "→", "->", " a "
+            const separators = ['\u2192', '->', ' a '];
+            let parts = null;
+            for (const sep of separators) {
+                if (normalizedMovement.includes(sep)) {
+                    parts = normalizedMovement.split(sep).map(s => s.trim());
+                    break;
+                }
+            }
+            if (!parts || parts.length !== 2) {
+                return { start: null, end: null };
+            }
+            const parseAh = (s) => {
+                const cleaned = s.replace(/[^\d.\-+]/g, '');
+                const num = parseFloat(cleaned);
+                return isNaN(num) ? null : num;
+            };
+            return {
+                start: parseAh(parts[0]),
+                end: parseAh(parts[1])
+            };
+        }
+
+        // Normalizar AH a bucket para comparación (0.25, 0.5, 0.75 se tratan como 0.5)
+        function normalizeToHandicapBucket(ah) {
+            if (ah === null || ah === undefined || isNaN(ah)) return null;
+            const absAh = Math.abs(ah);
+            const decimal = absAh % 1;
+            // Si está entre 0.24 y 0.76, es bucket 0.5
+            if (decimal >= 0.24 && decimal <= 0.76) {
+                return ah >= 0 ? Math.floor(absAh) + 0.5 : -(Math.floor(absAh) + 0.5);
+            }
+            // Si está cerca de un entero, redondear
+            if (decimal < 0.24) {
+                return ah >= 0 ? Math.floor(absAh) : -Math.floor(absAh);
+            }
+            return ah >= 0 ? Math.ceil(absAh) : -Math.ceil(absAh);
+        }
+
+        function matchesBucketOrExtreme(movBucket, filterRaw) {
+            if (movBucket === null || movBucket === undefined) return false;
+            const filterBucket = normalizeToHandicapBucket(parseFloat(filterRaw));
+            if (filterBucket === null) return false;
+            if (filterBucket >= 2.5) return movBucket >= 2.5;
+            if (filterBucket <= -2.5) return movBucket <= -2.5;
+            return movBucket === filterBucket;
+        }
+
+        function getH2HGeneralMovementDirection(movementStr) {
+            const mov = parseH2HMovement(movementStr);
+            if (mov.start === null || mov.end === null) return null;
+
+            // H2H General can come with inverted home/away.
+            // Compare ABS buckets so movement means "more/less favorite" consistently.
+            const startBucket = normalizeToHandicapBucket(mov.start);
+            const endBucket = normalizeToHandicapBucket(mov.end);
+            if (startBucket === null || endBucket === null) return null;
+
+            // Si hay diferencia de signo entre el inicio y el fin, no es SAME (es inversión de favorito)
+            if (Math.sign(mov.start) !== Math.sign(mov.end)) {
+                return mov.end > mov.start ? 'UP' : 'DOWN';
+            }
+
+            const absStart = Math.abs(startBucket);
+            const absEnd = Math.abs(endBucket);
+            if (Math.abs(absStart - absEnd) < 0.01) return 'SAME';
+            return absEnd > absStart ? 'UP' : 'DOWN';
+        }
+
+        function toExplorerBucketValue(rawVal) {
+            const num = parseFloat(rawVal);
+            if (isNaN(num)) return '';
+            const bucket = normalizeToHandicapBucket(num);
+            if (bucket === null) return '';
+            if (bucket >= 2.5) return '2.5';
+            if (bucket <= -2.5) return '-2.5';
+            return String(bucket);
+        }
+
+        function applyFilters(matches) {
+            // Team filters removed (inputs deleted)
+            const teamHome = '';
+            const teamAway = '';
+            const handicap = document.getElementById('filter-handicap').value;
+            const ouFilterValues = getOuFilterValues();
+            const prevHomeAh = document.getElementById('filter-prev-home-ah').value;
+            const prevAwayAh = document.getElementById('filter-prev-away-ah').value;
+
+            // New Result Filters
+            const prevHomeRes = document.getElementById('filter-prev-home-res').value;
+            const prevAwayRes = document.getElementById('filter-prev-away-res').value;
+
+            // New H2H Filters
+            const h2hStadiumMov = document.getElementById('filter-h2h-stadium-mov').value;
+            const h2hStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+            const h2hStadiumStartAh = document.getElementById('filter-h2h-stadium-start-ah').value;
+            const h2hStadiumEndAh = document.getElementById('filter-h2h-stadium-end-ah').value;
+            const h2hGeneralMov = document.getElementById('filter-h2h-general-mov').value;
+            const h2hGeneralRes = document.getElementById('filter-h2h-general-res').value;
+            const h2hGeneralStartAh = document.getElementById('filter-h2h-general-start-ah').value;
+            const h2hGeneralEndAh = document.getElementById('filter-h2h-general-end-ah').value;
+
+            // Normalize buckets only once if filters exist
+            const fBucketPrevHome = prevHomeAh ? normalizeBucket(prevHomeAh) : null;
+            const fBucketPrevAway = prevAwayAh ? normalizeBucket(prevAwayAh) : null;
+
+            // Console Debug
+            if (prevHomeAh || prevAwayAh) {
+                console.log("Filtering Debug:", {
+                    prevHomeAh, fBucketPrevHome,
+                    prevAwayAh, fBucketPrevAway
+                });
+            }
+
+            return matches.filter(m => {
+                // Filtro: Solo con historial (Prev Home y Prev Away deben tener datos)
+                const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+                if (onlyWithHistory) {
+                    const pc = precacheoData[m.id];
+                    if (!pc) return false;
+
+                    // Verificar que tenga datos en Prev Home
+                    const hasPrevHome = pc.last_home_match && pc.last_home_match.score;
+                    // Verificar que tenga datos en Prev Away  
+                    const hasPrevAway = pc.last_away_match && pc.last_away_match.score;
+
+                    // Si alguno de los dos no tiene datos, filtrar
+                    if (!hasPrevHome || !hasPrevAway) return false;
+                }
+
+                // Filtro: Solo con clasificación (ambos equipos deben tener ranking)
+                const onlyWithRankings = document.getElementById('filter-only-with-rankings').checked;
+                if (onlyWithRankings) {
+                    const pc = precacheoData[m.id];
+
+                    // Verificar ranking del equipo local
+                    const homeRank = (pc && pc.home_standings && pc.home_standings.ranking && pc.home_standings.ranking !== 'N/A')
+                        ? pc.home_standings.ranking : m.home_rank;
+                    // Verificar ranking del equipo visitante
+                    const awayRank = (pc && pc.away_standings && pc.away_standings.ranking && pc.away_standings.ranking !== 'N/A')
+                        ? pc.away_standings.ranking : m.away_rank;
+
+                    // Si alguno no tiene ranking válido, filtrar
+                    if (!homeRank || !awayRank) return false;
+                }
+
+                // Team filter
+                if (teamHome && !(m.home_team || '').toLowerCase().includes(teamHome)) return false;
+                if (teamAway && !(m.away_team || '').toLowerCase().includes(teamAway)) return false;
+
+                // Handicap filter
+                if (handicap) {
+                    const mAh = parseFloat(m.handicap);
+                    const fAh = parseFloat(handicap);
+                    if (isNaN(mAh)) return false;
+
+                    const absF = Math.abs(fAh);
+
+                    // Logic for 2.5 bucket (range >= 2.25)
+                    if (absF >= 2.49) {
+                        if (fAh > 0) {
+                            if (mAh < 2.24) return false;
+                        } else {
+                            if (mAh > -2.24) return false;
+                        }
+                    }
+                    // Logic for 2.0 bucket (strict 2.0)
+                    else if (absF >= 1.99 && absF <= 2.01) {
+                        if (Math.abs(mAh - fAh) > 0.01) return false;
+                    }
+                    // Logic for .5 buckets (0.5, 1.5) => fuzzy range +/- 0.25
+                    else if (Math.abs(absF % 1 - 0.5) < 0.01) {
+                        if (Math.abs(mAh - fAh) > 0.26) return false;
+                    }
+                    // Default strict match
+                    else {
+                        if (Math.abs(mAh - fAh) > 0.01) return false;
+                    }
+                }
+
+                // O/U (Goals Line) filter
+                if (ouFilterValues.length > 0) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.main_match_odds || !pc.main_match_odds.goals_linea) return false;
+                    if (!checkOuMatch(pc.main_match_odds.goals_linea, ouFilterValues)) return false;
+                }
+
+                // Prev Home Attributes
+                if (prevHomeAh || prevHomeRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.last_home_match) return false;
+
+                    if (fBucketPrevHome !== null) {
+                        const pAh = parseFloat(pc.last_home_match.handicap_line_raw);
+                        const pBucket = normalizeBucket(pAh);
+
+                        // console.log(`Match ${m.home_team}: PrevHomeRaw=${pc.last_home_match.handicap_line_raw} pAh=${pAh} pBucket=${pBucket} Filter=${fBucketPrevHome}`);
+
+                        if (pBucket === null) return false;
+
+                        if (Math.abs(fBucketPrevHome) >= 2.5) {
+                            if (fBucketPrevHome > 0) {
+                                if (pBucket < 2.5) return false;
+                            } else {
+                                if (pBucket > -2.5) return false;
+                            }
+                        } else {
+                            if (pBucket !== fBucketPrevHome) return false;
+                        }
+                    }
+
+                    if (prevHomeRes) {
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+                        const res = getPrevHomeWdl(pc.last_home_match.score, currentAh);
+                        if (res !== prevHomeRes) return false;
+                    }
+                }
+
+                if (prevAwayAh || prevAwayRes) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.last_away_match) return false;
+
+                    if (fBucketPrevAway !== null) {
+                        const pAh = parseFloat(pc.last_away_match.handicap_line_raw);
+                        const pBucket = normalizeBucket(pAh);
+
+                        // console.log(`Match ${m.away_team}: PrevAwayRaw=${pc.last_away_match.handicap_line_raw} pAh=${pAh} pBucket=${pBucket} Filter=${fBucketPrevAway}`);
+
+                        if (pBucket === null) return false;
+
+                        if (Math.abs(fBucketPrevAway) >= 2.5) {
+                            if (fBucketPrevAway > 0) {
+                                if (pBucket < 2.5) return false;
+                            } else {
+                                if (pBucket > -2.5) return false;
+                            }
+                        } else {
+                            if (pBucket !== fBucketPrevAway) return false;
+                        }
+                    }
+
+                    if (prevAwayRes) {
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+                        const res = getPrevAwayWdl(pc.last_away_match.score, currentAh);
+                        if (res !== prevAwayRes) return false;
+                    }
+                }
+
+                // H2H Stadium Filters
+                if (h2hStadiumMov || h2hStadiumRes || h2hStadiumStartAh || h2hStadiumEndAh) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.stadium) return false;
+                    const st = pc.market_analysis_data.stadium;
+
+                    if (h2hStadiumMov) {
+                        const dir = getMovementDirection(st.movement);
+                        if (dir !== h2hStadiumMov) return false;
+                    }
+                    if (h2hStadiumRes) {
+                        // Usar el handicap del partido ACTUAL corregido por heurística
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        const wdl = calculateH2HResult(st.result, currentAh);
+                        if (wdl !== h2hStadiumRes) return false;
+                    }
+                    // Filtro por AH Inicial y AH Final del movimiento
+                    if (h2hStadiumStartAh || h2hStadiumEndAh) {
+                        const mov = parseH2HMovement(st.movement);
+                        if (h2hStadiumStartAh) {
+                            const filterStart = parseFloat(h2hStadiumStartAh);
+                            const movStartBucket = normalizeToHandicapBucket(mov.start);
+                            const filterStartBucket = normalizeToHandicapBucket(filterStart);
+                            if (movStartBucket !== filterStartBucket) return false;
+                        }
+                        if (h2hStadiumEndAh) {
+                            const filterEnd = parseFloat(h2hStadiumEndAh);
+                            const movEndBucket = normalizeToHandicapBucket(mov.end);
+                            const filterEndBucket = normalizeToHandicapBucket(filterEnd);
+                            if (movEndBucket !== filterEndBucket) return false;
+                        }
+                    }
+                }
+
+                // H2H General Filters
+                // NUEVO: Si H2H General es el mismo partido que H2H Estadio, no aplicar filtro
+                if (h2hGeneralMov || h2hGeneralRes || h2hGeneralStartAh || h2hGeneralEndAh) {
+                    const pc = precacheoData[m.id];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) return false;
+
+                    // Verificar si H2H General es el mismo partido que H2H Estadio
+                    // Comparamos fecha y resultado de market_analysis_data (más fiable que match1_id)
+                    const stadiumData = pc.market_analysis_data.stadium;
+                    const generalData = pc.market_analysis_data.general;
+                    const isSameAsStadium = stadiumData && generalData &&
+                        stadiumData.date === generalData.date &&
+                        stadiumData.result === generalData.result;
+
+                    // Si son el mismo partido, excluir del filtro H2H General
+                    if (isSameAsStadium) return false;
+
+                    const gen = pc.market_analysis_data.general;
+
+                    if (h2hGeneralMov) {
+                        const dir = getMovementDirection(gen.movement);
+                        if (dir !== h2hGeneralMov) return false;
+                    }
+                    if (h2hGeneralRes) {
+                        const currentAh = getLocalPerspectiveAh(m);
+                        if (currentAh === null || isNaN(currentAh)) return false;
+
+                        const wdl = calculateH2HResult(gen.result, currentAh, true);
+                        if (wdl !== h2hGeneralRes) return false;
+                    }
+                    // Filtro por AH Inicial y AH Final del movimiento
+                    if (h2hGeneralStartAh || h2hGeneralEndAh) {
+                        const mov = parseH2HMovement(gen.movement);
+                        if (h2hGeneralStartAh) {
+                            const filterStart = parseFloat(h2hGeneralStartAh);
+                            const movStartBucket = normalizeToHandicapBucket(mov.start);
+                            const filterStartBucket = normalizeToHandicapBucket(filterStart);
+                            if (movStartBucket !== filterStartBucket) return false;
+                        }
+                        if (h2hGeneralEndAh) {
+                            const filterEnd = parseFloat(h2hGeneralEndAh);
+                            const movEndBucket = normalizeToHandicapBucket(mov.end);
+                            const filterEndBucket = normalizeToHandicapBucket(filterEnd);
+                            if (movEndBucket !== filterEndBucket) return false;
+                        }
+                    }
+                }
+
+                // Estrategias
+                if (strategy === 'big_losers') {
+                    const currentAh = getLocalPerspectiveAh(m);
+                    // Si no hay AH o es 0 (no hay favorito claro), descartar
+                    if (currentAh === null || isNaN(currentAh) || currentAh === 0) return false;
+
+                    let isBigLoser = false;
+
+                    // Si AH > 0 -> Local es Underdog
+                    if (currentAh > 0) {
+                        if (checkBigLoser(m.id, 'home')) isBigLoser = true;
+                    }
+                    // Si AH < 0 -> Visitante es Underdog
+                    else {
+                        if (checkBigLoser(m.id, 'away')) isBigLoser = true;
+                    }
+
+                    if (!isBigLoser) return false;
+                } else if (strategy === 'fav_cover') {
+                    // Favoritos Cubren: El favorito cubrió Y el no-favorito no cubrió
+                    if (!checkFavCover(m.id)) return false;
+                } else if (strategy === 'fav_wins_ah') {
+                    // Favorito Cubre AH: Solo el favorito cubrió su handicap actual
+                    if (!checkFavWinsAH(m.id)) return false;
+                } else if (strategy === 'underdog_loses_ah') {
+                    // No Fav. Pierde AH: El no-favorito NO cubrió su handicap actual
+                    if (!checkUnderdogLosesAH(m.id)) return false;
+                }
+
+                return true;
+            });
+
+            console.log(`Filtered matches: ${filtered.length}`);
+            return filtered;
+        }
+
+        function getMatchLeagueName(match) {
+            if (!match || typeof match !== 'object') return '';
+            return String(match.league || match.league_name || '').trim();
+        }
+
+        function populateLeagueFilters(matches) {
+            const leagues = Array.from(new Set((matches || [])
+                .map(getMatchLeagueName)
+                .filter(Boolean)))
+                .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+            const signature = leagues.join('\u001f');
+
+            if (msLeague && signature === leagueFilterSignature) {
+                return;
+            }
+
+            leagueFilterSignature = signature;
+            const options = leagues.map(league => ({ value: league, label: league }));
+
+            if (!msLeague) {
+                msLeague = new MultiSelect('container-filter-league', options, 'Ligas', () => {
+                    currentPage = 1;
+                    renderTableWithPagination();
+                });
+                return;
+            }
+
+            const selected = msLeague.getValues().filter(value => leagues.includes(value));
+            msLeague.options = options;
+            msLeague.selectedValues = selected;
+            msLeague.updateBtnText();
+            msLeague.renderOptions();
+        }
+
+        function getMatchesForCurrentLeagueFilter() {
+            const selectedLeagues = msLeague ? msLeague.getValues() : [];
+            if (!selectedLeagues || selectedLeagues.length === 0) return totalFilteredMatches || [];
+            return (totalFilteredMatches || []).filter(match => selectedLeagues.includes(getMatchLeagueName(match)));
+        }
+
+
+        // Función de filtrado VISUAL: oculta/muestra filas SIN re-renderizar
+        // Esto preserva las filas de patrones expandidas
+
+        // Función para limpiar todos los filtros
+        function clearAllFilters() {
+            // Limpiar checkboxes
+            document.getElementById('filter-only-with-history').checked = false;
+            document.getElementById('filter-only-favorites').checked = false;
+
+            // Limpiar dropdowns simples
+            document.getElementById('filter-ou').value = '';
+            document.getElementById('filter-prev-home-res').value = '';
+            document.getElementById('filter-prev-away-res').value = '';
+            document.getElementById('filter-h2h-stadium-mov').value = '';
+            document.getElementById('filter-h2h-stadium-res').value = '';
+            document.getElementById('filter-h2h-stadium-start-ah').value = '';
+            document.getElementById('filter-h2h-stadium-end-ah').value = '';
+            document.getElementById('filter-h2h-general-mov').value = '';
+            document.getElementById('filter-h2h-general-res').value = '';
+            document.getElementById('filter-h2h-general-start-ah').value = '';
+            document.getElementById('filter-h2h-general-end-ah').value = '';
+            document.getElementById('filter-h2h-col3-mirror').value = '';
+            document.getElementById('filter-h2h-col3-cover').value = '';
+            document.getElementById('filter-ind-local-res').value = '';
+            document.getElementById('filter-ind-local-loc').value = '';
+            document.getElementById('filter-ind-visitante-res').value = '';
+            document.getElementById('filter-ind-visitante-loc').value = '';
+            document.getElementById('filter-pick').value = '';
+            document.getElementById('filter-strategies').value = '';
+
+            // Limpiar MultiSelects
+            if (msLeague) { msLeague.selectedValues = []; msLeague.updateBtnText(); msLeague.renderOptions(); }
+            if (msHandicap) { msHandicap.selectedValues = []; msHandicap.updateBtnText(); msHandicap.renderOptions(); }
+            if (msOu) { msOu.selectedValues = []; msOu.updateBtnText(); msOu.renderOptions(); syncOuFilterInput(); }
+            if (msH2hCol3Ah) { msH2hCol3Ah.selectedValues = []; msH2hCol3Ah.updateBtnText(); msH2hCol3Ah.renderOptions(); }
+            if (msPrevHomeAh) { msPrevHomeAh.selectedValues = []; msPrevHomeAh.updateBtnText(); msPrevHomeAh.renderOptions(); }
+            if (msPrevAwayAh) { msPrevAwayAh.selectedValues = []; msPrevAwayAh.updateBtnText(); msPrevAwayAh.renderOptions(); }
+            if (msIndLocalAh) { msIndLocalAh.selectedValues = []; msIndLocalAh.updateBtnText(); msIndLocalAh.renderOptions(); }
+            if (msIndVisitanteAh) { msIndVisitanteAh.selectedValues = []; msIndVisitanteAh.updateBtnText(); msIndVisitanteAh.renderOptions(); }
+
+            // En pendientes, limpiar AH debe repetir la consulta desde la página 1.
+            handleMainHandicapFilterChange();
+
+            console.log('Todos los filtros han sido limpiados');
+        }
+
+        function applyFiltersVisually() {
+            const tbody = document.getElementById('table-body');
+            const rows = tbody.querySelectorAll('tr[data-match-id]');
+
+            // Leer valores de filtros
+            const ouFilterValues = getOuFilterValues();
+            const prevHomeRes = document.getElementById('filter-prev-home-res').value;
+            const prevAwayRes = document.getElementById('filter-prev-away-res').value;
+            const onlyWithHistory = document.getElementById('filter-only-with-history').checked;
+            const onlyFavorites = document.getElementById('filter-only-favorites').checked;
+            const selectedLeagues = msLeague ? msLeague.getValues() : [];
+
+            // Filtro H2H Col3: Espejo (Directa/Inversa) y Cover
+            const h2hCol3Mirror = document.getElementById('filter-h2h-col3-mirror').value;
+            const h2hCol3Cover = document.getElementById('filter-h2h-col3-cover').value;
+
+            // Filtros Indirect Comparisons
+            // (Ya se leen dentro del loop, pero para claridad visual aquí están listados implíctamente en la sección correspondiente)
+
+            // Strategy Filter
+            const strategy = document.getElementById('filter-strategies').value;
+            const filterPick = document.getElementById('filter-pick').value;
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                let show = true;
+                const matchId = row.getAttribute('data-match-id');
+
+                // Filtro: Solo con historial
+                if (onlyWithHistory && row.getAttribute('data-has-history') !== '1') {
+                    show = false;
+                }
+
+                // Filtro: Solo ligas favoritas
+                if (show && onlyFavorites) {
+                    const rowLeague = row.getAttribute('data-league') || '';
+                    if (!isLigaFavorita(rowLeague)) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Liga exacta
+                if (show && selectedLeagues.length > 0) {
+                    const rowLeague = row.getAttribute('data-league') || '';
+                    if (!selectedLeagues.includes(rowLeague)) {
+                        show = false;
+                    }
+                }
+
+                // Filtro automatico de ruido: selecciones/torneos internacionales juveniles.
+                if (show) {
+                    const m = totalFilteredMatches.find(x => x.id == matchId);
+                    if (m) {
+                        const homeTeam = (m.home_team || '').toLowerCase();
+                        const awayTeam = (m.away_team || '').toLowerCase();
+                        const league = (m.league || '').toLowerCase();
+                        const text = `${league} ${homeTeam} ${awayTeam}`;
+                        const internationalTerms = ['international', 'friendly', 'world', 'fifa', 'uefa', 'concacaf', 'conmebol', 'nations', 'tournament'];
+                        const isInternationalContext = internationalTerms.some(term => league.includes(term));
+                        const isYouthInternational = /\b(u16|u17|u18|u19|u20|u21|sub[-\s]?16|sub[-\s]?17|sub[-\s]?18|sub[-\s]?19|sub[-\s]?20|sub[-\s]?21|under[-\s]?16|under[-\s]?17|under[-\s]?18|under[-\s]?19|under[-\s]?20|under[-\s]?21)\b/.test(text);
+                        if (isInternationalContext && isYouthInternational) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: O/U (Over/Under)
+                if (show && ouFilterValues.length > 0) {
+                    if (!checkOuMatch(row.getAttribute('data-ou'), ouFilterValues)) {
+                        show = false;
+                    }
+                }
+                // Filtro: H2H Col3 Espejo (Directa/Inversa)
+                // Leer el valor desde el atributo data de la fila
+                if (show && h2hCol3Mirror) {
+                    const rowMirrorType = row.getAttribute('data-h2h-col3-mirror');
+                    if (!rowMirrorType || rowMirrorType !== h2hCol3Mirror) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H Col3 Cover - Ahora usa MEJORA/IGUALA/EMPEORA
+                // Leer el valor de performance desde el atributo data de la fila
+                if (show && h2hCol3Cover) {
+                    const rowPerformance = row.getAttribute('data-h2h-col3-performance');
+
+                    if (h2hCol3Cover === 'IGUALA_SUP') {
+                        // Lógica especial: Debe ser IGUALA Y el handicap actual debe ser mayor (en magnitud) al espejo
+                        if (!rowPerformance || rowPerformance !== 'IGUALA') {
+                            show = false;
+                        } else {
+                            const rowAh = parseFloat(row.getAttribute('data-handicap'));
+                            const mirrorAh = parseFloat(row.getAttribute('data-h2h-col3-mirror-ah'));
+
+                            // Si alguno no es válido, no mostrar
+                            if (isNaN(rowAh) || isNaN(mirrorAh)) {
+                                show = false;
+                            } else {
+                                // Verificar si |AH Actual| > |AH Espejo|
+                                // Usamos una pequeña tolerancia para flotantes
+                                if (Math.abs(rowAh) <= Math.abs(mirrorAh) + 0.01) {
+                                    show = false;
+                                }
+                            }
+                        }
+                    } else {
+                        // Lógica estándar (MEJORA, IGUALA, EMPEORA)
+                        if (!rowPerformance || rowPerformance !== h2hCol3Cover) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: Handicap (Multi-Select)
+                const handicapValues = msHandicap ? msHandicap.getValues() : [];
+                if (show && handicapValues.length > 0) {
+                    const rowAh = parseFloat(row.getAttribute('data-handicap'));
+                    if (isNaN(rowAh)) {
+                        show = false;
+                    } else {
+                        // Use checkAhMatch directly to avoid code duplication and bugs
+                        if (!checkAhMatch(row.getAttribute('data-handicap'), handicapValues)) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: H2H Col3 AH (New Multi-Select)
+                const h2hCol3AhValues = msH2hCol3Ah ? msH2hCol3Ah.getValues() : [];
+                if (show && h2hCol3AhValues.length > 0) {
+                    const rowAh = parseFloat(row.getAttribute('data-h2h-col3-mirror-ah')); // Ensure this attribute exists and is populated
+                    if (isNaN(rowAh)) {
+                        show = false;
+                    } else {
+                        // Strict matching for H2H Col3 usually, or Fuzzy?
+                        // Let's assume strict match for specific values found in data, but with tolerance
+                        const matchAny = h2hCol3AhValues.some(valStr => {
+                            return Math.abs(rowAh - parseFloat(valStr)) < 0.01;
+                        });
+                        if (!matchAny) show = false;
+                    }
+                }
+
+                // Filtro: Prev Home AH
+                const prevHomeAhValues = msPrevHomeAh ? msPrevHomeAh.getValues() : [];
+                if (show && !checkAhMatch(row.getAttribute('data-prev-home-ah'), prevHomeAhValues)) {
+                    show = false;
+                }
+
+                // Filtro: Prev Home Res
+                if (show && prevHomeRes) {
+                    if (row.getAttribute('data-prev-home-wdl') !== prevHomeRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Prev Away AH
+                const prevAwayAhValues = msPrevAwayAh ? msPrevAwayAh.getValues() : [];
+                if (show && !checkAhMatch(row.getAttribute('data-prev-away-ah'), prevAwayAhValues)) {
+                    show = false;
+                }
+
+                // Filtro: Prev Away Res
+                if (show && prevAwayRes) {
+                    if (row.getAttribute('data-prev-away-wdl') !== prevAwayRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H Stadium Mov
+                const h2hStadiumMov = document.getElementById('filter-h2h-stadium-mov').value;
+                if (show && h2hStadiumMov) {
+                    if (row.getAttribute('data-h2h-stadium-mov') !== h2hStadiumMov) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: H2H Stadium Res - Usa el AH FINAL del movimiento H2H, no el AH actual
+                const h2hStadiumRes = document.getElementById('filter-h2h-stadium-res').value;
+                if (show && h2hStadiumRes) {
+                    const pc = precacheoData[matchId];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.stadium) {
+                        show = false;
+                    } else {
+                        const st = pc.market_analysis_data.stadium;
+                        const mov = parseH2HMovement(st.movement);
+                        // Usar el AH final del movimiento (después de la flecha)
+                        const ahFinal = mov.end;
+                        if (ahFinal === null || isNaN(ahFinal)) {
+                            show = false;
+                        } else {
+                            // Calcular resultado usando el AH final del H2H (sin invertir para Stadium)
+                            const wdl = calculateH2HResult(st.result, ahFinal, false);
+                            if (wdl !== h2hStadiumRes) show = false;
+                        }
+                    }
+                }
+
+                // Filtro: H2H General Mov - Considera inversión de localías
+                // En H2H General, "Igual" = mismo valor absoluto (ej: 0.5 → -0.5 es "Igual")
+                const h2hGeneralMov = document.getElementById('filter-h2h-general-mov').value;
+                if (show && h2hGeneralMov) {
+                    const pc = precacheoData[matchId];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) {
+                        show = false;
+                    } else {
+                        const gen = pc.market_analysis_data.general;
+                        const direction = getH2HGeneralMovementDirection(gen.movement);
+                        if (!direction) {
+                            show = false;
+                        } else if (direction !== h2hGeneralMov) {
+                            show = false;
+                        }
+                    }
+                }
+
+                // Filtro: H2H General Res - Usa el AH FINAL del movimiento H2H, no el AH actual
+                const h2hGeneralRes = document.getElementById('filter-h2h-general-res').value;
+                if (show && h2hGeneralRes) {
+                    const pc = precacheoData[matchId];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) {
+                        show = false;
+                    } else {
+                        const gen = pc.market_analysis_data.general;
+                        const mov = parseH2HMovement(gen.movement);
+                        // Usar el AH final del movimiento (después de la flecha)
+                        const ahFinal = mov.end;
+                        if (ahFinal === null || isNaN(ahFinal)) {
+                            show = false;
+                        } else {
+                            // Calcular resultado usando el AH final del H2H, con isInverted=true para H2H General
+                            const wdl = calculateH2HResult(gen.result, ahFinal, true);
+                            if (wdl !== h2hGeneralRes) show = false;
+                        }
+                    }
+                }
+
+                // Filtro: H2H Stadium AH Inicial/Final
+                const h2hStadiumStartAh = document.getElementById('filter-h2h-stadium-start-ah').value;
+                const h2hStadiumEndAh = document.getElementById('filter-h2h-stadium-end-ah').value;
+                if (show && (h2hStadiumStartAh || h2hStadiumEndAh)) {
+                    const pc = precacheoData[matchId];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.stadium) {
+                        show = false;
+                    } else {
+                        const mov = parseH2HMovement(pc.market_analysis_data.stadium.movement);
+                        if (h2hStadiumStartAh) {
+                            const movStartBucket = normalizeToHandicapBucket(mov.start);
+                            if (!matchesBucketOrExtreme(movStartBucket, h2hStadiumStartAh)) show = false;
+                        }
+                        if (show && h2hStadiumEndAh) {
+                            const movEndBucket = normalizeToHandicapBucket(mov.end);
+                            if (!matchesBucketOrExtreme(movEndBucket, h2hStadiumEndAh)) show = false;
+                        }
+                    }
+                }
+
+                // Filtro: H2H General AH Inicial/Final
+                const h2hGeneralStartAh = document.getElementById('filter-h2h-general-start-ah').value;
+                const h2hGeneralEndAh = document.getElementById('filter-h2h-general-end-ah').value;
+                if (show && (h2hGeneralStartAh || h2hGeneralEndAh)) {
+                    const pc = precacheoData[matchId];
+                    if (!pc || !pc.market_analysis_data || !pc.market_analysis_data.general) {
+                        show = false;
+                    } else {
+                        const mov = parseH2HMovement(pc.market_analysis_data.general.movement);
+                        if (h2hGeneralStartAh) {
+                            const movStartBucket = normalizeToHandicapBucket(mov.start);
+                            if (!matchesBucketOrExtreme(movStartBucket, h2hGeneralStartAh)) show = false;
+                        }
+                        if (show && h2hGeneralEndAh) {
+                            const movEndBucket = normalizeToHandicapBucket(mov.end);
+                            if (!matchesBucketOrExtreme(movEndBucket, h2hGeneralEndAh)) show = false;
+                        }
+                    }
+                }
+
+                // Filtro: Ind Local AH
+                const indLocalAhValues = msIndLocalAh ? msIndLocalAh.getValues() : [];
+                if (show && !checkAhMatch(row.getAttribute('data-ind-local-ah'), indLocalAhValues)) {
+                    show = false;
+                }
+
+                // Filtro: Ind Local Res
+                const indLocalRes = document.getElementById('filter-ind-local-res').value;
+                if (show && indLocalRes) {
+                    if (row.getAttribute('data-ind-local-res') !== indLocalRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Ind Visitante AH
+                const indVisitanteAhValues = msIndVisitanteAh ? msIndVisitanteAh.getValues() : [];
+                if (show && !checkAhMatch(row.getAttribute('data-ind-visitante-ah'), indVisitanteAhValues)) {
+                    show = false;
+                }
+
+                // Filtro: Ind Visitante Res
+                const indVisitanteRes = document.getElementById('filter-ind-visitante-res').value;
+                if (show && indVisitanteRes) {
+                    if (row.getAttribute('data-ind-visitante-res') !== indVisitanteRes) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Ind Local Localía (H/A)
+                const indLocalLoc = document.getElementById('filter-ind-local-loc').value;
+                if (show && indLocalLoc) {
+                    if (row.getAttribute('data-ind-local-loc') !== indLocalLoc) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Ind Visitante Localía (H/A)
+                const indVisitanteLoc = document.getElementById('filter-ind-visitante-loc').value;
+                if (show && indVisitanteLoc) {
+                    if (row.getAttribute('data-ind-visitante-loc') !== indVisitanteLoc) {
+                        show = false;
+                    }
+                }
+
+                // Filtro: Pick (Pronósticos)
+                if (show && filterPick) {
+                    if (filterPick === 'HAS_PICK') {
+                        if (row.getAttribute('data-has-pick') !== '1') show = false;
+                    } else if (filterPick === 'AH') {
+                        if (row.getAttribute('data-has-ah-pick') !== '1') show = false;
+                    } else if (filterPick === 'OU') {
+                        if (row.getAttribute('data-has-ou-pick') !== '1') show = false;
+                    } else if (filterPick === 'AH_FAVORITE') {
+                        if (row.getAttribute('data-pick-side-kind') !== 'FAVORITE') show = false;
+                    } else if (filterPick === 'AH_DOG') {
+                        if (row.getAttribute('data-pick-side-kind') !== 'DOG') show = false;
+                    } else if (filterPick === 'OVER') {
+                        if (row.getAttribute('data-pick-goals') !== 'OVER') show = false;
+                    } else if (filterPick === 'UNDER') {
+                        if (row.getAttribute('data-pick-goals') !== 'UNDER') show = false;
+                    } else if (filterPick === 'HIGH') {
+                        if (row.getAttribute('data-pick-confidence') !== 'ALTA') show = false;
+                    } else if (filterPick === 'MEDIUM') {
+                        if (row.getAttribute('data-pick-confidence') !== 'MEDIA') show = false;
+                    } else if (filterPick === 'NO_BET') {
+                        if (row.getAttribute('data-has-pick') === '1') show = false;
+                    }
+                }
+
+                // Filtro: Estrategias (simplificadas)
+                if (show && strategy) {
+                    if (strategy === 'fav_wins_ah') {
+                        // Favorito Gana AH: El favorito cubrió su handicap actual
+                        if (!checkFavWinsAH(matchId)) {
+                            show = false;
+                        }
+                    } else if (strategy === 'underdog_loses_ah') {
+                        // Underdog Pierde AH: El underdog NO cubrió su handicap actual
+                        if (!checkUnderdogLosesAH(matchId)) {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_fav_cubre') {
+                        if (row.getAttribute('data-pick-side-kind') !== 'FAVORITE') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_dog_cubre') {
+                        if (row.getAttribute('data-pick-side-kind') !== 'DOG') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_no_bet') {
+                        if (row.getAttribute('data-pick-side-kind') !== 'NO_BET') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_over') {
+                        if (row.getAttribute('data-pick-goals') !== 'OVER') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_under') {
+                        if (row.getAttribute('data-pick-goals') !== 'UNDER') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_draw_structural') {
+                        const drawScore = parseFloat(row.getAttribute('data-clave-score-draw') || '0');
+                        if (drawScore < 1.5) {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u10_anomalia') {
+                        if (row.getAttribute('data-clave-u10-anomalia') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u11_dog_persistente') {
+                        if (row.getAttribute('data-clave-u11-dog-persistente') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u12_bloqueo_seco') {
+                        if (row.getAttribute('data-clave-u12-bloqueo-seco') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u13_push_seco') {
+                        if (row.getAttribute('data-clave-u13-push-seco') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u14_repeticion_proceso') {
+                        if (row.getAttribute('data-clave-u14-repeticion-proceso') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u15_rebaja_protectora') {
+                        if (row.getAttribute('data-clave-u15-rebaja-protectora') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u16_fav_025_capado') {
+                        if (row.getAttribute('data-clave-u16-fav-025-capado') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u17_market_flip_validated') {
+                        if (row.getAttribute('data-clave-u17-market-flip-validated') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u18_over_counterintuitive') {
+                        if (row.getAttribute('data-clave-u18-over-counterintuitive') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u19_market_rejects_x2') {
+                        if (row.getAttribute('data-clave-u19-market-rejects-x2') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u20_huge_drop_dog_under') {
+                        if (row.getAttribute('data-clave-u20-huge-drop-dog-under') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u21_h2h_over_capped_draw_under') {
+                        if (row.getAttribute('data-clave-u21-h2h-over-capped-draw-under') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'clave_u22_pickem_dog_win_dnb_under') {
+                        if (row.getAttribute('data-clave-u22-pickem-dog-win-dnb-under') !== '1') {
+                            show = false;
+                        }
+                    } else if (strategy === 'fav_super_shooter') {
+                        // Favorito Super Disparador: Superioridad de disparos del 50%+ con mínimo 8
+                        if (!checkFavSuperShooter(matchId)) {
+                            show = false;
+                        }
+                    } else if (strategy === 'underdog_low_stats') {
+                        // Underdog Stats Bajos: Inferioridad de disparos del 50%+
+                        if (!checkUnderdogLowStats(matchId)) {
+                            show = false;
+                        }
+                    } else if (strategy === 'super_specialist_h0') {
+                        // === SUPER ESPECIALISTA H0 ===
+                        // 1. Handicap debe ser 0 (o muy cercano)
+                        const rowAh = parseFloat(row.getAttribute('data-handicap'));
+                        if (isNaN(rowAh) || Math.abs(rowAh) > 0.01) {
+                            show = false;
+                        }
+
+                        // 2. H2H Col3 NO debe ser EMPEORA
+                        const rowPerformance = row.getAttribute('data-h2h-col3-performance');
+                        if (rowPerformance === 'EMPEORA') {
+                            show = false;
+                        }
+
+                        // 3. Forma Reciente: No venir de perder contra el handicap
+                        // Prev Home (si existe) != LOSS
+                        const pHomeRes = row.getAttribute('data-prev-home-wdl');
+                        if (pHomeRes === 'LOSS') show = false;
+
+                        // Prev Away (si existe) != LOSS 
+                        const pAwayRes = row.getAttribute('data-prev-away-wdl');
+                        if (pAwayRes === 'LOSS') show = false;
+                    }
+                }
+
+                // Mostrar/ocultar fila principal
+                row.style.display = show ? '' : 'none';
+
+                // También ocultar filas relacionadas (stats, patterns)
+                const statsRow = row.nextElementSibling;
+                if (statsRow && !statsRow.hasAttribute('data-match-id')) {
+                    statsRow.style.display = show ? '' : 'none';
+                }
+
+                // Ocultar fila de patrones si existe
+                const patternsRow = document.getElementById(`patterns-row-${matchId}`);
+                if (patternsRow) {
+                    patternsRow.style.display = show ? '' : 'none';
+                }
+
+                if (show) visibleCount++;
+            });
+
+            console.log(`Filtros visuales aplicados: ${visibleCount} filas visibles`);
+            updateCopyAllPrecacheButton(visibleCount);
+
+            // Contar filtros activos
+            let activeFiltersCount = 0;
+            if (onlyWithHistory) activeFiltersCount++;
+            if (onlyFavorites) activeFiltersCount++;
+            if (selectedLeagues.length > 0) activeFiltersCount++;
+            if (msOu && msOu.getValues().length > 0) activeFiltersCount++;
+            if (prevHomeRes) activeFiltersCount++;
+            if (prevAwayRes) activeFiltersCount++;
+            if (h2hCol3Mirror) activeFiltersCount++;
+            if (h2hCol3Cover) activeFiltersCount++;
+            if (strategy) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-stadium-mov').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-stadium-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-general-mov').value) activeFiltersCount++;
+            if (document.getElementById('filter-h2h-general-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-ind-local-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-ind-local-loc').value) activeFiltersCount++;
+            if (document.getElementById('filter-ind-visitante-res').value) activeFiltersCount++;
+            if (document.getElementById('filter-ind-visitante-loc').value) activeFiltersCount++;
+            if (document.getElementById('filter-pick').value) activeFiltersCount++;
+            if (msHandicap && msHandicap.getValues().length > 0) activeFiltersCount++;
+            if (msH2hCol3Ah && msH2hCol3Ah.getValues().length > 0) activeFiltersCount++;
+            if (msPrevHomeAh && msPrevHomeAh.getValues().length > 0) activeFiltersCount++;
+            if (msPrevAwayAh && msPrevAwayAh.getValues().length > 0) activeFiltersCount++;
+            if (msIndLocalAh && msIndLocalAh.getValues().length > 0) activeFiltersCount++;
+            if (msIndVisitanteAh && msIndVisitanteAh.getValues().length > 0) activeFiltersCount++;
+
+            // Actualizar badge de filtros activos
+            const badge = document.getElementById('active-filters-badge');
+            if (badge) {
+                if (activeFiltersCount > 0) {
+                    badge.textContent = activeFiltersCount;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            const mobileBadge = document.getElementById('mobile-filters-count');
+            if (mobileBadge) {
+                if (activeFiltersCount > 0) {
+                    mobileBadge.textContent = activeFiltersCount;
+                    mobileBadge.style.display = 'inline-block';
+                } else {
+                    mobileBadge.style.display = 'none';
+                }
+            }
+
+            // Si no hay filas visibles, mostrar mensaje
+            if (visibleCount === 0) {
+                const noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `<td colspan="13" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
+                const existing = document.getElementById('no-results-row');
+                if (existing) existing.remove();
+                tbody.appendChild(noResultsRow);
+            } else {
+                const existing = document.getElementById('no-results-row');
+                if (existing) existing.remove();
+            }
+        }
+
+        // Helper global para validar valores
+        const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+        function parseNumericValue(value) {
+            if (value === undefined || value === null) return null;
+            const cleaned = String(value).replace(',', '.').trim();
+            if (!cleaned || cleaned === '-' || cleaned === 'N/A' || cleaned.includes('?')) return null;
+            const num = parseFloat(cleaned);
+            return Number.isFinite(num) ? num : null;
+        }
+
+        function parseScoreValue(score) {
+            if (!score) return null;
+            const normalized = String(score).replace('-', ':').trim();
+            if (!normalized || normalized.includes('?')) return null;
+            const parts = normalized.split(':');
+            if (parts.length !== 2) return null;
+            const home = parseInt(parts[0], 10);
+            const away = parseInt(parts[1], 10);
+            if (!Number.isFinite(home) || !Number.isFinite(away)) return null;
+            return { home, away, total: home + away };
+        }
+
+        function sameTeamName(a, b) {
+            const left = String(a || '').trim().toLowerCase();
+            const right = String(b || '').trim().toLowerCase();
+            return !!left && !!right && (left === right || left.includes(right) || right.includes(left));
+        }
+
+        function favoriteSideFromAh(ah) {
+            const val = parseNumericValue(ah);
+            if (val === null || Math.abs(val) < 0.01) return 'PICKEM';
+            // En Handicap Asiatico: si la linea del Local es negativa (val < 0), el Local da goles -> LOCAL ES FAVORITO
+            // Si la linea del Local es positiva (val > 0), el Visitante da goles -> VISITANTE ES FAVORITO
+            return val < 0 ? 'HOME' : 'AWAY';
+        }
+
+        function getFavoriteNameForAh(pc, ah) {
+            const side = favoriteSideFromAh(ah);
+            if (side === 'HOME') return pc?.home_name || pc?.home_team || '';
+            if (side === 'AWAY') return pc?.away_name || pc?.away_team || '';
+            return '';
+        }
+
+        function getDogNameForAh(pc, ah) {
+            const side = favoriteSideFromAh(ah);
+            if (side === 'HOME') return pc?.away_name || pc?.away_team || '';
+            if (side === 'AWAY') return pc?.home_name || pc?.home_team || '';
+            return '';
+        }
+
+        function formatAhDisplay(ah, forcePlus = false) {
+            const val = parseNumericValue(ah);
+            if (val === null) return '-';
+            const rounded = Math.round(val * 100) / 100;
+            const abs = Math.abs(rounded);
+            const txt = Number.isInteger(abs) ? String(abs) : String(abs).replace(/0+$/, '').replace(/\.$/, '');
+            if (rounded > 0) return `${forcePlus ? '+' : ''}${txt}`;
+            if (rounded < 0) return `-${txt}`;
+            return '0';
+        }
+
+        function pressureBand(value) {
+            const val = Math.abs(parseNumericValue(value) ?? 0);
+            if (val < 0.01) return '0';
+            if (val <= 0.25) return '0.25';
+            if (val <= 0.5) return '0.5';
+            if (val <= 0.75) return '0.75';
+            if (val <= 1.0) return '1';
+            if (val <= 1.25) return '1.25';
+            if (val <= 1.5) return '1.5';
+            if (val <= 1.75) return '1.75';
+            if (val <= 2.0) return '2';
+            return '2+';
+        }
+
+        function pressureFamily(value) {
+            const val = Math.abs(parseNumericValue(value) ?? 0);
+            if (val < 0.01) return 'DNB';
+            if (val <= 0.25) return 'empate medio castigo';
+            if (val <= 0.75) return 'un gol cobra';
+            if (val <= 1.0) return 'un gol push';
+            if (val <= 1.25) return 'un gol medio fallo';
+            if (val <= 1.75) return 'necesita dos';
+            if (val <= 2.0) return 'dos goles push';
+            return 'necesita tres';
+        }
+
+        function residualLabel(residual) {
+            if (residual === null || residual === undefined || !Number.isFinite(residual)) return 'UNKNOWN';
+            if (residual >= 0.25) return 'COVER';
+            if (residual <= -0.25) return 'FAIL';
+            return 'PUSH';
+        }
+
+        function overUnderLabel(residual) {
+            if (residual === null || residual === undefined || !Number.isFinite(residual)) return 'UNKNOWN';
+            if (residual >= 0.25) return 'OVER';
+            if (residual <= -0.25) return 'UNDER';
+            return 'PUSH';
+        }
+
+        function extractOuLineFromBlock(block) {
+            if (!block || typeof block !== 'object') return null;
+            return parseNumericValue(
+                block.goals_linea ??
+                block.goals_line ??
+                block.goal_line ??
+                block.ou_line ??
+                block.over_under_line ??
+                block.total_line ??
+                block.total_goals_line
+            );
+        }
+
+        function statsEdgeForTeam(statsRows, teamIsHome) {
+            const out = { score: 0, verdict: 'NO_STATS', shotsDiff: null, sotDiff: null, dangerDiff: null };
+            if (!Array.isArray(statsRows) || teamIsHome === null || teamIsHome === undefined) return out;
+            const norm = (v, scale) => Math.tanh(v / scale);
+            for (const row of statsRows) {
+                const label = String(row?.label || '').toLowerCase();
+                const h = parseNumericValue(row?.home);
+                const a = parseNumericValue(row?.away);
+                if (h === null || a === null) continue;
+                const team = teamIsHome ? h : a;
+                const opp = teamIsHome ? a : h;
+                const diff = team - opp;
+                if (label.includes('tiros a puerta')) {
+                    out.sotDiff = diff;
+                    out.score += 0.35 * norm(diff, 3);
+                } else if (label === 'tiros' || label.includes('shots')) {
+                    out.shotsDiff = diff;
+                    out.score += 0.18 * norm(diff, 7);
+                } else if (label.includes('ataques peligrosos')) {
+                    out.dangerDiff = diff;
+                    out.score += 0.28 * norm(diff, 20);
+                } else if (label === 'ataques') {
+                    out.score += 0.12 * norm(diff, 35);
+                }
+            }
+            out.score = Math.round(out.score * 1000) / 1000;
+            if (out.score >= 0.30) out.verdict = 'STRONG_FOR_TEAM';
+            else if (out.score >= 0.12) out.verdict = 'LEAN_FOR_TEAM';
+            else if (out.score <= -0.30) out.verdict = 'STRONG_AGAINST_TEAM';
+            else if (out.score <= -0.12) out.verdict = 'LEAN_AGAINST_TEAM';
+            else out.verdict = 'NEUTRAL';
+            return out;
+        }
+
+        function teamIsHomeInBlock(homeName, awayName, teamName) {
+            if (sameTeamName(homeName, teamName)) return true;
+            if (sameTeamName(awayName, teamName)) return false;
+            return null;
+        }
+
+        function pressureForTeamFromHomeLine(homeLine, teamIsHome) {
+            const line = parseNumericValue(homeLine);
+            if (line === null || teamIsHome === null || teamIsHome === undefined) return null;
+            return teamIsHome ? line : -line;
+        }
+
+        function marginForTeam(score, teamIsHome) {
+            const parsed = parseScoreValue(score);
+            if (!parsed || teamIsHome === null || teamIsHome === undefined) return null;
+            return teamIsHome ? parsed.home - parsed.away : parsed.away - parsed.home;
+        }
+
+        function pressureChangeLabel(thenPressure, nowPressure) {
+            if (thenPressure === null || nowPressure === null) return 'UNKNOWN';
+            if (nowPressure > 0 && thenPressure > 0) {
+                const delta = nowPressure - thenPressure;
+                if (delta <= -0.25) return 'LOWER_PRESSURE_KEEP_FAVORITE';
+                if (delta >= 0.25) return 'RAISE_PRESSURE_KEEP_FAVORITE';
+                return 'SAME_PRESSURE_KEEP_FAVORITE';
+            }
+            if (nowPressure > 0 && thenPressure <= 0) return 'NEW_FAVORITE_STATUS';
+            if (nowPressure <= 0 && thenPressure > 0) return 'FAVORITE_STATUS_REMOVED';
+            return 'NO_FAVORITE_PRESSURE';
+        }
+
+        function buildH2HCase(pc, kind, currentAh, favoriteName) {
+            const market = pc?.market_analysis_data || {};
+            const nowPressure = Math.abs(parseNumericValue(currentAh) ?? 0);
+            let raw = null;
+            let home = '';
+            let away = '';
+            let histLine = null;
+            let score = null;
+            let date = '';
+            let statsRows = [];
+
+            if (kind === 'stadium') {
+                raw = pc?.h2h_stadium || {};
+                const st = market.stadium || {};
+                home = pc?.home_name || pc?.home_team || '';
+                away = pc?.away_name || pc?.away_team || '';
+                histLine = parseNumericValue(raw.ah1);
+                if (histLine === null) histLine = parseH2HMovement(st.movement || '').start;
+                score = st.result || raw.res1;
+                date = st.date || raw.date1 || '';
+                statsRows = raw.stats_rows || st.stats_rows || [];
+            } else {
+                raw = pc?.h2h_general || {};
+                const gen = market.general || {};
+                home = raw.h2h_gen_home || '';
+                away = raw.h2h_gen_away || '';
+                histLine = parseNumericValue(raw.ah6);
+                if (histLine === null) histLine = parseNumericValue(raw.ah1);
+                if (histLine === null) histLine = parseH2HMovement(gen.movement || '').start;
+                score = gen.result || raw.res6 || raw.res1;
+                date = gen.date || raw.date6 || raw.date1 || '';
+                statsRows = raw.stats_rows || gen.stats_rows || [];
+            }
+
+            if (!score || String(score).includes('?')) return null;
+            const favIsHome = teamIsHomeInBlock(home, away, favoriteName);
+            const thenPressure = pressureForTeamFromHomeLine(histLine, favIsHome);
+            const margin = marginForTeam(score, favIsHome);
+            const residualNow = margin !== null ? margin - nowPressure : null;
+            const residualThen = margin !== null && thenPressure !== null ? margin - Math.abs(thenPressure) : null;
+            const total = parseScoreValue(score)?.total ?? null;
+
+            return {
+                kind,
+                home,
+                away,
+                score,
+                date,
+                histLine,
+                thenPressure,
+                nowPressure,
+                delta: thenPressure !== null ? nowPressure - thenPressure : null,
+                pressureLabel: pressureChangeLabel(thenPressure, nowPressure),
+                margin,
+                residualNow,
+                residualThen,
+                coverNow: residualLabel(residualNow),
+                coverThen: residualLabel(residualThen),
+                total,
+                stats: statsEdgeForTeam(statsRows, favIsHome),
+            };
+        }
+
+        function buildRecentCase(block, teamName) {
+            if (!block || !block.score) return null;
+            const teamIsHome = teamIsHomeInBlock(block.home_team, block.away_team, teamName);
+            const line = parseNumericValue(block.handicap_line_raw ?? block.ah ?? block.handicap);
+            const pressure = pressureForTeamFromHomeLine(line, teamIsHome);
+            const margin = marginForTeam(block.score, teamIsHome);
+            const residual = margin !== null && pressure !== null ? margin - pressure : null;
+            const total = parseScoreValue(block.score)?.total ?? null;
+            const ouLine = extractOuLineFromBlock(block);
+            const ouResidual = total !== null && ouLine !== null ? total - ouLine : null;
+            return {
+                score: block.score,
+                total,
+                line,
+                pressure,
+                margin,
+                cover: residualLabel(residual),
+                residual,
+                ouLine,
+                ouOwn: overUnderLabel(ouResidual),
+                stats: statsEdgeForTeam(block.stats_rows || [], teamIsHome),
+            };
+        }
+
+        function buildIndirectCase(block, teamName) {
+            if (!block || !block.score || !teamName) return null;
+            const teamIsHome = teamIsHomeInBlock(block.home_team, block.away_team, teamName);
+            const line = parseNumericValue(block.ah_line ?? block.handicap_line_raw ?? block.ah ?? block.handicap);
+            const pressure = pressureForTeamFromHomeLine(line, teamIsHome);
+            const margin = marginForTeam(block.score, teamIsHome);
+            const residual = margin !== null && pressure !== null ? margin - pressure : null;
+            const total = parseScoreValue(block.score)?.total ?? null;
+            const ouLine = extractOuLineFromBlock(block);
+            const ouResidual = total !== null && ouLine !== null ? total - ouLine : null;
+            return {
+                score: block.score,
+                total,
+                line,
+                pressure,
+                margin,
+                cover: residualLabel(residual),
+                residual,
+                ouLine,
+                ouOwn: overUnderLabel(ouResidual),
+                stats: statsEdgeForTeam(block.stats_rows || [], teamIsHome),
+            };
+        }
+
+        function generalStatsMetricKey(label) {
+            const normalized = String(label || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim();
+            if (normalized.includes('tiros a puerta') || normalized.includes('shots on goal')) return 'sot';
+            if (normalized.includes('ataques peligrosos') || normalized.includes('dangerous attacks')) return 'danger';
+            if (normalized === 'tiros' || normalized === 'shots' || normalized.includes('total shots')) return 'shots';
+            if (normalized === 'ataques' || normalized === 'attacks') return 'attacks';
+            return '';
+        }
+
+        function isVerifiedSameLeague(pc, block) {
+            if (!pc || !block || typeof block !== 'object') return false;
+            if (block.is_different_league === true || block.is_general_fallback === true) return false;
+            const currentLeague = String(pc.league_id ?? '').trim();
+            const historicalLeague = String(block.league_id_hist ?? block.league_id ?? '').trim();
+            if (currentLeague && historicalLeague) return currentLeague === historicalLeague;
+            return block.is_different_league === false || block.same_league === true || block.history_scope === 'same_league';
+        }
+
+        function buildGeneralStatsSample(block, teamName, fallbackOuLine) {
+            if (!block || !teamName) return null;
+            const teamIsHome = teamIsHomeInBlock(block.home, block.away, teamName);
+            const score = parseScoreValue(block.score);
+            if (teamIsHome === null || !score) return null;
+
+            const ownGoals = teamIsHome ? score.home : score.away;
+            const rivalGoals = teamIsHome ? score.away : score.home;
+            const homeAh = parseNumericValue(block.ah);
+            const teamPressure = pressureForTeamFromHomeLine(homeAh, teamIsHome);
+            const margin = ownGoals - rivalGoals;
+            const ahResidual = teamPressure === null ? null : margin - teamPressure;
+            const cover = ahResidual === null ? 'UNKNOWN' : residualLabel(ahResidual);
+            const ouLine = parseNumericValue(block.ou) ?? parseNumericValue(fallbackOuLine);
+            const ouResidual = ouLine === null ? null : score.total - ouLine;
+            const ou = ouResidual === null ? 'UNKNOWN' : overUnderLabel(ouResidual);
+
+            const metrics = { shots: null, sot: null, attacks: null, danger: null, rivalSot: null };
+            for (const row of Array.isArray(block.stats) ? block.stats : []) {
+                const key = generalStatsMetricKey(row?.label || row?.name);
+                if (!key) continue;
+                const homeValue = parseNumericValue(row?.home);
+                const awayValue = parseNumericValue(row?.away);
+                if (homeValue === null || awayValue === null) continue;
+                metrics[key] = teamIsHome ? homeValue : awayValue;
+                if (key === 'sot') metrics.rivalSot = teamIsHome ? awayValue : homeValue;
+            }
+
+            return {
+                ownGoals,
+                rivalGoals,
+                won: ownGoals > rivalGoals,
+                lost: ownGoals < rivalGoals,
+                cover,
+                ou,
+                ...metrics,
+            };
+        }
+
+        function collectTeamGeneralStats(pc, teamName, side, fallbackOuLine) {
+            if (!pc) return [];
+            const market = pc.market_analysis_data || {};
+            const samples = [];
+            const add = block => {
+                if (!isVerifiedSameLeague(pc, block)) return;
+                const sample = buildGeneralStatsSample(block, teamName, fallbackOuLine);
+                if (sample) samples.push(sample);
+            };
+
+            if (side === 'home') {
+                const previous = pc.last_home_match || {};
+                add({
+                    ...previous,
+                    home: previous.home_team,
+                    away: previous.away_team,
+                    score: previous.score,
+                    ah: previous.handicap_line_raw,
+                    ou: previous.over_under_line_raw,
+                    stats: previous.stats_rows,
+                });
+
+                const raw = pc.h2h_stadium || {};
+                const stadium = market.stadium || {};
+                const stadiumMovement = parseH2HMovement(stadium.movement || '');
+                add({
+                    home: pc.home_name || pc.home_team,
+                    away: pc.away_name || pc.away_team,
+                    score: stadium.result || raw.res1 || raw.res1_raw,
+                    ah: raw.ah1 ?? stadiumMovement.start,
+                    ou: extractOuLineFromBlock(raw) ?? extractOuLineFromBlock(stadium),
+                    stats: raw.stats_rows || stadium.stats_rows,
+                    league_id_hist: raw.league_id_hist,
+                    is_different_league: raw.is_different_league,
+                    history_scope: raw.history_scope,
+                });
+
+                const indirect = (pc.comparativas_indirectas || {}).left || {};
+                add({
+                    ...indirect,
+                    home: indirect.home_team,
+                    away: indirect.away_team,
+                    score: indirect.score,
+                    ah: indirect.ah_line ?? indirect.ah,
+                    ou: extractOuLineFromBlock(indirect),
+                    stats: indirect.stats_rows,
+                });
+            } else {
+                const previous = pc.last_away_match || {};
+                add({
+                    ...previous,
+                    home: previous.home_team,
+                    away: previous.away_team,
+                    score: previous.score,
+                    ah: previous.handicap_line_raw,
+                    ou: previous.over_under_line_raw,
+                    stats: previous.stats_rows,
+                });
+
+                const raw = pc.h2h_general || {};
+                const general = market.general || {};
+                const generalMovement = parseH2HMovement(general.movement || '');
+                add({
+                    home: raw.h2h_gen_home || general.home_team,
+                    away: raw.h2h_gen_away || general.away_team,
+                    score: general.result || raw.res6 || raw.res6_raw,
+                    ah: raw.ah6 ?? raw.ah1 ?? generalMovement.start,
+                    ou: extractOuLineFromBlock(raw) ?? extractOuLineFromBlock(general),
+                    stats: raw.stats_rows || general.stats_rows,
+                    league_id_hist: raw.league_id_hist,
+                    is_different_league: raw.is_different_league,
+                    history_scope: raw.history_scope,
+                });
+
+                const indirect = (pc.comparativas_indirectas || {}).right || {};
+                add({
+                    ...indirect,
+                    home: indirect.home_team,
+                    away: indirect.away_team,
+                    score: indirect.score,
+                    ah: indirect.ah_line ?? indirect.ah,
+                    ou: extractOuLineFromBlock(indirect),
+                    stats: indirect.stats_rows,
+                });
+            }
+            return samples;
+        }
+
+        function summarizeTeamGeneralStats(pc, teamName, side, fallbackOuLine) {
+            const samples = collectTeamGeneralStats(pc, teamName, side, fallbackOuLine);
+            const sameLeagueHistory = side === 'home'
+                ? (pc?.recent_home_matches_same_league_general || [])
+                : (pc?.recent_away_matches_same_league_general || []);
+            let historyWins = 0;
+            let historyTotal = 0;
+            sameLeagueHistory.forEach(item => {
+                const score = parseScoreValue(item?.score || item?.score_raw);
+                if (!score) return;
+                const subjectHome = sameTeamName(item?.home, teamName);
+                const subjectAway = sameTeamName(item?.away, teamName);
+                if (!subjectHome && !subjectAway) return;
+                historyTotal += 1;
+                if ((subjectHome && score.home > score.away) || (subjectAway && score.away > score.home)) historyWins += 1;
+            });
+            const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
+            const winsTable = parseNumericValue(standings.total_v);
+            const drawsTable = parseNumericValue(standings.total_e);
+            const points = winsTable === null || drawsTable === null ? null : winsTable * 3 + drawsTable;
+            const mean = key => {
+                const values = samples.map(sample => sample[key]).filter(Number.isFinite);
+                return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+            };
+            const covers = samples.filter(sample => sample.cover === 'COVER').length;
+            const coverFails = samples.filter(sample => sample.cover === 'FAIL').length;
+            const coverTotal = covers + coverFails;
+            const coverPct = coverTotal ? covers * 100 / coverTotal : null;
+            const ouStats = side === 'home' ? pc?.home_ou_stats_general : pc?.away_ou_stats_general;
+            const statsOvers = parseNumericValue(ouStats?.over);
+            const statsUnders = parseNumericValue(ouStats?.under);
+            const overs = statsOvers !== null ? statsOvers : samples.filter(sample => sample.ou === 'OVER').length;
+            const unders = statsUnders !== null ? statsUnders : samples.filter(sample => sample.ou === 'UNDER').length;
+            const ouTotal = overs + unders;
+            const overPct = ouTotal ? overs * 100 / ouTotal : null;
+            const detailWins = samples.filter(sample => sample.won).length;
+            const wins = historyTotal ? historyWins : detailWins;
+            const losses = samples.filter(sample => sample.lost).length;
+
+            let offensiveGoals = 0;
+            let offensiveSot = 0;
+            let defensiveGoals = 0;
+            let defensiveSot = 0;
+            samples.forEach(sample => {
+                if (Number.isFinite(sample.sot) && sample.sot > 0) {
+                    offensiveGoals += sample.ownGoals;
+                    offensiveSot += sample.sot;
+                }
+                if (Number.isFinite(sample.rivalSot) && sample.rivalSot > 0) {
+                    defensiveGoals += sample.rivalGoals;
+                    defensiveSot += sample.rivalSot;
+                }
+            });
+
+            const avgGoalsFor = mean('ownGoals');
+            const avgGoalsAgainst = mean('rivalGoals');
+            let alert = 'DATOS EQUILIBRADOS';
+            let alertClass = '';
+            if (avgGoalsAgainst !== null && avgGoalsAgainst > 2) {
+                alert = '⚠ DEFENSA FRÁGIL';
+                alertClass = 'is-bad';
+            } else if (avgGoalsFor !== null && avgGoalsFor < 1) {
+                alert = '● POBRE ATAQUE';
+                alertClass = 'is-bad';
+            } else if (samples.length && losses / samples.length > .6) {
+                alert = '⚠ MAL MOMENTO';
+                alertClass = 'is-bad';
+            } else if (samples.length && detailWins / samples.length > .6) {
+                alert = '✓ BUEN MOMENTO';
+                alertClass = 'is-good';
+            }
+
+            return {
+                samples: historyTotal || samples.length,
+                wins,
+                points,
+                coverPct,
+                coverText: coverTotal ? `${covers}/${coverTotal}` : 'N/A',
+                overPct,
+                ouText: ouTotal ? `${overs}O/${unders}U` : 'N/A',
+                shots: mean('shots'),
+                sot: mean('sot'),
+                attacks: mean('attacks'),
+                danger: mean('danger'),
+                efficiencyFor: offensiveSot ? offensiveGoals / offensiveSot : null,
+                efficiencyAgainst: defensiveSot ? defensiveGoals / defensiveSot : null,
+                alert,
+                alertClass,
+            };
+        }
+
+        function renderTeamGeneralStatsLegacy(pc, teamName, side, fallbackOuLine, formRowsHtml) {
+            const stats = summarizeTeamGeneralStats(pc, teamName, side, fallbackOuLine);
+            const fmt = (value, digits = 1) => Number.isFinite(value) ? value.toFixed(digits) : 'N/A';
+            const tone = (value, type) => {
+                if (!Number.isFinite(value)) return '';
+                if (type === 'ah') return value >= 60 ? 'is-good' : (value < 40 ? 'is-bad' : 'is-warn');
+                if (type === 'ou') return value >= 60 ? 'is-good' : (value <= 40 ? 'is-bad' : 'is-warn');
+                return '';
+            };
+            const metric = (label, value, className = '') => `
+                <span class="team-general-stat">
+                    <span class="team-general-stat-label">${label}</span>
+                    <span class="team-general-stat-value ${className}">${value}</span>
+                </span>`;
+            const headerMeta = [
+                stats.samples ? `V ${stats.wins}/${stats.samples}` : '',
+                Number.isFinite(stats.points) ? `${stats.points} PTS` : '',
+            ].filter(Boolean).join(' · ') || 'N/A';
+            const ahValue = Number.isFinite(stats.coverPct)
+                ? `${fmt(stats.coverPct, 0)}% ${stats.coverText}`
+                : 'N/A';
+            const ouValue = Number.isFinite(stats.overPct)
+                ? `${fmt(stats.overPct, 0)}%O ${stats.ouText}`
+                : 'N/A';
+
+            return `
+                <div class="team-general-stats">
+                    <div class="team-general-stats-head"><span>STATS GENERALES</span><span>${headerMeta}</span></div>
+                    <span class="team-general-scope">&#10003; MISMA LIGA</span>
+                    ${formRowsHtml ? `<div class="team-form-compact">${formRowsHtml}</div>` : ''}
+                    <div class="team-general-stats-grid">
+                        ${metric('AH', ahValue, tone(stats.coverPct, 'ah'))}
+                        ${metric('O/U', ouValue, tone(stats.overPct, 'ou'))}
+                        ${metric('T', fmt(stats.shots))}
+                        ${metric('TP', fmt(stats.sot))}
+                        ${metric('A', fmt(stats.attacks))}
+                        ${metric('AP', fmt(stats.danger))}
+                        ${metric('EF+', fmt(stats.efficiencyFor, 2))}
+                        ${metric('EF-', fmt(stats.efficiencyAgainst, 2))}
+                    </div>
+                    <div class="team-general-alert ${stats.alertClass}">${stats.alert}</div>
+                </div>`;
+        }
+
+        function showPreMatchContext(statsId) {
+            const collapseElement = document.getElementById(statsId);
+            if (!collapseElement) return;
+            const reveal = () => {
+                const panel = collapseElement.querySelector('.pre-context-panel');
+                if (!panel) return;
+                panel.classList.add('is-focused');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                setTimeout(() => panel.classList.remove('is-focused'), 1400);
+            };
+            if (collapseElement.classList.contains('show')) {
+                reveal();
+                return;
+            }
+            collapseElement.addEventListener('shown.bs.collapse', reveal, { once: true });
+            bootstrap.Collapse.getOrCreateInstance(collapseElement, { toggle: false }).show();
+        }
+
+        async function copyPreMatchContext(button, matchId) {
+            const encoded = button?.dataset?.context || '';
+            const contextText = decodeURIComponent(encoded);
+            if (!contextText || !matchId) return;
+            const original = button.innerHTML;
+            const deferredClipboard = beginDeferredClipboardWrite();
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Preparando';
+            try {
+                const response = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
+                const data = await response.json();
+                if (!response.ok || !data.success || !data.prompt) {
+                    throw new Error(data.error || 'No se pudo generar el prompt LLM');
+                }
+                const divider = '='.repeat(72);
+                const combined = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
+                await deferredClipboard.finish(combined);
+                button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
+                button.classList.add('btn-success');
+                setTimeout(() => {
+                    button.innerHTML = original;
+                    button.classList.remove('btn-success');
+                    button.disabled = false;
+                }, 1800);
+            } catch (error) {
+                deferredClipboard.cancel(error);
+                button.innerHTML = original;
+                button.disabled = false;
+                alert('Error al preparar contexto + prompt LLM: ' + error.message);
+            }
+        }
+
+        function togglePreMatchLeagueFilter(input) {
+            filterPreMatchContextLeague(input);
+        }
+
+        function resolveLeagueId(pc, matchPayload) {
+            if (!pc && !matchPayload) return '';
+            const candidates = [
+                pc?.league_id,
+                pc?.current?.league_id,
+                pc?.candidate?.league_id,
+                pc?.market_analysis_data?.league_id,
+                matchPayload?.league_id,
+                matchPayload?.candidate?.league_id,
+                matchPayload?.market_analysis_data?.league_id
+            ];
+            for (const val of candidates) {
+                if (val !== undefined && val !== null && val !== '' && val !== 'null' && val !== 'undefined') {
+                    const str = String(val).trim();
+                    if (str && str !== 'null' && str !== 'undefined' && str !== '-') return str;
+                }
+            }
+            const homeMatches = pc?.current?.home_matches || pc?.home_matches || pc?.recent_home_matches || [];
+            const awayMatches = pc?.current?.away_matches || pc?.away_matches || pc?.recent_away_matches || [];
+            const allMatches = [...(Array.isArray(homeMatches) ? homeMatches : []), ...(Array.isArray(awayMatches) ? awayMatches : [])];
+            const counts = {};
+            for (const m of allMatches) {
+                const lid = m?.league_id_hist ?? m?.league_id;
+                if (lid !== undefined && lid !== null && lid !== '' && lid !== 'null' && lid !== 'undefined' && lid !== '-') {
+                    const clean = String(lid).trim();
+                    if (clean && clean !== 'null' && clean !== 'undefined' && clean !== '-') {
+                        counts[clean] = (counts[clean] || 0) + 1;
+                    }
+                }
+            }
+            let maxCount = 0;
+            let bestLg = '';
+            for (const [lg, count] of Object.entries(counts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestLg = lg;
+                }
+            }
+            return bestLg;
+        }
+
+        function renderPreMatchContext(pc, currentHome, currentAway) {
+            const esc = value => String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            const asRows = value => Array.isArray(value) ? value : [];
+            const context = pc?.pre_match_context || {};
+            const current = context.current || {
+                date: pc?.match_date || pc?.date || '',
+                home_name: currentHome,
+                away_name: currentAway,
+                league_id: pc?.league_id || '',
+                league_name: pc?.league_name || '',
+                is_neutral_venue: !!pc?.is_neutral_venue,
+                home_matches: pc?.recent_home_matches_same_league_specific || pc?.recent_home_matches || [],
+                away_matches: pc?.recent_away_matches_same_league_specific || pc?.recent_away_matches || [],
+            };
+            const resolvedLeague = resolveLeagueId(pc);
+            const currentLeagueId = resolvedLeague;
+
+            const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
+            let previous = context.previous || null;
+            if (!previous && rawH2h?.match6_id) {
+                const cutoff = String(rawH2h.date6 || '');
+                const historyFor = team => sameTeamName(team, currentHome)
+                    ? asRows(pc?.recent_home_matches_same_league_general || pc?.recent_home_matches_all || pc?.recent_home_matches)
+                    : asRows(pc?.recent_away_matches_same_league_general || pc?.recent_away_matches_all || pc?.recent_away_matches);
+                const olderAtVenue = (team, role) => historyFor(team).filter(item => {
+                    const correctRole = role === 'home'
+                        ? sameTeamName(item?.home ?? item?.home_team, team)
+                        : sameTeamName(item?.away ?? item?.away_team, team);
+                    return correctRole && (!cutoff || !item?.date || String(item.date) < cutoff);
+                });
+                const previousHome = rawH2h.h2h_gen_home || currentHome;
+                const previousAway = rawH2h.h2h_gen_away || currentAway;
+                previous = {
+                    date: rawH2h.date6,
+                    score: rawH2h.res6,
+                    ah_line: rawH2h.ah6,
+                    home_name: previousHome,
+                    away_name: previousAway,
+                    home_matches: olderAtVenue(previousHome, 'home'),
+                    away_matches: olderAtVenue(previousAway, 'away'),
+                };
+            }
+
+            const renderTeam = (teamName, role, matches, allVenues = false) => {
+                let wins = 0, draws = 0, losses = 0;
+                const rows = asRows(matches).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    const result = own === null ? '' : (own > rivalGoals ? 'W' : (own < rivalGoals ? 'L' : 'D'));
+                    if (result === 'W') wins += 1;
+                    else if (result === 'D') draws += 1;
+                    else if (result === 'L') losses += 1;
+                    const rival = subjectHome
+                        ? (item?.away ?? item?.away_team ?? '')
+                        : (item?.home ?? item?.home_team ?? '');
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    const normCurrent = normLeagueId(currentLeagueId);
+                    const normRow = normLeagueId(leagueId);
+                    const sameLeague = !!normCurrent && normRow === normCurrent;
+                    return `<tr class="pre-context-result-${result}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-same-league="${sameLeague ? '1' : '0'}">
+                        <td class="ctx-date">${esc(item?.date || '-')}</td>
+                        <td class="ctx-league">${esc(leagueId)}</td>
+                        <td title="${esc(rival)}">${esc(rival || '-')}</td>
+                        <td class="ctx-score">${esc(item?.score || item?.score_raw || '-')}</td>
+                        <td class="ctx-ah">${esc(item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-')}</td>
+                    </tr>`;
+                }).join('');
+                return `<div class="pre-context-team">
+                    <div class="pre-context-team-head">
+                        <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
+                        <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
+                    </div>
+                    ${rows ? `<table class="pre-context-table">
+                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga ID</th><th>Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="pre-context-filter-empty">Sin partidos de la liga actual</div>
+                    <div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>`
+                    : '<div class="pre-context-empty">Sin historial previo disponible</div>'}
+                </div>`;
+            };
+
+            const formatAhNumber = value => Number.isFinite(Number(value))
+                ? `${Number(value) > 0 ? '+' : ''}${Number(value)}`
+                : 'N/D';
+            const renderSimilarAh = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return '';
+                const summary = (label, data) => {
+                    const samples = Number(data?.samples) || 0;
+                    const cover = Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D';
+                    const gf = Number.isFinite(Number(data?.goals_for_avg)) ? Number(data.goals_for_avg).toFixed(1) : 'N/D';
+                    const gc = Number.isFinite(Number(data?.goals_against_avg)) ? Number(data.goals_against_avg).toFixed(1) : 'N/D';
+                    return `<div class="pre-context-ah-team"><strong>${label} · AH ${formatAhNumber(data?.target_line)}</strong><br>${samples} partidos · V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0}<br>Cover ${cover} · GF ${gf} / GC ${gc}</div>`;
+                };
+                const correlation = analysis.correlation || {};
+                const tone = String(correlation.status || 'INSUFFICIENT').toLowerCase();
+                const threshold = analysis.home?.threshold ?? analysis.away?.threshold;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `<div class="pre-context-ah-analysis">
+                    <div class="pre-context-ah-title">Hándicaps similares ${threshold !== null && threshold !== undefined ? `· margen ±${threshold}` : ''}</div>
+                    <div class="pre-context-ah-grid">${summary(homeLabel, analysis.home)}${summary(awayLabel, analysis.away)}</div>
+                    <div class="pre-context-correlation is-${tone}">${esc(correlation.label || 'Muestra insuficiente')} · ${esc(correlation.confidence || 'BAJA')}</div>
+                </div>`;
+            };
+
+            const renderMoment = (title, moment, isPrevious = false) => {
+                if (!moment) return `<section class="pre-context-moment"><div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div></div><div class="pre-context-empty">No hay un enfrentamiento anterior disponible</div></section>`;
+                const momentHome = moment.home_name || currentHome;
+                const momentAway = moment.away_name || currentAway;
+                const allVenues = !!moment.is_neutral_venue;
+                const homeAllVenues = allVenues || !!moment.home_all_venues_fallback;
+                const awayAllVenues = allVenues || !!moment.away_all_venues_fallback;
+                const reversed = isPrevious && sameTeamName(momentHome, currentAway);
+                const metaText = isPrevious
+                    ? `${moment.date || 'Fecha N/D'} · ${momentHome} ${moment.score || '-'} ${momentAway}${reversed ? ' · LOCALÍAS INVERTIDAS' : ' · MISMAS LOCALÍAS'}`
+                    : (allVenues
+                        ? `${momentHome} + ${momentAway} · TODAS LAS LOCALÍAS · TODAS LAS LIGAS`
+                        : `${momentHome} en casa · ${momentAway} fuera · TODAS LAS LIGAS`);
+                const filteredMetaText = `${isPrevious ? `${moment.date || 'Fecha N/D'} · ` : ''}LIGA ID ${currentLeagueId || 'N/D'}`;
+                return `<section class="pre-context-moment">
+                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
+                    <div class="pre-context-team-grid">
+                        ${renderTeam(momentHome, 'home', moment.home_matches, homeAllVenues)}
+                        ${renderTeam(momentAway, 'away', moment.away_matches, awayAllVenues)}
+                    </div>
+                    ${renderSimilarAh(moment)}
+                </section>`;
+            };
+
+            const teamText = (teamName, role, matches, allVenues = false) => {
+                let wins = 0, draws = 0, losses = 0;
+                const lines = asRows(matches).map(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                    const own = score ? (subjectHome ? score.home : score.away) : null;
+                    const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
+                    if (own !== null) {
+                        if (own > rivalGoals) wins += 1;
+                        else if (own < rivalGoals) losses += 1;
+                        else draws += 1;
+                    }
+                    const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
+                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                });
+                return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}\n${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}\nResumen: V ${wins} | E ${draws} | D ${losses}`;
+            };
+            const similarAhText = moment => {
+                const analysis = moment?.similar_ah;
+                if (!analysis) return 'HÁNDICAPS SIMILARES: sin datos';
+                const row = (label, data) => `${label} AH ${formatAhNumber(data?.target_line)} (±${data?.threshold ?? 'N/D'}): ${data?.samples || 0} partidos | V ${data?.wins || 0} E ${data?.draws || 0} D ${data?.losses || 0} | Cover ${Number.isFinite(Number(data?.cover_pct)) ? `${Math.round(Number(data.cover_pct))}%` : 'N/D'} | GF ${data?.goals_for_avg ?? 'N/D'} GC ${data?.goals_against_avg ?? 'N/D'}`;
+                const homeLabel = moment?.is_neutral_venue ? 'EQUIPO 1' : 'CASA';
+                const awayLabel = moment?.is_neutral_venue ? 'EQUIPO 2' : 'FUERA';
+                return `HÁNDICAPS SIMILARES\n${row(homeLabel, analysis.home)}\n${row(awayLabel, analysis.away)}\nCORRELACIÓN: ${analysis.correlation?.label || 'Muestra insuficiente'} · confianza ${analysis.correlation?.confidence || 'BAJA'}`;
+            };
+            const sameLeagueMatches = matches => asRows(matches).filter(item => {
+                const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                return !!currentLeagueId && leagueId === currentLeagueId;
+            });
+            const currentNeutral = !!current.is_neutral_venue;
+            const currentLeague = String(current.league_id ?? pc.league_id ?? currentLeagueId ?? '').trim();
+            const currentText = `PARTIDO ACTUAL — ${current.home_name || currentHome} vs ${current.away_name || currentAway} — ${current.date || 'fecha N/D'}\n${teamText(current.home_name || currentHome, 'home', current.home_matches, currentNeutral)}\n\n${teamText(current.away_name || currentAway, 'away', current.away_matches, currentNeutral)}\n\n${similarAhText(current)}`;
+            let previousText = 'ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — No disponible';
+            if (previous) {
+                const previousHome = previous.home_name || currentHome;
+                const previousAway = previous.away_name || currentAway;
+                const previousNeutral = !!previous.is_neutral_venue;
+                const venueLabel = sameTeamName(previousHome, currentAway) ? 'LOCALÍAS INVERTIDAS' : 'MISMAS LOCALÍAS';
+                previousText = `ÚLTIMO ENFRENTAMIENTO ENTRE ELLOS — ${previousHome} ${previous.score || '-'} ${previousAway} — ${previous.date || 'fecha N/D'} — ${venueLabel}\nCómo llegaban antes de ese partido:\n${teamText(previousHome, 'home', previous.home_matches, previousNeutral)}\n\n${teamText(previousAway, 'away', previous.away_matches, previousNeutral)}\n\n${similarAhText(previous)}`;
+            }
+            const contextScope = currentNeutral
+                ? 'TODAS LAS LOCALÍAS · TODAS LAS LIGAS'
+                : 'CASA VS FUERA · TODAS LAS LIGAS';
+            const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
+            const filterDisabled = !currentLeague;
+            const hasPrevious = !!previous;
+
+            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}">
+                <div class="pre-context-head">
+                    <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
+                    <div class="pre-context-actions">
+                        <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
+                        ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
+                        <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
+                    </div>
+                </div>
+                <div class="pre-context-moments hide-previous">
+                    ${renderMoment('Partido actual', current)}
+                    ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
+                </div>
+            </div>`;
+        }
+
+        function togglePreMatchPreviousH2H(checkbox) {
+            const panel = checkbox?.closest('.pre-context-panel');
+            if (!panel) return;
+            const momentsContainer = panel.querySelector('.pre-context-moments');
+            if (!momentsContainer) return;
+            if (checkbox.checked) {
+                momentsContainer.classList.remove('hide-previous');
+            } else {
+                momentsContainer.classList.add('hide-previous');
+            }
+        }
+
+        function normLeagueId(val) {
+            if (val === undefined || val === null) return '';
+            return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+        }
+
+        function filterPreMatchContextLeague(checkbox) {
+            if (!checkbox) return;
+            const panel = checkbox.closest('.pre-context-panel');
+            if (!panel) return;
+            const rawCurrentLeague = String(panel.dataset.currentLeague || '').trim();
+            const normCurrent = normLeagueId(rawCurrentLeague);
+            const onlyCurrentLeague = !!checkbox.checked;
+
+            panel.querySelectorAll('.pre-context-team').forEach(team => {
+                const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')];
+                const counts = { W: 0, D: 0, L: 0 };
+                let visibleRows = 0;
+
+                rows.forEach(row => {
+                    let visible = true;
+                    if (onlyCurrentLeague) {
+                        const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
+                        const normRow = normLeagueId(rawRowLeague);
+                        visible = !!normCurrent && normRow === normCurrent;
+                    }
+                    row.style.display = visible ? '' : 'none';
+                    row.hidden = !visible;
+                    if (visible) {
+                        visibleRows += 1;
+                        const result = row.dataset.contextResult || row.dataset.result;
+                        if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
+                    }
+                });
+
+                const table = team.querySelector('.pre-context-table');
+                if (table) table.style.display = rows.length && !visibleRows ? 'none' : '';
+
+                team.querySelectorAll('[data-summary-result]').forEach(summary => {
+                    const result = summary.dataset.summaryResult;
+                    const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
+                    summary.textContent = `${prefix} ${counts[result] || 0}`;
+                });
+
+                const summaryDiv = team.querySelector('.pre-context-summary');
+                if (summaryDiv) {
+                    summaryDiv.style.display = rows.length && !visibleRows ? 'none' : 'flex';
+                    const win = summaryDiv.querySelector('.is-win');
+                    const draw = summaryDiv.querySelector('.is-draw');
+                    const loss = summaryDiv.querySelector('.is-loss');
+                    if (win && !win.dataset.summaryResult) win.textContent = `V ${counts.W}`;
+                    if (draw && !draw.dataset.summaryResult) draw.textContent = `E ${counts.D}`;
+                    if (loss && !loss.dataset.summaryResult) loss.textContent = `D ${counts.L}`;
+                }
+
+                const empty = team.querySelector('.pre-context-filter-empty');
+                if (empty) {
+                    empty.style.display = onlyCurrentLeague && rows.length && !visibleRows ? 'block' : 'none';
+                    empty.hidden = !(onlyCurrentLeague && rows.length && !visibleRows);
+                }
+            });
+
+            panel.querySelectorAll('[data-all-text][data-same-league-text]').forEach(element => {
+                element.textContent = onlyCurrentLeague ? element.dataset.sameLeagueText : element.dataset.allText;
+            });
+
+            const copyButton = panel.querySelector('.pre-context-copy');
+            if (copyButton && copyButton.dataset.sameLeagueContext) {
+                copyButton.dataset.context = onlyCurrentLeague ? copyButton.dataset.sameLeagueContext : copyButton.dataset.allContext;
+            }
+        }
+
+        function summarizeTeamSimpleLeagueStats(pc, teamName, side, scope = 'general') {
+            const specific = scope === 'specific';
+            const preferredMatchesRaw = side === 'home'
+                ? (specific ? (pc?.recent_home_matches_same_league_specific || []) : (pc?.recent_home_matches_same_league_general || []))
+                : (specific ? (pc?.recent_away_matches_same_league_specific || []) : (pc?.recent_away_matches_same_league_general || []));
+            const fallbackMatchesRaw = side === 'home'
+                ? (specific ? (pc?.recent_home_matches || []) : (pc?.recent_home_matches_all || pc?.recent_home_matches || []))
+                : (specific ? (pc?.recent_away_matches || []) : (pc?.recent_away_matches_all || pc?.recent_away_matches || []));
+            const preferredMatches = Array.isArray(preferredMatchesRaw) ? preferredMatchesRaw : [];
+            const fallbackMatches = Array.isArray(fallbackMatchesRaw) ? fallbackMatchesRaw : [];
+            let currentLeague = String(pc?.league_id ?? '').trim();
+            const legacyHistoryRows = [
+                pc?.recent_home_matches,
+                pc?.recent_home_matches_all,
+                pc?.recent_away_matches,
+                pc?.recent_away_matches_all,
+            ].flatMap(rows => Array.isArray(rows) ? rows : []);
+            if (!currentLeague) {
+                const sameLeagueMarkers = [pc?.last_home_match, pc?.last_away_match]
+                    .filter(marker => marker && marker.is_different_league === false);
+                for (const marker of sameLeagueMarkers) {
+                    const markerScore = parseScoreValue(marker?.score || marker?.result);
+                    const matched = legacyHistoryRows.find(item => {
+                        const itemScore = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                        const scoreMatches = markerScore && itemScore
+                            && markerScore.home === itemScore.home && markerScore.away === itemScore.away;
+                        const homeMatches = sameTeamName(marker?.home_team ?? marker?.home, item?.home ?? item?.home_team);
+                        const awayMatches = sameTeamName(marker?.away_team ?? marker?.away, item?.away ?? item?.away_team);
+                        const dateMatches = !marker?.date || !item?.date || String(marker.date) === String(item.date);
+                        return scoreMatches && homeMatches && awayMatches && dateMatches;
+                    });
+                    const matchedLeague = String(matched?.league_id_hist ?? matched?.league_id ?? '').trim();
+                    if (matchedLeague) {
+                        currentLeague = matchedLeague;
+                        break;
+                    }
+                }
+            }
+            if (!currentLeague) {
+                const leagueCounts = new Map();
+                [
+                    pc?.recent_home_matches,
+                    pc?.recent_home_matches_all,
+                    pc?.recent_away_matches,
+                    pc?.recent_away_matches_all,
+                ].forEach(rows => {
+                    if (!Array.isArray(rows)) return;
+                    rows.forEach(item => {
+                        const leagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                        if (leagueId) leagueCounts.set(leagueId, (leagueCounts.get(leagueId) || 0) + 1);
+                    });
+                });
+                currentLeague = Array.from(leagueCounts.entries())
+                    .sort((left, right) => right[1] - left[1])[0]?.[0] || '';
+            }
+            const filteredFallback = fallbackMatches.filter(item => {
+                const historicalLeague = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
+                return currentLeague && historicalLeague && currentLeague === historicalLeague;
+            });
+            const usingPreferredMatches = preferredMatches.length > 0;
+            let matches = usingPreferredMatches ? preferredMatches : filteredFallback;
+            if (specific && !usingPreferredMatches) {
+                matches = matches.filter(item => side === 'home'
+                    ? sameTeamName(item?.home ?? item?.home_team, teamName)
+                    : sameTeamName(item?.away ?? item?.away_team, teamName));
+            }
+            let wins = 0, draws = 0, losses = 0, goalsFor = 0, goalsAgainst = 0, total = 0;
+            matches.forEach(item => {
+                const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                if (!score) return;
+                const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
+                const subjectAway = sameTeamName(item?.away ?? item?.away_team, teamName);
+                if (!subjectHome && !subjectAway) return;
+                const own = subjectHome ? score.home : score.away;
+                const rival = subjectHome ? score.away : score.home;
+                total += 1;
+                goalsFor += own;
+                goalsAgainst += rival;
+                if (own > rival) wins += 1;
+                else if (own < rival) losses += 1;
+                else draws += 1;
+            });
+
+            if (!total) {
+                const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
+                const prefix = specific ? 'specific' : 'total';
+                const playedTable = parseNumericValue(standings[`${prefix}_pj`]);
+                const winsTable = parseNumericValue(standings[`${prefix}_v`]);
+                const drawsTable = parseNumericValue(standings[`${prefix}_e`]);
+                const lossesTable = parseNumericValue(standings[`${prefix}_d`]);
+                const gfTable = parseNumericValue(standings[`${prefix}_gf`]);
+                const gcTable = parseNumericValue(standings[`${prefix}_gc`]);
+                if (playedTable !== null && playedTable > 0) {
+                    total = playedTable;
+                    wins = winsTable ?? 0;
+                    draws = drawsTable ?? 0;
+                    losses = lossesTable ?? 0;
+                    goalsFor = gfTable ?? 0;
+                    goalsAgainst = gcTable ?? 0;
+                }
+            }
+
+            const scopedOuStats = side === 'home'
+                ? (specific ? pc?.home_ou_stats_specific : pc?.home_ou_stats_general)
+                : (specific ? pc?.away_ou_stats_specific : pc?.away_ou_stats_general);
+            const legacyOuStats = specific
+                ? (side === 'home' ? pc?.home_ou_stats : pc?.away_ou_stats)
+                : null;
+            const ouStats = scopedOuStats || legacyOuStats || {};
+            const overCount = parseNumericValue(ouStats?.over);
+            const underCount = parseNumericValue(ouStats?.under);
+            let decided = (overCount ?? 0) + (underCount ?? 0);
+            let calculatedOvers = 0, calculatedUnders = 0, calculatedPushes = 0;
+            if (!decided) {
+                const currentOuLine = parseNumericValue(
+                    pc?.main_match_odds?.goals_linea
+                    ?? pc?.goal_line
+                    ?? pc?.goals_line
+                );
+                matches.forEach(item => {
+                    const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
+                    const historicalOuLine = parseNumericValue(
+                        item?.ouLine ?? item?.ou_line ?? item?.over_under_line ?? item?.ouLine_raw
+                    );
+                    const line = historicalOuLine ?? currentOuLine;
+                    if (!score || line === null) return;
+                    const residual = score.total - line;
+                    if (residual >= .25) calculatedOvers += 1;
+                    else if (residual <= -.25) calculatedUnders += 1;
+                    else calculatedPushes += 1;
+                });
+                decided = calculatedOvers + calculatedUnders;
+            }
+            const effectiveOvers = (overCount ?? 0) || calculatedOvers;
+            const effectiveUnders = (underCount ?? 0) || calculatedUnders;
+            let overPct = decided ? effectiveOvers * 100 / decided : parseNumericValue(ouStats?.over_pct);
+            let underPct = decided ? effectiveUnders * 100 / decided : parseNumericValue(ouStats?.under_pct);
+            const pctTotal = (overPct ?? 0) + (underPct ?? 0);
+            if (!decided && pctTotal > 0) {
+                overPct = (overPct ?? 0) * 100 / pctTotal;
+                underPct = (underPct ?? 0) * 100 / pctTotal;
+            }
+            const storedOuTotal = parseNumericValue(ouStats?.total);
+            const ouTotal = storedOuTotal && storedOuTotal > 0
+                ? storedOuTotal
+                : calculatedOvers + calculatedUnders + calculatedPushes;
+            return {
+                total, wins, draws, losses,
+                goalsFor: total ? goalsFor / total : null,
+                goalsAgainst: total ? goalsAgainst / total : null,
+                overPct, underPct, ouTotal,
+            };
+        }
+
+        function renderTeamGeneralStats(pc, teamName, side) {
+            const localStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'specific');
+            const globalStats = summarizeTeamSimpleLeagueStats(pc, teamName, side, 'general');
+            const standings = side === 'home' ? (pc?.home_standings || {}) : (pc?.away_standings || {});
+            const ou = value => Number.isFinite(value) ? `${Math.round(value)}%` : 'N/D';
+            const form = (scope, stats) => {
+                const prefix = scope === 'global' ? 'total' : 'specific';
+                const wins = parseNumericValue(standings[`${prefix}_v`]);
+                const draws = parseNumericValue(standings[`${prefix}_e`]);
+                const losses = parseNumericValue(standings[`${prefix}_d`]);
+                if (wins !== null && draws !== null && losses !== null) {
+                    const played = parseNumericValue(standings[`${prefix}_pj`]);
+                    return `${wins}-${draws}-${losses}${played ? ` (${played})` : ''}`;
+                }
+                return stats.total ? `${stats.wins}-${stats.draws}-${stats.losses} (${stats.total})` : 'N/D';
+            };
+            const ouValues = stats => {
+                const valid = Number.isFinite(stats.overPct) && Number.isFinite(stats.underPct)
+                    && (stats.overPct + stats.underPct) > 0;
+                if (!valid) return '<span class="team-cell-ou-muted">N/D</span>';
+                const overClass = valid && stats.overPct > stats.underPct ? 'team-cell-ou-over' : 'team-cell-ou-muted';
+                const underClass = valid && stats.underPct > stats.overPct ? 'team-cell-ou-under' : 'team-cell-ou-muted';
+                return `<span class="${overClass}">O ${ou(stats.overPct)}</span><span class="team-cell-ou-muted">·</span><span class="${underClass}">U ${ou(stats.underPct)}</span><span class="team-cell-ou-muted">(${stats.ouTotal || 0})</span>`;
+            };
+            const specificLabel = side === 'home' ? 'LOCAL' : 'VISIT.';
+            return `
+                <div class="team-cell-league-stats" title="Estadísticas de la misma liga">
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">G:</span><span class="team-cell-league-form">${form('global', globalStats)}</span></div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">${specificLabel === 'LOCAL' ? 'L:' : 'V:'}</span><span class="team-cell-league-form">${form('specific', localStats)}</span></div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">O/U G:</span>${ouValues(globalStats)}</div>
+                    <div class="team-cell-league-row"><span class="team-cell-league-label">O/U ${specificLabel === 'LOCAL' ? 'L:' : 'V:'}</span>${ouValues(localStats)}</div>
+                </div>`;
+        }
+
+        function mcEscape(value) {
+            const div = document.createElement('div');
+            div.textContent = value === undefined || value === null ? '' : String(value);
+            return div.innerHTML;
+        }
+
+        function mcNormalizeName(value) {
+            return String(value || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
+
+        function mcShortName(value, maxLen = 22) {
+            const clean = String(value || '').trim();
+            if (clean.length <= maxLen) return clean || '-';
+            return `${clean.slice(0, maxLen - 1).trim()}...`;
+        }
+
+        function mcSigned(value) {
+            const parsed = parseNumericValue(value);
+            if (parsed === null) return '-';
+            return formatAhDisplay(parsed, true);
+        }
+
+        function mcRawMatchToCase(raw, teamName, source = '') {
+            if (!raw || !teamName) return null;
+            const home = raw.home_team ?? raw.home ?? raw.h2h_home_team_name ?? raw.h2h_gen_home ?? raw.local ?? '';
+            const away = raw.away_team ?? raw.away ?? raw.h2h_away_team_name ?? raw.h2h_gen_away ?? raw.visitante ?? '';
+            let score = raw.score ?? raw.result ?? raw.res ?? raw.res1 ?? raw.res6 ?? raw.score_raw ?? '';
+            if ((!score || String(score).includes('?')) && raw.goles_home !== undefined && raw.goles_away !== undefined) {
+                score = `${raw.goles_home}:${raw.goles_away}`;
+            }
+            score = String(score || '').replace('-', ':').trim();
+            const parsed = parseScoreValue(score);
+            if (!home || !away || !parsed) return null;
+
+            const subjectIsHome = teamIsHomeInBlock(home, away, teamName);
+            if (subjectIsHome === null) return null;
+
+            const lineRaw = raw.handicap_line_raw ?? raw.ahLine ?? raw.ahLine_raw ?? raw.ah_line ?? raw.ah ?? raw.handicap ?? raw.ah1 ?? raw.ah6 ?? raw.line ?? '';
+            const homeLine = parseNumericValue(lineRaw);
+            const subjectPressure = pressureForTeamFromHomeLine(homeLine, subjectIsHome);
+            const margin = marginForTeam(score, subjectIsHome);
+            const residual = margin !== null && subjectPressure !== null ? margin - subjectPressure : null;
+            const gf = subjectIsHome ? parsed.home : parsed.away;
+            const ga = subjectIsHome ? parsed.away : parsed.home;
+            const opponent = subjectIsHome ? away : home;
+            const ouLine = extractOuLineFromBlock(raw);
+
+            const league = raw.league ?? raw.liga ?? raw.competition ?? raw.league_name ?? raw.liga_name ?? raw.country_league ?? raw.league_id_hist ?? raw.league_id ?? raw.liga_id ?? '';
+            const sameLeagueHint = raw.is_different_league === false || raw.same_league === true || raw.is_same_league === true;
+            const differentLeague = raw.is_different_league === true || raw.same_league === false || raw.is_same_league === false;
+
+            return {
+                source,
+                home,
+                away,
+                teamName,
+                opponent,
+                opponentKey: mcNormalizeName(opponent),
+                league,
+                leagueKey: mcNormalizeName(league),
+                sameLeagueHint,
+                differentLeague,
+                date: raw.date ?? raw.fecha ?? raw.match_date ?? '',
+                score,
+                subjectResult: `${gf}:${ga}`,
+                gf,
+                ga,
+                total: parsed.total,
+                subjectIsHome,
+                homeLine,
+                subjectPressure,
+                lineAbs: homeLine === null ? null : Math.abs(homeLine),
+                lineRaw: lineRaw === undefined || lineRaw === null || lineRaw === '' ? '-' : String(lineRaw),
+                margin,
+                cover: residualLabel(residual),
+                ouLine,
+                ouOwn: ouLine !== null ? overUnderLabel(parsed.total - ouLine) : 'UNKNOWN',
+            };
+        }
+
+        function mcExtractHistoryCasesFromHtml(html, teamName) {
+            if (!html || !teamName || typeof DOMParser === 'undefined') return [];
+            const cases = [];
+            try {
+                const doc = new DOMParser().parseFromString(String(html), 'text/html');
+                doc.querySelectorAll('tbody tr').forEach((row) => {
+                    const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim().replace(/\s+/g, ' '));
+                    if (cells.length < 5) return;
+                    const scoreIdx = cells.findIndex(text => /^\d+\s*[:\-]\s*\d+$/.test(text));
+                    if (scoreIdx <= 1 || scoreIdx >= cells.length - 1) return;
+                    const raw = {
+                        league: cells[0] || '',
+                        date: cells[1] || '',
+                        home: cells[scoreIdx - 1] || '',
+                        score: cells[scoreIdx] || '',
+                        away: cells[scoreIdx + 1] || '',
+                        ahLine: cells[cells.length - 1] || '-',
+                    };
+                    const item = mcRawMatchToCase(raw, teamName, 'historial');
+                    if (item) cases.push(item);
+                });
+            } catch (err) {
+                return [];
+            }
+            return cases;
+        }
+
+        function mcUniqueCases(cases) {
+            const seen = new Set();
+            const out = [];
+            for (const item of cases) {
+                if (!item) continue;
+                const key = [
+                    mcNormalizeName(item.home),
+                    mcNormalizeName(item.away),
+                    item.score,
+                    item.date,
+                    item.source
+                ].join('|');
+                if (seen.has(key)) continue;
+                seen.add(key);
+                out.push(item);
+            }
+            return out;
+        }
+
+        function mcCollectVenueCases(match, pc, teamName, desiredHomeSide) {
+            const directArray = desiredHomeSide
+                ? (pc?.recent_home_matches || [])
+                : (pc?.recent_away_matches || pc?.recent_away_matches_all || []);
+            let cases = Array.isArray(directArray)
+                ? directArray.map(item => mcRawMatchToCase(item, teamName, desiredHomeSide ? 'casa' : 'fuera'))
+                    .filter(item => item && item.subjectIsHome === desiredHomeSide)
+                : [];
+
+            if (!cases.length) {
+                cases = mcExtractHistoryCasesFromHtml(pc?.historical_matches_html, teamName)
+                    .filter(item => item.subjectIsHome === desiredHomeSide);
+            }
+
+            const fallback = mcRawMatchToCase(
+                desiredHomeSide ? pc?.last_home_match : pc?.last_away_match,
+                teamName,
+                desiredHomeSide ? 'prev casa' : 'prev fuera'
+            );
+            if (fallback && fallback.subjectIsHome === desiredHomeSide) cases.unshift(fallback);
+
+            return mcUniqueCases(cases).slice(0, 10);
+        }
+
+        function mcBuildContextCases(match, pc, homeName, awayName, homeVenueCases, awayVenueCases) {
+            const left = pc?.comparativas_indirectas?.left;
+            const right = pc?.comparativas_indirectas?.right;
+            const h2hStadiumRaw = pc?.h2h_stadium || {};
+            const h2hGeneralRaw = pc?.h2h_general || {};
+            const stadium = pc?.market_analysis_data?.stadium || {};
+            const general = pc?.market_analysis_data?.general || {};
+            const currentLeague = match?.league || match?.liga || match?.league_name || pc?.league || pc?.liga || pc?.league_name || '';
+            const stadiumStart = parseH2HMovement(stadium.movement || '').start;
+            const generalStart = parseH2HMovement(general.movement || '').start;
+
+            const h2hStadiumCaseRaw = {
+                league: currentLeague,
+                home_team: pc?.home_name || pc?.home_team || match?.home_team || '',
+                away_team: pc?.away_name || pc?.away_team || match?.away_team || '',
+                score: stadium.result || h2hStadiumRaw.res1 || '',
+                date: stadium.date || h2hStadiumRaw.date1 || '',
+                handicap_line_raw: h2hStadiumRaw.ah1 ?? stadiumStart,
+            };
+            const h2hGeneralCaseRaw = {
+                league: currentLeague,
+                home_team: h2hGeneralRaw.h2h_gen_home || general.home_team || '',
+                away_team: h2hGeneralRaw.h2h_gen_away || general.away_team || '',
+                score: general.result || h2hGeneralRaw.res6 || h2hGeneralRaw.res1 || '',
+                date: general.date || h2hGeneralRaw.date6 || h2hGeneralRaw.date1 || '',
+                handicap_line_raw: h2hGeneralRaw.ah6 ?? h2hGeneralRaw.ah1 ?? generalStart,
+            };
+
+            const homeExtra = [
+                mcRawMatchToCase(left, homeName, 'ind local'),
+                mcRawMatchToCase(h2hStadiumCaseRaw, homeName, 'h2h est'),
+                mcRawMatchToCase(h2hGeneralCaseRaw, homeName, 'h2h gen'),
+            ];
+            const awayExtra = [
+                mcRawMatchToCase(right, awayName, 'ind visitante'),
+                mcRawMatchToCase(h2hStadiumCaseRaw, awayName, 'h2h est'),
+                mcRawMatchToCase(h2hGeneralCaseRaw, awayName, 'h2h gen'),
+            ];
+
+            return {
+                homeAll: mcUniqueCases([...(homeVenueCases || []), ...homeExtra]),
+                awayAll: mcUniqueCases([...(awayVenueCases || []), ...awayExtra]),
+            };
+        }
+
+        function mcSummarizeCases(cases, ouLine) {
+            const summary = {
+                played: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                gf: 0,
+                ga: 0,
+                scored2: 0,
+                conceded2: 0,
+                conceded3: 0,
+                over: 0,
+                under: 0,
+                pushOu: 0,
+                ouKnown: 0,
+                avgGf: 0,
+                avgGa: 0,
+                avgTotal: 0,
+            };
+            for (const item of cases || []) {
+                if (!item || item.gf === null || item.ga === null) continue;
+                summary.played += 1;
+                summary.gf += item.gf;
+                summary.ga += item.ga;
+                if (item.gf > item.ga) summary.wins += 1;
+                else if (item.gf === item.ga) summary.draws += 1;
+                else summary.losses += 1;
+                if (item.gf >= 2) summary.scored2 += 1;
+                if (item.ga >= 2) summary.conceded2 += 1;
+                if (item.ga >= 3) summary.conceded3 += 1;
+                if (ouLine !== null && item.total !== null) {
+                    summary.ouKnown += 1;
+                    if (item.total > ouLine) summary.over += 1;
+                    else if (item.total < ouLine) summary.under += 1;
+                    else summary.pushOu += 1;
+                }
+            }
+            if (summary.played > 0) {
+                summary.avgGf = summary.gf / summary.played;
+                summary.avgGa = summary.ga / summary.played;
+                summary.avgTotal = (summary.gf + summary.ga) / summary.played;
+            }
+            return summary;
+        }
+
+        function mcRate(count, total) {
+            return total > 0 ? `${count}/${total}` : '-';
+        }
+
+        function mcAvg(value) {
+            return Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '-';
+        }
+
+        function mcCoverBadge(cover) {
+            if (cover === 'COVER') return '<span class="badge bg-success" style="font-size:0.58rem;">cubrio</span>';
+            if (cover === 'FAIL') return '<span class="badge bg-danger" style="font-size:0.58rem;">no cubrio</span>';
+            if (cover === 'PUSH') return '<span class="badge bg-secondary" style="font-size:0.58rem;">push</span>';
+            return '<span class="badge bg-light text-muted border" style="font-size:0.58rem;">sin AH</span>';
+        }
+
+        function mcCaseLine(item, teamName) {
+            if (!item) return '';
+            const venue = item.subjectIsHome ? 'vs' : '@';
+            const marketNote = item.lineAbs !== null && item.lineAbs <= 0.25 && item.margin <= -2
+                ? ' · castigo fuerte en linea pareja'
+                : '';
+            return `
+                <div class="d-flex justify-content-between gap-2 align-items-start border-bottom py-1">
+                    <span class="text-truncate" style="min-width:0;">
+                        <b>${mcEscape(mcShortName(teamName, 16))}</b> ${venue} ${mcEscape(mcShortName(item.opponent, 16))}
+                        <span class="text-muted">${mcEscape(item.subjectResult)}</span>${marketNote}
+                    </span>
+                    <span class="text-nowrap">AH ${mcEscape(mcSigned(item.homeLine))}</span>
+                    ${mcCoverBadge(item.cover)}
+                </div>
+            `;
+        }
+
+        function mcSimilarCases(cases, currentAh, maxDiff = 0.5) {
+            const target = Math.abs(parseNumericValue(currentAh) ?? 0);
+            return (cases || [])
+                .filter(item => item && item.lineAbs !== null && Math.abs(item.lineAbs - target) <= maxDiff)
+                .sort((a, b) => Math.abs(a.lineAbs - target) - Math.abs(b.lineAbs - target))
+                .slice(0, 4);
+        }
+
+        function mcDateValue(value) {
+            const text = String(value || '').trim();
+            if (!text || text === '-') return 0;
+            const iso = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime();
+            const slash = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (slash) return new Date(Number(slash[3]), Number(slash[1]) - 1, Number(slash[2])).getTime();
+            const parsed = Date.parse(text);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function mcCurrentLeague(match, pc) {
+            return match?.league || match?.liga || match?.league_name ||
+                pc?.league || pc?.liga || pc?.league_name || pc?.competition || '';
+        }
+
+        function mcCasePressureAbs(item) {
+            const pressure = parseNumericValue(item?.subjectPressure);
+            if (pressure !== null) return Math.abs(pressure);
+            const line = parseNumericValue(item?.homeLine);
+            return line === null ? null : Math.abs(line);
+        }
+
+        function mcCaseAhDiff(item, currentAbs) {
+            const pressureAbs = mcCasePressureAbs(item);
+            return pressureAbs === null ? 99 : Math.abs(pressureAbs - currentAbs);
+        }
+
+        function mcRelevantLeagueKeys(currentLeague, cases) {
+            const keys = new Set();
+            const currentKey = mcNormalizeName(currentLeague);
+            if (currentKey) keys.add(currentKey);
+
+            const counts = new Map();
+            for (const item of cases || []) {
+                if (!item?.leagueKey || item.differentLeague) continue;
+                counts.set(item.leagueKey, (counts.get(item.leagueKey) || 0) + 1);
+                if (item.sameLeagueHint) keys.add(item.leagueKey);
+            }
+
+            const dominant = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0];
+            if (dominant && dominant[1] >= 2) keys.add(dominant[0]);
+            return keys;
+        }
+
+        function mcIsSameLeagueCase(item, leagueKeys) {
+            if (!item || item.differentLeague) return false;
+            if (item.sameLeagueHint) return true;
+            return !!(item.leagueKey && leagueKeys && leagueKeys.has(item.leagueKey));
+        }
+
+        function mcSortedAhCases(cases, currentAh, currentLeague, limit = 8, leagueKeys = null) {
+            const currentAbs = Math.abs(parseNumericValue(currentAh) ?? 0);
+            const effectiveLeagueKeys = leagueKeys || mcRelevantLeagueKeys(currentLeague, cases);
+            return (cases || [])
+                .filter(item => item && mcCasePressureAbs(item) !== null && mcCaseAhDiff(item, currentAbs) <= 0.5)
+                .sort((a, b) => {
+                    const aSameLeague = mcIsSameLeagueCase(a, effectiveLeagueKeys) ? 1 : 0;
+                    const bSameLeague = mcIsSameLeagueCase(b, effectiveLeagueKeys) ? 1 : 0;
+                    if (aSameLeague !== bSameLeague) return bSameLeague - aSameLeague;
+
+                    const aDiff = mcCaseAhDiff(a, currentAbs);
+                    const bDiff = mcCaseAhDiff(b, currentAbs);
+                    const aExact = aDiff <= 0.01 ? 1 : 0;
+                    const bExact = bDiff <= 0.01 ? 1 : 0;
+                    if (aExact !== bExact) return bExact - aExact;
+                    if (Math.abs(aDiff - bDiff) > 0.001) return aDiff - bDiff;
+
+                    return mcDateValue(b.date) - mcDateValue(a.date);
+                })
+                .slice(0, limit);
+        }
+
+        function mcSourceBadge(source) {
+            const clean = String(source || '').trim() || 'hist';
+            const lower = clean.toLowerCase();
+            let color = '#64748b';
+            if (lower.includes('h2h')) color = '#7c3aed';
+            else if (lower.includes('ind')) color = '#0891b2';
+            else if (lower.includes('prev')) color = '#15803d';
+            else if (lower.includes('historial')) color = '#475569';
+            return `<span style="display:inline-block;border-radius:999px;background:${color};color:white;padding:1px 5px;font-size:0.58rem;font-weight:700;">${mcEscape(clean)}</span>`;
+        }
+
+        function mcSameLeagueBadge(item, leagueKeys) {
+            if (!mcIsSameLeagueCase(item, leagueKeys)) return '';
+            return '<span style="display:inline-block;border-radius:999px;background:#dcfce7;color:#166534;border:1px solid #86efac;padding:1px 5px;font-size:0.58rem;font-weight:700;">misma liga</span>';
+        }
+
+        function mcAhQualityBadge(item, currentAh) {
+            const currentAbs = Math.abs(parseNumericValue(currentAh) ?? 0);
+            const diff = mcCaseAhDiff(item, currentAbs);
+            if (diff <= 0.01) {
+                return '<span style="display:inline-block;border-radius:999px;background:#dbeafe;color:#1d4ed8;border:1px solid #93c5fd;padding:1px 5px;font-size:0.58rem;font-weight:700;">mismo AH</span>';
+            }
+            return `<span style="display:inline-block;border-radius:999px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:1px 5px;font-size:0.58rem;font-weight:700;">AH ${mcEscape(formatAhDisplay(diff, true))}</span>`;
+        }
+
+        function mcCaseRoleLabel(item) {
+            const pressure = parseNumericValue(item?.subjectPressure);
+            return pressure === null ? mcSigned(item?.homeLine) : mcSigned(pressure);
+        }
+
+        function mcCompactCaseCell(item, teamName, currentAh, leagueKeys) {
+            if (!item) return '<div class="text-muted" style="font-size:0.68rem;">Sin caso AH parecido</div>';
+            const venue = item.subjectIsHome ? 'vs' : '@';
+            const date = item.date ? mcEscape(item.date) : '-';
+            const league = item.league ? mcEscape(mcShortName(item.league, 20)) : 'liga no cargada';
+            return `
+                <div style="min-width:0;">
+                    <div class="d-flex justify-content-between gap-1 align-items-start">
+                        <div class="fw-bold text-truncate" style="min-width:0;">
+                            ${mcEscape(mcShortName(teamName, 18))} ${venue} ${mcEscape(mcShortName(item.opponent, 18))}
+                        </div>
+                        <div class="text-nowrap">${mcSourceBadge(item.source)}</div>
+                    </div>
+                    <div class="text-muted" style="font-size:0.66rem;">${date} · ${league}</div>
+                    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                        <span class="fw-bold">${mcEscape(item.subjectResult)}</span>
+                        <span class="text-muted">rol AH ${mcEscape(mcCaseRoleLabel(item))}</span>
+                        <span class="text-muted">raw ${mcEscape(mcSigned(item.homeLine))}</span>
+                        ${mcCoverBadge(item.cover)}
+                        ${mcSameLeagueBadge(item, leagueKeys)}
+                        ${mcAhQualityBadge(item, currentAh)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function mcPairVerdict(homeItem, awayItem, homeName, awayName) {
+            if (!homeItem && !awayItem) return '-';
+            if (!homeItem) return `${mcShortName(awayName, 14)} tiene referencia; local sin espejo.`;
+            if (!awayItem) return `${mcShortName(homeName, 14)} tiene referencia; visitante sin espejo.`;
+            const hCover = homeItem.cover === 'COVER' ? 1 : (homeItem.cover === 'FAIL' ? -1 : 0);
+            const aCover = awayItem.cover === 'COVER' ? 1 : (awayItem.cover === 'FAIL' ? -1 : 0);
+            if (aCover > hCover) return `Mejor señal visitante: cubre mejor AH parecido.`;
+            if (hCover > aCover) return `Mejor señal local: cubre mejor AH parecido.`;
+            if (homeItem.margin !== null && awayItem.margin !== null) {
+                if (awayItem.margin > homeItem.margin) return `Ventaja visitante por margen/residual.`;
+                if (homeItem.margin > awayItem.margin) return `Ventaja local por margen/residual.`;
+            }
+            return `Lectura pareja: decidir por recencia, liga y H2H.`;
+        }
+
+        function mcBlock(title, rows, accent = '#0f766e') {
+            return `
+                <div style="border:1px solid #d8dee8;border-left:3px solid ${accent};border-radius:6px;background:#fff;padding:7px 8px;min-width:0;">
+                    <div class="fw-bold text-uppercase mb-1" style="font-size:0.66rem;color:${accent};letter-spacing:0.2px;">${title}</div>
+                    <div style="font-size:0.72rem;line-height:1.28;color:#243041;">${rows.join('')}</div>
+                </div>
+            `;
+        }
+
+        function mcFavoritismText(favoriteSide, homeSummary, awaySummary, currentAh) {
+            const pressure = Math.abs(parseNumericValue(currentAh) ?? 0);
+            const lineNote = pressure <= 0.25 ? 'favoritismo leve/protegido' : `exige AH ${formatAhDisplay(pressure)}`;
+            const homeWeak = homeSummary.played > 0 && (homeSummary.wins === 0 || homeSummary.avgGa >= 1.8 || homeSummary.conceded2 >= Math.ceil(homeSummary.played * 0.45));
+            const awayWeak = awaySummary.played > 0 && (awaySummary.wins === 0 || awaySummary.avgGa >= 1.8 || awaySummary.conceded2 >= Math.ceil(awaySummary.played * 0.45));
+            const homeOwn = homeSummary.played > 0 && (homeSummary.wins >= Math.ceil(homeSummary.played * 0.45) || homeSummary.avgGf >= 1.5 || homeSummary.scored2 >= Math.ceil(homeSummary.played * 0.35));
+            const awayOwn = awaySummary.played > 0 && (awaySummary.wins >= Math.ceil(awaySummary.played * 0.35) || awaySummary.avgGf >= 1.4 || awaySummary.scored2 >= Math.ceil(awaySummary.played * 0.35));
+
+            if (favoriteSide === 'PICKEM') {
+                return `Mercado casi igualado: no hay superioridad clara; pesa quien llega menos roto.`;
+            }
+            if (favoriteSide === 'HOME') {
+                if (homeOwn && awayWeak) return `Local favorito por mezcla: produccion propia + visitante vulnerable (${lineNote}).`;
+                if (homeOwn) return `Local favorito por fuerza propia en casa (${lineNote}).`;
+                if (awayWeak) return `Local favorito mas por fragilidad visitante que por dominio constante (${lineNote}).`;
+                return `Local favorito por lectura de mercado, pero sin apoyo fuerte en forma reciente (${lineNote}).`;
+            }
+            if (awayOwn && homeWeak) return `Visitante favorito por mezcla: local fragil + visitante con gol fuera (${lineNote}).`;
+            if (awayOwn) return `Visitante favorito por rendimiento fuera (${lineNote}).`;
+            if (homeWeak) return `Visitante favorito mas por fragilidad local que por superioridad constante propia (${lineNote}).`;
+            return `Visitante favorito por lectura de mercado, pero no totalmente fiable fuera (${lineNote}).`;
+        }
+
+        function mcOuText(homeSummary, awaySummary, ouLine) {
+            if (ouLine === null) return 'Sin linea O/U valida: solo lectura AH.';
+            const homeOverRate = homeSummary.ouKnown ? homeSummary.over / homeSummary.ouKnown : 0;
+            const awayOverRate = awaySummary.ouKnown ? awaySummary.over / awaySummary.ouKnown : 0;
+            const localBroken = homeSummary.played > 0 && (homeSummary.avgGa >= 1.8 || homeSummary.conceded3 >= Math.ceil(homeSummary.played * 0.25));
+            const visitorOpen = awaySummary.played > 0 && (awaySummary.avgGf >= 1.4 || awaySummary.avgGa >= 1.6);
+            if (homeOverRate >= 0.6 && awayOverRate >= 0.6) return `Over ${ouLine} apoyado por ambos lados: partidos abiertos en casa y fuera.`;
+            if (localBroken && visitorOpen) return `Over ${ouLine} nace de local vulnerable + visitante abierto.`;
+            if (homeOverRate >= 0.6) return `Over ${ouLine} empujado sobre todo por la dinamica del local.`;
+            if (awayOverRate >= 0.6) return `Over ${ouLine} empujado sobre todo por la dinamica visitante.`;
+            if (homeOverRate <= 0.4 && awayOverRate <= 0.4 && (homeSummary.ouKnown + awaySummary.ouKnown) > 0) return `Under ${ouLine} tiene mas apoyo: historiales por debajo de la linea.`;
+            return `Linea ${ouLine} mixta: no hay apoyo limpio; mirar si el gol viene por defensa rota o ataque real.`;
+        }
+
+        function mcCommonRivals(homeCases, awayCases) {
+            const awayByRival = new Map();
+            for (const item of awayCases || []) {
+                if (!item?.opponentKey) continue;
+                if (!awayByRival.has(item.opponentKey)) awayByRival.set(item.opponentKey, item);
+            }
+            const pairs = [];
+            for (const homeItem of homeCases || []) {
+                if (!homeItem?.opponentKey || !awayByRival.has(homeItem.opponentKey)) continue;
+                pairs.push({ homeItem, awayItem: awayByRival.get(homeItem.opponentKey) });
+            }
+            return pairs.slice(0, 4);
+        }
+
+        function mcCommonRivalRows(pairs, homeName, awayName) {
+            if (!pairs.length) {
+                return ['<div class="text-muted">Sin rival comun claro en la muestra cargada.</div>'];
+            }
+            return pairs.map(({ homeItem, awayItem }) => {
+                let verdict = 'lectura pareja';
+                if (homeItem.margin !== null && awayItem.margin !== null) {
+                    if (homeItem.margin > awayItem.margin) verdict = `${mcShortName(homeName, 14)} compitio mejor`;
+                    else if (homeItem.margin < awayItem.margin) verdict = `${mcShortName(awayName, 14)} compitio mejor`;
+                }
+                const severe = (homeItem.lineAbs !== null && homeItem.lineAbs <= 0.25 && homeItem.margin <= -2)
+                    ? ' · local hundido con linea pareja'
+                    : '';
+                return `
+                    <div class="border-bottom py-1">
+                        <b>${mcEscape(mcShortName(homeItem.opponent, 18))}</b>:
+                        L ${mcEscape(homeItem.subjectResult)} AH ${mcEscape(mcSigned(homeItem.homeLine))}
+                        | V ${mcEscape(awayItem.subjectResult)} AH ${mcEscape(mcSigned(awayItem.homeLine))}
+                        <span class="text-muted">-> ${mcEscape(verdict)}${severe}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function mcCol3Row(pc) {
+            const col3 = pc?.h2h_col3;
+            if (!col3 || col3.status !== 'found') return '';
+            const score = col3.goles_home !== undefined && col3.goles_away !== undefined
+                ? `${col3.goles_home}:${col3.goles_away}`
+                : '-';
+            return `
+                <div class="mt-1 pt-1 border-top">
+                    <b>Col3 espejo:</b>
+                    ${mcEscape(mcShortName(col3.h2h_home_team_name, 18))} ${mcEscape(score)}
+                    ${mcEscape(mcShortName(col3.h2h_away_team_name, 18))}
+                    <span class="text-muted">AH ${mcEscape(mcSigned(col3.handicap))}</span>
+                </div>
+            `;
+        }
+
+        function renderMarketCorrelations(match, pc, currentAh) {
+            const homeName = pc?.home_name || pc?.home_team || match?.home_team || match?.home_name || '';
+            const awayName = pc?.away_name || pc?.away_team || match?.away_team || match?.away_name || '';
+            const ah = parseNumericValue(currentAh ?? pc?.main_match_odds?.ah_linea ?? match?.handicap);
+            const ouLine = parseNumericValue(pc?.main_match_odds?.goals_linea ?? match?.goals_line ?? match?.goal_line);
+            const currentLeague = mcCurrentLeague(match, pc);
+            const favoriteSide = favoriteSideFromAh(ah);
+            const favoriteName = favoriteSide === 'HOME' ? homeName : (favoriteSide === 'AWAY' ? awayName : 'Sin favorito claro');
+
+            const homeCases = mcCollectVenueCases(match, pc, homeName, true);
+            const awayCases = mcCollectVenueCases(match, pc, awayName, false);
+            const context = mcBuildContextCases(match, pc, homeName, awayName, homeCases, awayCases);
+            const leagueKeys = mcRelevantLeagueKeys(currentLeague, [...(context.homeAll || []), ...(context.awayAll || [])]);
+            const homeAhCases = mcSortedAhCases(context.homeAll, ah, currentLeague, 10, leagueKeys);
+            const awayAhCases = mcSortedAhCases(context.awayAll, ah, currentLeague, 10, leagueKeys);
+            const maxRows = Math.max(homeAhCases.length, awayAhCases.length, 1);
+            const rows = [];
+            for (let i = 0; i < Math.min(maxRows, 8); i += 1) {
+                const homeItem = homeAhCases[i] || null;
+                const awayItem = awayAhCases[i] || null;
+                if (!homeItem && !awayItem) continue;
+                rows.push(`
+                    <tr>
+                        <td class="text-center text-muted" style="width:32px;font-size:0.68rem;">${i + 1}</td>
+                        <td style="width:86px;font-size:0.68rem;">
+                            <div class="fw-bold">AH ${mcEscape(mcSigned(ah))}</div>
+                            <div class="text-muted">${mcEscape(currentLeague ? mcShortName(currentLeague, 18) : 'liga actual')}</div>
+                        </td>
+                        <td style="min-width:250px;">${mcCompactCaseCell(homeItem, homeName, ah, leagueKeys)}</td>
+                        <td style="min-width:250px;">${mcCompactCaseCell(awayItem, awayName, ah, leagueKeys)}</td>
+                        <td style="min-width:150px;font-size:0.68rem;color:#334155;">${mcEscape(mcPairVerdict(homeItem, awayItem, homeName, awayName))}</td>
+                    </tr>
+                `);
+            }
+
+            const sameLeagueHome = homeAhCases.filter(item => mcIsSameLeagueCase(item, leagueKeys)).length;
+            const sameLeagueAway = awayAhCases.filter(item => mcIsSameLeagueCase(item, leagueKeys)).length;
+            const exactHome = homeAhCases.filter(item => mcCaseAhDiff(item, Math.abs(ah ?? 0)) <= 0.01).length;
+            const exactAway = awayAhCases.filter(item => mcCaseAhDiff(item, Math.abs(ah ?? 0)) <= 0.01).length;
+
+            return `
+                <div class="market-correlations-panel" style="font-size:11px;line-height:1.22;color:#243041;">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div class="fw-bold" style="font-size:0.82rem;color:#0f172a;">
+                            <i class="fa-solid fa-chart-line me-1 text-success"></i> AH mismo / cercano
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-end gap-1">
+                            <span class="badge bg-success" style="font-size:0.62rem;">Fav: ${mcEscape(mcShortName(favoriteName, 22))}</span>
+                            <span class="badge bg-light text-dark border" style="font-size:0.62rem;">AH ${mcEscape(mcSigned(ah))}</span>
+                            <span class="badge bg-light text-dark border" style="font-size:0.62rem;">O/U ${ouLine ?? '-'}</span>
+                            <span class="badge bg-light text-dark border" style="font-size:0.62rem;">${mcEscape(currentLeague ? mcShortName(currentLeague, 28) : 'Liga no cargada')}</span>
+                        </div>
+                    </div>
+                    <div class="mb-2 p-2" style="border:1px solid #dbe4ef;border-radius:6px;background:#f8fafc;font-size:0.68rem;">
+                        Prioridad de orden: <b>misma liga</b> -> <b>mismo AH exacto</b> -> <b>fecha reciente</b>.
+                        Se incluyen AH cercanos hasta 0.50 si faltan casos exactos.
+                        <span class="ms-2 text-muted">Local: ${sameLeagueHome} misma liga / ${exactHome} exactos · Visitante: ${sameLeagueAway} misma liga / ${exactAway} exactos</span>
+                    </div>
+                    <div class="table-responsive" style="max-height:62vh;overflow:auto;border:1px solid #d8dee8;border-radius:6px;">
+                        <table class="table table-sm align-middle mb-0" style="font-size:0.70rem;">
+                            <thead style="position:sticky;top:0;z-index:1;background:#eef2f7;">
+                                <tr>
+                                    <th class="text-center" style="width:32px;">#</th>
+                                    <th style="width:86px;">Filtro</th>
+                                    <th>${mcEscape(mcShortName(homeName, 28))}</th>
+                                    <th>${mcEscape(mcShortName(awayName, 28))}</th>
+                                    <th>Lectura</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows.length ? rows.join('') : `
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">
+                                            No hay partidos cargados con AH igual o cercano.
+                                        </td>
+                                    </tr>
+                                `}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function rankValue(value) {
+            const parsed = parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+
+        function renderClaveDicotomicaV7(m) {
+            const specPicks = Array.isArray(m.specialist_picks) ? m.specialist_picks : (Array.isArray(m.picks) ? m.picks : []);
+            
+            // Buscar si hay pick del Motor Definitivo o Sistema MLS
+            const defPick = specPicks.find(p => p && (p.algorithm === 'DEFINITIVE_TRADING_ENGINE' || p.algorithm === 'MLS_DEDICATED_SYSTEM'));
+            const ahPickObj = defPick || specPicks.find(p => p && p.type === 'AH');
+            const ouPickObj = specPicks.find(p => p && p.type === 'OU');
+
+            const pickAh = m.clave_pick_ah || (ahPickObj ? (ahPickObj.pick || ahPickObj.display_pick_label) : 'NO_BET');
+            const labelAh = ahPickObj ? (ahPickObj.display_pick_label || ahPickObj.pick) : (m.clave_label_ah || 'NO BET AH');
+            const labelOu = ouPickObj ? (ouPickObj.display_pick_label || ouPickObj.pick) : (m.clave_label_ou || 'OU neutro');
+
+            let border = '#1e2d45';
+            let bg = '#0e1520';
+            let color = '#94a3b8';
+            let headerTitle = 'SISTEMA UNIVERSAL DEFINITIVO';
+            let badgeText = 'MOTOR OK';
+            let badgeBg = 'bg-primary';
+
+            if (ahPickObj) {
+                border = '#22c55e';
+                bg = 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)';
+                color = '#4ade80';
+                badgeText = ahPickObj.confidence || 'ALTA';
+                badgeBg = 'bg-success';
+                if (ahPickObj.algorithm === 'MLS_DEDICATED_SYSTEM') {
+                    headerTitle = 'SISTEMA DEDICADO MLS';
+                    border = '#f59e0b';
+                }
+            } else if (pickAh === 'FAV_CUBRE') {
+                border = '#22c55e';
+                bg = '#16a34a15';
+                color = '#22c55e';
+                badgeText = 'NÚCLEO';
+                badgeBg = 'bg-success';
+            } else if (pickAh === 'DOG_CUBRE') {
+                border = '#f97316';
+                bg = '#ea580c15';
+                color = '#f97316';
+                badgeText = 'UNDERDOG';
+                badgeBg = 'bg-warning text-dark';
+            }
+
+            const displayAh = labelAh.length > 28 ? `${labelAh.slice(0, 25).trim()}...` : labelAh;
+            const explanation = ahPickObj ? (ahPickObj.explanation || ahPickObj.perspective || '') : '';
+
+            return `
+                <div class="clave-dicotomica-v7" title="${explanation.replace(/"/g, '&quot;')}" style="cursor: help; width: 100%;">
+                    <div style="background:${bg}; border:2px solid ${border}; border-radius:8px; padding:6px 7px; width:100%; box-shadow:0 2px 6px rgba(0,0,0,0.3);">
+                        <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
+                            <span class="text-uppercase" style="font-size:0.53rem;font-weight:900;color:#f59e0b;line-height:1.1;letter-spacing:0.3px;">${headerTitle}</span>
+                            <span class="badge ${badgeBg}" style="font-size:0.52rem;">${badgeText}</span>
+                        </div>
+                        <div class="text-center mt-1" style="font-size:0.78rem; font-weight:900; color:${color}; line-height:1.15;">
+                            ${displayAh}
+                        </div>
+                        ${ouPickObj ? `<div class="text-center mt-1"><span class="badge bg-info text-dark" style="font-size:0.58rem;font-weight:800;">${labelOu}</span></div>` : ''}
+                        ${explanation ? `<div class="text-muted text-center mt-1" style="font-size:0.52rem;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${explanation.replace(/"/g, '&quot;')}">${explanation}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBookieSystemPick(pick) {
+            const sideLine = pick.sidePick
+                ? `<div style="font-size:0.74rem;font-weight:800;line-height:1.15;">${pick.sidePick}</div>`
+                : '<div style="font-size:0.74rem;font-weight:800;line-height:1.15;">NO BET AH</div>';
+            const goalsLine = pick.goalsPick
+                ? `<span class="badge ${pick.goalsPick === 'OVER' ? 'bg-warning text-dark' : 'bg-info text-dark'}" style="font-size:0.58rem;">${pick.goalsPick}</span>`
+                : '<span class="badge bg-light text-muted border" style="font-size:0.58rem;">OU neutro</span>';
+            const reasons = pick.reasons.slice(0, 3).map(r => `<div>${r}</div>`).join('');
+            return `
+                <div class="bookie-system-pick" title="${pick.tooltip}">
+                    <div style="background:${pick.bg}; border:2px solid ${pick.border}; border-radius:8px; padding:6px 7px; width:100%; box-shadow:0 2px 4px rgba(0,0,0,0.08);">
+                        <div class="text-uppercase text-center" style="font-size:0.55rem;font-weight:800;color:${pick.kickerColor};line-height:1.1;">${pick.kicker}</div>
+                        <div class="text-center" style="color:${pick.mainColor};">${sideLine}</div>
+                        <div class="d-flex justify-content-center gap-1 flex-wrap mt-1">
+                            <span class="badge ${pick.confidence === 'ALTA' ? 'bg-success' : pick.confidence === 'MEDIA' ? 'bg-primary' : 'bg-secondary'}" style="font-size:0.58rem;">${pick.confidence}</span>
+                            ${goalsLine}
+                        </div>
+                        <div class="text-muted text-center mt-1" style="font-size:0.55rem;line-height:1.15;">${reasons}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function trainedAhFamily(pressure) {
+            const mag = Math.abs(parseNumericValue(pressure) ?? 0);
+            if (mag < 0.01) return 'AH_0';
+            if (mag <= 0.25) return 'AH_0_25';
+            if (mag <= 0.75) return 'AH_0_5_0_75';
+            if (mag <= 1.25) return 'AH_1_1_25';
+            if (mag <= 1.75) return 'AH_1_5_1_75';
+            return 'AH_2_PLUS';
+        }
+
+        function trainedAhSuperFamily(pressure) {
+            const mag = Math.abs(parseNumericValue(pressure) ?? 0);
+            if (mag < 0.01) return 'AHS_0';
+            if (mag <= 0.75) return 'AHS_LOW';
+            if (mag <= 1.25) return 'AHS_MID';
+            if (mag <= 1.75) return 'AHS_HIGH';
+            return 'AHS_EXTREME';
+        }
+
+        function trainedOuFamily(ou) {
+            const val = parseNumericValue(ou);
+            if (val === null) return 'OU_UNKNOWN';
+            if (val <= 2.25) return 'OU_LOW';
+            if (val <= 2.75) return 'OU_MID';
+            if (val <= 3.5) return 'OU_HIGH';
+            return 'OU_EXTREME';
+        }
+
+        function trainedStatsToken(stats) {
+            const verdict = stats?.verdict || 'NO_STATS';
+            if (verdict === 'STRONG_FOR_TEAM') return 'STATS_STRONG_FOR';
+            if (verdict === 'LEAN_FOR_TEAM') return 'STATS_LEAN_FOR';
+            if (verdict === 'STRONG_AGAINST_TEAM') return 'STATS_STRONG_AGAINST';
+            if (verdict === 'LEAN_AGAINST_TEAM') return 'STATS_LEAN_AGAINST';
+            if (verdict === 'NEUTRAL') return 'STATS_NEUTRAL';
+            return 'STATS_NONE';
+        }
+
+        function trainedMarginBand(margin) {
+            if (margin === null || margin === undefined || !Number.isFinite(Number(margin))) return 'M_UNKNOWN';
+            if (margin <= -3) return 'M_LE_NEG3';
+            if (margin === -2) return 'M_NEG2';
+            if (margin === -1) return 'M_NEG1';
+            if (margin === 0) return 'M_DRAW';
+            if (margin === 1) return 'M_POS1';
+            if (margin === 2) return 'M_POS2';
+            return 'M_GE_POS3';
+        }
+
+        function trainedTotalToken(total, ou) {
+            if (total === null || total === undefined || ou === null || ou === undefined) return 'TOTAL_UNKNOWN';
+            const diff = Number(total) - Number(ou);
+            if (diff >= 0.25) return 'TOTAL_OVER_LINE';
+            if (diff <= -0.25) return 'TOTAL_UNDER_LINE';
+            return 'TOTAL_PUSH_LINE';
+        }
+
+        function trainedPressureToken(block) {
+            if (!block) return 'NO_H2H';
+            if (block.pressureLabel === 'RAISE_PRESSURE_KEEP_FAVORITE' && block.delta !== null && block.delta !== undefined && block.delta >= 1.0 && block.nowPressure >= 1.5) {
+                return 'PRESSURE_RAISE_AGGRESSIVE';
+            }
+            if (block.pressureLabel === 'LOWER_PRESSURE_KEEP_FAVORITE') return 'PRESSURE_LOWER';
+            if (block.pressureLabel === 'RAISE_PRESSURE_KEEP_FAVORITE') return 'PRESSURE_RAISE';
+            if (block.pressureLabel === 'SAME_PRESSURE_KEEP_FAVORITE') return 'PRESSURE_SAME';
+            if (block.pressureLabel === 'NEW_FAVORITE_STATUS') return 'PRESSURE_NEW_FAV';
+            if (block.pressureLabel === 'FAVORITE_STATUS_REMOVED') return 'PRESSURE_FAV_REMOVED';
+            if (block.pressureLabel === 'NO_FAVORITE_PRESSURE') return 'PRESSURE_NO_FAV';
+            return 'PRESSURE_UNKNOWN';
+        }
+
+        function trainedPreviousAhCompare(prevPressure, currentPressure) {
+            const prev = Math.abs(parseNumericValue(prevPressure) ?? NaN);
+            const current = Math.abs(parseNumericValue(currentPressure) ?? NaN);
+            if (!Number.isFinite(prev) || !Number.isFinite(current)) return 'PREV_AH_UNKNOWN';
+            const diff = prev - current;
+            if (diff >= 0.25) return 'PREV_AH_GT_CURRENT';
+            if (diff <= -0.25) return 'PREV_AH_LT_CURRENT';
+            return 'PREV_AH_EQ_CURRENT';
+        }
+
+        function trainedPreviousOuCompare(prevOu, currentOu) {
+            const prev = parseNumericValue(prevOu);
+            const current = parseNumericValue(currentOu);
+            if (prev === null || current === null) return 'PREV_OU_UNKNOWN';
+            const diff = prev - current;
+            if (diff >= 0.25) return 'PREV_OU_GT_CURRENT';
+            if (diff <= -0.25) return 'PREV_OU_LT_CURRENT';
+            return 'PREV_OU_EQ_CURRENT';
+        }
+
+        function trainedTableToken(pc, favoriteSide) {
+            const homeRank = rankValue(pc?.home_standings?.ranking);
+            const awayRank = rankValue(pc?.away_standings?.ranking);
+            if (favoriteSide === 'PICKEM') return 'TABLE_PICKEM';
+            if (homeRank === null || awayRank === null) return 'TABLE_UNKNOWN';
+            const favRank = favoriteSide === 'HOME' ? homeRank : awayRank;
+            const dogRank = favoriteSide === 'HOME' ? awayRank : homeRank;
+            if (favRank < dogRank) return 'TABLE_FAV_BETTER';
+            if (favRank > dogRank) return 'TABLE_FAV_WORSE';
+            return 'TABLE_EQUAL';
+        }
+
+        function addTrainedBlockFeatures(features, prefix, block, ou, currentPressure = null) {
+            if (!block) {
+                features.add(`${prefix}_MISSING`);
+                return;
+            }
+            const cover = block.coverNow || block.cover || 'UNKNOWN';
+            features.add(`${prefix}_COVER_${cover}`);
+            features.add(`${prefix}_MARGIN_${trainedMarginBand(block.margin)}`);
+            features.add(`${prefix}_${trainedStatsToken(block.stats)}`);
+            if (block.pressure !== undefined && block.pressure !== null) {
+                features.add(`${prefix}_PREV_AH_${trainedAhFamily(block.pressure)}`);
+                features.add(`${prefix}_${trainedPreviousAhCompare(block.pressure, currentPressure)}`);
+            } else if (block.line !== undefined && block.line !== null) {
+                features.add(`${prefix}_PREV_AH_${trainedAhFamily(block.line)}`);
+                features.add(`${prefix}_${trainedPreviousAhCompare(block.line, currentPressure)}`);
+            } else {
+                features.add(`${prefix}_PREV_AH_UNKNOWN`);
+                features.add(`${prefix}_PREV_AH_UNKNOWN`);
+            }
+            if (block.pressureLabel) features.add(`${prefix}_${trainedPressureToken(block)}`);
+            if (block.total !== undefined) {
+                const totalVsCurrent = trainedTotalToken(block.total, ou);
+                features.add(`${prefix}_${totalVsCurrent}`);
+                features.add(`${prefix}_OU_CURRENT_${totalVsCurrent.replace('TOTAL_', '')}`);
+            }
+            if (block.ouLine !== undefined && block.ouLine !== null) {
+                features.add(`${prefix}_PREV_OU_${trainedOuFamily(block.ouLine)}`);
+                features.add(`${prefix}_${trainedPreviousOuCompare(block.ouLine, ou)}`);
+                features.add(`${prefix}_OU_OWN_${block.ouOwn || 'UNKNOWN'}`);
+            } else {
+                features.add(`${prefix}_PREV_OU_UNKNOWN`);
+                features.add(`${prefix}_PREV_OU_UNKNOWN`);
+                features.add(`${prefix}_OU_OWN_UNKNOWN`);
+            }
+            if (block.total_goals !== undefined) {
+                if (block.total_goals >= 4) features.add(`${prefix}_GOALS_4_PLUS`);
+                if (block.total_goals <= 2) features.add(`${prefix}_GOALS_2_MINUS`);
+            } else if (block.total !== null && block.total !== undefined) {
+                if (block.total >= 4) features.add(`${prefix}_GOALS_4_PLUS`);
+                if (block.total <= 2) features.add(`${prefix}_GOALS_2_MINUS`);
+            }
+        }
+
+        function matchTrainedRule(features, key) {
+            return key.every(item => features.has(item));
+        }
+
+        function evaluateFineTrainedRules(features) {
+            const sideRules = [
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_DOG_OU_CURRENT_OVER_LINE', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.35, label: 'Explorador DOG 72.73% (32/44)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_DOG_TOTAL_OVER_LINE', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.35, label: 'Explorador DOG 72.73% (32/44)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_DOG_GOALS_4_PLUS', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.35, label: 'Explorador DOG 69.57% (16/23)', tier: 'V62' },
+                { key: ['AH_EXACT=0.25', 'FAV_RECENT_STATS_LEAN_FOR'], direction: 'DOG', weight: 1.34, label: 'Explorador DOG 69.44% (25/36)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_0_25', 'FAV_RECENT_STATS_LEAN_FOR'], direction: 'DOG', weight: 1.34, label: 'Explorador DOG 69.44% (25/36)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'OU_4_PLUS'], direction: 'DOG', weight: 1.32, label: 'Explorador DOG 68.18% (15/22)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'OU_4_PLUS', 'OU_FAMILY=OU_EXTREME'], direction: 'DOG', weight: 1.32, label: 'Explorador DOG 68.18% (15/22)', tier: 'V62' },
+                { key: ['AH_EXACT=0.75', 'IND_DOG_MARGIN_M_DRAW'], direction: 'FAVORITE', weight: 1.30, label: 'Explorador FAVORITO 67.86% (19/28)', tier: 'V62' },
+                { key: ['BASE_PRESSURE=PRESSURE_NEW_FAV', 'IND_FAV_COVER_FAIL', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.31, label: 'Explorador DOG 67.65% (23/34)', tier: 'V62' },
+                { key: ['BASE_TOTAL=TOTAL_PUSH_LINE', 'IND_DOG_FRESH', 'OU_FAMILY=OU_LOW'], direction: 'DOG', weight: 1.29, label: 'Explorador DOG 66.67% (14/21)', tier: 'V62' },
+                { key: ['BASE_TOTAL=TOTAL_PUSH_LINE', 'IND_DOG_OU_OWN_UNKNOWN', 'OU_FAMILY=OU_LOW'], direction: 'DOG', weight: 1.29, label: 'Explorador DOG 66.67% (14/21)', tier: 'V62' },
+                { key: ['BASE_TOTAL=TOTAL_PUSH_LINE', 'IND_DOG_PREV_OU_UNKNOWN', 'OU_FAMILY=OU_LOW'], direction: 'DOG', weight: 1.29, label: 'Explorador DOG 66.67% (14/21)', tier: 'V62' },
+                { key: ['BASE_TOTAL=TOTAL_UNDER_LINE', 'FAV_RECENT_MARGIN_M_GE_POS3', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.25, label: 'Explorador DOG 65.0% (13/20)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_0_25', 'BASE_STATS=STATS_STRONG_FOR', 'IND_DOG_COVER_FAIL'], direction: 'DOG', weight: 1.25, label: 'Explorador DOG 64.71% (22/34)', tier: 'V62' },
+                { key: ['AH_EXACT=0.75', 'IND_FAV_MARGIN_M_DRAW'], direction: 'FAVORITE', weight: 1.24, label: 'Explorador FAVORITO 64.71% (22/34)', tier: 'V62' },
+                { key: ['BASE_PRESSURE=PRESSURE_LOWER', 'IND_FAV_SHORT_CURRENT_AH', 'OU_FAMILY=OU_LOW'], direction: 'FAVORITE', weight: 1.23, label: 'Explorador FAVORITO 64.0% (16/25)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_1_1_25', 'BASE_COVER=FAIL', 'IND_DOG_OU_CURRENT_OVER_LINE'], direction: 'DOG', weight: 1.23, label: 'Explorador DOG 63.64% (21/33)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_1_1_25', 'BASE_COVER=FAIL', 'IND_DOG_TOTAL_OVER_LINE'], direction: 'DOG', weight: 1.23, label: 'Explorador DOG 63.64% (21/33)', tier: 'V62' },
+                { key: ['AH_SUPER=AHS_MID', 'BASE_COVER=FAIL', 'IND_DOG_OU_CURRENT_OVER_LINE'], direction: 'DOG', weight: 1.23, label: 'Explorador DOG 63.64% (21/33)', tier: 'V62' },
+                { key: ['AH_SUPER=AHS_MID', 'BASE_COVER=FAIL', 'IND_DOG_TOTAL_OVER_LINE'], direction: 'DOG', weight: 1.23, label: 'Explorador DOG 63.64% (21/33)', tier: 'V62' },
+                { key: ['BASE_COVER=COVER', 'IND_DOG_GOALS_4_PLUS', 'OU_FAMILY=OU_MID'], direction: 'DOG', weight: 1.20, label: 'Explorador DOG 62.07% (18/29)', tier: 'V62' },
+            ];
+            const goalRules = [
+                { key: ['BASE_PRESSURE=PRESSURE_NEW_FAV', 'DOG_RECENT_STATS_LEAN_AGAINST'], direction: 'UNDER', weight: 1.35, label: 'Explorador UNDER 74.19% (23/31)', tier: 'V62' },
+                { key: ['BASE_PRESSURE=PRESSURE_NEW_FAV', 'BASE_STATS=STATS_STRONG_FOR', 'OU_FAMILY=OU_LOW'], direction: 'UNDER', weight: 1.35, label: 'Explorador UNDER 72.73% (24/33)', tier: 'V62' },
+                { key: ['BASE_COVER=FAIL', 'IND_DOG_STATS_STRONG_FOR', 'OU_FAMILY=OU_HIGH'], direction: 'UNDER', weight: 1.33, label: 'Explorador UNDER 69.44% (25/36)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_FAV_MARGIN_M_DRAW', 'OU_FAMILY=OU_LOW'], direction: 'UNDER', weight: 1.30, label: 'Explorador UNDER 67.74% (21/31)', tier: 'V62' },
+                { key: ['BASE_PRESSURE=PRESSURE_NEW_FAV', 'H2H_STADIUM_COVER_COVER', 'OU_FAMILY=OU_LOW'], direction: 'UNDER', weight: 1.28, label: 'Explorador UNDER 66.67% (14/21)', tier: 'V62' },
+                { key: ['IND_FAV_COVER_FAIL', 'QUALITY=MID'], direction: 'UNDER', weight: 1.26, label: 'Explorador UNDER 65.85% (27/41)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_FAV_COVER_PUSH'], direction: 'UNDER', weight: 1.25, label: 'Explorador UNDER 65.62% (21/32)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_NEUTRAL', 'H2H_GENERAL_COVER_FAIL', 'OU_FAMILY=OU_MID'], direction: 'OVER', weight: 1.27, label: 'Explorador OVER 65.38% (17/26)', tier: 'V62' },
+                { key: ['BASE_PRESSURE=PRESSURE_LOWER', 'BASE_TOTAL=TOTAL_OVER_LINE', 'OU_FAMILY=OU_HIGH'], direction: 'UNDER', weight: 1.25, label: 'Explorador UNDER 65.22% (15/23)', tier: 'V62' },
+                { key: ['BASE_STATS=STATS_STRONG_FOR', 'IND_DOG_MARGIN_M_POS1', 'OU_FAMILY=OU_HIGH'], direction: 'UNDER', weight: 1.24, label: 'Explorador UNDER 65.0% (13/20)', tier: 'V62' },
+                { key: ['AH_SUPER=AHS_LOW', 'BASE_TOTAL=TOTAL_UNDER_LINE', 'IND_DOG_MARGIN_M_POS1'], direction: 'UNDER', weight: 1.21, label: 'Explorador UNDER 63.64% (21/33)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_0_25', 'BASE_PRESSURE=PRESSURE_NEW_FAV', 'BASE_STATS=STATS_STRONG_FOR'], direction: 'UNDER', weight: 1.21, label: 'Explorador UNDER 63.16% (24/38)', tier: 'V62' },
+                { key: ['AH_FAMILY=AH_0_25', 'BASE_COVER=FAIL', 'BASE_TOTAL=TOTAL_UNDER_LINE'], direction: 'UNDER', weight: 1.19, label: 'Explorador UNDER 62.35% (53/85)', tier: 'V62' },
+            ];
+            const out = {
+                favorite: 0,
+                dog: 0,
+                over: 0,
+                under: 0,
+                sideFavoriteMatches: [],
+                sideDogMatches: [],
+                overMatches: [],
+                underMatches: [],
+            };
+            for (const rule of sideRules) {
+                if (!matchTrainedRule(features, rule.key)) continue;
+                if (rule.direction === 'FAVORITE') {
+                    out.favorite += rule.weight;
+                    out.sideFavoriteMatches.push(rule.label);
+                } else {
+                    out.dog += rule.weight;
+                    out.sideDogMatches.push(rule.label);
+                }
+            }
+            for (const rule of goalRules) {
+                if (!matchTrainedRule(features, rule.key)) continue;
+                if (rule.direction === 'OVER') {
+                    out.over += rule.weight;
+                    out.overMatches.push(rule.label);
+                } else {
+                    out.under += rule.weight;
+                    out.underMatches.push(rule.label);
+                }
+            }
+            out.sideConflict = out.sideFavoriteMatches.length > 0 && out.sideDogMatches.length > 0;
+            out.goalsConflict = out.overMatches.length > 0 && out.underMatches.length > 0;
+            return out;
+        }
+
+        function computeBookieSystemPick(pc, match, currentAh, ctx = {}) {
+            const ah = parseNumericValue(currentAh);
+            const ou = parseNumericValue(pc?.main_match_odds?.goals_linea ?? pc?.goals_line ?? match?.goal_line);
+            const homeName = pc?.home_name || pc?.home_team || match?.home_team || '';
+            const awayName = pc?.away_name || pc?.away_team || match?.away_team || '';
+            const favoriteSide = favoriteSideFromAh(ah);
+            const nameFrame = { ...(pc || {}), home_name: homeName, away_name: awayName };
+            const favoriteName = getFavoriteNameForAh(nameFrame, ah);
+            const dogName = getDogNameForAh(nameFrame, ah);
+            const reasons = [];
+            const risk = [];
+            const currentPressure = Math.abs(ah ?? 0);
+            const isHighFavoriteLine = favoriteSide !== 'PICKEM' && currentPressure >= 1.5;
+            const isExtremeFavoriteLine = favoriteSide !== 'PICKEM' && currentPressure >= 2.0;
+            const isStatsForFavorite = (stats) => ['STRONG_FOR_TEAM', 'LEAN_FOR_TEAM'].includes(stats?.verdict);
+            const isStatsAgainstFavorite = (stats) => ['STRONG_AGAINST_TEAM', 'LEAN_AGAINST_TEAM'].includes(stats?.verdict);
+
+            let favoriteScore = favoriteSide === 'PICKEM' ? 0 : 0.35;
+            let dogScore = 0;
+            let overScore = 0;
+            let underScore = 0;
+            let drawRisk = 0;
+
+            const general = favoriteName ? buildH2HCase(pc, 'general', ah, favoriteName) : null;
+            const stadium = favoriteName ? buildH2HCase(pc, 'stadium', ah, favoriteName) : null;
+
+            const applyH2H = (item, weight) => {
+                if (!item) return;
+                const blockName = item.kind === 'general' ? 'H2H gen' : 'H2H est';
+                const h2hStatsForFav = isStatsForFavorite(item.stats);
+                const h2hStatsAgainstFav = isStatsAgainstFavorite(item.stats);
+                const aggressiveReprice = item.delta !== null && item.delta >= 1.0 && item.nowPressure >= 1.5;
+                if (item.coverNow === 'COVER') {
+                    favoriteScore += 1.5 * weight;
+                    reasons.push(`${blockName} cubre`);
+                } else if (item.coverNow === 'FAIL') {
+                    if (h2hStatsForFav) {
+                        if (item.nowPressure >= 1.5) {
+                            dogScore += 0.65 * weight;
+                            risk.push(`${blockName} volumen no paga ${pressureBand(item.nowPressure)}`);
+                        } else {
+                            favoriteScore += 0.75 * weight;
+                            reasons.push(`${blockName} falla pero volumen`);
+                        }
+                    } else {
+                        dogScore += 1.1 * weight;
+                        risk.push(`${blockName} no cubre`);
+                    }
+                } else if (item.coverNow === 'PUSH') {
+                    drawRisk += 0.35 * weight;
+                }
+
+                if (h2hStatsForFav) {
+                    if (item.coverNow === 'FAIL' && item.nowPressure >= 1.5) dogScore += 0.35 * weight;
+                    else favoriteScore += 0.8 * weight;
+                }
+                if (h2hStatsAgainstFav) dogScore += 0.8 * weight;
+
+                if (item.pressureLabel === 'LOWER_PRESSURE_KEEP_FAVORITE') {
+                    const thenBand = pressureBand(item.thenPressure);
+                    const nowBand = pressureBand(item.nowPressure);
+                    if ((thenBand === '1' || thenBand === '1.25') && nowBand === '0.25') {
+                        favoriteScore += 1.15 * weight;
+                        reasons.push(`barrera ${thenBand}->0.25`);
+                    } else if (parseNumericValue(item.thenPressure) >= 1.5 && parseNumericValue(item.nowPressure) >= 1) {
+                        favoriteScore += 0.25 * weight;
+                        risk.push(`sigue exigiendo ${pressureFamily(item.nowPressure)}`);
+                    } else {
+                        favoriteScore += 0.45 * weight;
+                    }
+                } else if (item.pressureLabel === 'RAISE_PRESSURE_KEEP_FAVORITE') {
+                    if (aggressiveReprice && item.coverNow !== 'COVER') {
+                        dogScore += 1.35 * weight;
+                        risk.push(`subida agresiva ${pressureBand(item.thenPressure)}->${pressureBand(item.nowPressure)}`);
+                    } else if (item.coverNow === 'COVER' || h2hStatsForFav) {
+                        favoriteScore += 0.75 * weight;
+                    } else {
+                        dogScore += 0.6 * weight;
+                    }
+                } else if (item.pressureLabel === 'NEW_FAVORITE_STATUS') {
+                    if (item.nowPressure >= 1.5 && item.coverNow !== 'COVER') {
+                        dogScore += 0.9 * weight;
+                        risk.push(`favorito nuevo sin cubrir ${pressureBand(item.nowPressure)}`);
+                    } else {
+                        favoriteScore += 0.65 * weight;
+                        reasons.push('nuevo favorito');
+                    }
+                }
+
+                if (ou !== null && item.total !== null) {
+                    if (item.total > ou) overScore += 0.85 * weight;
+                    else if (item.total < ou) underScore += 0.85 * weight;
+                    else underScore += 0.25 * weight;
+                }
+            };
+
+            const duplicatedH2H = general && stadium
+                && general.score === stadium.score
+                && (!general.date || !stadium.date || general.date === stadium.date);
+            if (duplicatedH2H) {
+                applyH2H(stadium, 1.35);
+                risk.push('H2H general/estadio duplicado');
+            } else {
+                applyH2H(general, 1.15);
+                applyH2H(stadium, 1.35);
+            }
+
+            const favRecent = favoriteSide === 'HOME'
+                ? buildRecentCase(pc?.last_home_match, homeName)
+                : favoriteSide === 'AWAY'
+                    ? buildRecentCase(pc?.last_away_match, awayName)
+                    : null;
+            const dogRecent = favoriteSide === 'HOME'
+                ? buildRecentCase(pc?.last_away_match, awayName)
+                : favoriteSide === 'AWAY'
+                    ? buildRecentCase(pc?.last_home_match, homeName)
+                    : null;
+
+            if (favRecent) {
+                if (favRecent.cover === 'COVER') {
+                    const cameAsDog = favRecent.pressure !== null && favRecent.pressure < -0.01;
+                    const marginShortForToday = favRecent.margin !== null && favoriteSide !== 'PICKEM' && favRecent.margin < currentPressure;
+                    const minimalCover = favRecent.residual !== null && favRecent.residual <= 0.25;
+                    if (cameAsDog && currentPressure >= 0.5) {
+                        dogScore += 0.85;
+                        risk.push('cubrio como dog, no valida favorito');
+                    } else if (marginShortForToday && currentPressure >= 0.5) {
+                        dogScore += 0.65;
+                        risk.push('prev favorito no paga AH actual');
+                    } else if (minimalCover && ou !== null && ou <= 2.25 && currentPressure <= 0.75) {
+                        favoriteScore += 0.35;
+                        drawRisk += 0.55;
+                        risk.push('cover minimo con OU bajo');
+                    } else {
+                        favoriteScore += 1.0;
+                        reasons.push('prev favorito cubre');
+                    }
+                } else if (favRecent.cover === 'FAIL' && isStatsAgainstFavorite(favRecent.stats)) {
+                    dogScore += 0.9;
+                    risk.push('prev favorito débil');
+                }
+                if (isStatsForFavorite(favRecent.stats)) favoriteScore += 0.75;
+                if (isHighFavoriteLine && favRecent.margin !== null) {
+                    const recentGapVsCurrent = favRecent.margin - currentPressure;
+                    if (recentGapVsCurrent <= -1) {
+                        dogScore += isExtremeFavoriteLine ? 1.35 : 0.85;
+                        risk.push('favorito no confirma AH alto');
+                    } else if (recentGapVsCurrent < 0) {
+                        dogScore += 0.45;
+                        risk.push('favorito queda corto para AH alto');
+                    } else {
+                        favoriteScore += 0.45;
+                        reasons.push('prev favorito valida AH alto');
+                    }
+                }
+                if (favRecent.total !== null && ou !== null) {
+                    if (favRecent.total > ou) overScore += 0.55;
+                    else if (favRecent.total < ou) underScore += 0.45;
+                }
+            }
+
+            if (dogRecent) {
+                if (dogRecent.cover === 'FAIL') {
+                    if (isHighFavoriteLine && dogRecent.margin !== null && dogRecent.margin <= -3) {
+                        dogScore += isExtremeFavoriteLine ? 0.55 : 0.25;
+                        risk.push('castigo rival ya descontado');
+                    } else {
+                        favoriteScore += 0.7;
+                        reasons.push('no fav no cubre');
+                    }
+                } else if (dogRecent.cover === 'COVER') {
+                    dogScore += 0.65;
+                    risk.push('no fav llega vivo');
+                }
+                if (isStatsAgainstFavorite(dogRecent.stats)) favoriteScore += 0.55;
+                if (dogRecent.total !== null && ou !== null) {
+                    if (dogRecent.total > ou) overScore += 0.45;
+                    else if (dogRecent.total < ou) underScore += 0.4;
+                }
+            }
+
+            const indLeft = pc?.comparativas_indirectas?.left || null;
+            const indRight = pc?.comparativas_indirectas?.right || null;
+            const favIndirect = favoriteSide === 'HOME'
+                ? buildIndirectCase(indLeft, homeName)
+                : favoriteSide === 'AWAY'
+                    ? buildIndirectCase(indRight, awayName)
+                    : null;
+            const dogIndirect = favoriteSide === 'HOME'
+                ? buildIndirectCase(indRight, awayName)
+                : favoriteSide === 'AWAY'
+                    ? buildIndirectCase(indLeft, homeName)
+                    : null;
+            if (isHighFavoriteLine && favIndirect && dogIndirect) {
+                const dogCollapse = dogIndirect.margin !== null && dogIndirect.margin <= -3;
+                const favDidNotSeparate = favIndirect.margin !== null && favIndirect.margin < 1;
+                const favShortOfLine = favIndirect.margin !== null && favIndirect.margin < currentPressure;
+                if (dogCollapse && favDidNotSeparate) {
+                    dogScore += isExtremeFavoriteLine ? 1.45 : 0.95;
+                    risk.push('inflacion por rival comun');
+                } else if (favShortOfLine && dogCollapse) {
+                    dogScore += 0.65;
+                    risk.push('rival comun no valida linea');
+                } else if (favIndirect.margin !== null && favIndirect.margin >= currentPressure) {
+                    favoriteScore += 0.55;
+                    reasons.push('rival comun valida AH');
+                }
+            }
+
+            const favoriteAwayCommonRivalEdge = favoriteSide === 'AWAY'
+                && currentPressure >= 1.0
+                && currentPressure <= 1.5
+                && favIndirect
+                && dogIndirect
+                && favIndirect.margin !== null
+                && favIndirect.margin >= 2
+                && ['STRONG_AGAINST_TEAM', 'LEAN_AGAINST_TEAM'].includes(dogIndirect.stats?.verdict);
+            if (favoriteAwayCommonRivalEdge) {
+                favoriteScore += 0.85;
+                reasons.push('fav visitante valida rival comun');
+            }
+
+            const col3ScoreForTotals = pc?.h2h_col3?.status === 'found'
+                ? parseScoreValue(`${pc.h2h_col3.goles_home}:${pc.h2h_col3.goles_away}`)
+                : null;
+            const highTotalSupportCount = [favRecent, dogRecent, favIndirect, dogIndirect]
+                .filter(item => item && item.total !== null && item.total !== undefined && item.total >= 4)
+                .length + (col3ScoreForTotals && col3ScoreForTotals.total >= 4 ? 1 : 0);
+            const dogProcessWeakRecent = dogRecent && ['STRONG_AGAINST_TEAM', 'LEAN_AGAINST_TEAM'].includes(dogRecent.stats?.verdict);
+            const favoriteAwayBreakoutOver = favoriteSide === 'AWAY'
+                && currentPressure >= 1.0
+                && currentPressure <= 1.5
+                && ou !== null
+                && ou >= 2.5
+                && ou <= 3.5
+                && favRecent
+                && favRecent.cover === 'COVER'
+                && favRecent.margin !== null
+                && favRecent.margin >= 2
+                && (
+                    dogProcessWeakRecent
+                    || (favRecent.total !== null && favRecent.total >= 5)
+                    || highTotalSupportCount >= 2
+                );
+            if (favoriteAwayBreakoutOver) {
+                overScore += 2.25;
+                reasons.push('over ruptura favorito visitante');
+                if (dogProcessWeakRecent) risk.push('dog llega peor que resultado');
+            }
+
+            const col3 = pc?.h2h_col3 || {};
+            if (col3.status === 'found') {
+                const col3Total = parseScoreValue(`${col3.goles_home}:${col3.goles_away}`)?.total ?? null;
+                if (ctx.performanceStatus === 'MEJORA') favoriteScore += 0.45;
+                if (ctx.performanceStatus === 'EMPEORA') dogScore += 0.55;
+                if (col3Total !== null && ou !== null) {
+                    if (col3Total > ou) overScore += 0.45;
+                    else if (col3Total < ou) underScore += 0.55;
+                    if (parseInt(col3.goles_home, 10) === parseInt(col3.goles_away, 10)) {
+                        drawRisk += 0.55;
+                        risk.push('Col3 empate');
+                    }
+                }
+            }
+
+            if (ctx.indLeftRes === 'COVER') {
+                if (favoriteSide === 'HOME') favoriteScore += 0.45;
+                else dogScore += 0.35;
+            } else if (ctx.indLeftRes === 'NO_COVER') {
+                if (favoriteSide === 'HOME') dogScore += 0.35;
+                else favoriteScore += 0.25;
+            }
+            if (ctx.indRightRes === 'COVER') {
+                if (favoriteSide === 'AWAY') favoriteScore += 0.45;
+                else dogScore += 0.35;
+            } else if (ctx.indRightRes === 'NO_COVER') {
+                if (favoriteSide === 'AWAY') dogScore += 0.35;
+                else favoriteScore += 0.25;
+            }
+
+            const homeRank = rankValue(pc?.home_standings?.ranking);
+            const awayRank = rankValue(pc?.away_standings?.ranking);
+            if (favoriteSide !== 'PICKEM' && homeRank !== null && awayRank !== null) {
+                const favRank = favoriteSide === 'HOME' ? homeRank : awayRank;
+                const dogRank = favoriteSide === 'HOME' ? awayRank : homeRank;
+                if (favRank < dogRank) favoriteScore += 0.35;
+                else if (favRank > dogRank) dogScore += 0.45;
+            }
+
+            const baseCase = stadium || general;
+            const trainedFeatures = new Set([
+                `AH_FAMILY=${trainedAhFamily(currentPressure)}`,
+                `AH_SUPER=${trainedAhSuperFamily(currentPressure)}`,
+                `AH_EXACT=${formatAhDisplay(currentPressure)}`,
+                `FAV_SIDE=${favoriteSide}`,
+                `OU_FAMILY=${trainedOuFamily(ou)}`,
+                `TABLE=${trainedTableToken(pc, favoriteSide)}`,
+            ]);
+            if (ou !== null && ou >= 4.0) trainedFeatures.add('OU_4_PLUS');
+            if (ou !== null && ou <= 2.25) trainedFeatures.add('OU_LOW_DRAW_RISK');
+            if (isHighFavoriteLine && ou !== null && ou >= 4.0) trainedFeatures.add('HIGH_AH_WITH_EXTREME_OU_VARIANCE');
+            if (baseCase) {
+                trainedFeatures.add(`BASE_COVER=${baseCase.coverNow}`);
+                trainedFeatures.add(`BASE_PRESSURE=${trainedPressureToken(baseCase)}`);
+                trainedFeatures.add(`BASE_STATS=${trainedStatsToken(baseCase.stats)}`);
+                trainedFeatures.add(`BASE_TOTAL=${trainedTotalToken(baseCase.total, ou)}`);
+                trainedFeatures.add(`BASE_MARGIN=${trainedMarginBand(baseCase.margin)}`);
+            } else {
+                trainedFeatures.add('BASE_COVER=NO_H2H');
+                trainedFeatures.add('BASE_PRESSURE=NO_H2H');
+                trainedFeatures.add('BASE_STATS=NO_H2H');
+                trainedFeatures.add('BASE_TOTAL=NO_H2H');
+            }
+            addTrainedBlockFeatures(trainedFeatures, 'H2H_STADIUM', stadium, ou, currentPressure);
+            addTrainedBlockFeatures(trainedFeatures, 'H2H_GENERAL', general, ou, currentPressure);
+            addTrainedBlockFeatures(trainedFeatures, 'FAV_RECENT', favRecent, ou, currentPressure);
+            addTrainedBlockFeatures(trainedFeatures, 'DOG_RECENT', dogRecent, ou, currentPressure);
+            addTrainedBlockFeatures(trainedFeatures, 'IND_FAV', favIndirect, ou, currentPressure);
+            addTrainedBlockFeatures(trainedFeatures, 'IND_DOG', dogIndirect, ou, currentPressure);
+            if (favoriteSide !== 'PICKEM') trainedFeatures.add('HAS_FAVORITE');
+            if (currentPressure >= 1.5) trainedFeatures.add('AH_HIGH_OR_MORE');
+            if (currentPressure >= 2.0) trainedFeatures.add('AH_EXTREME_2_PLUS');
+            if (favRecent && favRecent.margin !== null && currentPressure >= 1.5 && favRecent.margin < currentPressure) {
+                trainedFeatures.add('FAV_RECENT_SHORT_OF_HIGH_AH');
+            }
+            if (dogRecent && dogRecent.margin !== null && dogRecent.margin <= -3) {
+                trainedFeatures.add('DOG_RECENT_COLLAPSE_3_PLUS');
+            }
+            if (favIndirect && favIndirect.margin !== null) {
+                if (favIndirect.margin >= currentPressure) trainedFeatures.add('IND_FAV_VALIDATES_CURRENT_AH');
+                if (favIndirect.margin < currentPressure) trainedFeatures.add('IND_FAV_SHORT_CURRENT_AH');
+            }
+            if (
+                isHighFavoriteLine
+                && favIndirect
+                && dogIndirect
+                && (favIndirect.margin ?? 0) < 1
+                && (dogIndirect.margin ?? 0) <= -3
+            ) {
+                trainedFeatures.add('INFLATION_COMMON_RIVAL');
+            }
+
+            const fineRules = evaluateFineTrainedRules(trainedFeatures);
+            favoriteScore += fineRules.favorite;
+            dogScore += fineRules.dog;
+            overScore += fineRules.over;
+            underScore += fineRules.under;
+            fineRules.sideFavoriteMatches.forEach(label => reasons.push(label));
+            fineRules.sideDogMatches.forEach(label => risk.push(label));
+            fineRules.overMatches.forEach(label => reasons.push(label));
+            fineRules.underMatches.forEach(label => risk.push(label));
+            if (fineRules.sideConflict) {
+                drawRisk += 0.75;
+                risk.push('micro-reglas AH en conflicto');
+            }
+            if (fineRules.goalsConflict) {
+                overScore *= 0.82;
+                underScore *= 0.82;
+                risk.push('micro-reglas O/U en conflicto');
+            }
+
+            if (ou !== null) {
+                if (ou <= 2.25) {
+                    underScore += 1.0;
+                    drawRisk += 0.55;
+                    risk.push(`O/U ${formatAhDisplay(ou)} bajo`);
+                    if (currentPressure >= 0.5 && currentPressure <= 0.75) {
+                        drawRisk += 0.45;
+                        risk.push('AH 0.5/0.75 con OU bajo');
+                    }
+                    const lowOuOverSignals = [general, stadium, favRecent, dogRecent, favIndirect, dogIndirect]
+                        .filter(item => item && item.total !== null && item.total !== undefined && item.total > ou)
+                        .length;
+                    const lowOuStrongRecentOverSignals = [favRecent, dogRecent, favIndirect, dogIndirect]
+                        .filter(item => item && item.total !== null && item.total !== undefined && item.total >= 4)
+                        .length;
+                    const explicitOuOverSignals = [favRecent, dogRecent, favIndirect, dogIndirect]
+                        .filter(item => item && item.ouOwn === 'OVER')
+                        .length;
+                    if ((overScore - underScore) > 0 && explicitOuOverSignals === 0 && (lowOuOverSignals < 4 || lowOuStrongRecentOverSignals < 2)) {
+                        overScore *= 0.55;
+                        underScore += 0.85;
+                        risk.push('OU bajo no persigue goles');
+                    }
+                } else if (ou >= 3.25) {
+                    overScore += 0.45;
+                    if (isHighFavoriteLine && ou >= 4.0) {
+                        overScore += 0.35;
+                        dogScore += 0.35;
+                        risk.push('OU alto aumenta varianza AH');
+                    }
+                }
+            }
+
+            const sideDiff = favoriteScore - dogScore - Math.min(drawRisk, 1.1) * 0.45;
+            const goalsDiff = overScore - underScore;
+            let sidePick = null;
+            let sideKind = 'NO_BET';
+            let ahLine = null;
+            const hasFineSideSupport = fineRules.sideFavoriteMatches.length > 0 || fineRules.sideDogMatches.length > 0;
+            const hasValidatedSideSupport = hasFineSideSupport && !fineRules.sideConflict;
+            const fineLeansFavorite = fineRules.favorite > fineRules.dog;
+            const fineLeansDog = fineRules.dog > fineRules.favorite;
+            const favoritePickThreshold = fineRules.sideConflict ? 3.0 : (hasFineSideSupport && fineLeansFavorite ? 1.25 : 2.1);
+            const dogPickThreshold = fineRules.sideConflict ? -3.0 : (hasFineSideSupport && fineLeansDog ? -1.15 : -2.1);
+
+            if (favoriteSide === 'PICKEM') {
+                if (sideDiff >= Math.max(1.5, favoritePickThreshold) && favoriteName) {
+                    sidePick = `${favoriteName} 0`;
+                    sideKind = 'FAVORITE';
+                    ahLine = '0';
+                }
+            } else if (sideDiff >= favoritePickThreshold) {
+                sidePick = `${favoriteName} ${formatAhDisplay(ah)}`;
+                sideKind = 'FAVORITE';
+                ahLine = formatAhDisplay(ah);
+            } else if (sideDiff <= dogPickThreshold) {
+                sidePick = `${dogName} ${formatAhDisplay(Math.abs(ah || 0), true)}`;
+                sideKind = 'DOG';
+                ahLine = formatAhDisplay(Math.abs(ah || 0), true);
+            }
+
+            let goalsPick = null;
+            if (goalsDiff >= 1.15) goalsPick = 'OVER';
+            else if (goalsDiff <= -1.15) goalsPick = 'UNDER';
+            const hasValidatedSidePickSupport = !fineRules.sideConflict
+                && (
+                    (sideKind === 'FAVORITE' && fineRules.sideFavoriteMatches.length > 0)
+                    || (sideKind === 'DOG' && fineRules.sideDogMatches.length > 0)
+                );
+            const hasValidatedGoalsSupport = !fineRules.goalsConflict
+                && (
+                    (goalsPick === 'OVER' && fineRules.overMatches.length > 0)
+                    || (goalsPick === 'UNDER' && fineRules.underMatches.length > 0)
+                );
+            if (sidePick && !hasValidatedSidePickSupport) {
+                risk.push('AH sin respaldo Explorador');
+                sidePick = null;
+                sideKind = 'NO_BET';
+                ahLine = null;
+            }
+            if (goalsPick && !hasValidatedGoalsSupport) {
+                risk.push('O/U sin respaldo Explorador');
+                goalsPick = null;
+            }
+            if (sidePick && trainedAhFamily(currentPressure) === 'AH_1_5_1_75') {
+                risk.push('familia AH 1.5/1.75 no supera auditoria');
+                sidePick = null;
+                sideKind = 'NO_BET';
+                ahLine = null;
+            }
+            if (goalsPick && (trainedOuFamily(ou) === 'OU_EXTREME' || trainedAhFamily(currentPressure) === 'AH_2_PLUS')) {
+                risk.push('familia O/U bloqueada por auditoria');
+                goalsPick = null;
+            }
+
+            const lowOuFavoriteWinGate = sideKind === 'FAVORITE'
+                && ou !== null
+                && ou <= 2.25
+                && currentPressure >= 0.5
+                && currentPressure <= 0.75
+                && !hasFineSideSupport;
+            if (lowOuFavoriteWinGate) {
+                risk.push('favorito necesita ganar con OU bajo');
+                sidePick = null;
+                sideKind = 'NO_BET';
+                ahLine = null;
+            }
+
+            let confidence = 'BAJA';
+            const absSideDiff = Math.abs(sideDiff);
+            if (sidePick && absSideDiff >= 3.0 && drawRisk < 1.2) confidence = 'ALTA';
+            else if (sidePick && absSideDiff >= 1.8) confidence = 'MEDIA';
+            if (sidePick && !hasFineSideSupport && absSideDiff < 2.4) confidence = 'BAJA';
+            if (sidePick && !hasFineSideSupport && confidence === 'ALTA' && absSideDiff < 4.0) confidence = 'MEDIA';
+            if (sidePick && hasFineSideSupport && confidence === 'ALTA' && absSideDiff < 2.6) confidence = 'MEDIA';
+            if (sidePick && fineRules.sideConflict && confidence === 'ALTA') confidence = 'MEDIA';
+
+            if (!sidePick && goalsPick) confidence = Math.abs(goalsDiff) >= 2.2 ? 'MEDIA' : 'BAJA';
+            if (sidePick && confidence === 'BAJA') {
+                risk.push('AH sin umbral operativo');
+                sidePick = null;
+                sideKind = 'NO_BET';
+                ahLine = null;
+                if (goalsPick) confidence = Math.abs(goalsDiff) >= 2.2 ? 'MEDIA' : 'BAJA';
+            }
+
+            const isNoBet = !sidePick && !goalsPick;
+            const kicker = isNoBet ? 'SIN PICK LIMPIO' : sideKind === 'DOG' ? 'NO FAVORITO' : 'PICK RECOMENDADO';
+            const mainColor = isNoBet ? '#6b7280' : sideKind === 'DOG' ? '#7c3aed' : '#047857';
+            const bg = isNoBet ? '#f8fafc' : sideKind === 'DOG' ? '#f5f3ff' : '#ecfdf5';
+            const border = isNoBet ? '#cbd5e1' : sideKind === 'DOG' ? '#8b5cf6' : '#10b981';
+            const tooltipParts = [
+                `FavScore ${favoriteScore.toFixed(2)} / DogScore ${dogScore.toFixed(2)}`,
+                `Over ${overScore.toFixed(2)} / Under ${underScore.toFixed(2)}`,
+                general ? `General ${general.score} ${pressureBand(general.thenPressure)}->${pressureBand(general.nowPressure)} ${general.coverNow}` : '',
+                stadium ? `Estadio ${stadium.score} ${stadium.coverNow}` : '',
+                `Micro AH F${fineRules.favorite.toFixed(2)} / D${fineRules.dog.toFixed(2)}`,
+                `Micro OU O${fineRules.over.toFixed(2)} / U${fineRules.under.toFixed(2)}`,
+                risk.length ? `Riesgos: ${risk.join(', ')}` : '',
+            ].filter(Boolean);
+
+            return {
+                sidePick,
+                sideKind,
+                ahLine,
+                goalsPick,
+                confidence,
+                reasons: reasons.length ? reasons : (risk.length ? risk : ['sin alineación suficiente']),
+                risk,
+                bg,
+                border,
+                mainColor,
+                kickerColor: mainColor,
+                kicker,
+                hasPick: !isNoBet,
+                sideDiff,
+                goalsDiff,
+                tooltip: tooltipParts.join('\n'),
+            };
+        }
+
+
+        function renderTable(matches) {
+            // Helper para validar valores (definido al inicio para evitar errores de inicialización)
+            // This line is now redundant due to the global isValidValue above.
+            // const isValidValue = (val) => val !== undefined && val !== null && val !== 'undefined' && val !== '';
+
+
+
+
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            if (!matches || matches.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4">No hay partidos próximos</td></tr>`;
+                return;
+            }
+
+            const formatAh = (val) => val !== null && val !== undefined ? val : '-';
+            const escapeDataAttr = value => String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+
+            matches.forEach(m => {
+                const tr = document.createElement('tr');
+                const matchId = m.id;
+                tr.setAttribute('data-match-id', matchId); // Añadido para que el modal pueda encontrar la fila
+                const pc = precacheoData[matchId];
+
+                const home = m.home_team || '-';
+                const away = m.away_team || '-';
+                // Corregir bug: handicap 0 es falsy, usar check explícito
+                const ah = (m.handicap !== undefined && m.handicap !== null && m.handicap !== '') ? m.handicap : '-';
+                const league = (pc && pc.league_name && pc.league_name !== 'N/A') ? pc.league_name : (m.league || '');
+
+                const hRankVal = (pc && pc.home_standings && pc.home_standings.ranking && pc.home_standings.ranking !== 'N/A') ? pc.home_standings.ranking : (m.home_rank || '');
+                const homeRank = hRankVal ? `[${hRankVal}]` : '';
+
+                const aRankVal = (pc && pc.away_standings && pc.away_standings.ranking && pc.away_standings.ranking !== 'N/A') ? pc.away_standings.ranking : (m.away_rank || '');
+                const awayRank = aRankVal ? `[${aRankVal}]` : '';
+
+                // Stats formatting helper
+                const fmtStats = (s, type) => {
+                    if (!s) return null;
+                    const p = type === 'total' ? 'total' : 'specific';
+                    const v = s[`${p}_v`];
+                    const e = s[`${p}_e`];
+                    const d = s[`${p}_d`];
+                    if (v === '' || v === undefined || v === 'N/A') return null;
+                    return `${v}-${e}-${d}`;
+                };
+
+                let homeStatsHtml = '';
+                if (pc && pc.home_standings) {
+                    const g = fmtStats(pc.home_standings, 'total');
+                    const s = fmtStats(pc.home_standings, 'specific');
+                    if (g || s) {
+                        homeStatsHtml = `
+                            <div class="mt-1 text-muted" style="font-size: 0.7rem; line-height: 1.1;">
+                                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>L: ${s}</div>` : ''}
+                            </div>`;
+                    }
+                }
+
+                let awayStatsHtml = '';
+                if (pc && pc.away_standings) {
+                    const g = fmtStats(pc.away_standings, 'total');
+                    const s = fmtStats(pc.away_standings, 'specific');
+                    if (g || s) {
+                        awayStatsHtml = `
+                            <div class="mt-1 text-muted" style="font-size: 0.7rem; line-height: 1.1;">
+                                ${g ? `<div>G: ${g}</div>` : ''}
+                                ${s ? `<div>V: ${s}</div>` : ''}
+                            </div>`;
+                    }
+                }
+
+                // Completa la forma ausente con el histórico de la misma liga e integra el O/U.
+                homeStatsHtml = pc ? renderTeamGeneralStats(pc, home, 'home') : homeStatsHtml;
+                awayStatsHtml = pc ? renderTeamGeneralStats(pc, away, 'away') : awayStatsHtml;
+
+                const calculateTeamWins = (matches, teamName) => {
+                    const rows = Array.isArray(matches) ? matches : [];
+                    let wins = 0;
+                    let total = 0;
+                    rows.forEach(item => {
+                        const score = parseScoreValue(item && (item.score || item.score_raw));
+                        if (!score) return;
+                        const subjectHome = sameTeamName(item.home, teamName);
+                        const subjectAway = sameTeamName(item.away, teamName);
+                        if (!subjectHome && !subjectAway) return;
+                        total += 1;
+                        if ((subjectHome && score.home > score.away) || (subjectAway && score.away > score.home)) {
+                            wins += 1;
+                        }
+                    });
+                    return { wins, total };
+                };
+
+                const renderTeamFormRow = (label, teamName, matches, ouStats) => {
+                    const result = calculateTeamWins(matches, teamName);
+                    const overCount = Number(ouStats && ouStats.over) || 0;
+                    const underCount = Number(ouStats && ouStats.under) || 0;
+                    const decidedOu = overCount + underCount;
+                    const rawOverPct = Number(ouStats && ouStats.over_pct) || 0;
+                    const rawUnderPct = Number(ouStats && ouStats.under_pct) || 0;
+                    const decidedPct = rawOverPct + rawUnderPct;
+                    const ouTotal = decidedOu || Number(ouStats && ouStats.total) || 0;
+                    const total = result.total || ouTotal;
+                    if (!total) return '';
+                    const over = decidedOu
+                        ? (overCount * 100 / decidedOu)
+                        : (decidedPct ? rawOverPct * 100 / decidedPct : 0);
+                    const under = decidedOu
+                        ? (underCount * 100 / decidedOu)
+                        : (decidedPct ? rawUnderPct * 100 / decidedPct : 0);
+                    const overClass = over > under ? 'team-form-over-win' : 'team-form-neutral';
+                    const underClass = under > over ? 'team-form-under-win' : 'team-form-neutral';
+                    const winsHtml = result.total
+                        ? `<span class="team-form-pill team-form-win">V ${result.wins}/${result.total}</span>`
+                        : '';
+                    return `
+                        <div class="team-form-row">
+                            <span class="team-form-label">${label}</span>
+                            ${winsHtml}
+                            <span class="team-form-pill ${overClass}">O ${over.toFixed(0)}%</span>
+                            <span class="team-form-pill ${underClass}">U ${under.toFixed(0)}%</span>
+                        </div>`;
+                };
+
+                const homeTrendHtml = '';
+                const awayTrendHtml = '';
+
+                // Format Date/Time
+                const fecha = formatMatchDateTime(m);
+
+                // Check if scraped
+                const isScraped = !!pc;
+
+                // Check if has valid result (can be finalized)
+                let hasValidResult = false;
+                if (pc) {
+                    hasValidResult = hasValidResultScore(pc);
+                }
+
+                // FT (Score)
+                let ftHtml = '<span class="text-muted">-</span>';
+                if (pc && pc.score && pc.score !== '??') {
+                    ftHtml = `<span class="fw-bold text-success">${pc.score}</span>`;
+                } else if (pc && pc.final_score && pc.final_score !== '??') {
+                    ftHtml = `<span class="fw-bold text-success">${pc.final_score}</span>`;
+                } else {
+                    ftHtml = '<span class="text-muted">?:?</span>';
+                }
+
+                // Obtener el AH del partido actual en perspectiva LOCAL (invertido de la DB)
+                // Perspectiva Local: Negativo = Local Favorito, Positivo = Local Underdog
+                const currentAh = getLocalPerspectiveAh(m);
+                const localEsFavorito = !isNaN(currentAh) && currentAh > 0;
+
+                // Prev Home
+                let prevHomeHtml = '<span class="text-muted">-</span>';
+                let prevHomeStats = null; // Para el botón global de stats
+                if (pc && pc.last_home_match && pc.last_home_match.score) {
+                    const lhm = pc.last_home_match;
+                    const ahVal = formatAh(lhm.handicap_line_raw);
+
+                    // Calc WDL - Usar el AH del partido ACTUAL para simular cover
+                    let wdlClass = 'text-dark';
+                    const prevHomeWdlForCell = getPrevHomeWdl(lhm.score, currentAh);
+                    wdlClass = wdlToTextClass(prevHomeWdlForCell);
+
+                    // Nombres completos y fecha
+                    const lhmHomeName = lhm.home_team || '';
+                    const lhmAwayName = lhm.away_team || '';
+                    const lhmDate = lhm.date || '';
+
+                    // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
+                    prevHomeStats = {
+                        title: 'Prev Home',
+                        date: lhmDate,
+                        stats: Array.isArray(lhm.stats_rows) ? lhm.stats_rows : [],
+                        match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score }
+                    };
+
+                    prevHomeHtml = `
+                        <div class="d-flex flex-column">
+                            ${lhmDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lhmDate}</div>` : ''}
+                            ${lhm.is_general_fallback ? '<div><span class="badge bg-warning text-dark" style="font-size:0.48rem;">GENERAL · MISMA LIGA</span></div>' : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${ahVal}</span>
+                                <span class="fw-bold ${wdlClass}">${lhm.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Prev Away
+                let prevAwayHtml = '<span class="text-muted">-</span>';
+                let prevAwayStats = null; // Para el botón global de stats
+                if (pc && pc.last_away_match && (isValidValue(pc.last_away_match.score) || isValidValue(pc.last_away_match.ah))) {
+                    const lam = pc.last_away_match;
+                    const ahVal = formatAh(lam.handicap_line_raw);
+
+
+                    // Calc WDL - Usar el AH del partido ACTUAL (invertido para away)
+                    let wdlClass = 'text-dark';
+                    const prevAwayWdlForCell = getPrevAwayWdl(lam.score, currentAh);
+                    wdlClass = wdlToTextClass(prevAwayWdlForCell);
+
+
+                    // Nombres completos y fecha
+                    const lamHomeName = lam.home_team || '';
+                    const lamAwayName = lam.away_team || '';
+                    const lamDate = lam.date || '';
+
+                    // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
+                    prevAwayStats = {
+                        title: 'Prev Away',
+                        date: lamDate,
+                        stats: Array.isArray(lam.stats_rows) ? lam.stats_rows : [],
+                        match: { home: lamHomeName, away: lamAwayName, score: lam.score }
+                    };
+
+                    prevAwayHtml = `
+                        <div class="d-flex flex-column">
+                            ${lamDate ? `<div class="text-muted" style="font-size: 0.55rem;">${lamDate}</div>` : ''}
+                            ${lam.is_general_fallback ? '<div><span class="badge bg-warning text-dark" style="font-size:0.48rem;">GENERAL · MISMA LIGA</span></div>' : ''}
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${ahVal}</span>
+                                <span class="fw-bold ${wdlClass}">${lam.score}</span>
+                            </div>
+                            <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
+                                <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // H2H Estadio (from market_analysis_data.stadium)
+                let h2hStadiumHtml = '<span class="text-muted">-</span>';
+                let h2hStadiumMovAttr = '';
+                let h2hStadiumResAttr = '';
+
+                if (pc && pc.market_analysis_data && pc.market_analysis_data.stadium) {
+                    const st = pc.market_analysis_data.stadium;
+                    const hasValidMovement = st.movement && st.movement !== 'N/A' && st.movement.trim() !== '';
+                    const hasValidResult = st.result && st.result !== 'N/A' && st.result.trim() !== '' && st.result !== '?:?' && st.result !== '?-?';
+
+                    if (hasValidMovement || hasValidResult) {
+                        // Calcular atributos para el filtrado visual
+                        if (hasValidMovement) {
+                            h2hStadiumMovAttr = getMovementDirection(st.movement) || '';
+                        }
+
+                        // Si el scraper no calculó el resultado H2H (res1_raw fue '?-?' o faltaron cuotas), 
+                        // pero tenemos un resultado en st.result, lo usamos con el currentAh del frontend.
+                        if (hasValidResult && !isNaN(currentAh)) {
+                            const resWdl = calculateH2HResult(st.result, currentAh);
+                            h2hStadiumResAttr = resWdl || '';
+                        }
+
+                        // Calcular color basado en si el FAVORITO del partido ACTUAL cubre con el resultado histórico
+                        let movColor = 'text-dark';
+                        if (hasValidResult && !isNaN(currentAh)) {
+                            // Usamos calculateH2HResult que ya tiene la lógica de favoritismo integrada
+                            const res = calculateH2HResult(st.result, currentAh);
+                            if (res === 'COVER') movColor = 'text-success';
+                            else if (res === 'NO_COVER') movColor = 'text-danger';
+                            else if (res === 'PUSH') movColor = 'text-push';
+                        }
+
+                        h2hStadiumHtml = `
+                            <div class="d-flex flex-column">
+                                ${st.date && st.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
+                                <div class="fw-bold small ${movColor}">${hasValidMovement ? st.movement : (hasValidResult ? 'Histórico' : '-')}</div>
+                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.result}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // H2H General (from market_analysis_data.general)
+                let h2hGeneralHtml = '<span class="text-muted">-</span>';
+                let h2hGeneralMovAttr = '';
+                let h2hGeneralResAttr = '';
+
+                // Verificar si H2H General es el mismo partido que H2H Estadio
+                const stadiumData = pc && pc.market_analysis_data && pc.market_analysis_data.stadium;
+                const generalData = pc && pc.market_analysis_data && pc.market_analysis_data.general;
+                const isSameAsStadium = stadiumData && generalData &&
+                    stadiumData.date === generalData.date &&
+                    stadiumData.result === generalData.result &&
+                    stadiumData.result !== '?-?' && stadiumData.result !== '?:?';
+
+                if (pc && pc.market_analysis_data && pc.market_analysis_data.general && !isSameAsStadium) {
+                    const gen = pc.market_analysis_data.general;
+                    const hasValidMovement = gen.movement && gen.movement !== 'N/A' && gen.movement.trim() !== '';
+                    const hasValidResult = gen.result && gen.result !== 'N/A' && gen.result.trim() !== '' && gen.result !== '?:?' && gen.result !== '?-?';
+
+                    if (hasValidMovement || hasValidResult) {
+                        // Calcular atributos para el filtrado visual
+                        if (hasValidMovement) {
+                            h2hGeneralMovAttr = getMovementDirection(gen.movement) || '';
+                        }
+                        if (hasValidResult && !isNaN(currentAh)) {
+                            const resWdl = calculateH2HResult(gen.result, currentAh, true);
+                            h2hGeneralResAttr = resWdl || '';
+                        }
+
+                        // Calcular color basado en si el FAVORITO del partido ACTUAL cubre con el resultado histórico
+                        let movColor = 'text-dark';
+                        if (hasValidResult && !isNaN(currentAh) && currentAh !== 0) {
+                            const res = calculateH2HResult(gen.result, currentAh, true);
+                            if (res === 'COVER') movColor = 'text-success';
+                            else if (res === 'NO_COVER') movColor = 'text-danger';
+                            else if (res === 'PUSH') movColor = 'text-push';
+                        }
+
+                        h2hGeneralHtml = `
+                            <div class="d-flex flex-column">
+                                ${gen.date && gen.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
+                                <div class="fw-bold small ${movColor}">${hasValidMovement ? gen.movement : (hasValidResult ? 'Histórico' : '-')}</div>
+                                ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.result}</div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // --- H2H Col3 Comparator: MEJORA / IGUALA / EMPEORA ---
+                // REGLAS CORRECTAS:
+                // 1. Favorito: HA <= 0 → VISITANTE, HA > 0 → LOCAL
+                // 2. WDL del favorito: De Prev Home (si LOCAL) o Prev Away (si VISITANTE)
+                // 3. Equipo espejo: El rival del otro equipo
+                // 4. WDL del espejo: Desde H2H Col3 para ese equipo
+                // 5. Comparación: L=0, D=1, W=2
+
+                const getWDLRank = (scoreStr, isHome) => {
+                    if (!scoreStr || scoreStr === '?:?' || scoreStr === '?-?' || scoreStr === '??') return null;
+                    const parts = scoreStr.replace('-', ':').split(':');
+                    if (parts.length !== 2) return null;
+                    const gh = parseInt(parts[0]);
+                    const ga = parseInt(parts[1]);
+                    if (isNaN(gh) || isNaN(ga)) return null;
+
+                    const teamGoals = isHome ? gh : ga;
+                    const oppGoals = isHome ? ga : gh;
+
+                    if (teamGoals > oppGoals) return 2; // W
+                    if (teamGoals === oppGoals) return 1; // D
+                    return 0; // L
+                };
+
+                const currentAhRaw = parseFloat(m.handicap);
+                const favIsVisitor = currentAhRaw <= 0;
+                const favIsLocal = currentAhRaw > 0;
+
+                let performanceStatus = 'N/A';
+                let favWDL = null;
+                let mirrorWDL = null;
+                let mirrorTeamName = null;
+
+                const homeTeamName = (m.home_team || '').toLowerCase().trim();
+                const awayTeamName = (m.away_team || '').toLowerCase().trim();
+
+                // 1. Obtener WDL del favorito desde Prev Home o Prev Away
+                // NOTA: En precacheo los datos se llaman last_home_match y last_away_match
+                if (pc && pc.last_home_match && pc.last_home_match.score && favIsLocal) {
+                    // Favorito es LOCAL actual → usar last_home_match (partido previo del Local)
+                    const prevHomeTeam = (pc.last_home_match.home_team || '').toLowerCase().trim();
+                    // ¿El local actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevHomeTeam.includes(homeTeamName) || homeTeamName.includes(prevHomeTeam);
+                    favWDL = getWDLRank(pc.last_home_match.score, favPlayedHome);
+                    // El equipo espejo es el rival del VISITANTE actual (de last_away_match)
+                    if (pc.last_away_match) {
+                        const prevAwayHome = (pc.last_away_match.home_team || '').toLowerCase().trim();
+                        const prevAwayAway = (pc.last_away_match.away_team || '').toLowerCase().trim();
+                        // El rival es el equipo que NO es el visitante actual
+                        const isVisitorHomeInPrev = prevAwayHome.includes(awayTeamName) || awayTeamName.includes(prevAwayHome);
+                        mirrorTeamName = isVisitorHomeInPrev ? prevAwayAway : prevAwayHome;
+                    }
+                } else if (pc && pc.last_away_match && pc.last_away_match.score && favIsVisitor) {
+                    // Favorito es VISITANTE actual → usar last_away_match (partido previo del Visitante)
+                    const prevAwayHome = (pc.last_away_match.home_team || '').toLowerCase().trim();
+                    const prevAwayAway = (pc.last_away_match.away_team || '').toLowerCase().trim();
+                    // ¿El visitante actual jugó de LOCAL en su partido previo?
+                    const favPlayedHome = prevAwayHome.includes(awayTeamName) || awayTeamName.includes(prevAwayHome);
+                    favWDL = getWDLRank(pc.last_away_match.score, favPlayedHome);
+                    // El equipo espejo es el rival del LOCAL actual (de last_home_match)
+                    if (pc.last_home_match) {
+                        const prevHomeHome = (pc.last_home_match.home_team || '').toLowerCase().trim();
+                        const prevHomeAway = (pc.last_home_match.away_team || '').toLowerCase().trim();
+                        // El rival es el equipo que NO es el local actual
+                        const isLocalHomeInPrev = prevHomeHome.includes(homeTeamName) || homeTeamName.includes(prevHomeHome);
+                        mirrorTeamName = isLocalHomeInPrev ? prevHomeAway : prevHomeHome;
+                    }
+                }
+
+                // 2. Obtener WDL del equipo espejo desde H2H Col3
+                let h2hCol3Html = '';
+                let mirrorCompType = ''; // 'directa' o 'inversa'
+                let mirrorCoverStatus = ''; // 'CUBIERTO' o 'NO_CUBIERTO'
+                let ahMovement = ''; // 'SUBE', 'BAJA', 'IGUAL'
+                if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
+                    const col3 = pc.h2h_col3;
+                    const mirrorScore = (!isNaN(parseInt(col3.goles_home)) && !isNaN(parseInt(col3.goles_away)))
+                        ? `${col3.goles_home}:${col3.goles_away}` : null;
+                    const h2hHome = (col3.h2h_home_team_name || '').toLowerCase().trim();
+                    const h2hAway = (col3.h2h_away_team_name || '').toLowerCase().trim();
+
+                    // Calcular si es comparación directa o inversa
+                    // DIRECTA: Localías coinciden (mirror HOME en H2H, fav es LOCAL actual)
+                    // INVERSA: Localías NO coinciden (mirror HOME en H2H, fav es VISITANTE actual)
+                    // Para HA negativo (fav es visitante), las etiquetas se invierten
+                    if (mirrorTeamName) {
+                        const mirrorIsHomeInH2H = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAwayInH2H = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        // Determinar tipo base
+                        let baseType = '';
+                        if (mirrorIsHomeInH2H) {
+                            baseType = 'directa'; // Mirror está de local
+                        } else if (mirrorIsAwayInH2H) {
+                            baseType = 'inversa'; // Mirror está de visitante
+                        }
+
+                        // Para HA negativo (favorito visitante), invertir la etiqueta
+                        if (favIsVisitor && baseType) {
+                            mirrorCompType = baseType === 'directa' ? 'inversa' : 'directa';
+                        } else {
+                            mirrorCompType = baseType;
+                        }
+
+                        // NUEVO: Calcular si el espejo cubrió el handicap en H2H Col3 y movimiento de línea
+                        const mirrorAhCol3 = parseFloat(col3.handicap);
+                        if (mirrorScore && !isNaN(mirrorAhCol3)) {
+                            const [golesHome, golesAway] = mirrorScore.split(':').map(g => parseInt(g));
+
+                            // Determinar quién era favorito en H2H Col3
+                            // HA <= 0 → Visitante favorito, HA > 0 → Local favorito
+                            const col3FavIsHome = mirrorAhCol3 > 0;
+                            const col3FavIsAway = mirrorAhCol3 <= 0;
+
+                            let margin = 0;
+                            if (col3FavIsHome) {
+                                margin = golesHome - golesAway;
+                            } else if (col3FavIsAway) {
+                                margin = golesAway - golesHome;
+                            }
+
+                            // Verificar cobertura
+                            const ahAbsolute = Math.abs(mirrorAhCol3);
+                            if (margin > ahAbsolute) {
+                                mirrorCoverStatus = 'CUBIERTO';
+                            } else if (margin < ahAbsolute) {
+                                mirrorCoverStatus = 'NO_CUBIERTO';
+                            } else {
+                                mirrorCoverStatus = 'PUSH';
+                            }
+                        }
+
+                        // Calcular movimiento de línea (AH actual vs AH Col3)
+                        if (!isNaN(currentAhRaw) && !isNaN(mirrorAhCol3)) {
+                            // Normalizar handicaps: -0.25 = -0.5 = -0.75
+                            const normalizeAh = (ah) => {
+                                const absAh = Math.abs(ah);
+                                const sign = ah >= 0 ? 1 : -1;
+                                const decimal = absAh % 1;
+
+                                if (decimal >= 0.2 && decimal <= 0.8) {
+                                    // 0.25, 0.5, 0.75 → 0.5
+                                    return sign * (Math.floor(absAh) + 0.5);
+                                }
+                                return sign * Math.round(absAh);
+                            };
+
+                            const normalizedCurrent = normalizeAh(currentAhRaw);
+                            const normalizedCol3 = normalizeAh(mirrorAhCol3);
+
+                            const diff = Math.abs(normalizedCurrent) - Math.abs(normalizedCol3);
+
+                            if (Math.abs(diff) < 0.01) {
+                                ahMovement = 'IGUAL';
+                            } else if (diff > 0) {
+                                ahMovement = 'SUBE';
+                            } else {
+                                ahMovement = 'BAJA';
+                            }
+                        }
+                    }
+
+                    // Solo calcular comparación si tenemos mirrorTeamName
+                    if (mirrorScore && mirrorTeamName) {
+                        const mirrorIsHome = h2hHome.includes(mirrorTeamName) || mirrorTeamName.includes(h2hHome);
+                        const mirrorIsAway = h2hAway.includes(mirrorTeamName) || mirrorTeamName.includes(h2hAway);
+
+                        if (mirrorIsHome) {
+                            mirrorWDL = getWDLRank(mirrorScore, true);
+                        } else if (mirrorIsAway) {
+                            mirrorWDL = getWDLRank(mirrorScore, false);
+                        }
+                    }
+
+                    // 3. Comparar
+                    if (favWDL !== null && mirrorWDL !== null) {
+                        if (favWDL > mirrorWDL) performanceStatus = 'MEJORA';
+                        else if (favWDL === mirrorWDL) performanceStatus = 'IGUALA';
+                        else performanceStatus = 'EMPEORA';
+                    }
+
+                    // SIEMPRE renderizar si hay datos de H2H Col3
+                    const mirrorAhRaw = (col3.handicap !== undefined && col3.handicap !== 'undefined') ? col3.handicap : null;
+                    if (mirrorAhRaw !== null || mirrorScore) {
+                        const homeTeam = (col3.h2h_home_team_name && col3.h2h_home_team_name !== 'undefined') ? col3.h2h_home_team_name : '';
+                        const awayTeam = (col3.h2h_away_team_name && col3.h2h_away_team_name !== 'undefined') ? col3.h2h_away_team_name : '';
+                        const date = col3.date ? col3.date : '';
+
+                        let statusColor = 'text-muted';
+                        if (performanceStatus === 'MEJORA') statusColor = 'text-success';
+                        else if (performanceStatus === 'EMPEORA') statusColor = 'text-danger';
+                        else if (performanceStatus === 'IGUALA') statusColor = 'text-push';
+
+                        // Mostrar tipo de comparación (directa/inversa)
+                        const mirrorTypeLabel = mirrorCompType === 'directa'
+                            ? '<span class="badge bg-info" style="font-size: 0.55rem;">Directa</span>'
+                            : mirrorCompType === 'inversa'
+                                ? '<span class="badge bg-warning text-dark" style="font-size: 0.55rem;">Inversa</span>'
+                                : '';
+
+                        // NUEVO: Badge para cobertura
+                        const coverLabel = mirrorCoverStatus === 'CUBIERTO'
+                            ? '<span class="badge bg-success" style="font-size: 0.5rem;">✓ Cubrió</span>'
+                            : mirrorCoverStatus === 'NO_CUBIERTO'
+                                ? '<span class="badge bg-danger" style="font-size: 0.5rem;">✗ No Cubrió</span>'
+                                : mirrorCoverStatus === 'PUSH'
+                                    ? '<span class="badge bg-secondary" style="font-size: 0.5rem;">Push</span>'
+                                    : '';
+
+                        // NUEVO: Badge para movimiento de línea
+                        const movementLabel = ahMovement === 'SUBE'
+                            ? '<span class="badge bg-primary" style="font-size: 0.5rem;">↑ Sube</span>'
+                            : ahMovement === 'BAJA'
+                                ? '<span class="badge bg-warning text-dark" style="font-size: 0.5rem;">↓ Baja</span>'
+                                : ahMovement === 'IGUAL'
+                                    ? '<span class="badge bg-secondary" style="font-size: 0.5rem;">= Igual</span>'
+                                    : '';
+
+                        h2hCol3Html = `
+                            <div class="d-flex flex-column">
+                                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">
+                                    ${performanceStatus} ${mirrorTypeLabel}
+                                </div>
+                                ${date ? `<div class="text-muted" style="font-size: 0.55rem;">${date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${mirrorAhRaw || '-'}</span>
+                                    <span class="fw-bold">${mirrorScore || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                <div class="d-flex gap-1 mt-1 flex-wrap">
+                                    ${coverLabel}
+                                    ${movementLabel}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Ind. Comparisons - Helper para validar undefined
+                // (isValidValue moved to top of renderTable)
+
+                let indLeftHtml = '';
+                let indLeftHasData = false;
+                let indLeftAhAttr = '';
+                let indLeftResAttr = '';
+                let indLeftLocAttr = '';
+
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.left) {
+                    const l = pc.comparativas_indirectas.left;
+                    const ahLine = isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : null);
+                    const score = isValidValue(l.score) ? l.score : null;
+                    const homeTeam = isValidValue(l.home_team) ? l.home_team : '';
+                    const awayTeam = isValidValue(l.away_team) ? l.away_team : '';
+                    const localia = isValidValue(l.localia) ? l.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indLeftHasData = true;
+                        // CALCULO DINÁMICO DE COVER (Ind. Local -> Subject is Home)
+                        let coverStatusToUse = null;
+                        if (score && localia && !isNaN(currentAh)) {
+                            coverStatusToUse = getIndCoverStatus(score, localia, true, currentAh);
+                        }
+                        // Fallback
+                        if (!coverStatusToUse && l.cover_status) {
+                            if (l.cover_status === 'CUBIERTO') coverStatusToUse = 'COVER';
+                            else if (l.cover_status === 'NO CUBIERTO') coverStatusToUse = 'NO_COVER';
+                            else if (l.cover_status === 'PUSH') coverStatusToUse = 'PUSH';
+                        }
+                        const cov = coverStatusToUse === 'COVER' ? 'text-success' : (coverStatusToUse === 'NO_COVER' ? 'text-danger' : (coverStatusToUse === 'PUSH' ? 'text-push' : 'text-dark'));
+
+                        // Populate attributes for filtering
+                        if (ahLine) indLeftAhAttr = ahLine;
+                        if (coverStatusToUse) indLeftResAttr = coverStatusToUse;
+                        // Localía normalizada: H (local) o A (visitante)
+                        indLeftLocAttr = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A';
+
+                        indLeftHtml = `
+                            <div class="d-flex flex-column">
+                                ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="mt-1"><span class="badge ${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                let indRightHtml = '';
+                let indRightHasData = false;
+                let indRightAhAttr = '';
+                let indRightResAttr = '';
+                let indRightLocAttr = '';
+
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.right) {
+                    const r = pc.comparativas_indirectas.right;
+                    const ahLine = isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : null);
+                    const score = isValidValue(r.score) ? r.score : null;
+                    const homeTeam = isValidValue(r.home_team) ? r.home_team : '';
+                    const awayTeam = isValidValue(r.away_team) ? r.away_team : '';
+                    const localia = isValidValue(r.localia) ? r.localia : '';
+
+                    // Si tiene datos válidos, mostrar contenido
+                    if (ahLine || score) {
+                        indRightHasData = true;
+                        // CALCULO DINÁMICO DE COVER (Ind. Visitante -> Subject is Away)
+                        let coverStatusToUse = null;
+                        if (score && localia && !isNaN(currentAh)) {
+                            coverStatusToUse = getIndCoverStatus(score, localia, false, currentAh);
+                        }
+                        // Fallback
+                        if (!coverStatusToUse && r.cover_status) {
+                            if (r.cover_status === 'CUBIERTO') coverStatusToUse = 'COVER';
+                            else if (r.cover_status === 'NO CUBIERTO') coverStatusToUse = 'NO_COVER';
+                            else if (r.cover_status === 'PUSH') coverStatusToUse = 'PUSH';
+                        }
+                        const cov = coverStatusToUse === 'COVER' ? 'text-success' : (coverStatusToUse === 'NO_COVER' ? 'text-danger' : (coverStatusToUse === 'PUSH' ? 'text-push' : 'text-dark'));
+
+                        // Populate attributes for filtering
+                        if (ahLine) indRightAhAttr = ahLine;
+                        if (coverStatusToUse) indRightResAttr = coverStatusToUse;
+                        // Localía normalizada: H (local) o A (visitante)
+                        indRightLocAttr = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A';
+
+                        indRightHtml = `
+                            <div class="d-flex flex-column">
+                                ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${cov}">${score || '-'}</span>
+                                </div>
+                                ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
+                                ${localia ? `<div class="mt-1"><span class="badge ${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                            </div>
+                        `;
+                    }
+                }
+
+                // Determinar si H2H Col3 tiene datos
+                let h2hCol3HasData = h2hCol3Html !== '';
+
+                // Preparar botón global de Stats - 7 celdas fijas siempre
+                // Orden: Prev Home, Prev Away, H2H Estadio, H2H General, H2H Col3, Ind. Local, Ind. Visitante
+
+                // Helper para crear HTML de filas de stats con colores (formato tabla como estudio.html)
+                const createStatsRows = (stats) => {
+                    if (!stats || stats.length === 0) return '';
+                    const rows = stats.map(stat => {
+                        const label = stat.label ?? '';
+                        const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
+                        // Extraer valores numéricos para comparar
+                        const parseVal = (str) => {
+                            if (!str) return 0;
+                            const match = str.toString().match(/(\d+)/);
+                            return match ? parseInt(match[0]) : 0;
+                        };
+                        const hVal = parseVal(stat.home);
+                        const aVal = parseVal(stat.away);
+
+                        // Colores según quién tiene más
+                        let hClass = 'text-dark';
+                        let aClass = 'text-dark';
+                        let labelClass = 'text-muted';
+                        if (isRedCardRow) {
+                            hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                            aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                            labelClass = 'text-danger fw-bold';
+                        } else if (hVal > aVal) {
+                            hClass = 'text-success fw-bold';
+                            aClass = 'text-danger';
+                        } else if (hVal < aVal) {
+                            hClass = 'text-danger';
+                            aClass = 'text-success fw-bold';
+                        }
+
+                        return `
+                            <tr>
+                                <td class="text-start ${hClass}">${stat.home ?? ''}</td>
+                                <td class="text-center ${labelClass}">${label}</td>
+                                <td class="text-end ${aClass}">${stat.away ?? ''}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    return `<table class="table table-sm stat-table mb-0"><tbody>${rows}</tbody></table>`;
+                };
+
+                // Helper para crear el HTML de una celda de stats completa con colores por grupo
+                const createStatBox = (title, data, isEmpty, colorClass, bgColor, highlightReason) => {
+                    const isHighlighted = Boolean(highlightReason);
+                    const isGeneralFallback = highlightReason === 'general';
+                    const finalBg = isHighlighted ? '#fff9c4' : bgColor;
+                    if (isEmpty) {
+                        return `
+                            <div style="background: ${finalBg}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.6;">
+                                <div class="fw-bold ${colorClass} text-uppercase" style="font-size: 0.75rem; margin-bottom: 8px;">${title}</div>
+                                <span class="text-muted" style="font-size: 1rem;">-</span>
+                            </div>
+                        `;
+                    }
+
+                    // Info del partido
+                    const matchLine = data.match ? `
+                        <div style="font-size: 0.75rem; margin-bottom: 6px; text-align: center;">
+                            <span class="text-success fw-bold">${data.match.home || ''}</span>
+                            <span class="fw-bold text-dark mx-2" style="font-size: 0.9rem; background: rgba(255,255,255,0.5); padding: 2px 6px; border-radius: 4px;">${data.match.score || ''}</span>
+                            <span class="text-danger fw-bold">${data.match.away || ''}</span>
+                        </div>
+                    ` : '';
+
+                    // Fecha
+                    const diffLeagueLabel = isGeneralFallback
+                        ? '<div class="text-warning fw-bold" style="font-size: 0.55rem;">(GENERAL · MISMA LIGA)</div>'
+                        : (isHighlighted ? '<div class="text-warning fw-bold" style="font-size: 0.55rem;">(LIGA DIF.)</div>' : '');
+                    const dateLine = data.date ? `<div class="text-muted text-center" style="font-size: 0.65rem; margin-bottom: 4px;">${data.date} ${diffLeagueLabel}</div>` : '';
+
+                    // AH
+                    const ahLine = data.ah ? `<div class="text-center" style="font-size: 0.7rem; margin-bottom: 4px;">AH: <span class="fw-bold text-dark">${data.ah}</span></div>` : '';
+
+                    // Stats rows
+                    const statsHtml = data.stats && data.stats.length > 0 ? `
+                        <div style="margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 6px;">
+                            ${createStatsRows(data.stats)}
+                        </div>
+                    ` : '';
+
+                    return `
+                        <div style="background: ${finalBg}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div class="fw-bold ${colorClass} text-uppercase text-center" style="font-size: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 6px; margin-bottom: 8px;">${title}</div>
+                            ${matchLine}
+                            ${dateLine}
+                            ${ahLine}
+                            ${statsHtml}
+                        </div>
+                    `;
+                };
+
+                // Crear las 7 celdas con colores de fondo por grupo
+                let statBoxes = [];
+
+                // Colores de fondo por grupo
+                const BG_PREV_HOME = '#e8f5e9';   // Verde claro
+                const BG_PREV_AWAY = '#ffebee';   // Rojo claro  
+                const BG_H2H = '#fff8e1';         // Amarillo/naranja claro
+                const BG_IND = '#e3f2fd';         // Azul claro
+
+                // 1. Prev Home
+                const prevHomeData = prevHomeStats || null;
+                const isDiffLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_different_league);
+                const isGeneralFallbackLhm = !!(pc && pc.last_home_match && pc.last_home_match.is_general_fallback);
+                statBoxes.push(createStatBox('Prev Home', prevHomeData, !prevHomeData, 'text-success', BG_PREV_HOME, isGeneralFallbackLhm ? 'general' : isDiffLhm));
+
+                // 2. Prev Away
+                const prevAwayData = prevAwayStats || null;
+                const isDiffLam = !!(pc && pc.last_away_match && pc.last_away_match.is_different_league);
+                const isGeneralFallbackLam = !!(pc && pc.last_away_match && pc.last_away_match.is_general_fallback);
+                statBoxes.push(createStatBox('Prev Away', prevAwayData, !prevAwayData, 'text-danger', BG_PREV_AWAY, isGeneralFallbackLam ? 'general' : isDiffLam));
+
+                // 3. H2H Estadio
+                let h2hStadiumData = null;
+                const stadium = (pc && pc.market_analysis_data && pc.market_analysis_data.stadium) || {};
+                const h2hStadiumRaw = (pc && pc.h2h_stadium) || {};
+                
+                const stadiumScore = stadium.result || h2hStadiumRaw.res1 || h2hStadiumRaw.res1_raw || h2hStadiumRaw.score || '';
+                const stadiumAh = stadium.movement || (h2hStadiumRaw.ah1 ? `AH: ${h2hStadiumRaw.ah1}` : '') || h2hStadiumRaw.handicap || '';
+                const stadiumDate = stadium.date || h2hStadiumRaw.date1 || h2hStadiumRaw.date || '';
+                const stadiumHome = pc.home_name || pc.home_team || stadium.home_team || h2hStadiumRaw.home_name || 'H';
+                const stadiumAway = pc.away_name || pc.away_team || stadium.away_team || h2hStadiumRaw.away_name || 'A';
+                const stadiumStats = (h2hStadiumRaw.stats_rows && h2hStadiumRaw.stats_rows.length > 0)
+                    ? h2hStadiumRaw.stats_rows
+                    : (stadium.stats_rows || []);
+
+                if (stadiumScore || stadiumAh || stadiumStats.length > 0) {
+                    h2hStadiumData = {
+                        match: {
+                            home: stadiumHome,
+                            away: stadiumAway,
+                            score: stadiumScore
+                        },
+                        date: stadiumDate,
+                        ah: stadiumAh,
+                        stats: stadiumStats
+                    };
+                }
+                const isDiffStadium = !!(stadium && stadium.is_different_league);
+                const BG_STADIUM = '#e3f2fd';
+                statBoxes.push(createStatBox('H2H Estadio', h2hStadiumData, !h2hStadiumData, 'text-info', BG_STADIUM, isDiffStadium));
+
+                // 4. H2H General
+                let h2hGeneralData = null;
+                const general = (pc && pc.market_analysis_data && pc.market_analysis_data.general) || {};
+                const h2hGeneralRaw = (pc && pc.h2h_general) || {};
+
+                const generalScore = general.result || h2hGeneralRaw.res6 || h2hGeneralRaw.res6_raw || h2hGeneralRaw.score || '';
+                const generalAh = general.movement || (h2hGeneralRaw.ah6 ? `AH: ${h2hGeneralRaw.ah6}` : '') || h2hGeneralRaw.handicap || '';
+                const generalDate = general.date || h2hGeneralRaw.date6 || h2hGeneralRaw.date || '';
+                const generalHome = h2hGeneralRaw.h2h_gen_home || general.home_team || pc.home_name || 'H';
+                const generalAway = h2hGeneralRaw.h2h_gen_away || general.away_team || pc.away_name || 'A';
+                const generalStats = (h2hGeneralRaw.stats_rows && h2hGeneralRaw.stats_rows.length > 0)
+                    ? h2hGeneralRaw.stats_rows
+                    : (general.stats_rows || []);
+
+                if (generalScore || generalAh || generalStats.length > 0) {
+                    h2hGeneralData = {
+                        match: {
+                            home: generalHome,
+                            away: generalAway,
+                            score: generalScore
+                        },
+                        date: generalDate,
+                        ah: generalAh,
+                        stats: generalStats
+                    };
+                }
+                const isDiffGeneral = !!(general && general.is_different_league);
+                const BG_GENERAL = '#e3f2fd';
+                statBoxes.push(createStatBox('H2H General', h2hGeneralData, !h2hGeneralData, 'text-info', BG_GENERAL, isDiffGeneral));
+
+                // 3. H2H Col3
+                let h2hCol3Data = null;
+                let isDiffCol3 = !!(pc && pc.h2h_col3 && pc.h2h_col3.is_different_league);
+                if (pc && pc.h2h_col3 && pc.h2h_col3.status === 'found') {
+                    const col3 = pc.h2h_col3;
+                    const h2hHome = (col3.h2h_home_team_name && col3.h2h_home_team_name !== 'undefined') ? col3.h2h_home_team_name : '';
+                    const h2hAway = (col3.h2h_away_team_name && col3.h2h_away_team_name !== 'undefined') ? col3.h2h_away_team_name : '';
+                    const h2hScore = (col3.goles_home !== undefined && col3.goles_away !== undefined) ? `${col3.goles_home}:${col3.goles_away}` : '';
+                    const h2hAh = (col3.handicap !== undefined && col3.handicap !== 'undefined') ? col3.handicap : '';
+
+                    if (h2hScore) {
+                        h2hCol3Data = {
+                            match: { home: h2hHome, away: h2hAway, score: h2hScore },
+                            date: col3.date || '',
+                            ah: h2hAh,
+                            stats: col3.stats_rows || []
+                        };
+                    }
+                }
+                statBoxes.push(createStatBox('H2H Col3', h2hCol3Data, !h2hCol3Data, 'text-warning', BG_H2H, isDiffCol3));
+
+                // 6. Ind. Local
+                let indLocalData = null;
+                let isDiffIndL = !!(pc && pc.comparativas_indirectas && pc.comparativas_indirectas.left && pc.comparativas_indirectas.left.is_different_league);
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.left) {
+                    const l = pc.comparativas_indirectas.left;
+                    if (isValidValue(l.score) || isValidValue(l.ah_line) || isValidValue(l.ah)) {
+                        indLocalData = {
+                            match: { home: l.home_team || '', away: l.away_team || '', score: l.score || '' },
+                            date: l.date || '',
+                            ah: isValidValue(l.ah_line) ? l.ah_line : (isValidValue(l.ah) ? l.ah : ''),
+                            stats: l.stats_rows || []
+                        };
+                    }
+                }
+                statBoxes.push(createStatBox('Ind. Local', indLocalData, !indLocalData, 'text-info', BG_IND, isDiffIndL));
+
+                // 7. Ind. Visitante
+                let indVisitanteData = null;
+                let isDiffIndR = !!(pc && pc.comparativas_indirectas && pc.comparativas_indirectas.right && pc.comparativas_indirectas.right.is_different_league);
+                if (pc && pc.comparativas_indirectas && pc.comparativas_indirectas.right) {
+                    const r = pc.comparativas_indirectas.right;
+                    if (isValidValue(r.score) || isValidValue(r.ah_line) || isValidValue(r.ah)) {
+                        indVisitanteData = {
+                            match: { home: r.home_team || '', away: r.away_team || '', score: r.score || '' },
+                            date: r.date || '',
+                            ah: isValidValue(r.ah_line) ? r.ah_line : (isValidValue(r.ah) ? r.ah : ''),
+                            stats: r.stats_rows || []
+                        };
+                    }
+                }
+                statBoxes.push(createStatBox('Ind. Visitante', indVisitanteData, !indVisitanteData, 'text-info', BG_IND, isDiffIndR));
+
+                // Boton compacto de estadisticas: conserva tiros, ataques y ataques peligrosos.
+                let globalStatsBtn = '';
+                let globalStatsId = '';
+                let globalStatsHtmlContent = '';
+
+                globalStatsId = `global-stats-${matchId}`;
+                globalStatsBtn = `
+                    <button class="btn btn-outline-success btn-sm p-0 d-flex align-items-center justify-content-center"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#${globalStatsId}"
+                        style="width: 22px; height: 22px; border-radius: 50%;"
+                        title="Ver Estadísticas">
+                        <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
+                    </button>
+                `;
+                globalStatsHtmlContent = `
+                    <div class="d-flex gap-2 w-100" style="padding: 8px 0;">
+                        ${statBoxes.map(box => `<div style="flex: 1 1 0; min-width: 0;">${box}</div>`).join('')}
+                    </div>
+                    ${renderPreMatchContext(pc, home, away)}
+                `;
+
+                tr.setAttribute('data-has-stats', 'true');
+                tr.setAttribute('data-stats-id', globalStatsId);
+
+                // Asignar el atributo de datos DESPUÉS de calcular performanceStatus
+                tr.dataset.h2hCol3Performance = performanceStatus;
+
+                // Asignar el handicap del espejo para filtrado avanzado (IGUALA +)
+                if (pc && pc.h2h_col3 && (pc.h2h_col3.handicap !== undefined && pc.h2h_col3.handicap !== 'undefined')) {
+                    tr.dataset.h2hCol3MirrorAh = pc.h2h_col3.handicap;
+                }
+
+                // Asignar atributos para Indirect Comparisons
+                if (indLeftAhAttr) tr.dataset.indLocalAh = indLeftAhAttr;
+                if (indLeftResAttr) tr.dataset.indLocalRes = indLeftResAttr;
+                if (indLeftLocAttr) tr.dataset.indLocalLoc = indLeftLocAttr;
+                if (indRightAhAttr) tr.dataset.indVisitanteAh = indRightAhAttr;
+                if (indRightResAttr) tr.dataset.indVisitanteRes = indRightResAttr;
+                if (indRightLocAttr) tr.dataset.indVisitanteLoc = indRightLocAttr;
+
+
+
+                // Generar HTML solo con la Clave Dicotomica Universal.
+                const pickSource = {
+                    ...(m || {}),
+                    ...(pc || {})
+                };
+                const pickHtml = `
+                    <div class="d-flex flex-column align-items-center gap-1" style="width: 100%; max-width: 180px; margin: 0 auto;">
+                        ${renderClaveDicotomicaV7(pickSource)}
+                    </div>
+                `;
+
+                const searchPatternsBtn = isScraped
+                    ? `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center" onclick="searchPatterns('${matchId}', this)" style="width: 22px; height: 22px; border-radius: 50%;" title="Buscar Patrones Similares">
+                            <i class="fa-solid fa-compass" style="font-size: 11px;"></i>
+                       </button>`
+                    : '';
+                const viewBtnHtml = APP_PRECACHEO_ONLY
+                    ? ''
+                    : `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary p-0 d-inline-flex align-items-center justify-content-center ms-1" style="width: 22px; height: 22px; border-radius: 50%;" title="Ver Estudio">
+                            <i class="fas fa-eye" style="font-size: 10px;"></i>
+                       </a>`;
+                const actionButtonsHtml = `<div class="d-flex align-items-center justify-content-center gap-1">${globalStatsBtn}${searchPatternsBtn}${viewBtnHtml}</div>`;
+
+
+                tr.innerHTML = `
+                    <td class="text-center">
+                        <span class="badge bg-secondary">${fecha}</span>
+                        ${league ? `
+                        <div class="mt-1 d-flex align-items-center justify-content-center gap-1">
+                            ${APP_PRECACHEO_ONLY
+                                ? `<span class="small text-muted text-truncate" style="font-size: 0.6rem; max-width: 90px;" title="${league}">${league}</span>`
+                                : `
+                                    <span class="liga-hide-btn" onclick="ocultarLiga('${league.replace(/'/g, "\\'")}', this)" style="cursor: pointer; font-size: 0.6rem;" title="Ocultar liga permanentemente">
+                                        <i class="fa-solid fa-times text-secondary"></i>
+                                    </span>
+                                    <span class="small text-muted text-truncate" style="font-size: 0.6rem; max-width: 55px;" title="${league}">${league}</span>
+                                    <span class="liga-fav-btn" data-league-name="${league}" onclick="toggleLigaFavorita('${league.replace(/'/g, "\\'")}', this)" style="cursor: pointer; font-size: 0.6rem;" title="Añadir/quitar de favoritas">
+                                        ${isLigaFavorita(league)
+                                            ? '<i class="fa-solid fa-heart text-danger"></i>'
+                                            : '<i class="fa-regular fa-heart text-muted"></i>'}
+                                    </span>
+                                    <span class="liga-neutral-btn ms-1 border rounded px-1 ${isLigaNeutra(league) ? 'text-white bg-primary' : 'text-muted'}" 
+                                          data-league-name="${league.replace(/"/g, '&quot;')}"
+                                          onclick="handleNeutralToggle(this)" 
+                                          style="cursor: pointer; font-size: 0.6rem; transition: all 0.2s;" 
+                                          title="${isLigaNeutra(league) ? 'LIGA NEUTRA ACTIVA' : 'Haz click para marcar como LIGA NEUTRA'}">
+                                        <i class="fa-solid fa-scale-balanced"></i>
+                                    </span>
+                                `}
+                        </div>` : ''}
+                    </td>
+                    <td class="col-team text-primary small" style="font-size: 0.8rem;">
+                        <div>${home}</div>
+                        ${homeRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${homeRank}</div>` : ''}
+                        ${homeStatsHtml}
+                        ${homeTrendHtml}
+                    </td>
+                    <td class="col-team text-danger small" style="font-size: 0.8rem;">
+                        <div>${away}</div>
+                        ${awayRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${awayRank}</div>` : ''}
+                        ${awayStatsHtml}
+                        ${awayTrendHtml}
+                    </td>
+                    <td class="col-ah">
+                        ${formatAh(ah)}
+                        ${pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${pc.main_match_odds.goals_linea}</div>` : ''}
+                    </td>
+                    <td class="text-center col-res">${ftHtml}</td>
+                    <td class="col-prev ${(isDiffLhm || isGeneralFallbackLhm) ? 'cell-diff-league' : ''}">${prevHomeHtml}</td>
+                    <td class="col-prev ${(isDiffLam || isGeneralFallbackLam) ? 'cell-diff-league' : ''}">${prevAwayHtml}</td>
+                    <td class="col-prev text-center">${h2hStadiumHtml}</td>
+                    <td class="col-prev text-center">${h2hGeneralHtml}</td>
+                    <td class="col-prev col-h2h-col3 text-center ${isDiffCol3 ? 'cell-diff-league' : ''}">${h2hCol3Html}</td>
+                    <td class="col-prev ${!indLeftHasData ? 'cell-no-data' : (isDiffIndL ? 'cell-diff-league' : '')}">${indLeftHtml}</td>
+                    <td class="col-prev ${!indRightHasData ? 'cell-no-data' : (isDiffIndR ? 'cell-diff-league' : '')}">${indRightHtml}</td>
+                    <td class="text-center">${actionButtonsHtml}</td>
+                `;
+                tr.setAttribute('data-match-id', matchId);
+                // Configurar filtros a partir de picks de produccion de la Clave V7
+                const claveAhPick = pickSource.clave_pick_ah || 'NO_BET';
+                const claveOuPick = pickSource.clave_pick_ou || 'NO_BET';
+                const hasAHMatch = claveAhPick !== 'NO_BET';
+                const hasOUMatch = claveOuPick !== 'NO_BET';
+                const hasAnyPick = hasAHMatch || hasOUMatch;
+
+                tr.setAttribute('data-has-pick', hasAnyPick ? '1' : '0');
+                tr.setAttribute('data-has-ah-pick', hasAHMatch ? '1' : '0');
+                tr.setAttribute('data-has-ou-pick', hasOUMatch ? '1' : '0');
+                const claveSideKind = claveAhPick === 'FAV_CUBRE'
+                    ? 'FAVORITE'
+                    : (claveAhPick === 'DOG_CUBRE' ? 'DOG' : 'NO_BET');
+                tr.setAttribute('data-pick-side-kind', claveSideKind);
+                tr.setAttribute('data-pick-goals', claveOuPick);
+                tr.setAttribute('data-pick-confidence', pickSource.clave_score_draw >= 1.5 ? 'MEDIA' : 'ALTA');
+                tr.setAttribute('data-h2h-pick-type', claveAhPick);
+
+                // Nuevas propiedades V13 para filtrado de estrategias
+                tr.setAttribute('data-clave-score-draw', pickSource.clave_score_draw || 0);
+                tr.setAttribute('data-clave-u10-anomalia', pickSource.clave_u10_anomalia ? '1' : '0');
+                tr.setAttribute('data-clave-u11-dog-persistente', pickSource.clave_u11_dog_persistente ? '1' : '0');
+                tr.setAttribute('data-clave-u12-bloqueo-seco', pickSource.clave_u12_bloqueo_seco ? '1' : '0');
+                tr.setAttribute('data-clave-u13-push-seco', pickSource.clave_u13_push_seco ? '1' : '0');
+                tr.setAttribute('data-clave-u14-repeticion-proceso', pickSource.clave_u14_repeticion_proceso ? '1' : '0');
+                tr.setAttribute('data-clave-u15-rebaja-protectora', pickSource.clave_u15_rebaja_protectora ? '1' : '0');
+                tr.setAttribute('data-clave-u16-fav-025-capado', pickSource.clave_u16_fav_025_capado ? '1' : '0');
+                tr.setAttribute('data-clave-u17-market-flip-validated', pickSource.clave_u17_market_flip_validated ? '1' : '0');
+                tr.setAttribute('data-clave-u18-over-counterintuitive', pickSource.clave_u18_over_counterintuitive ? '1' : '0');
+                tr.setAttribute('data-clave-u19-market-rejects-x2', pickSource.clave_u19_market_rejects_obvious_dog_x2 ? '1' : '0');
+                tr.setAttribute('data-clave-u20-huge-drop-dog-under', pickSource.clave_u20_huge_drop_protects_dog_under ? '1' : '0');
+                tr.setAttribute('data-clave-u21-h2h-over-capped-draw-under', pickSource.clave_u21_h2h_over_capped_draw_under ? '1' : '0');
+                tr.setAttribute('data-clave-u22-pickem-dog-win-dnb-under', pickSource.clave_u22_pickem_dog_win_home_dnb_under ? '1' : '0');
+
+                // Data-attributes para filtrado visual (evitar re-render)
+                tr.setAttribute('data-handicap', m.handicap !== undefined && m.handicap !== null ? m.handicap : '');
+                tr.setAttribute('data-league', league || '');
+                // O/U para filtrado visual
+                const ouValue = pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? pc.main_match_odds.goals_linea : '';
+                tr.setAttribute('data-ou', ouValue);
+
+                // Prev Home WDL y AH
+                let prevHomeWdlAttr = '';
+                let prevHomeAhAttr = '';
+                if (pc && pc.last_home_match && pc.last_home_match.score) {
+                    prevHomeAhAttr = pc.last_home_match.handicap_line_raw || '';
+                    prevHomeWdlAttr = getPrevHomeWdl(pc.last_home_match.score, currentAh);
+                }
+                tr.setAttribute('data-prev-home-wdl', prevHomeWdlAttr);
+                tr.setAttribute('data-prev-home-ah', prevHomeAhAttr);
+
+                // Prev Away WDL y AH
+                let prevAwayWdlAttr = '';
+                let prevAwayAhAttr = '';
+                if (pc && pc.last_away_match && pc.last_away_match.score) {
+                    prevAwayAhAttr = pc.last_away_match.handicap_line_raw || '';
+                    prevAwayWdlAttr = getPrevAwayWdl(pc.last_away_match.score, currentAh);
+                }
+
+                tr.setAttribute('data-prev-away-wdl', prevAwayWdlAttr);
+                tr.setAttribute('data-prev-away-ah', prevAwayAhAttr);
+
+                // Has History (ambos previos) y Has Rankings
+                const hasHistory = !!(pc && pc.last_home_match && pc.last_home_match.score && pc.last_away_match && pc.last_away_match.score);
+                const hasRankings = !!(hRankVal && aRankVal);
+                tr.setAttribute('data-has-history', hasHistory ? '1' : '0');
+                tr.setAttribute('data-has-rankings', hasRankings ? '1' : '0');
+
+                // H2H Col3 data-attributes para filtrado
+                tr.setAttribute('data-h2h-col3-performance', performanceStatus);
+                tr.setAttribute('data-h2h-col3-mirror', mirrorCompType);
+
+                // H2H Stadium y General data-attributes para filtrado visual
+                tr.setAttribute('data-h2h-stadium-mov', h2hStadiumMovAttr);
+                tr.setAttribute('data-h2h-stadium-res', h2hStadiumResAttr);
+                tr.setAttribute('data-h2h-general-mov', h2hGeneralMovAttr);
+                tr.setAttribute('data-h2h-general-res', h2hGeneralResAttr);
+
+                // (Atributos de Pick eliminados)
+
+                tbody.appendChild(tr);
+
+                // Añadir fila de collapse para stats globales
+                if (globalStatsId && globalStatsHtmlContent) {
+                    const collapseTr = document.createElement('tr');
+                    collapseTr.innerHTML = `
+                        <td colspan="13" class="p-0">
+                            <div class="collapse" id="${globalStatsId}">
+                                <div class="py-2 px-2" style="background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa); border-top: 1px solid #dee2e6;">
+                                    ${globalStatsHtmlContent}
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(collapseTr);
+                }
+            });
+
+            // --- Initialize MultiSelect Filters ---
+            // Simplified Handicap Options - Buckets:
+            // 0.5 includes 0.25, 0.5, 0.75
+            // 1.5 includes 1.25, 1.5, 1.75
+            // 2+ includes 2.0 and higher
+            const ahOptions = [
+                { value: '0', label: '0' },
+                { value: '0.5', label: '+0.5' },
+                { value: '-0.5', label: '-0.5' },
+                { value: '1', label: '+1.0' },
+                { value: '-1', label: '-1.0' },
+                { value: '1.5', label: '+1.5' },
+                { value: '-1.5', label: '-1.5' },
+                { value: '2', label: '+2.0' },
+                { value: '-2', label: '-2.0' },
+                { value: '2.5', label: '+2.5+' },
+                { value: '-2.5', label: '-2.5-' }
+            ];
+
+            const ouOptions = [
+                { value: '2.0', label: '2.0' },
+                { value: '2.5', label: '2.5' },
+                { value: '3.0', label: '3.0' },
+                { value: '3.5', label: '3.5' },
+                { value: '4+', label: '4+' }
+            ];
+
+            if (!msHandicap) {
+                msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', handleMainHandicapFilterChange);
+            }
+
+            if (!msOu) {
+                msOu = new MultiSelect('container-filter-ou', ouOptions, 'O/U', () => {
+                    syncOuFilterInput();
+                    applyFiltersVisually();
+                });
+            }
+            syncOuFilterInput();
+
+            // H2H Col3 uses the same simplified options (no more dynamic)
+            msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', applyFiltersVisually);
+
+            // Init other MultiSelects
+            if (!msPrevHomeAh) msPrevHomeAh = new MultiSelect('container-filter-prev-home-ah', ahOptions, 'AH', applyFiltersVisually);
+            if (!msPrevAwayAh) msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', applyFiltersVisually);
+            if (!msIndLocalAh) msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', applyFiltersVisually);
+            if (!msIndVisitanteAh) msIndVisitanteAh = new MultiSelect('container-filter-ind-visitante-ah', ahOptions, 'AH', applyFiltersVisually);
+
+        }
+
+        // Background scraping - doesn't block UI
+        let scrapingInProgress = false;
+        let scrapingQueue = [];
+        let scrapingCurrent = 0;
+        let scrapingTotal = 0;
+
+        function updateScrapingStatus() {
+            const statusDiv = document.getElementById('scraping-status');
+            if (scrapingInProgress) {
+                statusDiv.innerHTML = `<span class="badge bg-warning text-dark">
+                    <i class="fas fa-spinner fa-spin me-1"></i>
+                    Scrapeando ${scrapingCurrent}/${scrapingTotal}
+                </span>`;
+                statusDiv.classList.remove('d-none');
+            } else {
+                statusDiv.classList.add('d-none');
+            }
+        }
+
+        async function requestPrecacheoScrape(matchId) {
+            const response = await fetch('/api/precacheo_scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || 'No se pudo scrapear el partido');
+            mergePrecacheoRow(matchId, data.match);
+            renderTableWithPagination();
+            return data.match;
+        }
+
+        async function requestPrecacheoContextFast(matchId) {
+            const response = await fetch('/api/precacheo_context_fast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId })
+            });
+            const data = await response.json();
+            if (!response.ok || data.error) throw new Error(data.error || 'No se pudo cargar el contexto');
+            mergePrecacheoRow(matchId, {
+                id: String(matchId),
+                match_id: String(matchId),
+                pre_match_context: data.context,
+                context_scraped_at: data.context?.generated_at,
+            });
+            renderTableWithPagination();
+            return data;
+        }
+
+        function scrapeMatch(matchId) {
+            requestPrecacheoScrape(matchId).catch(err => {
+                console.error('Error scraping:', err);
+                const currentBtn = document.querySelector(`button[onclick="scrapeMatch('${matchId}')"]`);
+                if (currentBtn) {
+                    currentBtn.innerHTML = '<i class="fas fa-sync"></i>';
+                    currentBtn.disabled = false;
+                }
+            });
+
+            // Immediately change button to show it's being scraped
+            const btn = document.querySelector(`button[onclick="scrapeMatch('${matchId}')"]`);
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+        }
+
+        async function scrapeAndShowPreMatchContext(matchId, button) {
+            if (!button || button.disabled) return;
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:11px;"></i>';
+            try {
+                await requestPrecacheoContextFast(matchId);
+                requestAnimationFrame(() => showPreMatchContext(`global-stats-${matchId}`));
+            } catch (err) {
+                console.error('Error scraping context:', err);
+                button.innerHTML = originalHtml;
+                button.disabled = false;
+                alert(`No se pudo actualizar el contexto: ${err.message || err}`);
+            }
+        }
+
+        function formatPredictionHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\r?\n/g, '<br>');
+        }
+
+        // AI Prediction - Show team selection, then get prediction from Gemini API
+        async function getAIPrediction(matchId, btnElement) {
+            // Toggle: if row already exists, close it
+            const existingRow = document.getElementById(`ai-row-${matchId}`);
+            if (existingRow) {
+                existingRow.remove();
+                btnElement.classList.remove('active');
+                return;
+            }
+
+            // Get match data to show team names
+            const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
+            if (!matchRow) return;
+
+            // Get team names from DOM (Source of Truth) or precacheo data
+            const tds = matchRow.querySelectorAll('td');
+            let matchData = precacheoData[matchId];
+            let homeTeam = tds[1]?.textContent?.trim() || matchData?.home_team || 'Local';
+            let awayTeam = tds[2]?.textContent?.trim() || matchData?.away_team || 'Visitante';
+
+            // Escape team names for safe HTML insertion
+            const escapeHtml = (str) => str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+            const safeHome = escapeHtml(homeTeam);
+            const safeAway = escapeHtml(awayTeam);
+
+            // Create selection row
+            const expandRow = document.createElement('tr');
+            expandRow.id = `ai-row-${matchId}`;
+            expandRow.className = 'ai-expand-row';
+
+            expandRow.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+                            <i class="fas fa-robot text-primary" style="font-size: 1.5rem;"></i>
+                            <strong class="text-primary" style="font-size: 1.1rem;">¿Quién gana?</strong>
+                        </div>
+                        <div class="d-flex justify-content-center gap-3">
+                            <button class="btn btn-lg btn-primary ai-team-btn" data-match="${matchId}" data-winner="home" data-home="${safeHome}" data-away="${safeAway}">
+                                <i class="fas fa-home me-2"></i>${homeTeam}
+                            </button>
+                            <button class="btn btn-lg btn-danger ai-team-btn" data-match="${matchId}" data-winner="away" data-home="${safeHome}" data-away="${safeAway}">
+                                <i class="fas fa-plane me-2"></i>${awayTeam}
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            // Add click handlers
+            expandRow.querySelectorAll('.ai-team-btn').forEach(btn => {
+                btn.onclick = function () {
+                    generateAIPrediction(
+                        this.dataset.match,
+                        this.dataset.winner,
+                        this.dataset.home,
+                        this.dataset.away,
+                        this.closest('tr')
+                    );
+                };
+            });
+
+            // Insert after match row
+            matchRow.insertAdjacentElement('afterend', expandRow);
+            btnElement.classList.add('active');
+        }
+
+        // Generate AI prediction after team selection
+        async function generateAIPrediction(matchId, winner, homeTeam, awayTeam, rowElement) {
+            // Show loading
+            rowElement.innerHTML = `
+                <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin text-primary" style="font-size: 2rem;"></i>
+                        <div class="mt-2 text-muted">Generando predicción para <strong>${winner === 'home' ? homeTeam : awayTeam}</strong>...</div>
+                    </div>
+                </td>
+            `;
+
+            try {
+                const res = await fetch('/api/ai_prediction', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        winner: winner,
+                        home_team: homeTeam,
+                        away_team: awayTeam
+                    })
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    rowElement.innerHTML = `
+                        <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                            <div class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Error: ${data.error}
+                            </div>
+                        </td>
+                    `;
+                    return;
+                }
+
+                const predictionId = `ai-prediction-text-${matchId}`;
+                const winnerBadge = winner === 'home'
+                    ? `<span class="badge bg-primary"><i class="fas fa-home me-1"></i>${homeTeam} GANA</span>`
+                    : `<span class="badge bg-danger"><i class="fas fa-plane me-1"></i>${awayTeam} GANA</span>`;
+
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-left: 4px solid #2196f3; padding: 15px;">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                    <i class="fas fa-robot text-primary" style="font-size: 1.2rem;"></i>
+                                    <strong class="text-primary">AI Prediction</strong>
+                                    ${winnerBadge}
+                                    <span class="badge bg-success">AH: ${data.handicap}</span>
+                                </div>
+                                <div id="${predictionId}" class="p-3 bg-white rounded border shadow-sm" style="font-size: 0.95rem; line-height: 1.7; max-width: 900px;">
+                                    ${formatPredictionHtml(data.prediction)}
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary ms-3" onclick="copyAIPrediction('${predictionId}')" title="Copiar texto">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+
+            } catch (err) {
+                rowElement.innerHTML = `
+                    <td colspan="20" style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px;">
+                        <div class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error de red: ${err.message}
+                        </div>
+                    </td>
+                `;
+            }
+        }
+
+        // Copy AI prediction text to clipboard
+        function copyAIPrediction(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const text = element.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const btn = element.closest('td').querySelector('.btn-outline-secondary');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check text-success"></i>';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-outline-secondary');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 1500);
+                }
+            }).catch(err => {
+                alert('Error al copiar: ' + err.message);
+            });
+        }
+
+        // Helper robusto para copiar al portapapeles con fallback
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (e) {
+                    console.warn("Navigator clipboard failed, trying fallback: ", e);
+                }
+            }
+            
+            // Fallback clásico usando un textarea temporal
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.setAttribute("readonly", "");
+            textarea.setAttribute("aria-hidden", "true");
+            textarea.style.position = "fixed";
+            textarea.style.left = "0";
+            textarea.style.top = "0";
+            textarea.style.width = "1px";
+            textarea.style.height = "1px";
+            textarea.style.opacity = "0";
+            textarea.style.fontSize = "16px";
+            document.body.appendChild(textarea);
+            try {
+                textarea.focus({ preventScroll: true });
+            } catch (_) {
+                textarea.focus();
+            }
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+            try {
+                const successful = document.execCommand("copy");
+                if (successful) return true;
+                throw new Error("execCommand copy devolvió false");
+            } catch (err) {
+                throw new Error("No se pudo copiar al portapapeles: " + err.message);
+            } finally {
+                textarea.remove();
+            }
+        }
+
+        // En Safari/Chrome móvil el permiso de copiar puede caducar mientras
+        // esperamos la respuesta de Render. Iniciamos la escritura durante el
+        // toque y resolvemos su contenido cuando termina la petición bulk.
+        function beginDeferredClipboardWrite() {
+            let resolveText;
+            let rejectText;
+            let settled = false;
+            const textPromise = new Promise((resolve, reject) => {
+                resolveText = resolve;
+                rejectText = reject;
+            });
+            textPromise.catch(() => {});
+            let writeAttempt = null;
+
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.write && window.ClipboardItem) {
+                try {
+                    const item = new ClipboardItem({
+                        'text/plain': textPromise.then(value => new Blob([value], { type: 'text/plain' }))
+                    });
+                    writeAttempt = navigator.clipboard.write([item])
+                        .then(() => true)
+                        .catch(error => {
+                            console.warn('Deferred clipboard failed, trying fallback:', error);
+                            return false;
+                        });
+                } catch (error) {
+                    console.warn('Deferred clipboard is unavailable:', error);
+                }
+            }
+
+            return {
+                async finish(text) {
+                    if (!settled) {
+                        settled = true;
+                        resolveText(text);
+                    }
+                    if (writeAttempt && await writeAttempt) return true;
+                    return copyToClipboard(text);
+                },
+                cancel(error) {
+                    if (settled) return;
+                    settled = true;
+                    rejectText(error || new Error('Copia cancelada'));
+                }
+            };
+        }
+
+        // Fetch and copy LLM prompt + Contexto Previo combinado
+        async function copyLLMPrompt(matchId, btnElement) {
+            // 1. Si existe el botón .pre-context-copy en el DOM para este partido, lo usamos directamente
+            const preCtxBtn = document.querySelector(`#global-stats-${matchId} .pre-context-copy`);
+            if (preCtxBtn && preCtxBtn.dataset && preCtxBtn.dataset.context) {
+                return copyPreMatchContext(preCtxBtn, matchId);
+            }
+
+            // 2. Si no está generado en el DOM, obtenemos el prompt LLM y el contexto previo
+            const originalHtml = btnElement.innerHTML;
+            const deferredClipboard = beginDeferredClipboardWrite();
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const [promptRes, ctxRes] = await Promise.all([
+                    fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`),
+                    fetch('/api/explorer_context_preview', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ match_id: matchId, force_refresh: false })
+                    }).catch(() => null)
+                ]);
+
+                const promptData = await promptRes.json();
+                if (!promptRes.ok || !promptData.success || !promptData.prompt) {
+                    throw new Error(promptData.error || 'No se pudo generar el prompt LLM');
+                }
+
+                let contextText = '';
+                if (ctxRes && ctxRes.ok) {
+                    try {
+                        const ctxData = await ctxRes.json();
+                        if (ctxData.status === 'success' && ctxData.pre_match_context) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = renderPreMatchContextCard(ctxData.pre_match_context);
+                            const tempBtn = tempDiv.querySelector('.pre-context-copy');
+                            if (tempBtn && tempBtn.dataset && tempBtn.dataset.context) {
+                                contextText = decodeURIComponent(tempBtn.dataset.context);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('No se pudo parsear el contexto previo para combinar:', e);
+                    }
+                }
+
+                let finalPayload = promptData.prompt;
+                if (contextText) {
+                    const divider = '='.repeat(72);
+                    finalPayload = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptData.prompt}`;
+                }
+
+                await deferredClipboard.finish(finalPayload);
+                btnElement.innerHTML = '<i class="fas fa-check text-success"></i>';
+                btnElement.classList.add('btn-outline-success');
+                btnElement.classList.remove('btn-outline-primary');
+            } catch (err) {
+                deferredClipboard.cancel(err);
+                alert('Error al copiar contexto + prompt: ' + err.message);
+                btnElement.innerHTML = originalHtml;
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-outline-success');
+                    btnElement.classList.add('btn-outline-primary');
+                    btnElement.disabled = false;
+                }, 2000);
+            }
+        }
+
+        function getVisiblePrecacheMatchIds(limit = 100) {
+            const rows = Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
+                .filter(row => row.style.display !== 'none');
+            return Array.from(new Set(rows
+                .map(row => String(row.getAttribute('data-match-id') || '').trim())
+                .filter(Boolean)))
+                .slice(0, Math.max(1, Number(limit) || 100));
+        }
+
+        function updateCopyAllPrecacheButton(visibleCount = null) {
+            const button = document.getElementById('btn-copy-all-precache');
+            const badge = document.getElementById('copy-all-precache-count');
+            const downloadButton = document.getElementById('btn-download-all-precache');
+            const downloadBadge = document.getElementById('download-all-precache-count');
+            if ((!button || !badge) && (!downloadButton || !downloadBadge)) return;
+            const domCount = getVisiblePrecacheMatchIds(100).length;
+            const suppliedCount = Number.isFinite(Number(visibleCount))
+                ? Math.min(100, Math.max(0, Number(visibleCount)))
+                : 0;
+            // Algunas recargas asíncronas pueden entregar temporalmente 0
+            // aunque las filas ya estén pintadas. El DOM manda porque es
+            // exactamente el conjunto que Copiar/Descargar va a exportar.
+            const count = Math.max(domCount, suppliedCount);
+            if (badge && button) {
+                badge.textContent = String(count);
+                button.disabled = count <= 0;
+            }
+            if (downloadBadge && downloadButton) {
+                downloadBadge.textContent = String(count);
+                downloadButton.disabled = count <= 0;
+            }
+        }
+
+        async function copyAllPrecachePrompts(btnElement) {
+            const deferredClipboard = beginDeferredClipboardWrite();
+            const matchIds = getVisiblePrecacheMatchIds(100);
+
+            if (!matchIds.length) {
+                deferredClipboard.cancel(new Error('No hay partidos visibles'));
+                alert('No hay partidos filtrados visibles para copiar.');
+                return;
+            }
+
+            const originalHtml = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> Copiando 0/${matchIds.length}`;
+            try {
+                const response = await fetch('/api/export_prompts_bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchIds })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success || !Array.isArray(data.prompts)) {
+                    throw new Error(data.error || 'No se pudieron generar los prompts');
+                }
+                await deferredClipboard.finish(data.prompts.join('\n\n---\n\n'));
+                btnElement.classList.remove('btn-outline-primary');
+                btnElement.classList.add('btn-success');
+                btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> Copiados ${data.prompts.length}`;
+            } catch (err) {
+                deferredClipboard.cancel(err);
+                alert('Error al copiar todos los partidos: ' + err.message);
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-success');
+                    btnElement.classList.add('btn-outline-primary');
+                    btnElement.disabled = false;
+                    updateCopyAllPrecacheButton();
+                }, 2200);
+            }
+        }
+
+        async function downloadAllPrecacheTxt(btnElement) {
+            const matchIds = getVisiblePrecacheMatchIds(100);
+            if (!matchIds.length) {
+                alert('No hay partidos filtrados visibles para descargar.');
+                return;
+            }
+
+            const originalHtml = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i> Preparando TXT 0/${matchIds.length}`;
+            try {
+                const response = await fetch('/api/export_context_prompts_txt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchIds })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'No se pudo generar el TXT');
+                }
+
+                const blob = await response.blob();
+                const disposition = response.headers.get('Content-Disposition') || '';
+                const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+                const filename = filenameMatch?.[1] || 'precacheo_contexto_prompt.txt';
+                const downloadUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+                btnElement.classList.remove('btn-outline-success');
+                btnElement.classList.add('btn-success');
+                btnElement.innerHTML = `<i class="fa-solid fa-check me-1"></i> TXT descargado (${matchIds.length})`;
+            } catch (error) {
+                alert('Error al descargar el TXT completo: ' + error.message);
+            } finally {
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.remove('btn-success');
+                    btnElement.classList.add('btn-outline-success');
+                    btnElement.disabled = false;
+                    updateCopyAllPrecacheButton();
+                }, 2200);
+            }
+        }
+
+        // Compatibilidad con enlaces o pestañas antiguas que aun invoquen el nombre previo.
+        async function copyAllPendingPrompts(btnElement) {
+            return copyAllPrecachePrompts(btnElement);
+        }
+
+        // Buscar patrones similares en histórico - abre Explorador en una pestaña nueva
+        async function searchPatterns(matchId, btnElement) {
+            const pc = precacheoData ? precacheoData[matchId] : null;
+            if (!pc) return;
+
+            let currentAh = NaN;
+            const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
+            if (currentAhRaw !== null && currentAhRaw !== undefined && currentAhRaw !== '') {
+                currentAh = parseFloat(String(currentAhRaw).replace(',', '.'));
+            }
+
+            const params = new URLSearchParams();
+            params.set('auto_search', '1');
+            params.set('source_match_id', String(matchId));
+
+            if (!isNaN(currentAh)) {
+                params.set('fav_ah_exact', String(currentAh));
+                const favIsHome = currentAh > 0;
+                params.set('fav_side', favIsHome ? 'HOME' : 'AWAY');
+
+                // Resultado (Win / Draw / Loss) del equipo favorito en su partido previo
+                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
+                const favTeamName = (favIsHome
+                    ? ((pc || {}).home_team || (pc || {}).home_name || '')
+                    : ((pc || {}).away_team || (pc || {}).away_name || '')
+                ).toLowerCase().trim();
+
+                if (favPrev && favPrev.score && favPrev.score !== '?:?' && favPrev.score !== '??') {
+                    const scoreParts = String(favPrev.score).replace('-', ':').split(':');
+                    if (scoreParts.length === 2) {
+                        const gh = parseInt(scoreParts[0], 10);
+                        const ga = parseInt(scoreParts[1], 10);
+                        if (!isNaN(gh) && !isNaN(ga)) {
+                            const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
+                            const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
+                            let favPlayedHomeInPrev = favIsHome;
+                            if (prevHomeTeam && favTeamName) {
+                                if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
+                                    favPlayedHomeInPrev = true;
+                                } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
+                                    favPlayedHomeInPrev = false;
+                                }
+                            }
+
+                            const favGoals = favPlayedHomeInPrev ? gh : ga;
+                            const oppGoals = favPlayedHomeInPrev ? ga : gh;
+
+                            let realWdl = 'DRAW';
+                            if (favGoals > oppGoals) realWdl = 'WIN';
+                            else if (favGoals < oppGoals) realWdl = 'LOSS';
+
+                            if (favIsHome) {
+                                params.set('prev_home_res', realWdl);
+                            } else {
+                                params.set('prev_away_res', realWdl);
+                            }
+                        }
+                    }
+                }
+            }
+
+            const marketData = ((pc || {}).market_analysis_data || {});
+            const stadiumData = marketData.stadium || {};
+            const generalData = marketData.general || {};
+
+            // H2H Estadio: Cover status
+            if (stadiumData && stadiumData.movement && stadiumData.movement !== 'N/A') {
+                const score = stadiumData.result || stadiumData.score;
+                if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                    const stadiumCov = calculateH2HResult(score, currentAh, false);
+                    if (stadiumCov) {
+                        params.set('h2h_stadium_res', stadiumCov);
+                    }
+                }
+            }
+
+            // H2H General: Cover status + Fin AH
+            if (generalData && generalData.movement && generalData.movement !== 'N/A') {
+                const isSameAsStadium = stadiumData &&
+                    stadiumData.date === generalData.date &&
+                    (stadiumData.result || stadiumData.score) === (generalData.result || generalData.score);
+
+                if (!isSameAsStadium) {
+                    const score = generalData.result || generalData.score;
+                    if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
+                        const generalCov = calculateH2HResult(score, currentAh, true);
+                        if (generalCov) {
+                            params.set('h2h_general_res', generalCov);
+                        }
+                    }
+
+                    const mov = parseH2HMovement(generalData.movement);
+                    if (mov.end !== null && !isNaN(mov.end)) {
+                        const endBucket = toExplorerBucketValue(mov.end);
+                        if (endBucket) {
+                            params.set('h2h_general_end', endBucket);
+                        }
+                    }
+                }
+            }
+
+            if (APP_PRECACHEO_ONLY) {
+                alert('Explorador deshabilitado en modo precacheo-only.');
+                return;
+            }
+            window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
+        }
+
+        // Función legacy para mantener compatibilidad (ya no se usa)
+        async function searchPatterns_legacy(matchId, btnElement) {
+            // Toggle: si ya existe la fila expandible, ocultarla
+            const existingRow = document.getElementById(`patterns-row-${matchId}`);
+            if (existingRow) {
+                existingRow.remove();
+                btnElement.classList.remove('active');
+                return;
+            }
+
+            // Mostrar spinner
+            const originalHtml = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnElement.disabled = true;
+
+            try {
+                const res = await fetch('/api/precacheo_pattern_search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_id: matchId })
+                });
+                const data = await res.json();
+
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                // Crear fila expandible
+                const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
+                if (!matchRow) return;
+
+                const expandRow = document.createElement('tr');
+                expandRow.id = `patterns-row-${matchId}`;
+                expandRow.className = 'patterns-expand-row';
+
+                const info = data.match_info || {};
+                const results = data.results || [];
+
+                let resultsHtml = '';
+                if (results.length === 0) {
+                    resultsHtml = '<div class="text-muted text-center py-2">No se encontraron patrones similares</div>';
+                } else {
+                    const covered = results.filter(r => r.covered === 'COVER').length;
+                    const notCovered = results.filter(r => r.covered === 'NO_COVER').length;
+
+                    // Filtrar automáticamente según WDL del partido previo del favorito
+                    // WDL = Win/Draw/Loss del resultado real (no del cover de handicap)
+                    const prevFavWdl = info.prev_fav_wdl; // 'WIN', 'DRAW', 'LOSS', or null
+                    const prevFavCovered = info.prev_fav_covered; // Para mostrar info
+                    let filteredResults = results;
+
+                    if (prevFavWdl) {
+                        filteredResults = results.filter(r => {
+                            const patAH = parseFloat(r.ah);
+                            let targetPrev = null;
+                            let teamWasHome = false;
+
+                            // Determinar cuál es el previo del favorito del patrón
+                            // Perspectiva: Positivo = Local Favorito, Negativo = Visitante Favorito
+                            if (patAH > 0) {
+                                targetPrev = r.prev_home; // Local es favorito, jugó de LOCAL en su previo
+                                teamWasHome = true;
+                            } else if (patAH < 0) {
+                                targetPrev = r.prev_away; // Visitante es favorito, jugó de VISITANTE en su previo
+                                teamWasHome = false;
+                            } else {
+                                // AH = 0: No hay favorito claro, incluir SI AMBOS previos coinciden en WDL
+                                // Comparar prev_home con WDL del partido
+                                const homeWdl = r.prev_home?.wdl;
+                                const awayWdl = r.prev_away?.wdl;
+                                // Incluir si al menos uno de los previos coincide con el WDL actual
+                                return homeWdl === prevFavWdl || awayWdl === prevFavWdl;
+                            }
+
+                            if (!targetPrev || !targetPrev.score) return false;
+
+                            // Parsear el score - formato "home:away" del partido previo
+                            const scoreParts = targetPrev.score.split(':');
+                            if (scoreParts.length !== 2) return false;
+
+                            const homeGoals = parseInt(scoreParts[0]);
+                            const awayGoals = parseInt(scoreParts[1]);
+
+                            if (isNaN(homeGoals) || isNaN(awayGoals)) return false;
+
+                            // Calcular WDL desde la perspectiva del equipo rastreado
+                            let patternWdl = null;
+                            if (teamWasHome) {
+                                // El equipo jugó de LOCAL: sus goles son homeGoals
+                                if (homeGoals > awayGoals) patternWdl = 'WIN';
+                                else if (homeGoals < awayGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
+                            } else {
+                                // El equipo jugó de VISITANTE: sus goles son awayGoals
+                                if (awayGoals > homeGoals) patternWdl = 'WIN';
+                                else if (awayGoals < homeGoals) patternWdl = 'LOSS';
+                                else patternWdl = 'DRAW';
+                            }
+
+                            // Solo mostrar patrones donde el WDL coincide
+                            return patternWdl === prevFavWdl;
+                        });
+                    }
+
+                    const filteredCovered = filteredResults.filter(r => r.covered === 'COVER').length;
+                    const filteredNotCovered = filteredResults.filter(r => r.covered === 'NO_COVER').length;
+
+                    // Mostrar info de WDL en español
+                    const wdlText = prevFavWdl === 'WIN' ? 'GANÓ' : (prevFavWdl === 'DRAW' ? 'EMPATÓ' : (prevFavWdl === 'LOSS' ? 'PERDIÓ' : ''));
+                    const wdlClass = prevFavWdl === 'WIN' ? 'text-success' : (prevFavWdl === 'DRAW' ? 'text-warning' : 'text-danger');
+
+                    resultsHtml = `
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small">
+                                    <strong>Patrones:</strong> ${data.total_found} 
+                                    | <strong>AH:</strong> ${info.ah_actual} 
+                                    | <strong>Fav:</strong> ${info.favorito}
+                                    ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
+                                    ${prevFavWdl ? `| <strong class="${wdlClass}">Fav ${wdlText}</strong>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered mb-0" style="font-size: 0.68rem;" id="patterns-table-${matchId}">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Local</th>
+                                    <th>Visitante</th>
+                                    <th>AH</th>
+                                    <th>FT</th>
+                                    <th>Cover</th>
+                                    <th>Prev Home
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-ah" style="font-size:0.55rem;width:55px;">
+                                                <option value="">AH</option>
+                                                <option value="0">0</option>
+                                                <option value="0.5">+0.5</option>
+                                                <option value="1">+1</option>
+                                                <option value="1.5">+1.5</option>
+                                                <option value="2">+2+</option>
+                                                <option value="-0.5">-0.5</option>
+                                                <option value="-1">-1</option>
+                                                <option value="-1.5">-1.5</option>
+                                                <option value="-2">-2+</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-res" style="font-size:0.55rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th>Prev Away
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-ah" style="font-size:0.55rem;width:55px;">
+                                                <option value="">AH</option>
+                                                <option value="0">0</option>
+                                                <option value="0.5">+0.5</option>
+                                                <option value="1">+1</option>
+                                                <option value="1.5">+1.5</option>
+                                                <option value="2">+2+</option>
+                                                <option value="-0.5">-0.5</option>
+                                                <option value="-1">-1</option>
+                                                <option value="-1.5">-1.5</option>
+                                                <option value="-2">-2+</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-res" style="font-size:0.55rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#e3f2fd;">H2H Estadio
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-stadium-mov" style="font-size:0.5rem;width:45px;">
+                                                <option value="">Mov</option>
+                                                <option value="UP">↑</option>
+                                                <option value="DOWN">↓</option>
+                                                <option value="SAME">=</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-stadium-cover" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Cov</option>
+                                                <option value="COVER">✓</option>
+                                                <option value="NO_COVER">✗</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#e3f2fd;">H2H General
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-general-mov" style="font-size:0.5rem;width:45px;">
+                                                <option value="">Mov</option>
+                                                <option value="UP">↑</option>
+                                                <option value="DOWN">↓</option>
+                                                <option value="SAME">=</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-general-cover" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Cov</option>
+                                                <option value="COVER">✓</option>
+                                                <option value="NO_COVER">✗</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#ffe4ec;">H2H Col3
+                                        <div class="d-flex flex-column gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-col3-espejo" style="font-size:0.5rem;width:60px;">
+                                                <option value="">Espejo</option>
+                                                <option value="directa">Dir</option>
+                                                <option value="inversa">Inv</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-col3-cover" style="font-size:0.5rem;width:60px;">
+                                                <option value="">Cover</option>
+                                                <option value="MEJORA">Mejora</option>
+                                                <option value="IGUALA">Iguala</option>
+                                                <option value="EMPEORA">Empeora</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#fff3e0;">Ind. Local
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-local-res" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-local-loc" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Loc</option>
+                                                <option value="H">H</option>
+                                                <option value="A">A</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#fff3e0;">Ind. Visitante
+                                        <div class="d-flex gap-1">
+                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-visitante-res" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Res</option>
+                                                <option value="W">W</option>
+                                                <option value="D">D</option>
+                                                <option value="L">L</option>
+                                            </select>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-visitante-loc" style="font-size:0.5rem;width:35px;">
+                                                <option value="">Loc</option>
+                                                <option value="H">H</option>
+                                                <option value="A">A</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th style="background:#d4edda;">
+                                        <div class="d-flex flex-column gap-1">
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.55rem;" onclick="applyPatternFilters('${matchId}')">
+                                                    <i class="fa-solid fa-filter"></i> Aplicar
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.55rem;" onclick="clearPatternFilters('${matchId}')" title="Limpiar filtros">
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                            </div>
+                                            <select class="form-select form-select-sm py-0 pattern-filter-cover" style="font-size:0.5rem;width:70px;">
+                                                <option value="">Todo</option>
+                                                <option value="COVER">✓ Cover</option>
+                                                <option value="NO_COVER">✗ No Cov</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredResults.map(r => {
+                        // Función para calcular WDL REAL basado en goles
+                        const calcRealWdl = (score, isHome) => {
+                            if (!score) return null;
+                            const parts = (score || '').replace(' ', '').replace('-', ':').split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            const diff = isHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
+
+                        const realWdlClass = (wdl) => wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
+                        const realWdlLetter = (wdl) => wdl === 'WIN' ? 'W' : (wdl === 'LOSS' ? 'L' : 'D');
+
+                        // Calcular WDL real para Prev Home (equipo jugó de LOCAL)
+                        const prevHomeRealWdl = r.prev_home ? calcRealWdl(r.prev_home.score, true) : null;
+                        const prevHomeStatsHtml = (r.prev_home && (r.prev_home.da !== null || r.prev_home.sot !== null)) ?
+                            `<div style="font-size:0.45rem;color:#2196f3;margin-top:2px;">` +
+                            `${r.prev_home.da !== null ? `⚡${r.prev_home.da}` : ''}` +
+                            `${r.prev_home.sot !== null ? ` 🎯${r.prev_home.sot}` : ''}` +
+                            `</div>` : '';
+                        const prevHomeHtml = r.prev_home ?
+                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${realWdlClass(prevHomeRealWdl)}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}${prevHomeStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        // Calcular WDL real para Prev Away (equipo jugó de VISITANTE)
+                        const prevAwayRealWdl = r.prev_away ? calcRealWdl(r.prev_away.score, false) : null;
+                        const prevAwayStatsHtml = (r.prev_away && (r.prev_away.da !== null || r.prev_away.sot !== null)) ?
+                            `<div style="font-size:0.45rem;color:#e91e63;margin-top:2px;">` +
+                            `${r.prev_away.da !== null ? `⚡${r.prev_away.da}` : ''}` +
+                            `${r.prev_away.sot !== null ? ` 🎯${r.prev_away.sot}` : ''}` +
+                            `</div>` : '';
+                        const prevAwayHtml = r.prev_away ?
+                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${realWdlClass(prevAwayRealWdl)}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}${prevAwayStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
+                            '<span class="text-muted">-</span>';
+
+
+                        // Helper para obtener clase de color basado en WDL simulado (cover del favorito)
+                        // HOME_WIN = el favorito cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
+                        const simWdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+
+                        const h2hStadiumHtml = r.h2h_stadium && r.h2h_stadium.movement && r.h2h_stadium.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_stadium.movement}</div><div class="${simWdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        const h2hGeneralHtml = r.h2h_general && r.h2h_general.movement && r.h2h_general.movement !== 'N/A' ?
+                            `<div class="fw-bold">${r.h2h_general.movement}</div><div class="${simWdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
+                            '<span class="text-muted">-</span>';
+
+                        const h2hCol3Html = r.h2h_col3 ?
+                            `<div><span class="fw-bold">${r.h2h_col3.ah || '-'}</span> ${r.h2h_col3.score || '-'}</div><div style="font-size:0.5rem;"><span class="text-primary">${r.h2h_col3.home_team || ''}</span> vs <span class="text-danger">${r.h2h_col3.away_team || ''}</span></div>` :
+                            '<span class="text-muted">-</span>';
+
+                        // Helper para calcular WDL real de comparativas indirectas
+                        const calcIndWdl = (ind) => {
+                            if (!ind || !ind.score) return null;
+                            const score = (ind.score || '').replace(' : ', ':').replace('-', ':');
+                            const parts = score.split(':');
+                            if (parts.length !== 2) return null;
+                            const hg = parseInt(parts[0]);
+                            const ag = parseInt(parts[1]);
+                            if (isNaN(hg) || isNaN(ag)) return null;
+                            // Comparativa indirecta: el equipo analizado jugó de local o visitante según 'localia'
+                            const wasHome = (ind.localia || '').toLowerCase().includes('loc') || (ind.localia || '').toLowerCase().includes('home');
+                            const diff = wasHome ? (hg - ag) : (ag - hg);
+                            if (diff > 0) return 'WIN';
+                            if (diff < 0) return 'LOSS';
+                            return 'DRAW';
+                        };
+
+                        // Ind. Local - con colores y datos completos
+                        const indLocalWdl = calcIndWdl(r.ind_local);
+                        const indLocalAh = r.ind_local ? (r.ind_local.ah || r.ind_local.ah_line || r.ind_local.handicap || '-') : '-';
+                        const indLocalHtml = r.ind_local && (r.ind_local.score || indLocalAh !== '-') ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${indLocalAh}</span>
+                                <span class="fw-bold ${realWdlClass(indLocalWdl)}">${r.ind_local.score || r.ind_local.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_local.home_team || r.ind_local.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_local.home_team || ''} vs ${r.ind_local.away_team || ''}</div>` : ''}
+                            ${r.ind_local.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_local.localia}</div>` : ''}` :
+                            '';
+
+                        // Ind. Visitante - con colores y datos completos
+                        const indVisitanteWdl = calcIndWdl(r.ind_visitante);
+                        const indVisitanteAh = r.ind_visitante ? (r.ind_visitante.ah || r.ind_visitante.ah_line || r.ind_visitante.handicap || '-') : '-';
+                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || indVisitanteAh !== '-') ?
+                            `<div class="d-flex justify-content-between">
+                                <span class="fw-bold small">${indVisitanteAh}</span>
+                                <span class="fw-bold ${realWdlClass(indVisitanteWdl)}">${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</span>
+                            </div>
+                            ${(r.ind_visitante.home_team || r.ind_visitante.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_visitante.home_team || ''} vs ${r.ind_visitante.away_team || ''}</div>` : ''}
+                            ${r.ind_visitante.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_visitante.localia}</div>` : ''}` :
+                            '';
+
+                        const prevHomeWdl = r.prev_home ? realWdlLetter(prevHomeRealWdl) : '';
+                        const prevAwayWdl = r.prev_away ? realWdlLetter(prevAwayRealWdl) : '';
+                        const prevHomeAh = r.prev_home && r.prev_home.ah != null ? Math.abs(parseFloat(r.prev_home.ah)) : '';
+                        const prevAwayAh = r.prev_away && r.prev_away.ah != null ? Math.abs(parseFloat(r.prev_away.ah)) : '';
+
+                        // Determinar si hay datos en las columnas ind para el fondo
+                        const hasIndLocal = r.ind_local && (r.ind_local.score || r.ind_local.ah);
+                        const hasIndVisitante = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah);
+                        const hasH2hCol3 = r.h2h_col3 && (r.h2h_col3.score || r.h2h_col3.ah);
+
+                        // Calcular Espejo H2H Col3 (directa/inversa)
+                        let h2hCol3Espejo = '';
+                        if (r.h2h_col3 && r.h2h_col3.home_team && r.home) {
+                            const homeNorm = (r.home || '').toLowerCase().trim();
+                            const c3HomeNorm = (r.h2h_col3.home_team || '').toLowerCase().trim();
+                            h2hCol3Espejo = (homeNorm === c3HomeNorm) ? 'directa' : 'inversa';
+                        }
+
+                        // Calcular Cover H2H Col3 (MEJORA/IGUALA/EMPEORA)
+                        let h2hCol3Cover = '';
+                        if (r.h2h_col3 && r.h2h_col3.ah != null && r.ah != null) {
+                            const col3Ah = parseFloat(r.h2h_col3.ah);
+                            const currentAh = parseFloat(r.ah);
+                            if (!isNaN(col3Ah) && !isNaN(currentAh)) {
+                                const effectiveCol3Ah = (h2hCol3Espejo === 'inversa') ? -col3Ah : col3Ah;
+                                if (currentAh > effectiveCol3Ah + 0.01) h2hCol3Cover = 'MEJORA';
+                                else if (currentAh < effectiveCol3Ah - 0.01) h2hCol3Cover = 'EMPEORA';
+                                else h2hCol3Cover = 'IGUALA';
+                            }
+                        }
+
+                        return `
+                                    <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}" data-h2h-col3-espejo="${h2hCol3Espejo}" data-h2h-col3-cover="${h2hCol3Cover}">
+                                        <td>${APP_PRECACHEO_ONLY
+                                            ? (r.date || '-')
+                                            : `<a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none" title="Abrir análisis">${r.date || '-'} 🔗</a>`
+                                        }</td>
+                                        <td class="text-primary" style="font-size:0.65rem;">${r.home || '-'}</td>
+                                        <td class="text-danger" style="font-size:0.65rem;">${r.away || '-'}</td>
+                                        <td class="fw-bold text-center" style="background:#e8f5e9;">${r.ah || '-'}${r.ou ? `<div style="font-size:0.5rem;color:#888;">${r.ou}</div>` : ''}</td>
+                                        <td class="fw-bold text-center">${r.score || '-'}</td>
+                                        <td class="${r.covered === 'COVER' ? 'bg-success text-white' : (r.covered === 'NO_COVER' ? 'bg-danger text-white' : 'text-muted')} fw-bold text-center">
+                                            ${r.covered === 'COVER' ? '✓' : (r.covered === 'NO_COVER' ? '✗' : '-')}
+                                        </td>
+                                        <td>${prevHomeHtml}</td>
+                                        <td>${prevAwayHtml}</td>
+                                        <td style="background:#e3f2fd;">${h2hStadiumHtml}</td>
+                                        <td style="background:#e3f2fd;">${h2hGeneralHtml}</td>
+                                        <td style="background:${hasH2hCol3 ? '#ffe4ec' : '#ffcdd2'};">${h2hCol3Html || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndLocal ? '#fff3e0' : '#ffcdd2'};">${indLocalHtml || '<span class="text-muted">-</span>'}</td>
+                                        <td style="background:${hasIndVisitante ? '#fff3e0' : '#ffcdd2'};">${indVisitanteHtml || '<span class="text-muted">-</span>'}</td>
+                                    </tr>
+                                `}).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2 small">
+                            <span class="text-muted">Mostrando ${filteredResults.length} de ${data.total_found}</span>
+                            <span><strong class="text-success">✓ ${filteredCovered}</strong> cubiertos | <strong class="text-danger">✗ ${filteredNotCovered}</strong> no cubiertos | Ratio: <strong>${filteredCovered > 0 ? ((filteredCovered / (filteredCovered + filteredNotCovered)) * 100).toFixed(0) : 0}%</strong></span>
+                        </div>
+                    `;
+                }
+
+                expandRow.innerHTML = `
+                    <td colspan="20" style="background: #f8f9fa; border-left: 3px solid #ffc107; padding: 10px;">
+                        ${resultsHtml}
+                    </td>
+                `;
+
+                // Insertar después de la fila del partido
+                matchRow.insertAdjacentElement('afterend', expandRow);
+                btnElement.classList.add('active');
+
+            } catch (err) {
+                btnElement.innerHTML = originalHtml;
+                btnElement.disabled = false;
+                alert('Error de red: ' + err.message);
+            }
+        }
+
+        // Filtrar filas de la tabla de patrones por cover status
+        function filterPatterns(matchId, filterType) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cover = row.getAttribute('data-cover');
+                if (filterType === 'all') {
+                    row.style.display = '';
+                } else if (filterType === 'cover') {
+                    row.style.display = cover === 'COVER' ? '' : 'none';
+                } else if (filterType === 'nocover') {
+                    row.style.display = cover === 'NO_COVER' ? '' : 'none';
+                }
+            });
+
+            // Update button states
+            const btnGroup = table.closest('td').querySelector('.btn-group');
+            if (btnGroup) {
+                btnGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                if (filterType === 'all') btnGroup.querySelector('.btn-outline-secondary').classList.add('active');
+                else if (filterType === 'cover') btnGroup.querySelector('.btn-outline-success').classList.add('active');
+                else if (filterType === 'nocover') btnGroup.querySelector('.btn-outline-danger').classList.add('active');
+            }
+        }
+
+        // Aplicar todos los filtros de patrones a la vez (botón "Aplicar")
+        function applyPatternFilters(matchId) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const container = table.closest('td');
+
+            // Leer valores de los filtros Prev Home/Away
+            const prevHomeAhFilter = container.querySelector('.pattern-filter-prev-home-ah')?.value || '';
+            const prevHomeResFilter = container.querySelector('.pattern-filter-prev-home-res')?.value || '';
+            const prevAwayAhFilter = container.querySelector('.pattern-filter-prev-away-ah')?.value || '';
+            const prevAwayResFilter = container.querySelector('.pattern-filter-prev-away-res')?.value || '';
+
+            // Leer valores de los nuevos filtros H2H
+            const h2hStadiumMovFilter = container.querySelector('.pattern-filter-h2h-stadium-mov')?.value || '';
+            const h2hStadiumCoverFilter = container.querySelector('.pattern-filter-h2h-stadium-cover')?.value || '';
+            const h2hGeneralMovFilter = container.querySelector('.pattern-filter-h2h-general-mov')?.value || '';
+            const h2hGeneralCoverFilter = container.querySelector('.pattern-filter-h2h-general-cover')?.value || '';
+            const h2hCol3EspejoFilter = container.querySelector('.pattern-filter-h2h-col3-espejo')?.value || '';
+            const h2hCol3CoverFilter = container.querySelector('.pattern-filter-h2h-col3-cover')?.value || '';
+
+
+            // Leer valores de los filtros Ind Local/Visitante
+            const indLocalResFilter = container.querySelector('.pattern-filter-ind-local-res')?.value || '';
+            const indLocalLocFilter = container.querySelector('.pattern-filter-ind-local-loc')?.value || '';
+            const indVisitanteResFilter = container.querySelector('.pattern-filter-ind-visitante-res')?.value || '';
+            const indVisitanteLocFilter = container.querySelector('.pattern-filter-ind-visitante-loc')?.value || '';
+
+            // Leer filtro de Cover
+            const coverFilter = container.querySelector('.pattern-filter-cover')?.value || '';
+
+            // Función para comprobar rango de AH
+            function matchesAhRange(ahVal, filterVal) {
+                if (!filterVal) return true;
+                const f = parseFloat(filterVal);
+                const v = parseFloat(ahVal);
+                if (isNaN(v)) return false;
+
+                if (f < 0) {
+                    if (f <= -2.5) return v <= -2.5;
+                    return Math.abs(v - f) <= 0.26;
+                }
+
+                if (f >= 2.5) return v >= 2.5;
+                if (f === 0) return Math.abs(v) <= 0.01;
+                return Math.abs(v - f) <= 0.26;
+            }
+
+            // Función para extraer WDL de contenido de celda (parsear HTML)
+            function extractWdlFromCell(cellIndex, row) {
+                const cells = row.querySelectorAll('td');
+                if (!cells[cellIndex]) return '';
+                const text = cells[cellIndex].innerText || '';
+                if (text.includes('W') || text.match(/\d+-\d+.*W/i) || (text.match(/(\d+):(\d+)/) && (() => {
+                    const m = text.match(/(\d+):(\d+)/);
+                    return m && parseInt(m[1]) > parseInt(m[2]);
+                })())) return 'W';
+                if (text.includes('L') || (text.match(/(\d+):(\d+)/) && (() => {
+                    const m = text.match(/(\d+):(\d+)/);
+                    return m && parseInt(m[1]) < parseInt(m[2]);
+                })())) return 'L';
+                if (text.includes('D') || (text.match(/(\d+):(\d+)/) && (() => {
+                    const m = text.match(/(\d+):(\d+)/);
+                    return m && parseInt(m[1]) === parseInt(m[2]);
+                })())) return 'D';
+                return '';
+            }
+
+            // Función para extraer Mov de celda H2H
+            function extractMovFromCell(cellIndex, row) {
+                const cells = row.querySelectorAll('td');
+                if (!cells[cellIndex]) return '';
+                const text = cells[cellIndex].innerText || '';
+                if (text.includes('SUBI') || text.includes('↑')) return 'UP';
+                if (text.includes('BAJA') || text.includes('↓')) return 'DOWN';
+                if (text.includes('IGUAL') || text.includes('=')) return 'SAME';
+                return '';
+            }
+
+            // Función para extraer Cover de celda H2H
+            function extractCoverFromCell(cellIndex, row) {
+                const cells = row.querySelectorAll('td');
+                if (!cells[cellIndex]) return '';
+                const cell = cells[cellIndex];
+                if (cell.classList.contains('text-success') || cell.innerHTML.includes('text-success')) return 'COVER';
+                if (cell.classList.contains('text-danger') || cell.innerHTML.includes('text-danger')) return 'NO_COVER';
+                return '';
+            }
+
+            // Función para extraer Loc de celda Ind
+            function extractLocFromCell(cellIndex, row) {
+                const cells = row.querySelectorAll('td');
+                if (!cells[cellIndex]) return '';
+                const text = cells[cellIndex].innerText || '';
+                if (text.toLowerCase().includes('loc:') || text.toLowerCase().includes('home') || text.includes('(L)')) return 'H';
+                if (text.toLowerCase().includes('vis') || text.toLowerCase().includes('away') || text.includes('(V)') || text.includes('(A)')) return 'A';
+                return '';
+            }
+
+            const rows = table.querySelectorAll('tbody tr');
+            let visibleCount = 0;
+            let coverCount = 0;
+            let noCoverCount = 0;
+
+            rows.forEach(row => {
+                const prevHomeWdl = row.getAttribute('data-prev-home') || '';
+                const prevAwayWdl = row.getAttribute('data-prev-away') || '';
+                const prevHomeAh = row.getAttribute('data-prev-home-ah') || '';
+                const prevAwayAh = row.getAttribute('data-prev-away-ah') || '';
+                const cover = row.getAttribute('data-cover') || '';
+
+                // Para H2H e Ind, intentar leer data-attributes o parsear celdas
+                const h2hStadiumMov = row.getAttribute('data-h2h-stadium-mov') || extractMovFromCell(8, row);
+                const h2hStadiumCover = row.getAttribute('data-h2h-stadium-cover') || extractCoverFromCell(8, row);
+                const h2hGeneralMov = row.getAttribute('data-h2h-general-mov') || extractMovFromCell(9, row);
+                const h2hGeneralCover = row.getAttribute('data-h2h-general-cover') || extractCoverFromCell(9, row);
+                const h2hCol3Espejo = row.getAttribute('data-h2h-col3-espejo') || '';
+                const indLocalRes = row.getAttribute('data-ind-local-res') || extractWdlFromCell(11, row);
+                const indLocalLoc = row.getAttribute('data-ind-local-loc') || extractLocFromCell(11, row);
+                const indVisitanteRes = row.getAttribute('data-ind-visitante-res') || extractWdlFromCell(12, row);
+                const indVisitanteLoc = row.getAttribute('data-ind-visitante-loc') || extractLocFromCell(12, row);
+
+                let show = true;
+
+                // Filtros Prev Home/Away
+                if (prevHomeAhFilter && !matchesAhRange(prevHomeAh, prevHomeAhFilter)) show = false;
+                if (show && prevHomeResFilter && prevHomeWdl !== prevHomeResFilter) show = false;
+                if (show && prevAwayAhFilter && !matchesAhRange(prevAwayAh, prevAwayAhFilter)) show = false;
+                if (show && prevAwayResFilter && prevAwayWdl !== prevAwayResFilter) show = false;
+
+                // Filtro Cover
+                if (show && coverFilter && cover !== coverFilter) show = false;
+
+                // Filtros H2H Estadio
+                if (show && h2hStadiumMovFilter && h2hStadiumMov !== h2hStadiumMovFilter) show = false;
+                if (show && h2hStadiumCoverFilter && h2hStadiumCover !== h2hStadiumCoverFilter) show = false;
+
+                // Filtros H2H General
+                if (show && h2hGeneralMovFilter && h2hGeneralMov !== h2hGeneralMovFilter) show = false;
+                if (show && h2hGeneralCoverFilter && h2hGeneralCover !== h2hGeneralCoverFilter) show = false;
+
+                // Filtro H2H Col3 Espejo
+                if (show && h2hCol3EspejoFilter && h2hCol3Espejo !== h2hCol3EspejoFilter) show = false;
+
+                // Filtro H2H Col3 Cover (MEJORA/IGUALA/EMPEORA)
+                if (show && h2hCol3CoverFilter) {
+                    const h2hCol3Cover = row.getAttribute('data-h2h-col3-cover') || '';
+                    if (h2hCol3Cover !== h2hCol3CoverFilter) show = false;
+                }
+
+                // Filtros Ind Local
+                if (show && indLocalResFilter && indLocalRes !== indLocalResFilter) show = false;
+                if (show && indLocalLocFilter && indLocalLoc !== indLocalLocFilter) show = false;
+
+                // Filtros Ind Visitante
+                if (show && indVisitanteResFilter && indVisitanteRes !== indVisitanteResFilter) show = false;
+                if (show && indVisitanteLocFilter && indVisitanteLoc !== indVisitanteLocFilter) show = false;
+
+                row.style.display = show ? '' : 'none';
+                if (show) {
+                    visibleCount++;
+                    if (cover === 'COVER') coverCount++;
+                    if (cover === 'NO_COVER') noCoverCount++;
+                }
+            });
+
+            console.log(`Filtros aplicados: ${visibleCount} filas visibles de ${rows.length} (Cover: ${coverCount}, No Cover: ${noCoverCount})`);
+        }
+
+        // Limpiar todos los filtros de la tabla de patrones
+        function clearPatternFilters(matchId) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const container = table.closest('td');
+
+            // Resetear todos los selects de filtros
+            const selects = container.querySelectorAll('select');
+            selects.forEach(select => select.value = '');
+
+            // Mostrar todas las filas
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => row.style.display = '');
+
+            console.log(`Filtros limpiados: ${rows.length} filas visibles`);
+        }
+
+        // Filtrar filas por columna (Prev Home/Away W/D/L y AH)
+        function filterPatternsCol(matchId, colName, filterValue) {
+            const table = document.getElementById(`patterns-table-${matchId}`);
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                // Si hay filtro de cover activo, respetarlo
+                const coverFilter = table.closest('td').querySelector('.btn-group .active');
+                const activeCoverFilter = coverFilter ? coverFilter.textContent.includes('Cubiertos') ? (coverFilter.textContent.includes('No') ? 'nocover' : 'cover') : 'all' : 'all';
+
+                let showByCover = true;
+                if (activeCoverFilter === 'cover') showByCover = row.getAttribute('data-cover') === 'COVER';
+                else if (activeCoverFilter === 'nocover') showByCover = row.getAttribute('data-cover') === 'NO_COVER';
+
+                // Filtros de W/D/L
+                const prevHomeWdl = row.getAttribute('data-prev-home');
+                const prevAwayWdl = row.getAttribute('data-prev-away');
+
+                // Filtros de AH
+                const prevHomeAh = parseFloat(row.getAttribute('data-prev-home-ah')) || 0;
+                const prevAwayAh = parseFloat(row.getAttribute('data-prev-away-ah')) || 0;
+
+                // Obtener valores de todos los filtros activos
+                const container = table.closest('td');
+                const selects = container.querySelectorAll('select');
+                let prevHomeWdlFilter = '', prevAwayWdlFilter = '', prevHomeAhFilter = '', prevAwayAhFilter = '';
+                selects.forEach(sel => {
+                    const onChange = sel.getAttribute('onchange') || '';
+                    if (onChange.includes('prev-home-ah')) prevHomeAhFilter = sel.value;
+                    else if (onChange.includes('prev-away-ah')) prevAwayAhFilter = sel.value;
+                    else if (onChange.includes("prev-home'")) prevHomeWdlFilter = sel.value;
+                    else if (onChange.includes("prev-away'")) prevAwayWdlFilter = sel.value;
+                });
+
+                // Función para comprobar rango de AH
+                function matchesAhRange(ahVal, filterVal) {
+                    if (!filterVal) return true;
+                    const f = parseFloat(filterVal);
+                    if (f === 0.5) return ahVal >= 0.25 && ahVal <= 0.75;
+                    if (f === 1) return ahVal >= 0.75 && ahVal <= 1.25;
+                    if (f === 1.5) return ahVal >= 1.25 && ahVal <= 1.75;
+                    if (f === 2) return ahVal >= 1.75;
+                    return true;
+                }
+
+                let showByCol = true;
+
+                // Aplicar filtro actual
+                if (colName === 'prev-home' && filterValue) {
+                    showByCol = showByCol && prevHomeWdl === filterValue;
+                } else if (colName === 'prev-away' && filterValue) {
+                    showByCol = showByCol && prevAwayWdl === filterValue;
+                } else if (colName === 'prev-home-ah' && filterValue) {
+                    showByCol = showByCol && matchesAhRange(prevHomeAh, filterValue);
+                } else if (colName === 'prev-away-ah' && filterValue) {
+                    showByCol = showByCol && matchesAhRange(prevAwayAh, filterValue);
+                }
+
+                // También respetar otros filtros activos
+                if (colName !== 'prev-home' && prevHomeWdlFilter) {
+                    showByCol = showByCol && prevHomeWdl === prevHomeWdlFilter;
+                }
+                if (colName !== 'prev-away' && prevAwayWdlFilter) {
+                    showByCol = showByCol && prevAwayWdl === prevAwayWdlFilter;
+                }
+                if (colName !== 'prev-home-ah' && prevHomeAhFilter) {
+                    showByCol = showByCol && matchesAhRange(prevHomeAh, prevHomeAhFilter);
+                }
+                if (colName !== 'prev-away-ah' && prevAwayAhFilter) {
+                    showByCol = showByCol && matchesAhRange(prevAwayAh, prevAwayAhFilter);
+                }
+
+                row.style.display = (showByCover && showByCol) ? '' : 'none';
+            });
+        }
+
+        async function scrapeResultsPending() {
+            if (!confirm('¿Buscar resultados finales de partidos que empezaron hace +2 horas?\nSe actualizarán los que encuentren resultado.')) return;
+
+            try {
+                const res = await fetch('/api/scrape_pending_results', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert(data.message + '\n\nRevisa la consola del servidor para ver el progreso.');
+                    // Refrescar después de un delay
+                    setTimeout(() => triggerSearch(), 5000);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            }
+        }
+
+        async function scrapeAllPending() {
+            const handicap = document.getElementById('filter-handicap').value;
+            // Note: Pre-Cacheo page filtering logic might not have goal line filter input, 
+            // but if it does, we should capture it. 
+            // Looking at the view_file, there is no explicit goal line filter INPUT in precacheo list header, 
+            // only AH filter. So we pass handicap.
+
+            if (!confirm(`¿Iniciar scrapeo de pendientes en segundo plano con filtro AH = ${handicap || 'Todos'}?\nSe usarán 8 workers y se guardará el progreso.`)) return;
+
+            try {
+                const res = await fetch('/api/precacheo_scrape_background', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        handicap: handicap
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error de red al iniciar scraping: ' + err.message);
+            }
+        }
+
+        // Finalizar un partido individual (mover al Explorador)
+        async function finalizeMatch(matchId) {
+            const btn = document.querySelector(`button[onclick = "finalizeMatch('${matchId}')"]`);
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+            }
+
+            try {
+                const safeMatchId = encodeURIComponent(String(matchId || '').trim());
+                const res = await fetch(`/api/precacheo_finalize/${safeMatchId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    // Eliminar de precacheoData local
+                    delete precacheoData[matchId];
+                    // Refrescar tabla
+                    triggerSearch();
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo finalizar'));
+                    if (btn) {
+                        btn.innerHTML = '<i class="fas fa-check"></i>';
+                        btn.disabled = false;
+                    }
+                }
+            } catch (err) {
+                console.error('Error finalizando:', err);
+                alert('Error de red al finalizar: ' + err.message);
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // Finalizar todos los partidos que tienen resultado
+        // Finalizar todos los partidos que tienen resultado
+        async function finalizeAllWithResults() {
+            // Buscar todos los partidos con resultado válido
+            const matchesWithResults = [];
+            for (const [matchId, pc] of Object.entries(precacheoData)) {
+                // Ensure robust check for score
+                const score = pc.score || pc.final_score || '';
+                if (score && score !== '??' && score !== '?:?' && score.includes(':')) {
+                    matchesWithResults.push(matchId);
+                }
+            }
+
+            if (matchesWithResults.length === 0) {
+                alert('No hay partidos con resultado para finalizar.');
+                return;
+            }
+
+            if (!confirm(`¿Finalizar ${matchesWithResults.length} partidos y moverlos al Explorador ? `)) return;
+
+            showLoading(true, `Finalizando ${matchesWithResults.length} partidos...`);
+
+            try {
+                // Batch Request
+                const res = await fetch('/api/precacheo_finalize_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: matchesWithResults })
+                });
+
+                const data = await res.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    const failures = data.failed_count || 0;
+                    const success = data.success_count || 0;
+
+                    if (failures > 0) {
+                        alert(`Finalizados ${success}. Fallaron ${failures}. Revisa la consola para más detalles.`);
+                        console.error("Batch failures:", data.errors);
+                    } else {
+                        // Success completely
+                        // Optional: simpler alert or just refresh
+                        // alert(`Proceso completado.${ success } partidos movidos.`);
+                    }
+                    // Refresh data
+                    await triggerSearch();
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Activar filtro de Pick inmediatamente al cambiar
+        const pickFilter = document.getElementById('filter-pick');
+        if (pickFilter) {
+            pickFilter.addEventListener('change', applyFiltersVisually);
+        }
+
+        // Event listeners for filters - solo Enter dispara búsqueda
+        document.querySelectorAll('.header-filter').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    // Si es el filtro de pick, usar la visual, sino búsqueda completa
+                    if (this.id === 'filter-pick') applyFiltersVisually();
+                    else triggerSearch();
+                }
+            });
+            // Removed: automatic triggerSearch on SELECT change
+        });
+
+        // Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            // Si es móvil (ancho menor a 768px, asumimos lógica móvil)
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', async function () {
+            updateQuickPickButtonState();
+            updateCurrentTimeDisplay();
+            // Actualizar hora cada minuto
+            setInterval(updateCurrentTimeDisplay, 60000);
+            await cleanupLegacyPrecacheCaches();
+            // Cargar ligas favoritas primero
+            await loadLigasFavoritas();
+            triggerSearch(); // Cargar lista inicial al abrir la página
+        });
+    
+console.log('Test pc:', !!renderPreMatchContext(pc, 'A', 'B')); console.log('Test null pc:', !!renderPreMatchContext(null, 'A', 'B'));

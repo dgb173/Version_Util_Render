@@ -7415,7 +7415,9 @@
         function favoriteSideFromAh(ah) {
             const val = parseNumericValue(ah);
             if (val === null || Math.abs(val) < 0.01) return 'PICKEM';
-            return val > 0 ? 'HOME' : 'AWAY';
+            // En Handicap Asiatico: si la linea del Local es negativa (val < 0), el Local da goles -> LOCAL ES FAVORITO
+            // Si la linea del Local es positiva (val > 0), el Visitante da goles -> VISITANTE ES FAVORITO
+            return val < 0 ? 'HOME' : 'AWAY';
         }
 
         function getFavoriteNameForAh(pc, ah) {
