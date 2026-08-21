@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-20T14:07:13",
+  "updated_at": "2026-08-20T15:36:55",
   "matches": {
     "3024998": {
       "match_id": "3024998",
@@ -312379,6 +312379,2340 @@
         }
       },
       "created_at": "2026-08-20T14:07:13"
+    },
+    "2821082": {
+      "match_id": "2821082",
+      "schema_version": 3,
+      "home_name": "Farnborough Town",
+      "away_name": "Hornchurch",
+      "league_id": "298",
+      "league_name": "England National League South",
+      "final_score": "2:2",
+      "match_date": "3/28/2026",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "-0.75",
+        "goals_linea": "3"
+      },
+      "last_general_home": {
+        "date": "2026-03-25",
+        "home_team": "Farnborough Town",
+        "away_team": "Chelmsford City",
+        "home_id": "1184",
+        "away_id": "4924",
+        "score": "4:2",
+        "handicap_line_raw": "-0.25",
+        "ah_line": "-0.25",
+        "ou_line": "N/A",
+        "match_id": "2820902",
+        "league_id_hist": "298",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Chelmsford City",
+        "rival_id": "4924",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "7",
+            "away": "13"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "7"
+          },
+          {
+            "label": "Ataques",
+            "home": "94",
+            "away": "122"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "45",
+            "away": "90"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-03-24",
+        "home_team": "Chesham United",
+        "away_team": "Hornchurch",
+        "home_id": "3757",
+        "away_id": "1450",
+        "score": "1:2",
+        "handicap_line_raw": "0",
+        "ah_line": "0",
+        "ou_line": "N/A",
+        "match_id": "2820933",
+        "league_id_hist": "298",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Chesham United",
+        "rival_id": "3757",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "18",
+            "away": "6"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "10",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "141",
+            "away": "144"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "102",
+            "away": "79"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Chelmsford City vs Chesham United."
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:1",
+          "ah_line": "0",
+          "localia": "H",
+          "home_team": "Farnborough Town",
+          "away_team": "Chesham United",
+          "match_id": "2820911",
+          "date": "2026-01-17",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Chesham United",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "9",
+              "away": "9"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "1",
+              "away": "3"
+            },
+            {
+              "label": "Ataques",
+              "home": "88",
+              "away": "76"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "48",
+              "away": "37"
+            }
+          ]
+        },
+        "right": {
+          "rival_name": "Chelmsford City",
+          "stats_rows": null
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 3,
+          "draws": 2,
+          "losses": 3,
+          "gf": 15,
+          "ga": 13,
+          "form": "V-V-D-D-V-D-E-E",
+          "matches": [
+            {
+              "date": "2026-03-25",
+              "home_team": "Farnborough Town",
+              "away_team": "Chelmsford City",
+              "score": "4:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-21",
+              "home_team": "Farnborough Town",
+              "away_team": "Slough Town",
+              "score": "2:0",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-17",
+              "home_team": "Farnborough Town",
+              "away_team": "Dagenham Redbridge",
+              "score": "2:3",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "Maidstone United",
+              "away_team": "Farnborough Town",
+              "score": "1:0",
+              "ah": "1",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-10",
+              "home_team": "Bath City",
+              "away_team": "Farnborough Town",
+              "score": "0:1",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-07",
+              "home_team": "Farnborough Town",
+              "away_team": "Hemel Hempstead Town",
+              "score": "2:3",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-03",
+              "home_team": "Torquay United",
+              "away_team": "Farnborough Town",
+              "score": "2:2",
+              "ah": "1.5",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-28",
+              "home_team": "Ebbsfleet United",
+              "away_team": "Farnborough Town",
+              "score": "2:2",
+              "ah": "1.25",
+              "localia": "A",
+              "result": "E"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 4,
+          "draws": 1,
+          "losses": 3,
+          "gf": 12,
+          "ga": 12,
+          "form": "V-D-E-V-D-V-V-D",
+          "matches": [
+            {
+              "date": "2026-03-24",
+              "home_team": "Chesham United",
+              "away_team": "Hornchurch",
+              "score": "1:2",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-21",
+              "home_team": "Hornchurch",
+              "away_team": "Hemel Hempstead Town",
+              "score": "0:1",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-14",
+              "home_team": "Bath City",
+              "away_team": "Hornchurch",
+              "score": "2:2",
+              "ah": "-0.5",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-03-10",
+              "home_team": "Horsham",
+              "away_team": "Hornchurch",
+              "score": "0:2",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-07",
+              "home_team": "Hornchurch",
+              "away_team": "Slough Town",
+              "score": "2:3",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-03-03",
+              "home_team": "Hornchurch",
+              "away_team": "Salisbury FC",
+              "score": "1:0",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-28",
+              "home_team": "Hornchurch",
+              "away_team": "Worthing",
+              "score": "2:1",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-24",
+              "home_team": "Dover Athletic",
+              "away_team": "Hornchurch",
+              "score": "4:1",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T14:16:32"
+    },
+    "2800256": {
+      "match_id": "2800256",
+      "schema_version": 3,
+      "home_name": "Marseille",
+      "away_name": "Lille",
+      "league_id": "11",
+      "league_name": "France Ligue 1",
+      "final_score": "1:2",
+      "match_date": "3/22/2026",
+      "time": "17:15",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "2.75"
+      },
+      "last_general_home": {
+        "date": "2026-03-13",
+        "home_team": "Marseille",
+        "away_team": "AJ Auxerre",
+        "home_id": "211",
+        "away_id": "215",
+        "score": "1:0",
+        "handicap_line_raw": "1.25",
+        "ah_line": "1.25",
+        "ou_line": "N/A",
+        "match_id": "2800247",
+        "league_id_hist": "11",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "AJ Auxerre",
+        "rival_id": "215",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "16",
+            "away": "8"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "111",
+            "away": "89"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "63",
+            "away": "28"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-03-15",
+        "home_team": "Rennes",
+        "away_team": "Lille",
+        "home_id": "251",
+        "away_id": "266",
+        "score": "1:2",
+        "handicap_line_raw": "0",
+        "ah_line": "0",
+        "ou_line": "N/A",
+        "match_id": "2800251",
+        "league_id_hist": "11",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Rennes",
+        "rival_id": "251",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "8"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "125",
+            "away": "67"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "56",
+            "away": "34"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "0",
+        "goles_away": "3",
+        "handicap": "-0.25",
+        "match_id": "2800218",
+        "h2h_home_team_name": "AJ Auxerre",
+        "h2h_away_team_name": "Rennes",
+        "date": "2026-02-22",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "11",
+            "away": "12"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "7"
+          },
+          {
+            "label": "Ataques",
+            "home": "103",
+            "away": "88"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "46",
+            "away": "33"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "3:0",
+          "ah_line": "1",
+          "localia": "H",
+          "home_team": "Marseille",
+          "away_team": "Rennes",
+          "match_id": "2925148",
+          "date": "2026-02-03",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": true,
+          "rival_name": "Rennes",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "9",
+              "away": "10"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "4",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "85",
+              "away": "113"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "27",
+              "away": "37"
+            }
+          ]
+        },
+        "right": {
+          "score": "3:4",
+          "ah_line": "-0.75",
+          "localia": "A",
+          "home_team": "AJ Auxerre",
+          "away_team": "Lille",
+          "match_id": "2800155",
+          "date": "2025-12-14",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "AJ Auxerre",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "18",
+              "away": "8"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "8",
+              "away": "5"
+            },
+            {
+              "label": "Ataques",
+              "home": "80",
+              "away": "103"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "69",
+              "away": "42"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 4,
+          "draws": 2,
+          "losses": 2,
+          "gf": 12,
+          "ga": 14,
+          "form": "V-V-V-D-E-D-E-V",
+          "matches": [
+            {
+              "date": "2026-03-13",
+              "home_team": "Marseille",
+              "away_team": "AJ Auxerre",
+              "score": "1:0",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-07",
+              "home_team": "Toulouse",
+              "away_team": "Marseille",
+              "score": "0:1",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-01",
+              "home_team": "Marseille",
+              "away_team": "Lyon",
+              "score": "3:2",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-20",
+              "home_team": "Stade Brestois",
+              "away_team": "Marseille",
+              "score": "2:0",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "Marseille",
+              "away_team": "Strasbourg",
+              "score": "2:2",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-08",
+              "home_team": "Paris Saint Germain (PSG)",
+              "away_team": "Marseille",
+              "score": "5:0",
+              "ah": "1",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-31",
+              "home_team": "Paris FC",
+              "away_team": "Marseille",
+              "score": "2:2",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-01-24",
+              "home_team": "Marseille",
+              "away_team": "Lens",
+              "score": "3:1",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 3,
+          "draws": 3,
+          "losses": 2,
+          "gf": 7,
+          "ga": 8,
+          "form": "V-E-V-V-E-E-D-D",
+          "matches": [
+            {
+              "date": "2026-03-15",
+              "home_team": "Rennes",
+              "away_team": "Lille",
+              "score": "1:2",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-03-08",
+              "home_team": "Lille",
+              "away_team": "Lorient",
+              "score": "1:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-03-01",
+              "home_team": "Lille",
+              "away_team": "Nantes",
+              "score": "1:0",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-22",
+              "home_team": "Angers",
+              "away_team": "Lille",
+              "score": "0:1",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "Lille",
+              "away_team": "Stade Brestois",
+              "score": "1:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-06",
+              "home_team": "Metz",
+              "away_team": "Lille",
+              "score": "0:0",
+              "ah": "-1",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "Lyon",
+              "away_team": "Lille",
+              "score": "1:0",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-25",
+              "home_team": "Lille",
+              "away_team": "Strasbourg",
+              "score": "1:4",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "D"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T14:54:54"
+    },
+    "2782283": {
+      "match_id": "2782283",
+      "schema_version": 3,
+      "home_name": "Ross County",
+      "away_name": "Partick Thistle",
+      "league_id": "77",
+      "league_name": "Scotland League Cup",
+      "final_score": "1:3",
+      "match_date": "7/26/2025",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "3.25"
+      },
+      "last_general_home": {
+        "date": "2025-07-22",
+        "home_team": "Ross County",
+        "away_team": "Edinburgh City",
+        "home_id": "1366",
+        "away_id": "4939",
+        "score": "8:0",
+        "handicap_line_raw": "1.75",
+        "ah_line": "1.75",
+        "ou_line": "N/A",
+        "match_id": "2782282",
+        "league_id_hist": "77",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Edinburgh City",
+        "rival_id": "4939",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "25",
+            "away": "13"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "14",
+            "away": "2"
+          },
+          {
+            "label": "Ataques",
+            "home": "87",
+            "away": "51"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "51",
+            "away": "24"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2025-07-22",
+        "home_team": "Partick Thistle",
+        "away_team": "Queen of South",
+        "home_id": "1462",
+        "away_id": "1461",
+        "score": "2:0",
+        "handicap_line_raw": "0.75",
+        "ah_line": "0.75",
+        "ou_line": "N/A",
+        "match_id": "2782281",
+        "league_id_hist": "77",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Queen of South",
+        "rival_id": "1461",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "1",
+            "away": "0"
+          },
+          {
+            "label": "Ataques",
+            "home": "55",
+            "away": "42"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "52",
+            "away": "22"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "4",
+        "goles_away": "0",
+        "handicap": "1",
+        "match_id": "2782278",
+        "h2h_home_team_name": "Queen of South",
+        "h2h_away_team_name": "Edinburgh City",
+        "date": "2025-07-15",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "19",
+            "away": "11"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "11",
+            "away": "2"
+          },
+          {
+            "label": "Ataques",
+            "home": "72",
+            "away": "80"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "59",
+            "away": "42"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:1",
+          "ah_line": "-0.75",
+          "localia": "A",
+          "home_team": "Queen of South",
+          "away_team": "Ross County",
+          "match_id": "2782280",
+          "date": "2025-07-19",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Queen of South",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "14",
+              "away": "19"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "5",
+              "away": "8"
+            },
+            {
+              "label": "Ataques",
+              "home": "81",
+              "away": "89"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "57",
+              "away": "61"
+            }
+          ]
+        },
+        "right": {
+          "score": "1:4",
+          "ah_line": "-1",
+          "localia": "A",
+          "home_team": "Edinburgh City",
+          "away_team": "Partick Thistle",
+          "match_id": "2782275",
+          "date": "2025-07-11",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Edinburgh City",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "9",
+              "away": "9"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "2",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "86",
+              "away": "79"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "39",
+              "away": "36"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 3,
+          "wins": 2,
+          "draws": 1,
+          "losses": 0,
+          "gf": 10,
+          "ga": 1,
+          "form": "V-V-E",
+          "matches": [
+            {
+              "date": "2025-07-22",
+              "home_team": "Ross County",
+              "away_team": "Edinburgh City",
+              "score": "8:0",
+              "ah": "1.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-19",
+              "home_team": "Queen of South",
+              "away_team": "Ross County",
+              "score": "0:1",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-12",
+              "home_team": "Stranraer",
+              "away_team": "Ross County",
+              "score": "1:1",
+              "ah": "-1.25",
+              "localia": "A",
+              "result": "E"
+            }
+          ]
+        },
+        "away": {
+          "played": 3,
+          "wins": 3,
+          "draws": 0,
+          "losses": 0,
+          "gf": 8,
+          "ga": 1,
+          "form": "V-V-V",
+          "matches": [
+            {
+              "date": "2025-07-22",
+              "home_team": "Partick Thistle",
+              "away_team": "Queen of South",
+              "score": "2:0",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-15",
+              "home_team": "Partick Thistle",
+              "away_team": "Stranraer",
+              "score": "2:0",
+              "ah": "1.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-07-11",
+              "home_team": "Edinburgh City",
+              "away_team": "Partick Thistle",
+              "score": "1:4",
+              "ah": "-1",
+              "localia": "A",
+              "result": "V"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T15:07:39"
+    },
+    "2941878": {
+      "match_id": "2941878",
+      "schema_version": 3,
+      "home_name": "Veraguas FC Reserves",
+      "away_name": "Mario Mendez FC",
+      "league_id": "2218",
+      "league_name": "Panama Liga Prom",
+      "final_score": "0:4",
+      "match_date": "2/11/2026",
+      "time": "02:00",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "2.75"
+      },
+      "last_general_home": {
+        "date": "2026-02-07",
+        "home_team": "La Familia FC",
+        "away_team": "Veraguas FC Reserves",
+        "home_id": "73484",
+        "away_id": "52963",
+        "score": "0:1",
+        "handicap_line_raw": "-0.25",
+        "ah_line": "-0.25",
+        "ou_line": "N/A",
+        "match_id": "2937265",
+        "league_id_hist": "2218",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "La Familia FC",
+        "rival_id": "73484",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "9",
+            "away": "8"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "6",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "84",
+            "away": "82"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "44",
+            "away": "32"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-02-01",
+        "home_team": "Mario Mendez FC",
+        "away_team": "La Familia FC",
+        "home_id": "52926",
+        "away_id": "73484",
+        "score": "3:1",
+        "handicap_line_raw": "1.25",
+        "ah_line": "1.25",
+        "ou_line": "N/A",
+        "match_id": "2933461",
+        "league_id_hist": "2218",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "La Familia FC",
+        "rival_id": "73484",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "20",
+            "away": "5"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "11",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "48",
+            "away": "43"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "54",
+            "away": "31"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para La Familia FC vs La Familia FC."
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:1",
+          "ah_line": "-0.25",
+          "localia": "A",
+          "home_team": "La Familia FC",
+          "away_team": "Veraguas FC Reserves",
+          "match_id": "2937265",
+          "date": "2026-02-07",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "La Familia FC",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "9",
+              "away": "8"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "6",
+              "away": "1"
+            },
+            {
+              "label": "Ataques",
+              "home": "84",
+              "away": "82"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "44",
+              "away": "32"
+            }
+          ]
+        },
+        "right": {
+          "score": "3:1",
+          "ah_line": "1.25",
+          "localia": "H",
+          "home_team": "Mario Mendez FC",
+          "away_team": "La Familia FC",
+          "match_id": "2933461",
+          "date": "2026-02-01",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "La Familia FC",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "20",
+              "away": "5"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "11",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "48",
+              "away": "43"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "54",
+              "away": "31"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 4,
+          "draws": 2,
+          "losses": 2,
+          "gf": 13,
+          "ga": 6,
+          "form": "V-V-V-V-E-E-D-D",
+          "matches": [
+            {
+              "date": "2026-02-07",
+              "home_team": "La Familia FC",
+              "away_team": "Veraguas FC Reserves",
+              "score": "0:1",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "CD Bocas Junior",
+              "away_team": "Veraguas FC Reserves",
+              "score": "1:2",
+              "ah": "1.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-22",
+              "home_team": "Veraguas FC Reserves",
+              "away_team": "CD Universitario Reserves",
+              "score": "5:0",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-16",
+              "home_team": "Veraguas FC Reserves",
+              "away_team": "Herrera FC Reserves",
+              "score": "2:0",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-10-31",
+              "home_team": "Veraguas FC Reserves",
+              "away_team": "CD Universitario Reserves",
+              "score": "1:1",
+              "ah": "-2.25",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-10-25",
+              "home_team": "Veraguas FC Reserves",
+              "away_team": "La Familia FC",
+              "score": "1:1",
+              "ah": "-0.75",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-10-12",
+              "home_team": "CD Bocas Junior",
+              "away_team": "Veraguas FC Reserves",
+              "score": "1:0",
+              "ah": "2.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-05",
+              "home_team": "Mario Mendez FC",
+              "away_team": "Veraguas FC Reserves",
+              "score": "2:1",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 4,
+          "draws": 2,
+          "losses": 2,
+          "gf": 15,
+          "ga": 14,
+          "form": "V-V-D-E-V-D-V-E",
+          "matches": [
+            {
+              "date": "2026-02-01",
+              "home_team": "Mario Mendez FC",
+              "away_team": "La Familia FC",
+              "score": "3:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-24",
+              "home_team": "Herrera FC Reserves",
+              "away_team": "Mario Mendez FC",
+              "score": "1:3",
+              "ah": "-2",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-11-12",
+              "home_team": "Union Cocle",
+              "away_team": "Mario Mendez FC",
+              "score": "1:0",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-23",
+              "home_team": "Herrera FC Reserves",
+              "away_team": "Mario Mendez FC",
+              "score": "1:1",
+              "ah": "-4.75",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2025-10-17",
+              "home_team": "Mario Mendez FC",
+              "away_team": "CD Bocas Junior",
+              "score": "3:2",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-10-11",
+              "home_team": "CD Universitario Reserves",
+              "away_team": "Mario Mendez FC",
+              "score": "5:1",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-05",
+              "home_team": "Mario Mendez FC",
+              "away_team": "Veraguas FC Reserves",
+              "score": "2:1",
+              "ah": "1.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-09-25",
+              "home_team": "Mario Mendez FC",
+              "away_team": "Aguilas UP",
+              "score": "2:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "E"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T15:09:03"
+    },
+    "2913861": {
+      "match_id": "2913861",
+      "schema_version": 3,
+      "home_name": "LSK Kvinner (W)",
+      "away_name": "Roa (W)",
+      "league_id": "473",
+      "league_name": "Women Norwegian Toppserien",
+      "final_score": "1:3",
+      "match_date": "3/21/2026",
+      "time": "14:00",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "2.75"
+      },
+      "last_general_home": {
+        "date": "2025-11-15",
+        "home_team": "Honefoss (W)",
+        "away_team": "LSK Kvinner (W)",
+        "home_id": "37787",
+        "away_id": "13717",
+        "score": "1:3",
+        "handicap_line_raw": "-0.75",
+        "ah_line": "-0.75",
+        "ou_line": "N/A",
+        "match_id": "2706790",
+        "league_id_hist": "473",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Honefoss (W)",
+        "rival_id": "37787",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "23"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "7",
+            "away": "14"
+          },
+          {
+            "label": "Ataques",
+            "home": "65",
+            "away": "123"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "37",
+            "away": "62"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2025-11-22",
+        "home_team": "Roa (W)",
+        "away_team": "Aasane (W)",
+        "home_id": "5795",
+        "away_id": "16785",
+        "score": "1:1",
+        "handicap_line_raw": "0.5",
+        "ah_line": "0.5",
+        "ou_line": "N/A",
+        "match_id": "2900971",
+        "league_id_hist": "473",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Aasane (W)",
+        "rival_id": "16785",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "4",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "2",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "100",
+            "away": "143"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "27",
+            "away": "49"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "not_found",
+        "resultado": "H2H directo no encontrado para Honefoss (W) vs Aasane (W)."
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "rival_name": "Aasane (W)",
+          "stats_rows": null
+        },
+        "right": {
+          "score": "1:1",
+          "ah_line": "0.75",
+          "localia": "H",
+          "home_team": "Roa (W)",
+          "away_team": "Honefoss (W)",
+          "match_id": "2706786",
+          "date": "2025-11-07",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Honefoss (W)",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "14",
+              "away": "7"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "3",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "139",
+              "away": "146"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "90",
+              "away": "71"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 5,
+          "draws": 0,
+          "losses": 3,
+          "gf": 16,
+          "ga": 15,
+          "form": "V-V-D-V-V-D-D-V",
+          "matches": [
+            {
+              "date": "2025-11-15",
+              "home_team": "Honefoss (W)",
+              "away_team": "LSK Kvinner (W)",
+              "score": "1:3",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-11-07",
+              "home_team": "LSK Kvinner (W)",
+              "away_team": "Lyn (W)",
+              "score": "4:0",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-11-02",
+              "home_team": "Valerenga (W)",
+              "away_team": "LSK Kvinner (W)",
+              "score": "2:0",
+              "ah": "2",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-19",
+              "home_team": "Roa (W)",
+              "away_team": "LSK Kvinner (W)",
+              "score": "2:3",
+              "ah": "-0.25",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-10-12",
+              "home_team": "LSK Kvinner (W)",
+              "away_team": "Bodo Glimt (W)",
+              "score": "1:0",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-10-04",
+              "home_team": "Stabaek (W)",
+              "away_team": "LSK Kvinner (W)",
+              "score": "2:0",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-09-21",
+              "home_team": "LSK Kvinner (W)",
+              "away_team": "SK Brann (W)",
+              "score": "1:5",
+              "ah": "-2",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-09-07",
+              "home_team": "LSK Kvinner (W)",
+              "away_team": "Kolbotn (W)",
+              "score": "4:3",
+              "ah": "1.5",
+              "localia": "H",
+              "result": "V"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 1,
+          "draws": 3,
+          "losses": 4,
+          "gf": 9,
+          "ga": 13,
+          "form": "E-V-D-E-D-D-E-D",
+          "matches": [
+            {
+              "date": "2025-11-22",
+              "home_team": "Roa (W)",
+              "away_team": "Aasane (W)",
+              "score": "1:1",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-11-19",
+              "home_team": "Aasane (W)",
+              "away_team": "Roa (W)",
+              "score": "0:1",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-11-15",
+              "home_team": "Valerenga (W)",
+              "away_team": "Roa (W)",
+              "score": "1:0",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-11-07",
+              "home_team": "Roa (W)",
+              "away_team": "Honefoss (W)",
+              "score": "1:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-11-01",
+              "home_team": "Lyn (W)",
+              "away_team": "Roa (W)",
+              "score": "4:2",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-19",
+              "home_team": "Roa (W)",
+              "away_team": "LSK Kvinner (W)",
+              "score": "2:3",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2025-10-12",
+              "home_team": "Roa (W)",
+              "away_team": "Stabaek (W)",
+              "score": "1:1",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-10-02",
+              "home_team": "Rosenborg BK  (W)",
+              "away_team": "Roa (W)",
+              "score": "2:1",
+              "ah": "1.75",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T15:09:59"
+    },
+    "2809828": {
+      "match_id": "2809828",
+      "schema_version": 3,
+      "home_name": "Sevilla FC (W)",
+      "away_name": "FC Levante Badalona (W)",
+      "league_id": "1186",
+      "league_name": "Spanish Ladies Premier League",
+      "final_score": "1:5",
+      "match_date": "3/22/2026",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "0.5",
+        "goals_linea": "2.25"
+      },
+      "last_general_home": {
+        "date": "2026-03-15",
+        "home_team": "Alhama CF (W)",
+        "away_team": "Sevilla FC (W)",
+        "home_id": "30601",
+        "away_id": "6711",
+        "score": "0:1",
+        "handicap_line_raw": "-1",
+        "ah_line": "-1",
+        "ou_line": "N/A",
+        "match_id": "2809813",
+        "league_id_hist": "1186",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Alhama CF (W)",
+        "rival_id": "30601",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "7",
+            "away": "11"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "1",
+            "away": "5"
+          },
+          {
+            "label": "Ataques",
+            "home": "60",
+            "away": "88"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "48",
+            "away": "60"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-03-15",
+        "home_team": "FC Levante Badalona (W)",
+        "away_team": "Granada CF(W)",
+        "home_id": "20431",
+        "away_id": "22135",
+        "score": "0:4",
+        "handicap_line_raw": "0.25",
+        "ah_line": "0.25",
+        "ou_line": "N/A",
+        "match_id": "2809816",
+        "league_id_hist": "1186",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Granada CF(W)",
+        "rival_id": "22135",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "13",
+            "away": "10"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "3",
+            "away": "7"
+          },
+          {
+            "label": "Ataques",
+            "home": "104",
+            "away": "75"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "69",
+            "away": "51"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "2",
+        "goles_away": "0",
+        "handicap": "1",
+        "match_id": "2809776",
+        "h2h_home_team_name": "Granada CF(W)",
+        "h2h_away_team_name": "Alhama CF (W)",
+        "date": "2026-01-25",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "19",
+            "away": "3"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "127",
+            "away": "69"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "69",
+            "away": "29"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "score": "0:2",
+          "ah_line": "0.25",
+          "localia": "A",
+          "home_team": "Granada CF(W)",
+          "away_team": "Sevilla FC (W)",
+          "match_id": "2809722",
+          "date": "2025-11-09",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Granada CF(W)",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "7",
+              "away": "11"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "2",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "84",
+              "away": "68"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "48",
+              "away": "46"
+            }
+          ]
+        },
+        "right": {
+          "score": "0:1",
+          "ah_line": "-0.75",
+          "localia": "A",
+          "home_team": "Alhama CF (W)",
+          "away_team": "FC Levante Badalona (W)",
+          "match_id": "2809741",
+          "date": "2025-12-07",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Alhama CF (W)",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "4",
+              "away": "16"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "0",
+              "away": "4"
+            },
+            {
+              "label": "Ataques",
+              "home": "75",
+              "away": "95"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "40",
+              "away": "60"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 5,
+          "draws": 0,
+          "losses": 3,
+          "gf": 16,
+          "ga": 11,
+          "form": "V-V-V-V-D-V-D-D",
+          "matches": [
+            {
+              "date": "2026-03-15",
+              "home_team": "Alhama CF (W)",
+              "away_team": "Sevilla FC (W)",
+              "score": "0:1",
+              "ah": "-1",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-22",
+              "home_team": "Sevilla FC (W)",
+              "away_team": "Atletico de Madrid (W)",
+              "score": "2:1",
+              "ah": "-0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "Deportivo La Coruna W",
+              "away_team": "Sevilla FC (W)",
+              "score": "0:4",
+              "ah": "0",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-08",
+              "home_team": "Sevilla FC (W)",
+              "away_team": "Athletic Club Bibao (W)",
+              "score": "4:0",
+              "ah": "-0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "Barcelona (W)",
+              "away_team": "Sevilla FC (W)",
+              "score": "4:1",
+              "ah": "4.5",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-25",
+              "home_team": "Sevilla FC (W)",
+              "away_team": "Levante UD (W)",
+              "score": "4:2",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-18",
+              "home_team": "Sevilla FC (W)",
+              "away_team": "Real Sociedad (W)",
+              "score": "0:2",
+              "ah": "-1",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-10",
+              "home_team": "Real Madrid (W)",
+              "away_team": "Sevilla FC (W)",
+              "score": "2:0",
+              "ah": "2.25",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 4,
+          "draws": 1,
+          "losses": 3,
+          "gf": 7,
+          "ga": 11,
+          "form": "D-V-D-D-V-V-V-E",
+          "matches": [
+            {
+              "date": "2026-03-15",
+              "home_team": "FC Levante Badalona (W)",
+              "away_team": "Granada CF(W)",
+              "score": "0:4",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-21",
+              "home_team": "CDEF Logrono (W)",
+              "away_team": "FC Levante Badalona (W)",
+              "score": "2:3",
+              "ah": "-1",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-14",
+              "home_team": "FC Levante Badalona (W)",
+              "away_team": "UD Granadilla Tenerife Sur (W)",
+              "score": "0:2",
+              "ah": "-0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-08",
+              "home_team": "Real Sociedad (W)",
+              "away_team": "FC Levante Badalona (W)",
+              "score": "2:0",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-02-01",
+              "home_team": "FC Levante Badalona (W)",
+              "away_team": "Eibar (W)",
+              "score": "2:1",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-25",
+              "home_team": "Madrid CFF (W)",
+              "away_team": "FC Levante Badalona (W)",
+              "score": "0:1",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-18",
+              "home_team": "FC Levante Badalona (W)",
+              "away_team": "Deportivo La Coruna W",
+              "score": "1:0",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-10",
+              "home_team": "Athletic Club Bibao (W)",
+              "away_team": "FC Levante Badalona (W)",
+              "score": "0:0",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "E"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T15:10:24"
+    },
+    "2820427": {
+      "match_id": "2820427",
+      "schema_version": 3,
+      "home_name": "AFC Fylde",
+      "away_name": "Alfreton Town",
+      "league_id": "297",
+      "league_name": "England National League North",
+      "final_score": "3:0",
+      "match_date": "2/14/2026",
+      "time": "16:00",
+      "main_match_odds": {
+        "ah_linea": "1.25",
+        "goals_linea": "3"
+      },
+      "last_general_home": {
+        "date": "2026-02-10",
+        "home_team": "AFC Fylde",
+        "away_team": "Spennymoor Town",
+        "home_id": "11782",
+        "away_id": "11419",
+        "score": "5:0",
+        "handicap_line_raw": "1",
+        "ah_line": "1",
+        "ou_line": "N/A",
+        "match_id": "2820415",
+        "league_id_hist": "297",
+        "is_different_league": false,
+        "localia": "H",
+        "rival_name": "Spennymoor Town",
+        "rival_id": "11419",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "17",
+            "away": "4"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "9",
+            "away": "1"
+          },
+          {
+            "label": "Ataques",
+            "home": "93",
+            "away": "56"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "55",
+            "away": "24"
+          }
+        ]
+      },
+      "last_general_away": {
+        "date": "2026-02-10",
+        "home_team": "Chester FC",
+        "away_team": "Alfreton Town",
+        "home_id": "1210",
+        "away_id": "1849",
+        "score": "2:2",
+        "handicap_line_raw": "0.75",
+        "ah_line": "0.75",
+        "ou_line": "N/A",
+        "match_id": "2820418",
+        "league_id_hist": "297",
+        "is_different_league": false,
+        "localia": "A",
+        "rival_name": "Chester FC",
+        "rival_id": "1210",
+        "home_red": null,
+        "away_red": null,
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "9",
+            "away": "7"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "4",
+            "away": "3"
+          },
+          {
+            "label": "Ataques",
+            "home": "109",
+            "away": "61"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "98",
+            "away": "66"
+          }
+        ]
+      },
+      "h2h_col3_general": {
+        "status": "found",
+        "goles_home": "1",
+        "goles_away": "2",
+        "handicap": "0",
+        "match_id": "2820282",
+        "h2h_home_team_name": "Spennymoor Town",
+        "h2h_away_team_name": "Chester FC",
+        "date": "2026-01-20",
+        "home_red": null,
+        "away_red": null,
+        "source": "key_histories_both_tables",
+        "stats_rows": [
+          {
+            "label": "Tiros",
+            "home": "12",
+            "away": "15"
+          },
+          {
+            "label": "Tiros a Puerta",
+            "home": "5",
+            "away": "4"
+          },
+          {
+            "label": "Ataques",
+            "home": "133",
+            "away": "143"
+          },
+          {
+            "label": "Ataques Peligrosos",
+            "home": "77",
+            "away": "107"
+          }
+        ],
+        "is_different_league": false
+      },
+      "comparativas_indirectas_general": {
+        "left": {
+          "rival_name": "Chester FC",
+          "stats_rows": null
+        },
+        "right": {
+          "score": "2:1",
+          "ah_line": "-0.5",
+          "localia": "H",
+          "home_team": "Alfreton Town",
+          "away_team": "Spennymoor Town",
+          "match_id": "2820164",
+          "date": "2025-11-11",
+          "home_red": null,
+          "away_red": null,
+          "is_different_league": false,
+          "rival_name": "Spennymoor Town",
+          "stats_rows": [
+            {
+              "label": "Tiros",
+              "home": "11",
+              "away": "14"
+            },
+            {
+              "label": "Tiros a Puerta",
+              "home": "2",
+              "away": "5"
+            },
+            {
+              "label": "Ataques",
+              "home": "122",
+              "away": "144"
+            },
+            {
+              "label": "Ataques Peligrosos",
+              "home": "88",
+              "away": "79"
+            }
+          ]
+        }
+      },
+      "recent_form_same_league": {
+        "home": {
+          "played": 8,
+          "wins": 5,
+          "draws": 1,
+          "losses": 2,
+          "gf": 18,
+          "ga": 8,
+          "form": "V-V-D-V-V-E-V-D",
+          "matches": [
+            {
+              "date": "2026-02-10",
+              "home_team": "AFC Fylde",
+              "away_team": "Spennymoor Town",
+              "score": "5:0",
+              "ah": "1",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-02-03",
+              "home_team": "AFC Fylde",
+              "away_team": "Peterborough Sports",
+              "score": "5:2",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-24",
+              "home_team": "Oxford City",
+              "away_team": "AFC Fylde",
+              "score": "1:0",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-17",
+              "home_team": "AFC Fylde",
+              "away_team": "Scarborough",
+              "score": "2:1",
+              "ah": "1.25",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-03",
+              "home_team": "Bedford Town",
+              "away_team": "AFC Fylde",
+              "score": "0:2",
+              "ah": "-0.75",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2025-12-30",
+              "home_team": "Radcliffe Borough",
+              "away_team": "AFC Fylde",
+              "score": "3:3",
+              "ah": "0",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2025-12-26",
+              "home_team": "AFC Fylde",
+              "away_team": "Chorley FC",
+              "score": "1:0",
+              "ah": "0.75",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-12-20",
+              "home_team": "Kidderminster Harriers",
+              "away_team": "AFC Fylde",
+              "score": "1:0",
+              "ah": "0",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        },
+        "away": {
+          "played": 8,
+          "wins": 2,
+          "draws": 2,
+          "losses": 4,
+          "gf": 10,
+          "ga": 12,
+          "form": "E-V-D-D-V-D-E-D",
+          "matches": [
+            {
+              "date": "2026-02-10",
+              "home_team": "Chester FC",
+              "away_team": "Alfreton Town",
+              "score": "2:2",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "E"
+            },
+            {
+              "date": "2026-01-31",
+              "home_team": "Kings Lynn",
+              "away_team": "Alfreton Town",
+              "score": "0:2",
+              "ah": "0.5",
+              "localia": "A",
+              "result": "V"
+            },
+            {
+              "date": "2026-01-24",
+              "home_team": "Alfreton Town",
+              "away_team": "Bedford Town",
+              "score": "1:2",
+              "ah": "0.25",
+              "localia": "H",
+              "result": "D"
+            },
+            {
+              "date": "2026-01-17",
+              "home_team": "Darlington",
+              "away_team": "Alfreton Town",
+              "score": "3:1",
+              "ah": "1",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-12-30",
+              "home_team": "Alfreton Town",
+              "away_team": "Leamington",
+              "score": "2:1",
+              "ah": "0.5",
+              "localia": "H",
+              "result": "V"
+            },
+            {
+              "date": "2025-12-26",
+              "home_team": "Worksop Town",
+              "away_team": "Alfreton Town",
+              "score": "1:0",
+              "ah": "0.25",
+              "localia": "A",
+              "result": "D"
+            },
+            {
+              "date": "2025-12-16",
+              "home_team": "Alfreton Town",
+              "away_team": "Southport FC",
+              "score": "1:1",
+              "ah": "0",
+              "localia": "H",
+              "result": "E"
+            },
+            {
+              "date": "2025-12-06",
+              "home_team": "Curzon Ashton FC",
+              "away_team": "Alfreton Town",
+              "score": "2:1",
+              "ah": "0.75",
+              "localia": "A",
+              "result": "D"
+            }
+          ]
+        }
+      },
+      "created_at": "2026-08-20T15:36:54"
     }
   }
 }

@@ -8074,12 +8074,8 @@
             const renderTeam = (teamName, role, venueMatches, allVenueMatches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
 
-                // Determinar el targetAh para este equipo (Local mantiene el signo, Visitante tiene el signo opuesto)
-                const baseParentAh = Number.parseFloat(parentCurrentAh);
-                let teamTargetAh = baseParentAh;
-                if (Number.isFinite(baseParentAh) && role === 'away') {
-                    teamTargetAh = -baseParentAh;
-                }
+                // El targetAh es el mismo hándicap base para ambos lados (+0.25 / +0.5 / +0.75)
+                const teamTargetAh = Number.parseFloat(parentCurrentAh);
 
                 // Auto-enriquecer partidos con datos de venueMatches si algún registro antiguo viene compactado/incompleto
                 const enrichMatchItem = (item) => {
