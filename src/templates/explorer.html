@@ -6271,27 +6271,46 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 </div>
                 <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:3px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
                 
-                <!-- Matchup con Colores Diferenciados de Rivales -->
-                <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:4px 6px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:2px;">
-                        <span style="font-size:.72rem; font-weight:900; color:${homeMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            ${homeMeta.icon} ${escapePreContextCol3(col3Home)}
-                        </span>
-                        <span style="font-size:.56rem; font-weight:800; background:${homeMeta.bg}; color:${homeMeta.color}; border:1px solid ${homeMeta.border}; padding:1px 5px; border-radius:4px; white-space:nowrap;">
-                            ${homeMeta.badgeText}
-                        </span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:.7rem; font-weight:900; padding:2px 0; border-top:1px dashed #e2e8f0; border-bottom:1px dashed #e2e8f0; margin:2px 0;">
-                        <span style="color:#64748b; font-size:.64rem;">AH <strong style="color:#0f172a;">${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
-                        <span style="color:#0f172a; font-size:.75rem;">Res <strong style="color:#16a34a;">${escapePreContextCol3(score)}</strong></span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:2px;">
-                        <span style="font-size:.72rem; font-weight:900; color:${awayMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            ${awayMeta.icon} ${escapePreContextCol3(col3Away)}
-                        </span>
-                        <span style="font-size:.56rem; font-weight:800; background:${awayMeta.bg}; color:${awayMeta.color}; border:1px solid ${awayMeta.border}; padding:1px 5px; border-radius:4px; white-space:nowrap;">
-                            ${awayMeta.badgeText}
-                        </span>
+                <!-- Matchup con Colores Diferenciados de Rivales EN COLUMNAS -->
+                <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:5px 8px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+                        
+                        <!-- Columna 1: Equipo Local -->
+                        <div style="flex:1 1 120px; display:flex; flex-direction:column; align-items:flex-start; min-width:100px;">
+                            <span style="font-size:.74rem; font-weight:900; color:${homeMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;" title="${escapePreContextCol3(col3Home)}">
+                                ${homeMeta.icon} ${escapePreContextCol3(col3Home)}
+                            </span>
+                            <span style="font-size:.54rem; font-weight:800; background:${homeMeta.bg}; color:${homeMeta.color}; border:1px solid ${homeMeta.border}; padding:1px 4px; border-radius:3px; margin-top:2px; white-space:nowrap;">
+                                ${homeMeta.badgeText}
+                            </span>
+                        </div>
+
+                        <!-- Columna 2: Resultado (Centro destacado) -->
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 4px;">
+                            <div style="font-size:.88rem; font-weight:900; color:#0f172a; background:#f8fafc; border:1px solid #cbd5e1; padding:2px 8px; border-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,0.05); letter-spacing:1px;">
+                                ${escapePreContextCol3(score)}
+                            </div>
+                            <span style="font-size:.52rem; font-weight:800; color:#64748b; margin-top:1px;">FT</span>
+                        </div>
+
+                        <!-- Columna 3: Equipo Visitante -->
+                        <div style="flex:1 1 120px; display:flex; flex-direction:column; align-items:flex-end; min-width:100px; text-align:right;">
+                            <span style="font-size:.74rem; font-weight:900; color:${awayMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;" title="${escapePreContextCol3(col3Away)}">
+                                ${escapePreContextCol3(col3Away)} ${awayMeta.icon}
+                            </span>
+                            <span style="font-size:.54rem; font-weight:800; background:${awayMeta.bg}; color:${awayMeta.color}; border:1px solid ${awayMeta.border}; padding:1px 4px; border-radius:3px; margin-top:2px; white-space:nowrap;">
+                                ${awayMeta.badgeText}
+                            </span>
+                        </div>
+
+                        <!-- Columna 4: Hándicap Badge -->
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1px solid #cbd5e1; padding-left:6px; min-width:45px;">
+                            <span style="font-size:.52rem; font-weight:800; color:#64748b; text-transform:uppercase;">AH</span>
+                            <span style="font-size:.72rem; font-weight:900; color:#1e293b; background:#e2e8f0; border:1px solid #cbd5e1; padding:1px 5px; border-radius:3px; margin-top:1px;">
+                                ${escapePreContextCol3(col3.handicap ?? '-')}
+                            </span>
+                        </div>
+
                     </div>
                 </div>
 
