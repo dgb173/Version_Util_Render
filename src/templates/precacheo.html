@@ -2189,10 +2189,11 @@
 
             .main-content > .table-responsive {
                 width: 100%;
-                overflow-x: visible !important;
+                overflow-x: hidden !important;
                 overflow-y: visible !important;
                 border: 0;
                 background: transparent;
+                padding: 4px;
             }
 
             .main-content > .table-responsive > .excel-table {
@@ -2211,108 +2212,164 @@
             .main-content .excel-table tbody {
                 display: flex !important;
                 flex-direction: column;
-                gap: 12px;
+                gap: 14px;
             }
 
-            .main-content .excel-table tbody tr {
+            /* Tarjeta gráfica moderna del partido (Image 1 en móvil) */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) {
                 display: grid !important;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 9px;
-                padding: 13px !important;
-                background: #fff;
-                border: 1px solid #e2e8f0 !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 8px !important;
+                padding: 10px !important;
+                background: #ffffff !important;
+                border: 1px solid #cbd5e1 !important;
                 border-radius: 14px !important;
-                box-shadow: 0 3px 12px rgba(15, 23, 42, .08) !important;
+                box-shadow: 0 4px 14px rgba(15, 23, 42, .08) !important;
                 transform: none !important;
+                cursor: pointer;
+                transition: transform 0.12s ease, box-shadow 0.12s ease;
             }
 
-            .main-content .excel-table tbody tr > td,
-            .main-content .excel-table tbody tr > td:nth-child(n) {
+            .main-content .excel-table tbody tr:not(.stats-collapse-row):active {
+                transform: scale(0.99);
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td {
                 display: flex !important;
+                flex-direction: column;
                 min-width: 0;
-                padding: 8px !important;
+                padding: 6px 8px !important;
                 border: 0 !important;
-                border-radius: 9px;
+                border-radius: 8px;
                 background: #f8fafc !important;
-                font-size: .78rem !important;
+                font-size: .76rem !important;
                 overflow-wrap: anywhere;
             }
 
-            .main-content .excel-table tbody tr > td::before {
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td::before {
                 display: block !important;
-                margin-bottom: 5px;
+                margin-bottom: 3px;
                 color: #64748b;
-                font-size: .58rem;
+                font-size: .56rem;
                 font-weight: 900;
                 letter-spacing: .04em;
+                text-transform: uppercase;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(1) {
-                grid-column: 1 / -1;
+            /* 1. Header de Tarjeta: Fecha, Hora y Liga */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1) {
+                grid-column: 1 / -1 !important;
                 flex-direction: row !important;
                 align-items: center !important;
                 justify-content: space-between !important;
                 background: #f1f5f9 !important;
+                border: 1px solid #e2e8f0 !important;
+                padding: 7px 10px !important;
+                border-radius: 9px !important;
             }
-
-            .main-content .excel-table tbody tr > td:nth-child(2),
-            .main-content .excel-table tbody tr > td:nth-child(3) {
-                font-size: .86rem !important;
-                font-weight: 800;
-            }
-
-            .main-content .excel-table tbody tr > td:nth-child(2) .team-cell-league-stats,
-            .main-content .excel-table tbody tr > td:nth-child(3) .team-cell-league-stats {
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1)::before {
                 display: none !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(4) {
-                background: #ecfdf5 !important;
+            /* 2. Equipo Local y Visitante (Matchup gráfico con estadísticas completas) */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) {
+                border-left: 3px solid #2563eb !important;
+                background: #eff6ff !important;
+                font-size: .84rem !important;
+                font-weight: 800;
+            }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2)::before {
+                content: 'LOCAL (CASA)' !important;
+                color: #1d4ed8 !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(5) {
-                background: #eff6ff !important;
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) {
+                border-left: 3px solid #dc2626 !important;
+                background: #fef2f2 !important;
+                font-size: .84rem !important;
+                font-weight: 800;
+            }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3)::before {
+                content: 'VISITANTE (FUERA)' !important;
+                color: #b91c1c !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) .team-cell-league-stats,
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) .team-cell-league-stats {
+                display: block !important;
+                font-size: .64rem !important;
+                margin-top: 3px;
+                line-height: 1.3;
+            }
+
+            /* 3. Mercado Hándicap Asiático y Resultado FT */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(4) {
+                background: #ecfdf5 !important;
+                border: 1px solid #a7f3d0 !important;
                 align-items: center !important;
                 justify-content: center !important;
+                text-align: center;
+            }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(4)::before {
+                content: 'HÁNDICAP / O/U' !important;
+                color: #059669 !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(5) {
+                background: #fdf2f8 !important;
+                border: 1px solid #fbcfe8 !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center;
                 font-size: 1rem !important;
                 font-weight: 900;
             }
-
-            .main-content .excel-table tbody tr > td:nth-child(6)::before {
-                content: 'LOCAL · ÚLTIMO EN CASA' !important;
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(5)::before {
+                content: 'RESULTADO FT' !important;
+                color: #db2777 !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(7)::before {
-                content: 'VISITANTE · ÚLTIMO FUERA' !important;
+            /* 4. Precedentes Prev Home & Prev Away */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(6)::before {
+                content: 'PREV HOME' !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(8)::before {
-                content: 'H2H EN ESTE CAMPO' !important;
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(7)::before {
+                content: 'PREV AWAY' !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(9)::before {
-                content: 'ÚLTIMO ENFRENTAMIENTO' !important;
+            /* 5. H2H Stadium & H2H General */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(8)::before {
+                content: 'H2H ESTADIO' !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(10)::before {
-                content: 'H2H COL 3' !important;
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(9)::before {
+                content: 'H2H GENERAL' !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(11)::before {
-                content: 'COMPARATIVA LOCAL' !important;
+            /* 6. H2H Col 3 (Destaque Fila Completa) */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(10) {
+                grid-column: 1 / -1 !important;
+                background: #fdf4ff !important;
+                border: 1px solid #f0abfc !important;
+            }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(10)::before {
+                content: 'H2H COL 3 (TRIANGULACIÓN)' !important;
+                color: #9333ea !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(12)::before {
-                content: 'COMPARATIVA VISITANTE' !important;
+            /* 7. Comparativas Indirectas */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(11)::before {
+                content: 'IND. LOCAL' !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(12)::before {
+                content: 'IND. VISITANTE' !important;
             }
 
             .main-content .excel-table tbody tr > td:nth-child(8),
             .main-content .excel-table tbody tr > td:nth-child(9) {
                 background: #fef2f2 !important;
-            }
-
-            .main-content .excel-table tbody tr > td:nth-child(10) {
-                background: #ffe4ec !important;
             }
 
             .main-content .excel-table tbody tr > td:nth-child(11),
@@ -2328,67 +2385,83 @@
                 background: #ffcdd2 !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(13) {
-                grid-column: 1 / -1;
+            /* 8. Botón Acciones / Ver Contexto Previo (Image 2 trigger) */
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) {
+                grid-column: 1 / -1 !important;
                 flex-direction: row !important;
-                justify-content: flex-end !important;
-                background: transparent !important;
-                padding: 3px 0 0 !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background: #f0fdf4 !important;
+                border: 1px solid #86efac !important;
+                padding: 6px 10px !important;
+                border-radius: 9px !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(13)::before {
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13)::before {
                 display: none !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(13) .btn[title="Ver Estadísticas"] {
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"] {
                 flex: 1 1 auto;
-                width: auto !important;
-                max-width: 150px;
-                padding: 0 13px !important;
-                border-radius: 10px !important;
-                font-weight: 900;
-            }
-
-            .main-content .excel-table tbody tr > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
-                content: ' Ver stats';
-                margin-left: 6px;
-                font-size: .72rem;
-            }
-
-            .main-content .excel-table tbody tr > td:last-child .btn {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 36px !important;
+                padding: 0 14px !important;
+                border-radius: 8px !important;
+                font-weight: 900 !important;
+                font-size: .8rem !important;
+                background: #16a34a !important;
+                color: #ffffff !important;
+                border: none !important;
                 display: inline-flex !important;
-                width: 40px !important;
-                height: 40px !important;
-                min-height: 40px !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25) !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
+                content: ' 📊 Tocar para ver Contexto Previo y Análisis Completo ▾';
+                margin-left: 6px;
+                font-size: .78rem;
+            }
+
+            .main-content .excel-table tbody tr > td:last-child .btn:not([title="Ver Estadísticas"]) {
+                display: inline-flex !important;
+                width: 32px !important;
+                height: 32px !important;
+                min-height: 32px !important;
                 padding: 0 !important;
                 margin: 2px;
                 align-items: center;
                 justify-content: center;
                 border-radius: 50%;
-                font-size: .82rem !important;
+                font-size: .76rem !important;
             }
 
+            /* Fila Desplegable de Contexto Previo (Image 2) */
             .main-content .excel-table tbody tr.stats-collapse-row {
                 display: none !important;
-                margin-top: -10px;
+                margin-top: -6px !important;
+                margin-bottom: 12px !important;
                 padding: 0 !important;
-                border-color: #bbf7d0 !important;
-                box-shadow: none !important;
+                border: 1px solid #93c5fd !important;
+                border-radius: 12px !important;
+                background: #ffffff !important;
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12) !important;
+                overflow: hidden !important;
             }
 
             .main-content .excel-table tbody tr.stats-collapse-row.is-open {
-                display: grid !important;
-                grid-template-columns: 1fr;
+                display: block !important;
             }
 
             .main-content .excel-table tbody tr.stats-collapse-row > td {
-                grid-column: 1 / -1;
                 display: block !important;
+                width: 100% !important;
                 min-width: 0 !important;
                 max-width: 100% !important;
                 padding: 0 !important;
-                background: #f0fdf4 !important;
-                overflow: hidden !important;
+                background: transparent !important;
             }
 
             .main-content .excel-table tbody tr.stats-collapse-row > td::before {
@@ -12766,6 +12839,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 tr.setAttribute('data-h2h-general-res', h2hGeneralResAttr);
 
                 // (Atributos de Pick eliminados)
+
+                                // Soporte táctil móvil: al tocar la tarjeta del partido se despliega Contexto Previo
+                tr.addEventListener('click', (e) => {
+                    if (e.target.closest('button, a, input, select, .liga-hide-btn, .liga-fav-btn, .liga-neutral-btn')) {
+                        return;
+                    }
+                    if (window.innerWidth <= 768) {
+                        const statsBtn = tr.querySelector('button[data-bs-toggle="collapse"]');
+                        if (statsBtn) statsBtn.click();
+                    }
+                });
 
                 tbody.appendChild(tr);
 
