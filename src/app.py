@@ -5591,9 +5591,8 @@ def api_precacheo_pending_list():
 
 @app.route('/api/precacheo_upcoming_list')
 def api_precacheo_upcoming_list():
-    """Devuelve próximos partidos paginados de 100 en 100 desde SQL."""
+    """Devuelve próximos partidos paginados de forma ultra-ligera desde SQL."""
     try:
-        _maybe_cleanup_precacheo_stale(force=False)
         try:
             page = max(1, int(request.args.get('page', '1')))
         except (TypeError, ValueError):
