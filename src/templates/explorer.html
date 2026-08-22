@@ -5477,7 +5477,7 @@
                         <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                             <div style="flex:1 1 180px; min-width:160px;">
                                 <label style="display:block; font-size:.6rem; font-weight:900; color:#6d28d9; margin-bottom:2px;">🟣 Rival de ${esc(momentHome)}:</label>
-                                <select class="form-select form-select-sm custom-rival-select-a" style="font-size:.68rem; font-weight:800; border-color:#c4b5fd; background:#f5f3ff; padding:3px 6px;">
+                                <select class="form-select form-select-sm custom-rival-select-a" onchange="handleCustomRivalSelectChange(this)" style="font-size:.68rem; font-weight:800; border-color:#c4b5fd; background:#f5f3ff; padding:3px 6px;">
                                     <option value="">Selecciona rival local...</option>
                                     ${homeRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
                                 </select>
@@ -5485,13 +5485,13 @@
                             <div style="font-size:.75rem; font-weight:900; color:#94a3b8; padding-top:10px;">vs</div>
                             <div style="flex:1 1 180px; min-width:160px;">
                                 <label style="display:block; font-size:.6rem; font-weight:900; color:#b45309; margin-bottom:2px;">🟠 Rival de ${esc(momentAway)}:</label>
-                                <select class="form-select form-select-sm custom-rival-select-b" style="font-size:.68rem; font-weight:800; border-color:#fde68a; background:#fffbeb; padding:3px 6px;">
+                                <select class="form-select form-select-sm custom-rival-select-b" onchange="handleCustomRivalSelectChange(this)" style="font-size:.68rem; font-weight:800; border-color:#fde68a; background:#fffbeb; padding:3px 6px;">
                                     <option value="">Selecciona rival visitante...</option>
                                     ${awayRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
                                 </select>
                             </div>
                             <div style="padding-top:10px;">
-                                <button type="button" class="btn btn-sm btn-primary" style="font-size:.68rem; font-weight:900; padding:4px 10px;" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" onclick="runCustomRivalCompare(this, event)">
+                                <button type="button" class="btn btn-sm btn-primary custom-rival-compare-btn" style="font-size:.68rem; font-weight:900; padding:4px 10px;" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" onclick="runCustomRivalCompare(this, event)">
                                     <i class="fa-solid fa-bolt me-1"></i>Comparar
                                 </button>
                             </div>
@@ -5666,6 +5666,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             return Array.from(map.values());
         }
 
+        function handleCustomRivalSelectChange(selectEl) {
+            if (!selectEl) return;
+            const compSection = selectEl.closest('.pre-context-custom-compare');
+            if (!compSection) return;
+            const selectA = compSection.querySelector('.custom-rival-select-a');
+            const selectB = compSection.querySelector('.custom-rival-select-b');
+            const valA = selectA?.options[selectA.selectedIndex]?.value;
+            const valB = selectB?.options[selectB.selectedIndex]?.value;
+            if (valA && valB) {
+                const compareBtn = compSection.querySelector('.custom-rival-compare-btn');
+                if (compareBtn) {
+                    runCustomRivalCompare(compareBtn);
+                }
+            }
+        }
+
         function quickSelectCustomRival(btn, event, role, rivalName) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             if (!btn) return;
@@ -5685,6 +5701,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 compSection.style.boxShadow = '0 0 0 2px #3b82f6';
                 setTimeout(() => { compSection.style.boxShadow = ''; }, 1000);
+
+                // Auto-ejecutar comparacion directamente al tener ambos rivales seleccionados
+                handleCustomRivalSelectChange(selectEl);
             }
         }
 
