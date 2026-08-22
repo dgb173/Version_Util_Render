@@ -5131,11 +5131,11 @@
                 });
 
                 const table = team.querySelector('.pre-context-table');
-                if (table) table.style.display = rows.length && !visibleCount ? 'none' : '';
+                if (table) table.style.display = mainRows.length && !visibleCount ? 'none' : '';
 
                 const emptyMsg = team.querySelector('.pre-context-filter-empty');
                 if (emptyMsg) {
-                    emptyMsg.style.display = rows.length && !visibleCount ? 'block' : 'none';
+                    emptyMsg.style.display = mainRows.length && !visibleCount ? 'block' : 'none';
                     emptyMsg.textContent = onlyNoFavLose
                         ? 'Sin partidos donde el no favorito haya perdido el hándicap'
                         : (onlySameHa ? 'Sin partidos con el mismo hándicap' : (onlyLeague ? 'Sin partidos de la liga actual' : 'Sin partidos disponibles'));
@@ -5143,7 +5143,7 @@
 
                 const summary = team.querySelector('.pre-context-summary');
                 if (summary) {
-                    summary.style.display = rows.length && !visibleCount ? 'none' : '';
+                    summary.style.display = mainRows.length && !visibleCount ? 'none' : '';
                     summary.innerHTML = `<span class="is-win" data-summary-result="W">V ${counts.W}</span><span class="is-draw" data-summary-result="D">E ${counts.D}</span><span class="is-loss" data-summary-result="L">D ${counts.L}</span>`;
                 }
             });
@@ -5311,8 +5311,12 @@
                             }
                         }
 
+                        const venueBadge = isSubjectHome
+                            ? '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó en Casa (Local)">H</span>'
+                            : '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>';
+
                         return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
-                            <td class="ctx-date">${esc(rowDate)}</td>
+                            <td class="ctx-date">${venueBadge}${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
@@ -5802,26 +5806,45 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <span style="font-size:.65rem; color:#64748b; font-weight:700;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</span>
                         </div>
                         
-                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:5px 8px; margin:4px 0;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:2px;">
-                                <span style="font-size:.74rem; font-weight:900; color:${homeColor};">
-                                    ${homeIcon} ${escapePreContextCol3(col3Home)}
-                                </span>
-                                <span style="font-size:.58rem; font-weight:800; background:${homeBg}; color:${homeColor}; border:1px solid ${homeBorder}; padding:1px 6px; border-radius:4px;">
-                                    ${homeBadge}
-                                </span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:.72rem; font-weight:900; padding:2px 0; border-top:1px dashed #cbd5e1; border-bottom:1px dashed #cbd5e1; margin:3px 0;">
-                                <span style="color:#64748b; font-size:.66rem;">AH <strong style="color:#0f172a;">${escapePreContextCol3(col3.handicap ?? '-')}</strong></span>
-                                <span style="color:#0f172a; font-size:.8rem;">Res <strong style="color:#16a34a;">${escapePreContextCol3(score)}</strong></span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:2px;">
-                                <span style="font-size:.74rem; font-weight:900; color:${awayColor};">
-                                    ${awayIcon} ${escapePreContextCol3(col3Away)}
-                                </span>
-                                <span style="font-size:.58rem; font-weight:800; background:${awayBg}; color:${awayColor}; border:1px solid ${awayBorder}; padding:1px 6px; border-radius:4px;">
-                                    ${awayBadge}
-                                </span>
+                        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; margin:4px 0;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                                
+                                <!-- Columna 1: Equipo Local -->
+                                <div style="flex:1 1 140px; display:flex; flex-direction:column; align-items:flex-start; min-width:120px;">
+                                    <span style="font-size:.76rem; font-weight:900; color:${homeColor}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;" title="${escapePreContextCol3(col3Home)}">
+                                        ${homeIcon} ${escapePreContextCol3(col3Home)}
+                                    </span>
+                                    <span style="font-size:.56rem; font-weight:800; background:${homeBg}; color:${homeColor}; border:1px solid ${homeBorder}; padding:1px 5px; border-radius:3px; margin-top:2px;">
+                                        ${homeBadge}
+                                    </span>
+                                </div>
+
+                                <!-- Columna 2: Resultado / Score (Centro destacado) -->
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 6px;">
+                                    <div style="font-size:.92rem; font-weight:900; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; padding:2px 10px; border-radius:5px; box-shadow:0 1px 2px rgba(0,0,0,0.05); letter-spacing:1px;">
+                                        ${escapePreContextCol3(score)}
+                                    </div>
+                                    <span style="font-size:.55rem; font-weight:800; color:#64748b; margin-top:2px;">FT</span>
+                                </div>
+
+                                <!-- Columna 3: Equipo Visitante -->
+                                <div style="flex:1 1 140px; display:flex; flex-direction:column; align-items:flex-end; min-width:120px; text-align:right;">
+                                    <span style="font-size:.76rem; font-weight:900; color:${awayColor}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;" title="${escapePreContextCol3(col3Away)}">
+                                        ${escapePreContextCol3(col3Away)} ${awayIcon}
+                                    </span>
+                                    <span style="font-size:.56rem; font-weight:800; background:${awayBg}; color:${awayColor}; border:1px solid ${awayBorder}; padding:1px 5px; border-radius:3px; margin-top:2px;">
+                                        ${awayBadge}
+                                    </span>
+                                </div>
+
+                                <!-- Columna 4: Hándicap Badge -->
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1px solid #cbd5e1; padding-left:8px; min-width:50px;">
+                                    <span style="font-size:.55rem; font-weight:800; color:#64748b; text-transform:uppercase;">AH</span>
+                                    <span style="font-size:.74rem; font-weight:900; color:#1e293b; background:#e2e8f0; border:1px solid #cbd5e1; padding:1px 6px; border-radius:4px; margin-top:1px;">
+                                        ${escapePreContextCol3(col3.handicap ?? '-')}
+                                    </span>
+                                </div>
+
                             </div>
                         </div>
 
