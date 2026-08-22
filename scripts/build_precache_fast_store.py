@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gc
 import hashlib
 import json
 import sys
@@ -105,6 +106,7 @@ def main() -> None:
                         "time": compact.get("time"),
                     }
                     written += 1
+                    if written % 100 == 0: gc.collect()
         else:
             with source.open("r", encoding="utf-8") as handle:
                 try:
@@ -138,6 +140,7 @@ def main() -> None:
                         "time": compact.get("time"),
                     }
                     written += 1
+                    if written % 100 == 0: gc.collect()
 
     with INDEX_FILE.open("w", encoding="utf-8") as output:
         json.dump(list(headers_by_id.values()), output, ensure_ascii=False, separators=(",", ":"))
