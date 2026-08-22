@@ -108,52 +108,45 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
         "SELECT match_id, payload_json, explorer_json "
         f"FROM matches WHERE match_id IN ({placeholders})"
     )
-    with sql_store._connect() as conn:
-        rows = conn.execute(query, ordered_ids).fetchall()
-
     output: Dict[str, Dict[str, Any]] = {}
-    for row in rows:
-        # Start with payload_json (contains full scrape data with h2h stats)
-        base: Dict[str, Any] = {}
-        try:
-            base = json.loads(row["payload_json"]) if row["payload_json"] else {}
-        except (json.JSONDecodeError, TypeError):
-            pass
-        if not isinstance(base, dict):
-            base = {}
+    # Iterate the cursor instead of fetchall(): otherwise 100 full JSON strings,
+    # their compact copies and their parsed dictionaries coexist in memory.
+    with sql_store._connect() as conn:
+        for row in conn.execute(query, ordered_ids):
+            # Start with payload_json (contains full scrape data with h2h stats)
+            base: Dict[str, Any] = {}
+            try:
+                base = json.loads(row["payload_json"]) if row["payload_json"] else {}
+            except (json.JSONDecodeError, TypeError):
+                pass
+            if not isinstance(base, dict):
+                base = {}
 
-        # Overlay explorer_json if it exists (has compact/explorer-oriented fields)
-        explorer: Dict[str, Any] = {}
-        try:
-            explorer = json.loads(row["explorer_json"]) if row["explorer_json"] else {}
-        except (json.JSONDecodeError, TypeError):
-            pass
-        if not isinstance(explorer, dict):
-            explorer = {}
+            # Overlay explorer_json in place.  This preserves the complete
+            # response while avoiding a third top-level dictionary per match.
+            explorer: Dict[str, Any] = {}
+            try:
+                explorer = json.loads(row["explorer_json"]) if row["explorer_json"] else {}
+            except (json.JSONDecodeError, TypeError):
+                pass
+            if not isinstance(explorer, dict):
+                explorer = {}
 
-        if explorer:
-            # Merge: explorer keys override base, but preserve base keys that
-            # explorer doesn't have (like h2h_stadium, h2h_general with stats_rows,
-            # last_home_match, last_away_match, comparativas_indirectas, etc.)
-            merged = {**base, **explorer}
-            # Restore deep analysis keys from base when explorer nullifies them
-            _DEEP_KEYS = (
-                'h2h_stadium', 'h2h_general', 'h2h_col3',
-                'last_home_match', 'last_away_match',
-                'comparativas_indirectas', 'pre_match_context',
-                'market_analysis_data',
-            )
-            for key in _DEEP_KEYS:
-                base_val = base.get(key)
-                merged_val = merged.get(key)
-                if base_val and not merged_val:
-                    merged[key] = base_val
-            payload = merged
-        else:
-            payload = base
+            if explorer:
+                deep_keys = (
+                    'h2h_stadium', 'h2h_general', 'h2h_col3',
+                    'last_home_match', 'last_away_match',
+                    'comparativas_indirectas', 'pre_match_context',
+                    'market_analysis_data',
+                )
+                preserved = {key: base.get(key) for key in deep_keys if base.get(key)}
+                base.update(explorer)
+                for key, value in preserved.items():
+                    if not base.get(key):
+                        base[key] = value
 
-        if payload:
-            output[str(row["match_id"])] = payload
+            if base:
+                output[str(row["match_id"])] = base
     return output
 
 

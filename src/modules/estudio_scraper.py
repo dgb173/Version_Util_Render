@@ -44,6 +44,10 @@ REQUEST_HEADERS = {
 SOUP_CACHE_TTL_SECONDS = 45
 STATS_CACHE_TTL_SECONDS = 300
 ANALYSIS_CACHE_TTL_SECONDS = 120
+STATS_CACHE_MAX_ENTRIES = max(4, int(os.getenv("STATS_CACHE_MAX_ENTRIES", "48")))
+ANALYSIS_CACHE_MAX_ENTRIES = max(1, int(os.getenv("ANALYSIS_CACHE_MAX_ENTRIES", "8")))
+ANALYSIS_MAX_CONCURRENCY = max(1, int(os.getenv("ANALYSIS_MAX_CONCURRENCY", "1")))
+PLAYWRIGHT_MAX_CONCURRENCY = max(1, int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY", "1")))
 
 _requests_session = None
 _requests_session_lock = threading.Lock()
@@ -53,11 +57,41 @@ _stats_cache = {}
 _stats_cache_lock = threading.Lock()
 _analysis_cache = {}
 _analysis_cache_lock = threading.Lock()
+_analysis_semaphore = threading.BoundedSemaphore(ANALYSIS_MAX_CONCURRENCY)
+_playwright_semaphore = threading.BoundedSemaphore(PLAYWRIGHT_MAX_CONCURRENCY)
 _STATS_NOT_FOUND = object()
+
+
+def _cache_policy(cache_dict):
+    if cache_dict is _analysis_cache:
+        return ANALYSIS_CACHE_TTL_SECONDS, ANALYSIS_CACHE_MAX_ENTRIES
+    if cache_dict is _stats_cache:
+        return STATS_CACHE_TTL_SECONDS, STATS_CACHE_MAX_ENTRIES
+    return SOUP_CACHE_TTL_SECONDS, 24
+
+
+def _prune_cache_locked(cache_dict, now, ttl_seconds, max_entries):
+    expired = [
+        cache_key
+        for cache_key, entry in cache_dict.items()
+        if not isinstance(entry, tuple)
+        or len(entry) != 2
+        or (now - entry[0]) > ttl_seconds
+    ]
+    for cache_key in expired:
+        cache_dict.pop(cache_key, None)
+
+    overflow = len(cache_dict) - max(0, int(max_entries))
+    if overflow > 0:
+        oldest = sorted(cache_dict, key=lambda cache_key: cache_dict[cache_key][0])
+        for cache_key in oldest[:overflow]:
+            cache_dict.pop(cache_key, None)
 
 
 def _read_cache(cache_dict, key, ttl_seconds, lock):
     with lock:
+        cache_ttl, max_entries = _cache_policy(cache_dict)
+        _prune_cache_locked(cache_dict, time.time(), cache_ttl, max_entries)
         entry = cache_dict.get(key)
         if not entry:
             return None
@@ -69,7 +103,10 @@ def _read_cache(cache_dict, key, ttl_seconds, lock):
 
 def _write_cache(cache_dict, key, value, lock):
     with lock:
-        cache_dict[key] = (time.time(), value)
+        now = time.time()
+        ttl_seconds, max_entries = _cache_policy(cache_dict)
+        _prune_cache_locked(cache_dict, now, ttl_seconds, max_entries - 1)
+        cache_dict[key] = (now, value)
 
 
 def _get_cached_analysis(match_id: str):
@@ -1916,35 +1953,54 @@ def fetch_odds_with_playwright(match_id: str):
     url = f"{BASE_URL_OF}/match/h2h-{match_id}"
     
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            context = browser.new_context(
-                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                viewport={'width': 1920, 'height': 1080},
-            )
-            page = context.new_page()
-            
-            # Eliminar señales de webdriver
-            page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            
-            page.goto(url, wait_until="networkidle", timeout=30000)
-            page.wait_for_timeout(5000)  # Esperar carga de JS dinámico
-            
-            # Buscar fila Bet365 Initial
-            bet365_row = page.query_selector("tr#tr_o_1_8[name='earlyOdds']")
-            if not bet365_row:
-                bet365_row = page.query_selector("tr#tr_o_1_31[name='earlyOdds']")  # Sbobet fallback
-            
-            if bet365_row:
-                tds = bet365_row.query_selector_all("td")
-                if len(tds) >= 11:
-                    odds_info = {
-                        "ah_linea_raw": tds[3].get_attribute("data-o") or tds[3].inner_text(),
-                        "goals_linea_raw": tds[9].get_attribute("data-o") or tds[9].inner_text(),
-                    }
-            
-            browser.close()
-            
+        # Chromium is the heaviest component in the service.  Queue fallbacks
+        # instead of allowing concurrent browser processes to exhaust 512 MB.
+        with _playwright_semaphore:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
+                )
+                context = None
+                page = None
+                try:
+                    context = browser.new_context(
+                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        viewport={'width': 1920, 'height': 1080},
+                    )
+                    page = context.new_page()
+
+                    # Eliminar señales de webdriver
+                    page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+                    page.goto(url, wait_until="networkidle", timeout=30000)
+                    page.wait_for_timeout(5000)  # Esperar carga de JS dinámico
+
+                    # Buscar fila Bet365 Initial
+                    bet365_row = page.query_selector("tr#tr_o_1_8[name='earlyOdds']")
+                    if not bet365_row:
+                        bet365_row = page.query_selector("tr#tr_o_1_31[name='earlyOdds']")  # Sbobet fallback
+
+                    if bet365_row:
+                        tds = bet365_row.query_selector_all("td")
+                        if len(tds) >= 11:
+                            odds_info = {
+                                "ah_linea_raw": tds[3].get_attribute("data-o") or tds[3].inner_text(),
+                                "goals_linea_raw": tds[9].get_attribute("data-o") or tds[9].inner_text(),
+                            }
+                finally:
+                    if page is not None:
+                        try:
+                            page.close()
+                        except Exception:
+                            pass
+                    if context is not None:
+                        try:
+                            context.close()
+                        except Exception:
+                            pass
+                    browser.close()
+
     except Exception as e:
         print(f"Playwright fetch_odds error: {e}")
     
@@ -2407,7 +2463,7 @@ def load_cached_finished_matches():
         print(f"Error loading data.json: {e}")
         return []
 
-def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False):
+def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = False, check_odds_early: bool = False):
     main_match_id = "".join(filter(str.isdigit, str(match_id)))
     if not main_match_id:
         return {"error": "ID de partido inválido."}
@@ -2690,3 +2746,13 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
     normalize_red_card_stats_payload(results)
     _set_cached_analysis(main_match_id, results)
     return copy.deepcopy(results)
+
+
+def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False):
+    """Run a complete analysis under the process-wide memory guard."""
+    with _analysis_semaphore:
+        return _analizar_partido_completo_unlocked(
+            match_id,
+            force_refresh=force_refresh,
+            check_odds_early=check_odds_early,
+        )

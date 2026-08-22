@@ -246,6 +246,16 @@ def _env_int(name, default):
         return int(default)
 
 
+def _bounded_scrape_workers(requested, default=1):
+    """Keep every job, but bound simultaneous memory-heavy work."""
+    configured_max = max(1, _env_int('SCRAPE_MAX_CONCURRENCY', 2))
+    try:
+        requested_workers = int(requested)
+    except (TypeError, ValueError):
+        requested_workers = int(default)
+    return max(1, min(requested_workers, configured_max))
+
+
 def _is_app_precacheo_only():
     return _env_flag('APP_PRECACHEO_ONLY', default=False)
 
@@ -1940,7 +1950,7 @@ def api_grandes_ligas_scrape():
     try:
         data = request.get_json() or {}
         match_ids = data.get('match_ids', [])
-        workers = data.get('workers', 10)
+        workers = _bounded_scrape_workers(data.get('workers', 10), default=2)
         
         if not match_ids:
             return jsonify({'error': 'Falta match_ids'}), 400
@@ -3386,7 +3396,7 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
 
         # 5. Procesar en paralelo PERO manteniendo orden de proximidad
         # Usamos chunks del tamaño de workers para procesar en batches ordenados
-        max_workers = workers if workers else 5 
+        max_workers = _bounded_scrape_workers(workers, default=1)
         total = len(to_process)
         completed = 0
         
@@ -3441,8 +3451,11 @@ def scrape_pending_results_background():
     try:
         import pytz
         
-        # 1. Cargar todos los partidos pre-cacheados
-        precacheo_matches = data_manager.load_precacheo_matches()
+        # 1. Cargar solo cabeceras; el payload completo de Pre-Cacheo supera
+        # decenas de MB y no es necesario para seleccionar IDs por fecha/hora.
+        precacheo_matches = sql_store.fetch_match_headers(
+            (data_manager.PRECACHEO_BUCKET,)
+        )
         
         if not precacheo_matches:
             print("No hay partidos en pre-cacheo.")
@@ -3492,7 +3505,7 @@ def scrape_pending_results_background():
                     mid = m.get('match_id')
                     if mid:
                         to_process.append(mid)
-                        print(f"  Pendiente: {m.get('home_name')} vs {m.get('away_name')} ({match_time_str})")
+                        print(f"  Pendiente: {mid} ({match_time_str})")
             except Exception as e:
                 # Si no puede parsear la hora, asumir que puede ser candidato
                 mid = m.get('match_id')
@@ -3505,9 +3518,9 @@ def scrape_pending_results_background():
             print("No hay partidos pendientes de resultado (todos recientes o ya tienen score).")
             return
         
-        # 4. Scrapear en paralelo con 8 workers
+        # 4. Mantener la cola completa con concurrencia acotada.
         success_count = 0
-        max_workers = 8
+        max_workers = _bounded_scrape_workers(8, default=1)
         total = len(to_process)
         completed = 0
         
@@ -3643,7 +3656,7 @@ def process_all_finished_matches_background(
             return
 
         # 4. Procesar en paralelo con reparto fijo por worker (misma metodología que análisis previo)
-        max_workers = workers
+        max_workers = _bounded_scrape_workers(workers, default=1)
         total = len(to_process)
         state_progress = {
             'completed': 0,
@@ -3740,7 +3753,7 @@ def api_cache_all_finished_background():
         print(f"DEBUG Payload: {data}")
         handicap_filter = data.get('handicap')
         goal_line_filter = data.get('ou')
-        workers = data.get('workers', 5)
+        workers = _bounded_scrape_workers(data.get('workers', 5), default=1)
         try:
             workers = int(workers)
             if workers <= 0:
@@ -5490,7 +5503,7 @@ def api_precacheo_scrape_background():
         data = request.json or {}
         handicap_filter = data.get('handicap')
         goal_line_filter = data.get('ou')
-        workers = data.get('workers', 5)
+        workers = _bounded_scrape_workers(data.get('workers', 5), default=1)
         
         # Iniciar hilo
         thread = threading.Thread(
@@ -5823,11 +5836,6 @@ def api_match_stats(match_id=None):
         # Si no viene clean_id directamente, resolverlo usando parent_match_id y metadatos de la fila
         if not clean_id and parent_match_id:
             parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
-            if not parent:
-                for pm in data_manager.load_precacheo_matches() or []:
-                    if str(pm.get('match_id') or pm.get('id')) == str(parent_match_id):
-                        parent = pm
-                        break
             parent = parent or {}
             pre_context = parent.get('pre_match_context') or {}
             current_context = pre_context.get('current') or pre_context
@@ -5996,11 +6004,6 @@ def api_precacheo_h2h_col3():
         row_role = str(payload.get('row_role') or '').strip().lower()
         if not parent and parent_match_id:
             parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
-            if not parent:
-                for pm in data_manager.load_precacheo_matches() or []:
-                    if str(pm.get('match_id') or pm.get('id')) == str(parent_match_id):
-                        parent = pm
-                        break
         parent = parent or {}
 
         parent_home = str(payload.get('parent_home') or parent.get('home_name') or parent.get('home_team') or '').strip()
@@ -6190,9 +6193,9 @@ def api_precacheo_last_general_batch():
 
         if not raw_ids:
             raw_ids = [
-                str(m.get('match_id') or m.get('id'))
-                for m in data_manager.load_precacheo_matches()
-                if m.get('match_id') or m.get('id')
+                str(row.get('match_id'))
+                for row in sql_store.fetch_match_headers((data_manager.PRECACHEO_BUCKET,))
+                if row.get('match_id')
             ]
 
         result = last_general_context.process_match_ids(raw_ids, force_refresh=force_refresh, max_items=max_items)
@@ -7527,13 +7530,11 @@ def api_precacheo_pattern_search():
         snapshot = load_data_from_file()
         matches = snapshot.get('upcoming_matches', []) if isinstance(snapshot, dict) else []
 
-        # Fallback: precacheo SQL si no hay snapshot reciente
-        if not matches:
-            matches = data_manager.load_precacheo_matches()
-
         # Si no se envían datos completos, buscar en las listas SQL
         if not target_match:
             target_match = next((m for m in matches if str(m.get('id')) == str(match_id) or str(m.get('match_id')) == str(match_id)), None)
+        if not target_match:
+            target_match = data_manager.get_precacheo_match(str(match_id)) or sql_store.get_match(str(match_id))
             
         if not target_match:
             return jsonify({'error': 'Match not found'}), 404

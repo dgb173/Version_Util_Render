@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn -w 1 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 wsgi:app
+    startCommand: gunicorn -w 1 --worker-class gthread --threads 2 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 --max-requests 100 --max-requests-jitter 20 wsgi:app
     healthCheckPath: /precacheo
     envVars:
       - key: PYTHON_VERSION
@@ -13,6 +13,18 @@ services:
         value: production
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: ANALYSIS_MAX_CONCURRENCY
+        value: "1"
+      - key: PLAYWRIGHT_MAX_CONCURRENCY
+        value: "1"
+      - key: SCRAPE_MAX_CONCURRENCY
+        value: "2"
+      - key: ANALYSIS_CACHE_MAX_ENTRIES
+        value: "8"
+      - key: STATS_CACHE_MAX_ENTRIES
+        value: "48"
       - key: DATA_LEGACY_SYNC
         value: "0"
       - key: SQL_BOOTSTRAP_MODE
@@ -35,6 +47,8 @@ services:
         sync: false
       - key: EXPLORER_CACHE_TTL_SECONDS
         value: "60"
+      - key: EXPLORER_CACHE_MAX_ENTRIES
+        value: "1"
       - key: EXPLORER_RESULT_LIMIT
         value: "750"
       - key: EXPLORER_SCAN_LIMIT

@@ -28,7 +28,10 @@ _precacheo_lock = threading.Lock()
 _explorer_cache_lock = threading.Lock()
 _explorer_cache: Dict[Tuple[Optional[str], Optional[int]], Tuple[float, List[Dict]]] = {}
 _explorer_cache_ttl = max(0, int(os.getenv('EXPLORER_CACHE_TTL_SECONDS', '30')))
-_EXPLORER_CACHE_MAX_ENTRIES = 3  # Limitar entradas para evitar OOM en Render (512 MB)
+_EXPLORER_CACHE_MAX_ENTRIES = max(
+    1,
+    int(os.getenv('EXPLORER_CACHE_MAX_ENTRIES', '1')),
+)
 
 
 def _clear_explorer_cache() -> None:
@@ -331,11 +334,13 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
     2. Without result: keep up to pending_days_threshold days.
     """
     with _precacheo_lock:
-        sources = (
-            (PRECACHEO_BUCKET, load_precacheo_matches()),
-            (PENDING_RESULTS_BUCKET, load_pending_results_matches()),
+        # Maintenance only needs scalar headers.  Loading both complete
+        # buckets here used to deserialize the entire 77 MB pre-cache snapshot
+        # and was the largest avoidable memory spike on Render Free.
+        headers = sql_store.fetch_match_headers(
+            (PRECACHEO_BUCKET, PENDING_RESULTS_BUCKET)
         )
-        if not any(rows for _, rows in sources):
+        if not headers:
             return 0
 
         try:
@@ -352,32 +357,27 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
         pending_threshold_date = now - datetime.timedelta(days=pending_days_threshold)
 
         to_remove: Set[Tuple[str, str]] = set()
-        for source_bucket, rows in sources:
-            for match in rows:
-                m_date_str = match.get('match_date') or match.get('date') or match.get('precacheo_date')
-                m_date = parse_match_date(m_date_str)
+        for match in headers:
+            source_bucket = str(match.get('bucket') or '')
+            m_date = parse_match_date(match.get('match_date'))
 
-                if m_date is None:
-                    continue
+            if m_date is None:
+                continue
 
-                score = match.get('score') or match.get('final_score')
-                has_result = bool(score) and not _is_pending_score(str(score)) and (
-                    ':' in str(score) or '-' in str(score)
-                )
-                match_id = match.get('match_id') or match.get('id')
-                if match_id in (None, ''):
-                    continue
+            score = match.get('score') or match.get('final_score')
+            has_result = bool(score) and not _is_pending_score(str(score)) and (
+                ':' in str(score) or '-' in str(score)
+            )
+            match_id = match.get('match_id') or match.get('id')
+            if match_id in (None, ''):
+                continue
 
-                max_date = threshold_date if has_result else pending_threshold_date
-                if m_date < max_date:
-                    to_remove.add((source_bucket, str(match_id)))
+            max_date = threshold_date if has_result else pending_threshold_date
+            if m_date < max_date:
+                to_remove.add((source_bucket, str(match_id)))
 
-        removed_count = 0
-        changed_buckets: Set[str] = set()
-        for source_bucket, mid in to_remove:
-            if mid and sql_store.delete_match(mid, bucket=source_bucket):
-                removed_count += 1
-                changed_buckets.add(source_bucket)
+        removed_count = sql_store.delete_matches_by_bucket(to_remove)
+        changed_buckets = {bucket for bucket, _ in to_remove}
 
         if removed_count > 0:
             _sync_legacy_buckets(changed_buckets)

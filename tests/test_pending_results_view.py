@@ -11,17 +11,30 @@ def test_pending_cleanup_keeps_two_days_and_cleans_both_buckets(monkeypatch):
     obsolete = (today - datetime.timedelta(days=3)).isoformat()
     deleted = []
 
-    monkeypatch.setattr(data_manager, "load_precacheo_matches", lambda: [
-        {"match_id": "old-precache", "match_date": obsolete, "score": "?:?"},
-        {"match_id": "recent-precache", "match_date": recent, "score": "?:?"},
-    ])
-    monkeypatch.setattr(data_manager, "load_pending_results_matches", lambda: [
-        {"match_id": "old-pending", "match_date": obsolete, "score": "??"},
+    monkeypatch.setattr(data_manager.sql_store, "fetch_match_headers", lambda buckets: [
+        {
+            "match_id": "old-precache",
+            "bucket": data_manager.PRECACHEO_BUCKET,
+            "match_date": obsolete,
+            "score": "?:?",
+        },
+        {
+            "match_id": "recent-precache",
+            "bucket": data_manager.PRECACHEO_BUCKET,
+            "match_date": recent,
+            "score": "?:?",
+        },
+        {
+            "match_id": "old-pending",
+            "bucket": data_manager.PENDING_RESULTS_BUCKET,
+            "match_date": obsolete,
+            "score": "??",
+        },
     ])
     monkeypatch.setattr(
         data_manager.sql_store,
-        "delete_match",
-        lambda match_id, bucket=None: deleted.append((bucket, match_id)) or True,
+        "delete_matches_by_bucket",
+        lambda pairs: deleted.extend(pairs) or len(pairs),
     )
     monkeypatch.setattr(data_manager, "_sync_legacy_buckets", lambda buckets: None)
 
@@ -32,6 +45,22 @@ def test_pending_cleanup_keeps_two_days_and_cleans_both_buckets(monkeypatch):
         (data_manager.PRECACHEO_BUCKET, "old-precache"),
         (data_manager.PENDING_RESULTS_BUCKET, "old-pending"),
     }
+
+
+def test_pending_cleanup_never_loads_full_payload_buckets(monkeypatch):
+    monkeypatch.setattr(data_manager.sql_store, "fetch_match_headers", lambda buckets: [])
+    monkeypatch.setattr(
+        data_manager,
+        "load_precacheo_matches",
+        lambda: (_ for _ in ()).throw(AssertionError("full precache payload loaded")),
+    )
+    monkeypatch.setattr(
+        data_manager,
+        "load_pending_results_matches",
+        lambda: (_ for _ in ()).throw(AssertionError("full pending payload loaded")),
+    )
+
+    assert data_manager.clean_old_precacheo_matches() == 0
 
 
 def test_pending_view_separates_exact_upcoming_cutoff_from_pending_threshold():

@@ -938,6 +938,89 @@ def delete_match(match_id: str, bucket: Optional[str] = None, state: Optional[st
         return cur.rowcount > 0
 
 
+def fetch_match_headers(buckets: Sequence[str]) -> List[Dict[str, Any]]:
+    """Return only the scalar fields needed by maintenance jobs.
+
+    Pre-cache payloads can be hundreds of kilobytes each.  Cleanup and queue
+    selection must not deserialize every payload merely to inspect its date or
+    score, especially on Render's 512 MB instances.
+    """
+    ensure_bootstrap()
+    selected = [str(bucket).strip() for bucket in buckets or [] if str(bucket).strip()]
+    if not selected:
+        return []
+
+    placeholders = ", ".join("?" for _ in selected)
+    query = f"""
+        SELECT
+            match_id,
+            bucket,
+            COALESCE(score, json_extract(payload_json, '$.final_score')) AS score,
+            COALESCE(
+                match_date,
+                json_extract(payload_json, '$.date'),
+                json_extract(payload_json, '$.precacheo_date')
+            ) AS match_date,
+            json_extract(payload_json, '$.start_time') AS start_time,
+            COALESCE(
+                json_extract(payload_json, '$.time'),
+                json_extract(payload_json, '$.match_time')
+            ) AS match_time
+        FROM matches
+        WHERE bucket IN ({placeholders})
+    """
+    with _connect() as conn:
+        rows = conn.execute(query, selected).fetchall()
+
+    return [
+        {
+            "match_id": row["match_id"],
+            "bucket": row["bucket"],
+            "score": row["score"],
+            "match_date": row["match_date"],
+            "start_time": row["start_time"],
+            "time": row["match_time"],
+        }
+        for row in rows
+    ]
+
+
+def delete_matches_by_bucket(pairs: Iterable[Tuple[str, str]]) -> int:
+    """Delete ``(bucket, match_id)`` pairs in bounded SQL batches."""
+    normalized: List[Tuple[str, str]] = []
+    seen: set[Tuple[str, str]] = set()
+    for raw_bucket, raw_match_id in pairs or []:
+        bucket = str(raw_bucket or "").strip()
+        match_id = str(raw_match_id or "").strip()
+        key = (bucket, match_id)
+        if not bucket or not match_id or key in seen:
+            continue
+        seen.add(key)
+        normalized.append(key)
+
+    if not normalized:
+        return 0
+
+    ensure_bootstrap()
+    removed = 0
+    with _connect() as conn:
+        for start in range(0, len(normalized), 200):
+            chunk = normalized[start:start + 200]
+            before = getattr(conn, "total_changes", None)
+            conn.executemany(
+                "DELETE FROM matches WHERE bucket = ? AND match_id = ?",
+                chunk,
+            )
+            after = getattr(conn, "total_changes", None)
+            if isinstance(before, int) and isinstance(after, int):
+                removed += max(0, after - before)
+            else:
+                # libSQL does not expose sqlite3.total_changes in every mode.
+                # The pairs are unique and were selected from this table.
+                removed += len(chunk)
+    return removed
+
+
 def get_match(match_id: str, bucket: Optional[str] = None, state: Optional[str] = None) -> Optional[Dict]:
     ensure_bootstrap()
 
