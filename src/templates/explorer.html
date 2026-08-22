@@ -5295,19 +5295,19 @@
                         const isRowHidden = mode === 'all';
 
                         // Calcular si en este partido jugó como No Favorito (+) o Favorito (-) y su rendimiento AH
+                        const isSubjectHome = sameTeamName(rowHome, teamName);
                         const rowAhFloat = parseFloat(rowAh);
                         let isNoFavLoseRow = false;
                         let isFavCoverRow = false;
                         if (!isNaN(rowAhFloat) && score) {
-                            const isSubjectHome = sameTeamName(rowHome, teamName);
                             const teamPressure = isSubjectHome ? rowAhFloat : -rowAhFloat;
                             const goalDiff = (isSubjectHome ? score.home : score.away) - (isSubjectHome ? score.away : score.home);
                             const residual = goalDiff + teamPressure;
                             if (teamPressure > 0.01 && residual <= -0.20) {
-                                isNoFavLoseRow = true;
+                                isNoFavLoseRow = true; // No Favorito (+) perdió el AH
                             }
                             if (teamPressure < -0.01 && residual >= 0.20) {
-                                isFavCoverRow = true;
+                                isFavCoverRow = true; // Favorito (-) ganó/cubrió el AH
                             }
                         }
 
