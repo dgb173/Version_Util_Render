@@ -113,40 +113,29 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
     # their compact copies and their parsed dictionaries coexist in memory.
     with sql_store._connect() as conn:
         for row in conn.execute(query, ordered_ids):
-            # Start with payload_json (contains full scrape data with h2h stats)
             base: Dict[str, Any] = {}
-            try:
-                base = json.loads(row["payload_json"]) if row["payload_json"] else {}
-            except (json.JSONDecodeError, TypeError):
-                pass
-            if not isinstance(base, dict):
-                base = {}
+            if row["explorer_json"]:
+                try:
+                    base = json.loads(row["explorer_json"])
+                except Exception:
+                    base = {}
 
-            # Overlay explorer_json in place.  This preserves the complete
-            # response while avoiding a third top-level dictionary per match.
-            explorer: Dict[str, Any] = {}
-            try:
-                explorer = json.loads(row["explorer_json"]) if row["explorer_json"] else {}
-            except (json.JSONDecodeError, TypeError):
-                pass
-            if not isinstance(explorer, dict):
-                explorer = {}
+            if not base and row["payload_json"]:
+                try:
+                    base = json.loads(row["payload_json"])
+                except Exception:
+                    base = {}
 
-            if explorer:
-                deep_keys = (
-                    'h2h_stadium', 'h2h_general', 'h2h_col3',
-                    'last_home_match', 'last_away_match',
-                    'comparativas_indirectas', 'pre_match_context',
-                    'market_analysis_data',
-                )
-                preserved = {key: base.get(key) for key in deep_keys if base.get(key)}
-                base.update(explorer)
-                for key, value in preserved.items():
-                    if not base.get(key):
-                        base[key] = value
+            if not isinstance(base, dict) or not base:
+                continue
 
-            if base:
-                output[str(row["match_id"])] = base
+            # Strip bloated HTML fields to maintain low memory profile (<100MB RAM)
+            base.pop('historical_matches_html', None)
+            base.pop('market_analysis_html', None)
+            base.pop('raw_html', None)
+            base.pop('full_html', None)
+
+            output[str(row["match_id"])] = base
     return output
 
 
@@ -237,7 +226,7 @@ def fetch_pending_page(
 ) -> Dict[str, Any]:
     """Return one recent-first page after filtering candidates on the server."""
     page = max(1, int(page or 1))
-    per_page = max(1, min(int(per_page or 100), 100))
+    per_page = max(1, min(int(per_page or 100), 2000))
     now_utc = now or dt.datetime.now(UTC)
     if now_utc.tzinfo is None:
         now_utc = now_utc.replace(tzinfo=UTC)
@@ -304,7 +293,7 @@ def fetch_upcoming_page(
 ) -> Dict[str, Any]:
     """Return one chronological page of upcoming Pre-Cacheo rows from SQL."""
     page = max(1, int(page or 1))
-    per_page = max(1, min(int(per_page or 100), 100))
+    per_page = max(1, min(int(per_page or 100), 2000))
     now_utc = now or dt.datetime.now(UTC)
     if now_utc.tzinfo is None:
         now_utc = now_utc.replace(tzinfo=UTC)

@@ -5625,6 +5625,8 @@ def api_precacheo_upcoming_list():
         else:
             response = app.response_class(body, content_type='application/json; charset=utf-8')
         response.headers['Cache-Control'] = 'no-store'
+        import gc
+        gc.collect()
         return response
     except Exception as exc:
         logging.exception("Error loading paginated upcoming matches")
