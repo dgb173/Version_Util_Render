@@ -829,6 +829,13 @@ def ensure_bootstrap(force_import: bool = False) -> None:
 
         with _process_bootstrap_lock():
             with _connect() as conn:
+                try:
+                    conn.execute("PRAGMA synchronous = OFF")
+                    conn.execute("PRAGMA journal_mode = MEMORY")
+                    conn.execute("PRAGMA cache_size = 10000")
+                except Exception:
+                    pass
+
                 _init_schema(conn)
 
                 done_flag = _get_kv(conn, "legacy_json_bootstrap_v1")
