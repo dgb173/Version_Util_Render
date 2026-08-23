@@ -1237,10 +1237,10 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
         wanted_order = [
-            "Shots on Goal",
             "Shots",
-            "Dangerous Attacks",
+            "Shots on Goal",
             "Attacks",
+            "Dangerous Attacks",
             "Red Cards"
         ]
         collected = {}
