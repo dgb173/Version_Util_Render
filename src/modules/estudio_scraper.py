@@ -182,11 +182,23 @@ def _df_to_rows(df):
     if df is None or df.empty:
         return rows
     for idx, row in df.iterrows():
-        label = str(idx).replace('Shots on Goal', 'Tiros a Puerta').replace('Shots', 'Tiros').replace('Dangerous Attacks', 'Ataques Peligrosos').replace('Attacks', 'Ataques')
+        raw = str(idx)
+        label = raw\
+            .replace('Shots on Goal', 'Tiros a Puerta')\
+            .replace('Shots', 'Tiros')\
+            .replace('Dangerous Attacks', 'Ataques Peligrosos')\
+            .replace('Attacks', 'Ataques')\
+            .replace('Corner Kicks', 'Córners')\
+            .replace('Corners', 'Córners')\
+            .replace('Red Cards', 'Tarjetas Rojas')\
+            .replace('Yellow Cards', 'Tarjetas Amarillas')\
+            .replace('Ball Possession', 'Posesión')\
+            .replace('Possession', 'Posesión')
         rows.append({
+            'name': label,
             'label': label,
-            'home': row.get('Casa', ''),
-            'away': row.get('Fuera', '')
+            'home': str(row.get('Casa', '')),
+            'away': str(row.get('Fuera', ''))
         })
     return rows
 
@@ -1224,16 +1236,42 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
         response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
-        stat_titles = {"Shots": "-", "Shots on Goal": "-", "Attacks": "-", "Dangerous Attacks": "-"}
+        wanted_order = [
+            "Shots on Goal",
+            "Shots",
+            "Dangerous Attacks",
+            "Attacks",
+            "Corner Kicks",
+            "Corners",
+            "Red Cards",
+            "Yellow Cards",
+            "Possession"
+        ]
+        collected = {}
         team_tech_div = soup.find('div', id='teamTechDiv_detail')
         if team_tech_div and (stat_list := team_tech_div.find('ul', class_='stat')):
             for li in stat_list.find_all('li'):
-                if (title_span := li.find('span', class_='stat-title')) and (stat_title := title_span.get_text(strip=True)) in stat_titles:
+                if (title_span := li.find('span', class_='stat-title')):
+                    raw_title = title_span.get_text(strip=True)
                     values = [v.get_text(strip=True) for v in li.find_all('span', class_='stat-c')]
                     if len(values) == 2:
-                        stat_titles[stat_title] = {"Home": values[0], "Away": values[1]}
-        table_rows = [{"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')}
-                      for name, vals in stat_titles.items() if isinstance(vals, dict)]
+                        collected[raw_title] = {"Home": values[0], "Away": values[1]}
+
+        # If Corner Kicks is in collected, alias to Corners
+        if "Corner Kicks" in collected and "Corners" not in collected:
+            collected["Corners"] = collected["Corner Kicks"]
+
+        table_rows = []
+        for name in wanted_order:
+            if name in collected:
+                vals = collected[name]
+                table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
+
+        # Add any remaining collected stats
+        for name, vals in collected.items():
+            if name not in wanted_order and isinstance(vals, dict):
+                table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
+
         df = pd.DataFrame(table_rows)
         df = df.set_index("Estadistica_EN") if not df.empty else df
         cache_value = df.copy(deep=True) if df is not None else _STATS_NOT_FOUND
