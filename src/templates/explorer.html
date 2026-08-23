@@ -2893,7 +2893,13 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    <!-- Results will be populated here -->
+                    <tr>
+                        <td colspan="15" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-filter fa-2x mb-2 text-primary" style="opacity:0.8;"></i>
+                            <div class="fw-bold" style="font-size:0.92rem; color:#1e293b;">Explorador Listo</div>
+                            <div style="font-size:0.78rem; color:#64748b; margin-top:3px;">Aplica los filtros que desees arriba y pulsa <strong>Buscar</strong> para cargar los partidos.</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -3527,9 +3533,12 @@
             const ouLimitRaw = params.get('ou_limit');
             hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
-            // Inicializar autocompletado de ligas y cargar datos
+            // Inicializar autocompletado de ligas
             initLeagueAutocomplete();
-            triggerSearch();
+            // Solo buscar automáticamente si viene con preset de URL (ej. desde precacheo "Buscar patrones")
+            if (hasPreset || isPatternAutoSearch) {
+                triggerSearch();
+            }
         }
 
 
@@ -6248,6 +6257,67 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             } catch (err) {
                 resultBox.innerHTML = `<div style="font-size:.65rem; color:#ef4444; padding:6px; text-align:center;">Error: ${escapePreContextCol3(err.message)}</div>`;
             }
+        }
+
+        function formatStatsTableHtml(statsList, customHome = null, customAway = null) {
+            if (!Array.isArray(statsList) || !statsList.length) {
+                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
+            }
+
+            const priorityOrder = ['tiros a puerta', 'tiros', 'ataques peligrosos', 'ataques', 'córners', 'posesión'];
+            const sorted = [...statsList].sort((a, b) => {
+                const nameA = String(a.name || '').toLowerCase();
+                const nameB = String(b.name || '').toLowerCase();
+                const idxA = priorityOrder.findIndex(p => nameA.includes(p));
+                const idxB = priorityOrder.findIndex(p => nameB.includes(p));
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return 0;
+            });
+
+            const rows = sorted.map((s, idx) => {
+                const hVal = Number.parseInt(s.home, 10);
+                const aVal = Number.parseInt(s.away, 10);
+                let hColor = '#1e293b';
+                let aColor = '#1e293b';
+                let hWeight = '700';
+                let aWeight = '700';
+
+                if (Number.isFinite(hVal) && Number.isFinite(aVal)) {
+                    if (hVal > aVal) {
+                        hColor = '#16a34a';
+                        hWeight = '900';
+                    } else if (aVal > hVal) {
+                        aColor = '#16a34a';
+                        aWeight = '900';
+                    }
+                }
+
+                const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+                return `
+                    <tr style="background:${bg}; border-bottom:1px solid #f1f5f9;">
+                        <td style="width:28%; text-align:left; font-size:0.64rem; font-weight:${hWeight}; color:${hColor}; padding:2px 4px;">${escapePreContextCol3(s.home || '-')}</td>
+                        <td style="width:44%; text-align:center; font-size:0.6rem; color:#64748b; font-weight:800; padding:2px 2px;">${escapePreContextCol3(s.name || '-')}</td>
+                        <td style="width:28%; text-align:right; font-size:0.64rem; font-weight:${aWeight}; color:${aColor}; padding:2px 4px;">${escapePreContextCol3(s.away || '-')}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            let headerHtml = '';
+            if (customHome && customAway) {
+                headerHtml = `
+                    <thead>
+                        <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
+                            <th style="width:38%; text-align:left; font-size:0.62rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
+                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Stats</th>
+                            <th style="width:38%; text-align:right; font-size:0.62rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
+                        </tr>
+                    </thead>
+                `;
+            }
+
+            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse;">${headerHtml}<tbody>${rows}</tbody></table>`;
         }
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
