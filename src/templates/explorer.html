@@ -5435,6 +5435,7 @@
                     <div class="pre-context-team-head">
                         <div class="pre-context-team-title-wrap">
                             <span class="pre-context-team-name" title="${esc(teamName)}">${esc(teamName)}</span>
+                            <button type="button" class="pre-context-pick-btn ms-1" style="padding:1px 5px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.58rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(teamName)}')" title="Seleccionar '${esc(teamName)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot me-1"></i>Comparar</button>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
                         ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
@@ -5564,18 +5565,30 @@
                         </div>
                         <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                             <div style="flex:1 1 180px; min-width:160px;">
-                                <label style="display:block; font-size:.6rem; font-weight:900; color:#6d28d9; margin-bottom:2px;">🟣 Rival de ${esc(momentHome)}:</label>
+                                <label style="display:block; font-size:.6rem; font-weight:900; color:#6d28d9; margin-bottom:2px;">🟣 Rival de ${esc(momentHome)} / Equipo Actual:</label>
                                 <select class="form-select form-select-sm custom-rival-select-a" onchange="handleCustomRivalSelectChange(this)" style="font-size:.68rem; font-weight:800; border-color:#c4b5fd; background:#f5f3ff; padding:3px 6px;">
-                                    <option value="">Selecciona rival local...</option>
-                                    ${homeRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                    <option value="">Selecciona rival local o equipo actual...</option>
+                                    <optgroup label="⭐ Equipos Actuales">
+                                        <option value="${esc(momentHome)}" data-match-id="${esc(parentMatchId)}" data-is-current="true" style="font-weight:900; color:#2563eb;">⭐ ${esc(momentHome)} (Equipo Actual Local)</option>
+                                        <option value="${esc(momentAway)}" data-match-id="${esc(parentMatchId)}" data-is-current="true" style="font-weight:900; color:#dc2626;">⭐ ${esc(momentAway)} (Equipo Actual Visitante)</option>
+                                    </optgroup>
+                                    <optgroup label="🟣 Rivales Previos de ${esc(momentHome)}">
+                                        ${homeRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                    </optgroup>
                                 </select>
                             </div>
                             <div style="font-size:.75rem; font-weight:900; color:#94a3b8; padding-top:10px;">vs</div>
                             <div style="flex:1 1 180px; min-width:160px;">
-                                <label style="display:block; font-size:.6rem; font-weight:900; color:#b45309; margin-bottom:2px;">🟠 Rival de ${esc(momentAway)}:</label>
+                                <label style="display:block; font-size:.6rem; font-weight:900; color:#b45309; margin-bottom:2px;">🟠 Rival de ${esc(momentAway)} / Equipo Actual:</label>
                                 <select class="form-select form-select-sm custom-rival-select-b" onchange="handleCustomRivalSelectChange(this)" style="font-size:.68rem; font-weight:800; border-color:#fde68a; background:#fffbeb; padding:3px 6px;">
-                                    <option value="">Selecciona rival visitante...</option>
-                                    ${awayRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                    <option value="">Selecciona rival visitante o equipo actual...</option>
+                                    <optgroup label="⭐ Equipos Actuales">
+                                        <option value="${esc(momentAway)}" data-match-id="${esc(parentMatchId)}" data-is-current="true" style="font-weight:900; color:#dc2626;">⭐ ${esc(momentAway)} (Equipo Actual Visitante)</option>
+                                        <option value="${esc(momentHome)}" data-match-id="${esc(parentMatchId)}" data-is-current="true" style="font-weight:900; color:#2563eb;">⭐ ${esc(momentHome)} (Equipo Actual Local)</option>
+                                    </optgroup>
+                                    <optgroup label="🟠 Rivales Previos de ${esc(momentAway)}">
+                                        ${awayRivalsList.map(r => `<option value="${esc(r.name)}" data-match-id="${esc(r.matchId)}" data-rival-id="${esc(r.rivalId)}">${esc(r.name)} (AH ${esc(r.ah)} · ${esc(r.score)})</option>`).join('')}
+                                    </optgroup>
                                 </select>
                             </div>
                             <div style="padding-top:10px;">
@@ -5869,17 +5882,70 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const col3Away = String(col3.h2h_away_team_name || rivalBName);
 
                 const isHomeRivA = sameTeamName(col3Home, rivalAName);
-                const homeColor = isHomeRivA ? '#6d28d9' : '#b45309';
-                const homeBadge = isHomeRivA ? `Rival de ${parentHome || 'Local'}` : `Rival de ${parentAway || 'Visitante'}`;
-                const homeBg = isHomeRivA ? '#ede9fe' : '#fef3c7';
-                const homeBorder = isHomeRivA ? '#c4b5fd' : '#fde68a';
-                const homeIcon = isHomeRivA ? '🟣' : '🟠';
 
-                const awayColor = isHomeRivA ? '#b45309' : '#6d28d9';
-                const awayBadge = isHomeRivA ? `Rival de ${parentAway || 'Visitante'}` : `Rival de ${parentHome || 'Local'}`;
-                const awayBg = isHomeRivA ? '#fef3c7' : '#ede9fe';
-                const awayBorder = isHomeRivA ? '#fde68a' : '#c4b5fd';
-                const awayIcon = isHomeRivA ? '🟠' : '🟣';
+                let homeColor = '#6d28d9';
+                let homeBadge = `Rival de ${parentHome || 'Local'}`;
+                let homeBg = '#ede9fe';
+                let homeBorder = '#c4b5fd';
+                let homeIcon = '🟣';
+
+                if (sameTeamName(col3Home, parentHome)) {
+                    homeColor = '#2563eb';
+                    homeBadge = 'Equipo Actual Local';
+                    homeBg = '#eff6ff';
+                    homeBorder = '#bfdbfe';
+                    homeIcon = '⭐';
+                } else if (sameTeamName(col3Home, parentAway)) {
+                    homeColor = '#dc2626';
+                    homeBadge = 'Equipo Actual Visitante';
+                    homeBg = '#fef2f2';
+                    homeBorder = '#fecaca';
+                    homeIcon = '⭐';
+                } else if (isHomeRivA) {
+                    homeColor = '#6d28d9';
+                    homeBadge = `Rival de ${parentHome || 'Local'}`;
+                    homeBg = '#ede9fe';
+                    homeBorder = '#c4b5fd';
+                    homeIcon = '🟣';
+                } else {
+                    homeColor = '#b45309';
+                    homeBadge = `Rival de ${parentAway || 'Visitante'}`;
+                    homeBg = '#fef3c7';
+                    homeBorder = '#fde68a';
+                    homeIcon = '🟠';
+                }
+
+                let awayColor = '#b45309';
+                let awayBadge = `Rival de ${parentAway || 'Visitante'}`;
+                let awayBg = '#fef3c7';
+                let awayBorder = '#fde68a';
+                let awayIcon = '🟠';
+
+                if (sameTeamName(col3Away, parentAway)) {
+                    awayColor = '#dc2626';
+                    awayBadge = 'Equipo Actual Visitante';
+                    awayBg = '#fef2f2';
+                    awayBorder = '#fecaca';
+                    awayIcon = '⭐';
+                } else if (sameTeamName(col3Away, parentHome)) {
+                    awayColor = '#2563eb';
+                    awayBadge = 'Equipo Actual Local';
+                    awayBg = '#eff6ff';
+                    awayBorder = '#bfdbfe';
+                    awayIcon = '⭐';
+                } else if (isHomeRivA) {
+                    awayColor = '#b45309';
+                    awayBadge = `Rival de ${parentAway || 'Visitante'}`;
+                    awayBg = '#fef3c7';
+                    awayBorder = '#fde68a';
+                    awayIcon = '🟠';
+                } else {
+                    awayColor = '#6d28d9';
+                    awayBadge = `Rival de ${parentHome || 'Local'}`;
+                    awayBg = '#ede9fe';
+                    awayBorder = '#c4b5fd';
+                    awayIcon = '🟣';
+                }
 
                 resultBox.innerHTML = `
                     <div style="background:#ffffff; border:1px solid #3b82f6; border-radius:7px; padding:8px 10px; box-shadow:0 2px 6px rgba(59, 130, 246, 0.1);">
