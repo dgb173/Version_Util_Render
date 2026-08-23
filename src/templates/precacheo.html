@@ -8220,10 +8220,148 @@
             bootstrap.Collapse.getOrCreateInstance(collapseElement, { toggle: false }).show();
         }
 
+        function extractOpenContextCardsText(panel) {
+            if (!panel) return '';
+            const openSections = [];
+
+            // 1. Estadisticas de partidos abiertas (.match-stats-slot)
+            const openStatsSlots = panel.querySelectorAll('.match-stats-slot');
+            openStatsSlots.forEach(slot => {
+                if (slot.style.display === 'none' || !slot.innerHTML.trim()) return;
+                const headText = slot.querySelector('.pre-col3-card-head')?.innerText?.replace(/\s+/g, ' ').trim() || 'ESTADISTICAS';
+                const dateText = slot.querySelector('div[style*="color:#64748b"]')?.innerText?.trim() || '';
+                
+                // Obtener equipos y score
+                const matchupEl = slot.querySelector('div[style*="font-weight:900"][style*="font-size:.72rem"]');
+                const matchupText = matchupEl ? matchupEl.innerText.replace(/\s+/g, ' ').trim() : '';
+
+                // Obtener estadisticas de la tabla
+                const statRows = [];
+                slot.querySelectorAll('table tbody tr').forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length >= 3) {
+                        const homeVal = tds[0].innerText.trim();
+                        const statName = tds[1].innerText.trim();
+                        const awayVal = tds[2].innerText.trim();
+                        if (statName) statRows.push(`    * ${statName}: ${homeVal} - ${awayVal}`);
+                    }
+                });
+
+                let block = `📊 [${headText}] ${dateText} | ${matchupText}`;
+                if (statRows.length) {
+                    block += '\n' + statRows.join('\n');
+                }
+                openSections.push(block);
+            });
+
+            // 2. Fichas H2H Col3 abiertas (.col3-slot)
+            const openCol3Slots = panel.querySelectorAll('.col3-slot');
+            openCol3Slots.forEach(slot => {
+                if (slot.style.display === 'none' || !slot.innerHTML.trim()) return;
+                const headStatus = slot.querySelector('.pre-col3-status')?.innerText?.trim() || 'H2H COL3';
+                const dateText = slot.querySelector('div[style*="color:#64748b"]')?.innerText?.trim() || '';
+                
+                // Extraer equipos, marcador y AH
+                const teams = [];
+                slot.querySelectorAll('span[style*="font-weight:900"]').forEach(s => {
+                    const t = s.innerText.trim();
+                    if (t && !teams.includes(t) && !t.startsWith('AH') && !t.startsWith('Res')) teams.push(t);
+                });
+                const score = slot.querySelector('div[style*="letter-spacing:1px"]')?.innerText?.trim() || '';
+                const ah = slot.querySelector('span[style*="background:#e2e8f0"]')?.innerText?.trim() || '';
+                const tags = Array.from(slot.querySelectorAll('.pre-col3-tag')).map(t => t.innerText.trim()).filter(Boolean).join(' · ');
+
+                let block = `🟣 [FICHA H2H COL3: ${headStatus}] ${dateText}\n    * Enfrentamiento: ${teams.join(' vs ')} | Score FT: ${score} | AH: ${ah}`;
+                if (tags) block += ` | Estado: ${tags}`;
+
+                // Verificar si tiene estadisticas desplegadas dentro
+                const innerStatsContainer = slot.querySelector('.pre-card-stats-container');
+                if (innerStatsContainer && innerStatsContainer.style.display !== 'none') {
+                    const innerStatRows = [];
+                    innerStatsContainer.querySelectorAll('table tbody tr').forEach(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        if (tds.length >= 3) {
+                            const hVal = tds[0].innerText.trim();
+                            const sName = tds[1].innerText.trim();
+                            const aVal = tds[2].innerText.trim();
+                            if (sName) innerStatRows.push(`      * ${sName}: ${hVal} - ${aVal}`);
+                        }
+                    });
+                    if (innerStatRows.length) {
+                        block += '\n    * Estadisticas Detalladas:\n' + innerStatRows.join('\n');
+                    }
+                }
+                openSections.push(block);
+            });
+
+            // 3. Fichas Movimiento Historico abiertas (.mov-slot)
+            const openMovSlots = panel.querySelectorAll('.mov-slot');
+            openMovSlots.forEach(slot => {
+                if (slot.style.display === 'none' || !slot.innerHTML.trim()) return;
+                const headStatus = slot.querySelector('.pre-col3-status')?.innerText?.trim() || 'H2H HISTORICO DIRECTO';
+                const cards = [];
+                slot.querySelectorAll('div[style*="border-radius:5px"]').forEach(card => {
+                    const title = card.querySelector('span[style*="font-weight:900"]')?.innerText?.trim() || '';
+                    const evalTag = card.querySelector('.pre-col3-tag')?.innerText?.trim() || '';
+                    const date = card.querySelector('div[style*="color:#64748b"]')?.innerText?.trim() || '';
+                    const numLine = card.querySelector('span[style*="color:#"]')?.innerText?.trim() || '';
+                    const movTag = card.querySelector('.pre-col3-tags .pre-col3-tag')?.innerText?.trim() || '';
+                    if (title || date) {
+                        cards.push(`    * [${title} - ${evalTag}] ${date} | ${numLine} ${movTag ? `(${movTag})` : ''}`);
+                    }
+                });
+                let block = `🏟️ [${headStatus}]\n` + (cards.length ? cards.join('\n') : '    * Sin datos');
+                openSections.push(block);
+            });
+
+            // 4. Comparador de Rivales a la Carta abierto (.custom-rival-compare-result)
+            const customResult = panel.querySelector('.custom-rival-compare-result');
+            if (customResult && customResult.style.display !== 'none' && customResult.innerHTML.trim()) {
+                const teams = [];
+                customResult.querySelectorAll('span[style*="font-weight:900"]').forEach(s => {
+                    const t = s.innerText.trim();
+                    if (t && !teams.includes(t) && !t.startsWith('AH') && !t.startsWith('⚔️')) teams.push(t);
+                });
+                const dateText = customResult.querySelector('span[style*="color:#64748b"]')?.innerText?.trim() || '';
+                const score = customResult.querySelector('div[style*="letter-spacing:1px"]')?.innerText?.trim() || '';
+                const ah = customResult.querySelector('span[style*="background:#e2e8f0"]')?.innerText?.trim() || '';
+                
+                let block = `⚔️ [COMPARADOR RIVALES A LA CARTA / COL3 CUSTOM]\n    * Partido: ${teams.join(' vs ')} ${dateText ? `(${dateText})` : ''}\n    * Resultado FT: ${score} | AH: ${ah}`;
+
+                // Si tiene stats abiertas
+                const innerStatsContainer = customResult.querySelector('.pre-card-stats-container');
+                if (innerStatsContainer && innerStatsContainer.style.display !== 'none') {
+                    const innerStatRows = [];
+                    innerStatsContainer.querySelectorAll('table tbody tr').forEach(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        if (tds.length >= 3) {
+                            const hVal = tds[0].innerText.trim();
+                            const sName = tds[1].innerText.trim();
+                            const aVal = tds[2].innerText.trim();
+                            if (sName) innerStatRows.push(`      * ${sName}: ${hVal} - ${aVal}`);
+                        }
+                    });
+                    if (innerStatRows.length) {
+                        block += '\n    * Estadisticas Detalladas:\n' + innerStatRows.join('\n');
+                    }
+                }
+                openSections.push(block);
+            }
+
+            if (!openSections.length) return '';
+
+            const divider = '-'.repeat(72);
+            return `\n\n${divider}\nFICHAS Y ANALISIS ABIERTOS EN PANTALLA (DETALLES Y STATS ACTIVAS)\n${divider}\n` + openSections.join('\n\n');
+        }
+
         async function copyPreMatchContext(button, matchId) {
             const encoded = button?.dataset?.context || '';
             const contextText = decodeURIComponent(encoded);
             if (!contextText || !matchId) return;
+
+            const panel = button.closest('.pre-context-panel');
+            const openCardsText = extractOpenContextCardsText(panel);
+
             const original = button.innerHTML;
             const deferredClipboard = beginDeferredClipboardWrite();
             button.disabled = true;
@@ -8235,7 +8373,7 @@
                     throw new Error(data.error || 'No se pudo generar el prompt LLM');
                 }
                 const divider = '='.repeat(72);
-                const combined = `${contextText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
+                const combined = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
                 await deferredClipboard.finish(combined);
                 button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
                 button.classList.add('btn-success');
