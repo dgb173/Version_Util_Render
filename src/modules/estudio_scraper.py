@@ -1241,11 +1241,7 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
             "Shots",
             "Dangerous Attacks",
             "Attacks",
-            "Corner Kicks",
-            "Corners",
-            "Red Cards",
-            "Yellow Cards",
-            "Possession"
+            "Red Cards"
         ]
         collected = {}
         team_tech_div = soup.find('div', id='teamTechDiv_detail')
@@ -1257,19 +1253,10 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
                     if len(values) == 2:
                         collected[raw_title] = {"Home": values[0], "Away": values[1]}
 
-        # If Corner Kicks is in collected, alias to Corners
-        if "Corner Kicks" in collected and "Corners" not in collected:
-            collected["Corners"] = collected["Corner Kicks"]
-
         table_rows = []
         for name in wanted_order:
             if name in collected:
                 vals = collected[name]
-                table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
-
-        # Add any remaining collected stats
-        for name, vals in collected.items():
-            if name not in wanted_order and isinstance(vals, dict):
                 table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
 
         df = pd.DataFrame(table_rows)

@@ -9304,59 +9304,38 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
 
-            const allowedStats = [
+            const targetOrder = [
                 { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'tiros', label: 'Tiros', icon: '⚽' },
+                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
                 { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
-                { match: 'ataques', label: 'Ataques', icon: '📈' },
-                { match: 'córner', label: 'Córners', icon: '🚩' },
-                { match: 'corner', label: 'Córners', icon: '🚩' },
+                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
                 { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
                 { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
-                { match: 'tarjetas amarillas', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'yellow cards', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'posesión', label: 'Posesión', icon: '📊' },
-                { match: 'possession', label: 'Posesión', icon: '📊' }
             ];
 
-            const seenLabels = new Set();
-            const filtered = [];
-
-            for (const s of statsList) {
-                const rawName = String(s.name || s.label || s.stat_name || s.name_es || '').trim();
-                if (!rawName || rawName === '-') continue;
-                const lower = rawName.toLowerCase();
-
-                // Excluir stats secundarias de medio tiempo si ya estan las completas
-                if (lower.includes('(ht)') || lower.includes('off goal') || lower.includes('passes') || lower.includes('throw-ins') || lower.includes('fouls') || lower.includes('tackles')) {
-                    continue;
-                }
-
-                let foundConfig = null;
-                for (const cfg of allowedStats) {
-                    if (lower === cfg.match || lower.includes(cfg.match)) {
-                        foundConfig = cfg;
-                        break;
-                    }
-                }
-
-                const displayName = foundConfig ? foundConfig.label : rawName;
-                if (seenLabels.has(displayName)) continue;
-                seenLabels.add(displayName);
-
-                filtered.push({
-                    displayName,
-                    icon: foundConfig ? foundConfig.icon : '📌',
-                    home: String(s.home ?? '-').trim(),
-                    away: String(s.away ?? '-').trim()
+            const result = [];
+            for (const target of targetOrder) {
+                const found = statsList.find(s => {
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
+                    if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                    return name === target.match || name.includes(target.match);
                 });
+                if (found) {
+                    result.push({
+                        displayName: target.label,
+                        icon: target.icon,
+                        home: String(found.home ?? '-').trim(),
+                        away: String(found.away ?? '-').trim()
+                    });
+                }
             }
 
-            if (!filtered.length) {
-                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas principales registradas</div>';
+            if (!result.length) {
+                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
 
-            const rows = filtered.map((s, idx) => {
+            const rows = result.map((s, idx) => {
                 const hVal = Number.parseInt(s.home, 10);
                 const aVal = Number.parseInt(s.away, 10);
                 let hColor = '#1e293b';
@@ -9400,7 +9379,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <thead>
                         <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
                             <th style="width:38%; text-align:left; font-size:0.62rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
-                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Estadística</th>
+                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Stats</th>
                             <th style="width:38%; text-align:right; font-size:0.62rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
                         </tr>
                     </thead>
@@ -15240,7 +15219,35 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
     function renderLastGeneralStatsRows(stats) {
         if (!Array.isArray(stats) || stats.length === 0) return '';
-        const rows = stats.map(stat => {
+        const targetOrder = [
+            { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
+            { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+            { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
+            { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+            { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
+            { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
+        ];
+
+        const filtered = [];
+        for (const target of targetOrder) {
+            const found = stats.find(s => {
+                const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
+                if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                return name === target.match || name.includes(target.match);
+            });
+            if (found) {
+                filtered.push({
+                    ...found,
+                    label: target.label,
+                    icon: target.icon
+                });
+            }
+        }
+
+        if (!filtered.length) return '';
+
+        const rows = filtered.map(stat => {
             const label = stat.label ?? '';
             const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
             const parseVal = (str) => {
@@ -15267,7 +15274,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             return `
                 <tr>
                     <td class="text-start ${hClass}">${lgEscape(stat.home ?? '')}</td>
-                    <td class="text-center ${labelClass}">${lgEscape(label)}</td>
+                    <td class="text-center ${labelClass}"><span style="font-size:0.65rem; margin-right:2px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
                     <td class="text-end ${aClass}">${lgEscape(stat.away ?? '')}</td>
                 </tr>
             `;

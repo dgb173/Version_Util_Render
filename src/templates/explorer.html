@@ -6264,59 +6264,38 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
 
-            const allowedStats = [
+            const targetOrder = [
                 { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'tiros', label: 'Tiros', icon: '⚽' },
+                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
                 { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
-                { match: 'ataques', label: 'Ataques', icon: '📈' },
-                { match: 'córner', label: 'Córners', icon: '🚩' },
-                { match: 'corner', label: 'Córners', icon: '🚩' },
+                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
                 { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
                 { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
-                { match: 'tarjetas amarillas', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'yellow cards', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'posesión', label: 'Posesión', icon: '📊' },
-                { match: 'possession', label: 'Posesión', icon: '📊' }
             ];
 
-            const seenLabels = new Set();
-            const filtered = [];
-
-            for (const s of statsList) {
-                const rawName = String(s.name || s.label || s.stat_name || s.name_es || '').trim();
-                if (!rawName || rawName === '-') continue;
-                const lower = rawName.toLowerCase();
-
-                // Excluir stats secundarias de medio tiempo si ya estan las completas
-                if (lower.includes('(ht)') || lower.includes('off goal') || lower.includes('passes') || lower.includes('throw-ins') || lower.includes('fouls') || lower.includes('tackles')) {
-                    continue;
-                }
-
-                let foundConfig = null;
-                for (const cfg of allowedStats) {
-                    if (lower === cfg.match || lower.includes(cfg.match)) {
-                        foundConfig = cfg;
-                        break;
-                    }
-                }
-
-                const displayName = foundConfig ? foundConfig.label : rawName;
-                if (seenLabels.has(displayName)) continue;
-                seenLabels.add(displayName);
-
-                filtered.push({
-                    displayName,
-                    icon: foundConfig ? foundConfig.icon : '📌',
-                    home: String(s.home ?? '-').trim(),
-                    away: String(s.away ?? '-').trim()
+            const result = [];
+            for (const target of targetOrder) {
+                const found = statsList.find(s => {
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
+                    if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                    return name === target.match || name.includes(target.match);
                 });
+                if (found) {
+                    result.push({
+                        displayName: target.label,
+                        icon: target.icon,
+                        home: String(found.home ?? '-').trim(),
+                        away: String(found.away ?? '-').trim()
+                    });
+                }
             }
 
-            if (!filtered.length) {
-                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas principales registradas</div>';
+            if (!result.length) {
+                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
 
-            const rows = filtered.map((s, idx) => {
+            const rows = result.map((s, idx) => {
                 const hVal = Number.parseInt(s.home, 10);
                 const aVal = Number.parseInt(s.away, 10);
                 let hColor = '#1e293b';
@@ -6360,7 +6339,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <thead>
                         <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
                             <th style="width:38%; text-align:left; font-size:0.62rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
-                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Estadística</th>
+                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Stats</th>
                             <th style="width:38%; text-align:right; font-size:0.62rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
                         </tr>
                     </thead>
@@ -7327,196 +7306,71 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
 
         function renderLastGeneralStatsRows(stats) {
-            if (!Array.isArray(stats) || stats.length === 0) return '';
-            return `
-                <table class="table table-sm mb-0" style="font-size:0.72rem;">
-                    <tbody>
-                        ${stats.map(stat => {
-                            const label = stat.label ?? '';
-                            const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
-                            const parseVal = (str) => {
-                                if (!str) return 0;
-                                const match = String(str).match(/(\d+)/);
-                                return match ? parseInt(match[0], 10) : 0;
-                            };
-                            const hVal = parseVal(stat.home);
-                            const aVal = parseVal(stat.away);
-                            let hClass = 'text-dark';
-                            let aClass = 'text-dark';
-                            let labelClass = 'text-muted';
-                            if (isRedCardRow) {
-                                hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
-                                aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
-                                labelClass = 'text-danger fw-bold';
-                            } else if (hVal > aVal) {
-                                hClass = 'text-success fw-bold';
-                                aClass = 'text-danger';
-                            } else if (hVal < aVal) {
-                                hClass = 'text-danger';
-                                aClass = 'text-success fw-bold';
-                            }
-                            return `
-                                <tr>
-                                    <td class="text-start ${hClass}">${lgEscape(stat.home ?? '')}</td>
-                                    <td class="text-center ${labelClass}">${lgEscape(label)}</td>
-                                    <td class="text-end ${aClass}">${lgEscape(stat.away ?? '')}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+        if (!Array.isArray(stats) || stats.length === 0) return '';
+        const targetOrder = [
+            { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
+            { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+            { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
+            { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+            { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
+            { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
+        ];
 
-        function rhStatusBadge(status) {
-            const map = {
-                MEJORA: ['bg-success', 'MEJORA'],
-                IGUALA: ['bg-warning text-dark', 'IGUALA'],
-                EMPEORA: ['bg-danger', 'EMPEORA'],
-                SIN_DATO: ['bg-secondary', 'SIN CRUCE']
-            };
-            const value = map[status] || map.SIN_DATO;
-            return `<span class="badge ${value[0]}" style="font-size:0.64rem;">${value[1]}</span>`;
-        }
-
-        function rhMatchCard(title, match, accent = '#64748b', extraHtml = '') {
-            const backgrounds = {
-                '#2563eb': '#e3f2fd',
-                '#6d28d9': '#f3e8ff',
-                '#16a34a': '#e8f5e9',
-                '#dc2626': '#ffebee',
-                '#d97706': '#fff8e1',
-                '#64748b': '#f8fafc'
-            };
-            const bgColor = backgrounds[accent] || '#f8fafc';
-            if (!match) {
-                return `
-                    <div class="h-100 d-flex flex-column justify-content-center align-items-center" style="background:${bgColor};border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:12px;min-height:188px;opacity:.65;">
-                        <div class="fw-bold text-uppercase text-center" style="font-size:.76rem;color:${accent};border-bottom:2px solid rgba(0,0,0,.1);padding-bottom:6px;margin-bottom:10px;width:100%;">${lgEscape(title)}</div>
-                        <span class="text-muted">-</span>
-                        <small class="text-muted mt-1">Sin cruce encontrado</small>
-                    </div>`;
-            }
-            const stats = Array.isArray(match.stats_rows) ? match.stats_rows : [];
-            const subject = match.subject_result || {};
-            return `
-                <div class="h-100" style="background:${bgColor};border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:12px;box-shadow:0 2px 4px rgba(0,0,0,.1);min-height:188px;">
-                    <div class="fw-bold text-uppercase text-center" style="font-size:.8rem;letter-spacing:.4px;color:${accent};border-bottom:2px solid rgba(0,0,0,.1);padding-bottom:6px;margin-bottom:8px;">${lgEscape(title)}</div>
-                    <div class="text-center" style="font-size:.75rem;margin-bottom:6px;">
-                            <span class="text-success fw-bold">${lgEscape(match.home_team || '')}</span>
-                            <span class="mx-2 fw-bold text-dark" style="font-size:.9rem;background:rgba(255,255,255,.65);padding:2px 6px;border-radius:4px;">${lgEscape(match.score || '-')}</span>
-                            <span class="text-danger fw-bold">${lgEscape(match.away_team || '')}</span>
-                    </div>
-                    <div class="text-muted text-center" style="font-size:.65rem;margin-bottom:4px;">${lgEscape(match.date || '')} · ID ${lgEscape(match.match_id || '-')}</div>
-                    <div class="d-flex justify-content-center gap-2" style="font-size:.7rem;margin-bottom:4px;">
-                            <span>AH: <strong>${lgEscape(match.ah || '-')}</strong></span>
-                            ${subject.wdl ? `<span class="badge bg-light text-dark border">${lgEscape(subject.wdl)}</span>` : ''}
-                    </div>
-                    ${extraHtml}
-                    <div style="margin-top:6px;border-top:1px solid rgba(0,0,0,.1);padding-top:6px;background:rgba(255,255,255,.28);">
-                        ${stats.length ? renderLastGeneralStatsRows(stats) : '<div class="text-center text-muted py-2" style="font-size:.65rem;">Sin estadísticas disponibles</div>'}
-                    </div>
-                </div>
-            `;
-        }
-
-        function rhSampleCard(sample, context) {
-            const ahResult = sample.home_ah_result || {};
-            const ahClass = ahResult.covered ? 'bg-success' : (ahResult.code === 'PUSH' ? 'bg-warning text-dark' : 'bg-danger');
-            const refExtra = `<div class="text-center mt-1"><span class="badge ${ahClass}" style="font-size:.6rem;">${lgEscape(ahResult.label || 'Sin dato')}</span></div>`;
-            const bridges = Array.isArray(sample.bridges) ? sample.bridges : [];
-            const summary = sample.comparison_summary || {};
-            return `
-                <div class="mb-3 p-2" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="fw-bold" style="font-size:.8rem;">Rival puente: ${lgEscape(sample.rival_name || '-')}</div>
-                        <div class="d-flex gap-1 align-items-center">
-                            ${summary.mejora ? `<span class="badge bg-success">${summary.mejora} mejora</span>` : ''}
-                            ${summary.iguala ? `<span class="badge bg-warning text-dark">${summary.iguala} iguala</span>` : ''}
-                            ${summary.empeora ? `<span class="badge bg-danger">${summary.empeora} empeora</span>` : ''}
-                            ${!bridges.length ? rhStatusBadge('SIN_DATO') : ''}
-                        </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:repeat(3,minmax(230px,1fr));gap:9px;align-items:stretch;">
-                        ${rhMatchCard('LOCAL · PARTIDO HISTORICO', sample, '#16a34a', refExtra)}
-                        <div style="display:grid;gap:9px;">
-                            ${bridges.length
-                                ? bridges.map(bridge => rhMatchCard('RIVAL PUENTE vs RIVAL COMUN', bridge, '#d97706', `<div class="text-center mt-1">${rhStatusBadge(bridge.comparison_status)}</div>`)).join('')
-                                : rhMatchCard('RIVAL PUENTE vs RIVAL COMUN', null)}
-                        </div>
-                        ${rhMatchCard('RIVAL ACTUAL vs RIVAL COMUN', context.current_rival_base, '#6d28d9', '<div class="text-center text-muted mt-1" style="font-size:.62rem;">Referencia fija para comparar</div>')}
-                    </div>
-                </div>
-            `;
-        }
-
-        function rhSection(title, subtitle, samples, context, accent) {
-            const rows = Array.isArray(samples) ? samples : [];
-            return `
-                <section class="mt-3">
-                    <div class="d-flex justify-content-between align-items-end mb-2" style="border-bottom:3px solid ${accent};padding-bottom:5px;">
-                        <div>
-                            <div class="fw-bold" style="color:${accent};font-size:.92rem;">${lgEscape(title)}</div>
-                            <div class="text-muted" style="font-size:.7rem;">${lgEscape(subtitle)}</div>
-                        </div>
-                        <span class="badge" style="background:${accent};">${rows.length} muestras</span>
-                    </div>
-                    ${rows.length ? rows.map(sample => rhSampleCard(sample, context)).join('') : '<div class="alert alert-light border text-center text-muted">No hay muestras que cumplan este filtro.</div>'}
-                </section>
-            `;
-        }
-
-        function renderRivalHandicapSamples(context) {
-            return `
-                <div style="color:#1e293b;">
-                    <div class="d-flex justify-content-between align-items-start gap-3 p-3" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1px solid #c4b5fd;border-radius:10px;">
-                        <div>
-                            <div class="fw-bold" style="font-size:1rem;">${lgEscape(context.home_name)} vs ${lgEscape(context.away_name)}</div>
-                            <div class="text-muted" style="font-size:.72rem;">Liga ${lgEscape(context.league_id)} · Rival común: <strong>${lgEscape(context.common_opponent?.name || '-')}</strong></div>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge" style="background:#5b21b6;">AH actual ${lgEscape(context.current_ah)}</span>
-                            <div class="mt-2"><button class="btn btn-sm btn-outline-dark" onclick="showRivalHandicapSamples('${lgEscape(context.match_id)}', this)"><i class="fa-solid fa-rotate me-1"></i>Re-scrapear manualmente</button></div>
-                        </div>
-                    </div>
-                    ${rhSection('1. MISMO HANDICAP QUE EL PARTIDO ACTUAL', `Solo partidos de ${context.home_name} como local, misma liga y AH exacto ${context.current_ah}.`, context.exact_ah_samples, context, '#2563eb')}
-                    ${rhSection('2. VECES QUE EL LOCAL SUPERO SU HANDICAP', 'Incluye cualquier linea cubierta; cada tarjeta muestra el AH real que tenia.', context.covered_any_ah_samples, context, '#16a34a')}
-                    <div class="alert alert-secondary mt-3 mb-0" style="font-size:.7rem;"><i class="fa-solid fa-hand me-1"></i>Estos IDs y estadísticas solo se consultan al pulsar este icono o el botón de re-scraping; la tabla no los scrapea automáticamente.</div>
-                </div>
-            `;
-        }
-
-        async function showRivalHandicapSamples(matchId, btn) {
-            const originalContent = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                btn.disabled = true;
-            }
-            const modalEl = document.getElementById('rivalHandicapSamplesModal');
-            const modalBody = document.getElementById('rivalHandicapSamplesModalBody');
-            modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border" style="color:#5b21b6;"></div><p class="mt-2">Buscando IDs y scrapeando estadísticas manualmente...</p></div>';
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            try {
-                const response = await fetch('/api/precacheo_rival_handicap_samples', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_id: matchId })
+        const filtered = [];
+        for (const target of targetOrder) {
+            const found = stats.find(s => {
+                const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
+                if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                return name === target.match || name.includes(target.match);
+            });
+            if (found) {
+                filtered.push({
+                    ...found,
+                    label: target.label,
+                    icon: target.icon
                 });
-                const data = await response.json();
-                if (!response.ok || data.status !== 'success') throw new Error(data.error || 'No se pudo cargar la comparativa AH');
-                modalBody.innerHTML = renderRivalHandicapSamples(data.context);
-            } catch (error) {
-                console.error('Error loading rival handicap samples:', error);
-                modalBody.innerHTML = `<div class="alert alert-danger">Error en la comparativa AH: ${lgEscape(error.message || error)}</div>`;
-            } finally {
-                if (btn) {
-                    btn.innerHTML = originalContent;
-                    btn.disabled = false;
-                }
             }
         }
 
-        function getTeamPerspective(data, subjectName) {
+        if (!filtered.length) return '';
+
+        const rows = filtered.map(stat => {
+            const label = stat.label ?? '';
+            const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
+            const parseVal = (str) => {
+                if (!str) return 0;
+                const match = String(str).match(/(\d+)/);
+                return match ? parseInt(match[0], 10) : 0;
+            };
+            const hVal = parseVal(stat.home);
+            const aVal = parseVal(stat.away);
+            let hClass = 'text-dark';
+            let aClass = 'text-dark';
+            let labelClass = 'text-muted';
+            if (isRedCardRow) {
+                hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                labelClass = 'text-danger fw-bold';
+            } else if (hVal > aVal) {
+                hClass = 'text-success fw-bold';
+                aClass = 'text-danger';
+            } else if (hVal < aVal) {
+                hClass = 'text-danger';
+                aClass = 'text-success fw-bold';
+            }
+            return `
+                <tr>
+                    <td class="text-start ${hClass}">${lgEscape(stat.home ?? '')}</td>
+                    <td class="text-center ${labelClass}"><span style="font-size:0.65rem; margin-right:2px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
+                    <td class="text-end ${aClass}">${lgEscape(stat.away ?? '')}</td>
+                </tr>
+            `;
+        }).join('');
+        return `<table class="table table-sm stat-table mb-0"><tbody>${rows}</tbody></table>`;
+    }
+
+    function getTeamPerspective(data, subjectName) {
             if (!data || !subjectName) return null;
             const home = data.match?.home || data.home_team || data.h2h_home_team_name || '';
             const away = data.match?.away || data.away_team || data.h2h_away_team_name || '';
