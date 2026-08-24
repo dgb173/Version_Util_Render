@@ -9041,12 +9041,31 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const slot = selectEl.closest('.custom-compare-slot');
             if (!slot) return;
             const compSection = slot.closest('.pre-context-custom-compare');
+
+            const selectA = slot.querySelector('.custom-rival-select-a');
+            const selectB = slot.querySelector('.custom-rival-select-b');
+
+            // Evitar duplicados (mismo equipo en ambos lados del selector)
+            if (selectA && selectB && selectA.value && selectB.value && sameTeamName(selectA.value, selectB.value)) {
+                if (selectEl === selectB) {
+                    selectB.selectedIndex = 0;
+                } else {
+                    selectA.selectedIndex = 0;
+                }
+                const resultBox = slot.querySelector('.custom-slot-result');
+                if (resultBox) {
+                    resultBox.style.display = 'none';
+                    resultBox.innerHTML = '';
+                }
+                return;
+            }
+
             runSlotComparison(slot, slotIdx, compSection);
         }
 
         function quickSelectCustomRival(btn, event, role, rivalName) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            if (!btn) return;
+            if (!btn || !rivalName) return;
             const panel = btn.closest('.pre-context-moment') || btn.closest('.pre-context-panel');
             if (!panel) return;
             const compSection = panel.querySelector('.pre-context-custom-compare');
@@ -9055,41 +9074,91 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const slots = compSection.querySelectorAll('.custom-compare-slot');
             if (!slots.length) return;
 
-            // pointer circular de 0 a 5:
-            // 0: Tabla 1, Equipo 1
-            // 1: Tabla 1, Equipo 2 -> dispara Tabla 1
-            // 2: Tabla 2, Equipo 1
-            // 3: Tabla 2, Equipo 2 -> dispara Tabla 2
-            // 4: Tabla 3, Equipo 1
-            // 5: Tabla 3, Equipo 2 -> dispara Tabla 3
-            // 6 -> vuelve a 0 (solapa Tabla 1)
             let pointer = parseInt(compSection.dataset.activePointer || '0', 10);
             if (isNaN(pointer) || pointer < 0 || pointer >= 6) pointer = 0;
 
             const slotIndex = Math.floor(pointer / 2);
-            const selectType = (pointer % 2 === 0) ? '.custom-rival-select-a' : '.custom-rival-select-b';
-
             const currentSlotEl = slots[slotIndex];
             if (!currentSlotEl) return;
 
-            const selectEl = currentSlotEl.querySelector(selectType);
-            if (selectEl) {
-                for (let i = 0; i < selectEl.options.length; i++) {
-                    if (sameTeamName(selectEl.options[i].value, rivalName)) {
-                        selectEl.selectedIndex = i;
-                        break;
-                    }
-                }
-                selectEl.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
-                selectEl.style.boxShadow = '0 0 0 3px #3b82f6';
-                setTimeout(() => { selectEl.style.boxShadow = ''; }, 700);
+            const selectA = currentSlotEl.querySelector('.custom-rival-select-a');
+            const selectB = currentSlotEl.querySelector('.custom-rival-select-b');
 
-                if (pointer % 2 === 1) {
+            // Si el puntero está en el 2º selector de este slot (Equipo 2):
+            if (pointer % 2 === 1) {
+                const currentValA = selectA ? selectA.value : '';
+                // Si el usuario vuelve a hacer click en el MISMO equipo que ya cargó en Equipo 1:
+                if (currentValA && sameTeamName(currentValA, rivalName)) {
+                    // Evitar duplicado en la misma comparativa (no saltar ni asignar a Equipo 2)
+                    if (selectA) {
+                        selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+                        selectA.style.boxShadow = '0 0 0 3px #f59e0b';
+                        setTimeout(() => { selectA.style.boxShadow = ''; }, 700);
+                    }
+                    if (btn) {
+                        btn.style.boxShadow = '0 0 0 2px #f59e0b';
+                        setTimeout(() => { btn.style.boxShadow = ''; }, 700);
+                    }
+                    // Mantener el puntero en 1 esperando a un rival diferente
+                    return;
+                }
+
+                // Asignar a Selector B
+                if (selectB) {
+                    for (let i = 0; i < selectB.options.length; i++) {
+                        if (sameTeamName(selectB.options[i].value, rivalName)) {
+                            selectB.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    selectB.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+                    selectB.style.boxShadow = '0 0 0 3px #10b981';
+                    setTimeout(() => { selectB.style.boxShadow = ''; }, 700);
+
+                    // Ejecutar comparativa automáticamente
                     runSlotComparison(currentSlotEl, slotIndex, compSection);
                 }
+
+                // Avanzar puntero al siguiente slot (Selector A del siguiente)
+                compSection.dataset.activePointer = String((pointer + 1) % 6);
+            } else {
+                // Puntero en Equipo 1 (Selector A):
+                if (selectA) {
+                    // Si ya estaba exactamente este equipo seleccionado en selectA, no duplicar ni saltar a otro slot
+                    if (selectA.value && sameTeamName(selectA.value, rivalName)) {
+                        selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+                        selectA.style.boxShadow = '0 0 0 3px #3b82f6';
+                        setTimeout(() => { selectA.style.boxShadow = ''; }, 700);
+                        // Asegurar que el puntero pase a esperar el Equipo 2 de este mismo slot
+                        compSection.dataset.activePointer = String(slotIndex * 2 + 1);
+                        return;
+                    }
+
+                    for (let i = 0; i < selectA.options.length; i++) {
+                        if (sameTeamName(selectA.options[i].value, rivalName)) {
+                            selectA.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+                    selectA.style.boxShadow = '0 0 0 3px #3b82f6';
+                    setTimeout(() => { selectA.style.boxShadow = ''; }, 700);
+
+                    // Si selectB tenía el mismo equipo que acabamos de meter en selectA, limpiarlo para evitar duplicado
+                    if (selectB && selectB.value && sameTeamName(selectB.value, rivalName)) {
+                        selectB.selectedIndex = 0;
+                        const resultBox = currentSlotEl.querySelector('.custom-slot-result');
+                        if (resultBox) {
+                            resultBox.style.display = 'none';
+                            resultBox.innerHTML = '';
+                        }
+                    }
+                }
+
+                // Avanzar puntero a Equipo 2 de este mismo slot
+                compSection.dataset.activePointer = String((pointer + 1) % 6);
             }
 
-            compSection.dataset.activePointer = String((pointer + 1) % 6);
             compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
