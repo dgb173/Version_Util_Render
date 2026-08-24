@@ -1173,9 +1173,9 @@ def export_bucket_to_json(bucket: str) -> Path:
     
     # Limitar buckets históricos acumulativos a un máximo de 2500 partidos para evitar superar el límite de 100MB de GitHub.
     limit_val = None
-    if bucket == "data_precacheo.json":
+    if bucket in ("data_precacheo.json", "data_pending_results.json"):
         limit_val = 200
-    elif bucket.startswith("data_") and bucket != "data_pending_results.json":
+    elif bucket.startswith("data_"):
         limit_val = 2500
         
     rows = fetch_matches(bucket=bucket, limit=limit_val)

@@ -3570,8 +3570,9 @@ def process_all_finished_matches_background(
     handicap_filter=None,
     goal_line_filter=None,
     workers=5,
-    flush_every=0,
+    flush_every=100,
     export_legacy=None,
+    on_batch_hook=None,
 ):
     """
     Procesa partidos finalizados en segundo plano con optimizaciones:
@@ -3699,6 +3700,11 @@ def process_all_finished_matches_background(
                     if flush_every > 0 and completed_now % flush_every == 0:
                         export_changed_buckets(state_progress['changed_buckets'])
                         state_progress['changed_buckets'].clear()
+                        if on_batch_hook is not None:
+                            try:
+                                on_batch_hook(completed_now, total)
+                            except Exception as hook_err:
+                                print(f"Aviso en hook de lote: {hook_err}")
 
             print(f"Worker fijo {worker_idx}: completados {local_done}/{len(batch_ids)}.")
             return local_done

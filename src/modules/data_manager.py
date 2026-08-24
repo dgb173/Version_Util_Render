@@ -527,8 +527,9 @@ def delete_match_from_bucket(match_id, ah_val):
 
 
 def load_pending_results_matches():
-    """Returns matches currently pending final score."""
-    return sql_store.fetch_matches(bucket=PENDING_RESULTS_BUCKET)
+    """Returns matches currently pending final score (limitado a 200 en Render para optimizar memoria)."""
+    limit = 200 if os.getenv('RENDER') else None
+    return sql_store.fetch_matches(bucket=PENDING_RESULTS_BUCKET, limit=limit)
 
 
 def remove_pending_match(match_id):

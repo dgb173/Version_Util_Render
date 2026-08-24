@@ -24,7 +24,7 @@ on:
       flush_every:
         description: "Frecuencia de volcado incremental (cada N partidos)"
         required: false
-        default: "5"
+        default: "100"
         type: string
   schedule:
     # 05:00 AM hora de Madrid (UTC+2 en verano = 03:00 UTC)
@@ -74,7 +74,7 @@ jobs:
           ou="${{ inputs.ou || 'all' }}"
           workers="${{ inputs.workers || '10' }}"
           flush_every="${{ inputs.flush_every || '5' }}"
-          python scripts/cache_finished_matches.py "$handicap" "$ou" "$workers" "$flush_every"
+          python scripts/cache_finished_matches.py "$handicap" "$ou" "$workers" "${flush_every:-100}" --auto-push-batches
 
       - name: Publicar cambios livianos (JSONs) en main (EXCLUYENDO app_data.db para no llenar espacio)
         id: publish
