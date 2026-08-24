@@ -6367,36 +6367,47 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const rows = result.map((s, idx) => {
                 const hVal = Number.parseInt(s.home, 10);
                 const aVal = Number.parseInt(s.away, 10);
-                let hColor = '#1e293b';
-                let aColor = '#1e293b';
-                let hWeight = '700';
-                let aWeight = '700';
+                let hColor = '#475569';
+                let aColor = '#475569';
+                let hWeight = '800';
+                let aWeight = '800';
 
                 const isRed = s.displayName.includes('Rojas');
                 if (isRed) {
-                    if (hVal > 0) { hColor = '#dc2626'; hWeight = '900'; }
-                    if (aVal > 0) { aColor = '#dc2626'; aWeight = '900'; }
+                    hColor = hVal > 0 ? '#dc2626' : '#94a3b8';
+                    aColor = aVal > 0 ? '#dc2626' : '#94a3b8';
+                    hWeight = hVal > 0 ? '900' : '700';
+                    aWeight = aVal > 0 ? '900' : '700';
                 } else if (Number.isFinite(hVal) && Number.isFinite(aVal)) {
                     if (hVal > aVal) {
-                        hColor = '#16a34a';
+                        hColor = '#16a34a'; // VERDE para el ganador
+                        aColor = '#dc2626'; // ROJO para el perdedor
                         hWeight = '900';
-                    } else if (aVal > hVal) {
-                        aColor = '#16a34a';
                         aWeight = '900';
+                    } else if (aVal > hVal) {
+                        hColor = '#dc2626'; // ROJO para el perdedor
+                        aColor = '#16a34a'; // VERDE para el ganador
+                        hWeight = '900';
+                        aWeight = '900';
+                    } else {
+                        hColor = '#475569';
+                        aColor = '#475569';
+                        hWeight = '800';
+                        aWeight = '800';
                     }
                 }
 
                 const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
                 return `
                     <tr style="background:${bg}; border-bottom:1px solid #f1f5f9;">
-                        <td style="width:28%; text-align:left; font-size:0.68rem; font-weight:${hWeight}; color:${hColor}; padding:3px 6px;">
-                            ${isRed && hVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.58rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home)}
+                        <td style="width:28%; text-align:left; font-size:0.84rem; font-weight:${hWeight}; color:${hColor}; padding:4px 8px;">
+                            ${isRed && hVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.68rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home)}
                         </td>
-                        <td style="width:44%; text-align:center; font-size:0.62rem; color:#334155; font-weight:800; padding:3px 2px;">
-                            <span style="font-size:0.68rem; margin-right:2px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
+                        <td style="width:44%; text-align:center; font-size:0.68rem; color:#1e293b; font-weight:800; padding:4px 2px;">
+                            <span style="font-size:0.75rem; margin-right:3px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
                         </td>
-                        <td style="width:28%; text-align:right; font-size:0.68rem; font-weight:${aWeight}; color:${aColor}; padding:3px 6px;">
-                            ${isRed && aVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.58rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away)}
+                        <td style="width:28%; text-align:right; font-size:0.84rem; font-weight:${aWeight}; color:${aColor}; padding:4px 8px;">
+                            ${isRed && aVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.68rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away)}
                         </td>
                     </tr>
                 `;
@@ -6407,9 +6418,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 headerHtml = `
                     <thead>
                         <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
-                            <th style="width:38%; text-align:left; font-size:0.62rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
-                            <th style="width:24%; text-align:center; font-size:0.56rem; color:#64748b; padding:3px 2px; font-weight:800;">Stats</th>
-                            <th style="width:38%; text-align:right; font-size:0.62rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
+                            <th style="width:38%; text-align:left; font-size:0.70rem; font-weight:900; color:${customHome.color || '#334155'}; padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
+                            <th style="width:24%; text-align:center; font-size:0.62rem; color:#64748b; padding:4px 2px; font-weight:800;">Stats</th>
+                            <th style="width:38%; text-align:right; font-size:0.70rem; font-weight:900; color:${customAway.color || '#334155'}; padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
                         </tr>
                     </thead>
                 `;
@@ -7440,25 +7451,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             };
             const hVal = parseVal(stat.home);
             const aVal = parseVal(stat.away);
-            let hClass = 'text-dark';
-            let aClass = 'text-dark';
-            let labelClass = 'text-muted';
+            let hStyle = 'color:#475569; font-weight:800; font-size:0.84rem;';
+            let aStyle = 'color:#475569; font-weight:800; font-size:0.84rem;';
+            let labelClass = 'text-dark fw-bold';
             if (isRedCardRow) {
-                hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
-                aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
+                hStyle = hVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.84rem;' : 'color:#94a3b8; font-weight:700; font-size:0.84rem;';
+                aStyle = aVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.84rem;' : 'color:#94a3b8; font-weight:700; font-size:0.84rem;';
                 labelClass = 'text-danger fw-bold';
             } else if (hVal > aVal) {
-                hClass = 'text-success fw-bold';
-                aClass = 'text-danger';
+                hStyle = 'color:#16a34a; font-weight:900; font-size:0.84rem;';
+                aStyle = 'color:#dc2626; font-weight:900; font-size:0.84rem;';
             } else if (hVal < aVal) {
-                hClass = 'text-danger';
-                aClass = 'text-success fw-bold';
+                hStyle = 'color:#dc2626; font-weight:900; font-size:0.84rem;';
+                aStyle = 'color:#16a34a; font-weight:900; font-size:0.84rem;';
             }
             return `
                 <tr>
-                    <td class="text-start ${hClass}">${lgEscape(stat.home ?? '')}</td>
-                    <td class="text-center ${labelClass}"><span style="font-size:0.65rem; margin-right:2px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
-                    <td class="text-end ${aClass}">${lgEscape(stat.away ?? '')}</td>
+                    <td class="text-start" style="padding:4px 8px; ${hStyle}">${lgEscape(stat.home ?? '')}</td>
+                    <td class="text-center ${labelClass}" style="padding:4px 2px; font-size:0.68rem;"><span style="font-size:0.75rem; margin-right:3px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
+                    <td class="text-end" style="padding:4px 8px; ${aStyle}">${lgEscape(stat.away ?? '')}</td>
                 </tr>
             `;
         }).join('');
