@@ -142,9 +142,9 @@ async def main():
     print("Iniciando el proceso de scraping principal...")
     cleanup_precacheo_stale("PRE")
     try:
-        # Obtenemos los partidos próximos y los finalizados en paralelo
+        # Obtenemos los partidos próximos (máximo 200) y los finalizados
         proximos, finalizados = await asyncio.gather(
-            get_main_page_matches_async(limit=2000), # Aumentamos el límite para tener más datos
+            get_main_page_matches_async(limit=200),
             get_main_page_finished_matches_async(limit=1500)
         )
         
@@ -152,7 +152,7 @@ async def main():
         
         # Filtrar equipos juveniles (U19, U21, etc.)
         print("Filtrando partidos de equipos juveniles...")
-        proximos = filter_youth_matches(proximos)
+        proximos = filter_youth_matches(proximos)[:200]
         finalizados = filter_youth_matches(finalizados)
         print(f"Después de filtrar: {len(proximos)} próximos y {len(finalizados)} finalizados.")
 

@@ -225,7 +225,7 @@ def main() -> int:
             raise RefreshError("El archivo temporal de trabajos no es una lista JSON")
 
         stale_jobs = _stale_history_jobs(PRECACHE_FILE, args.upgrade_stale_days)
-        jobs = _merge_jobs(jobs, stale_jobs)
+        jobs = _merge_jobs(jobs, stale_jobs)[:200]
         if stale_jobs:
             print(
                 f"\nAñadidos para actualizar historial antiguo del día: {len(stale_jobs)}; "

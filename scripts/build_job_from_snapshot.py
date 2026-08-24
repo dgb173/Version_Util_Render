@@ -187,9 +187,13 @@ def build_jobs(
 
         upcoming = payload.get("upcoming_matches", []) if isinstance(payload, dict) else []
         candidate_ids = []
+        upcoming = (upcoming or [])[:200]
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
+            if len(jobs) >= 200:
+                print("Límite de 200 partidos alcanzado para el lote de precacheo.")
+                break
             mid = match.get("id") or match.get("match_id")
             if mid is None:
                 continue
@@ -204,9 +208,13 @@ def build_jobs(
         skipped_existing = 0
         forced_refresh = 0
 
+        upcoming = (upcoming or [])[:200]
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
+            if len(jobs) >= 200:
+                print("Límite de 200 partidos alcanzado para el lote de precacheo.")
+                break
 
             mid = match.get("id") or match.get("match_id")
             if mid is None:

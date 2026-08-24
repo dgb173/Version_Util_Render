@@ -1,7 +1,7 @@
 name: Actualizar precacheo para Render
 
 run-name: >-
-  Precacheo ${{ github.event_name == 'schedule' && 'automático cada 8 h' || 'manual desde móvil' }}
+  Precacheo ${{ github.event_name == 'schedule' && 'automático cada 4 h' || 'manual desde móvil' }}
 
 on:
   workflow_dispatch:
@@ -12,8 +12,7 @@ on:
         default: false
         type: boolean
   schedule:
-    - cron: "0 4,12,20 * * *"
-      timezone: "Europe/Madrid"
+    - cron: "0 */4 * * *" # Cada 4 horas (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)
 
 permissions:
   contents: write
@@ -141,7 +140,7 @@ jobs:
           {
             echo "## Actualización de precacheo"
             echo
-            echo "- Horario automático: **04:00, 12:00 y 20:00 Europe/Madrid**"
+            echo "- Horario automático: **cada 4 horas (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)**"
             echo "- Ejecución: **${{ github.event_name }}**"
             echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
             echo "- Contexto previo: **incremental, caché de 8 horas**"
