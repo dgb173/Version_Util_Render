@@ -1167,6 +1167,14 @@ def fetch_distinct_buckets() -> List[str]:
         return _fetch_distinct_buckets(conn)
 
 
+def _current_upcoming_match_ids(bucket: str, limit: int = 200) -> List[str]:
+    """Return chronological future rows from SQL, independent of update order."""
+    # Import lazily because pending_results_query itself uses sql_store.
+    from .pending_results_query import fetch_upcoming_ids_from_sql
+
+    return fetch_upcoming_ids_from_sql(buckets=[bucket], limit=limit)
+
+
 def export_bucket_to_json(bucket: str) -> Path:
     ensure_bootstrap()
     path = DATA_DIR / bucket
@@ -1178,7 +1186,15 @@ def export_bucket_to_json(bucket: str) -> Path:
     elif bucket.startswith("data_"):
         limit_val = 2500
         
-    rows = fetch_matches(bucket=bucket, limit=limit_val)
+    # Pre-Cacheo is a deploy snapshot, not a historical bucket. Exporting the
+    # 200 most recently updated SQL rows can omit future matches and keep stale
+    # ones instead. Export the next chronological analyses so Render receives
+    # the same current set as local.
+    if bucket == "data_precacheo.json":
+        current_ids = _current_upcoming_match_ids(bucket, limit=limit_val or 200)
+        rows = fetch_matches_by_ids(current_ids, bucket=bucket, limit=limit_val)
+    else:
+        rows = fetch_matches(bucket=bucket, limit=limit_val)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(
         f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"

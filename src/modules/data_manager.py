@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from . import sql_store
+from . import precache_fast_store, sql_store
 from .red_cards import normalize_red_card_stats_payload
 
 LOGGER = logging.getLogger(__name__)
@@ -248,6 +248,8 @@ def save_precacheo_match(match_data):
 
 def load_precacheo_matches():
     """Loads all pre-cached matches."""
+    if precache_fast_store.available():
+        return precache_fast_store.load_all_payloads()
     return sql_store.fetch_matches(bucket=PRECACHEO_BUCKET)
 
 
@@ -388,7 +390,8 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
 
 def get_precacheo_match(match_id):
     """Gets a single match from pre-cacheo by ID."""
-    return sql_store.get_match(str(match_id), bucket=PRECACHEO_BUCKET)
+    fast_payload = precache_fast_store.get_payload(str(match_id)) if precache_fast_store.available() else None
+    return fast_payload or sql_store.get_match(str(match_id), bucket=PRECACHEO_BUCKET)
 
 
 def finalize_precacheo_batch(match_ids):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -14,7 +15,9 @@ from modules import sql_store  # noqa: E402
 
 def export_bucket(bucket: str) -> None:
     out_path = sql_store.export_bucket_to_json(bucket)
-    count = len(sql_store.fetch_matches(bucket=bucket))
+    with out_path.open("r", encoding="utf-8") as fh:
+        exported = json.load(fh)
+    count = len(exported) if isinstance(exported, list) else 0
     print(f"OK: {bucket} -> {out_path} ({count} partidos)")
 
 

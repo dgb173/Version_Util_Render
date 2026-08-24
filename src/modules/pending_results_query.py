@@ -9,7 +9,7 @@ import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
 
-from . import data_manager, sql_store
+from . import data_manager, precache_fast_store, sql_store
 
 
 UTC = dt.timezone.utc
@@ -61,10 +61,18 @@ def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str,
     return "(" + " OR ".join(clauses) + ")", params
 
 
-def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[str, Any]]:
-    """Fetch only lightweight headers needed to filter, count and sort."""
+def _fetch_sql_candidates(
+    handicap_buckets: Optional[Sequence[str]],
+    buckets: Optional[Sequence[str]] = None,
+) -> List[Dict[str, Any]]:
+    """Fetch lightweight candidate headers directly from SQL."""
     sql_store.ensure_bootstrap()
-    buckets = [data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET]
+    selected_buckets = list(
+        buckets or [data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET]
+    )
+    if not selected_buckets:
+        return []
+    placeholders = ", ".join("?" for _ in selected_buckets)
     query = """
         SELECT
             match_id,
@@ -74,9 +82,9 @@ def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[st
             json_extract(payload_json, '$.start_time') AS start_time,
             json_extract(payload_json, '$.time') AS match_time
         FROM matches
-        WHERE bucket IN (?, ?)
-    """
-    params: List[Any] = list(buckets)
+        WHERE bucket IN ({placeholders})
+    """.format(placeholders=placeholders)
+    params: List[Any] = selected_buckets
 
     handicap_sql, handicap_params = _handicap_bucket_sql(handicap_buckets)
     if handicap_sql:
@@ -99,10 +107,20 @@ def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[st
     ]
 
 
+def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[str, Any]]:
+    """Fetch only lightweight headers needed to filter, count and sort."""
+    if precache_fast_store.available():
+        return precache_fast_store.load_headers(handicap_buckets)
+    return _fetch_sql_candidates(handicap_buckets)
+
+
 def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]]:
     ordered_ids = [str(match_id) for match_id in match_ids or [] if str(match_id)]
     if not ordered_ids:
         return {}
+    if precache_fast_store.available():
+        return precache_fast_store.load_payloads(ordered_ids)
+
     placeholders = ", ".join("?" for _ in ordered_ids)
     query = (
         "SELECT match_id, payload_json, explorer_json "
@@ -214,6 +232,35 @@ def _has_final_score(match: Dict[str, Any]) -> bool:
     if not score or "?" in score:
         return False
     return ":" in score or "-" in score
+
+
+def fetch_upcoming_ids_from_sql(
+    buckets: Optional[Sequence[str]] = None,
+    limit: int = 200,
+    now: Optional[dt.datetime] = None,
+) -> List[str]:
+    """Return chronological upcoming IDs directly from SQL, bypassing fast snapshots."""
+    now_utc = now or dt.datetime.now(UTC)
+    if now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=UTC)
+    else:
+        now_utc = now_utc.astimezone(UTC)
+
+    upcoming: List[Tuple[dt.datetime, str]] = []
+    seen_ids: set[str] = set()
+    for row in _fetch_sql_candidates(None, buckets=buckets):
+        match_id = str(row.get("match_id") or row.get("id") or "").strip()
+        if not match_id or match_id in seen_ids or _has_final_score(row):
+            continue
+        scheduled_at = _scheduled_at_utc(row)
+        if not scheduled_at or scheduled_at <= now_utc:
+            continue
+        seen_ids.add(match_id)
+        upcoming.append((scheduled_at, match_id))
+
+    upcoming.sort(key=lambda item: (item[0], item[1]))
+    safe_limit = max(1, int(limit or 200))
+    return [match_id for _, match_id in upcoming[:safe_limit]]
 
 
 def fetch_pending_page(

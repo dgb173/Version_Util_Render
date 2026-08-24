@@ -191,9 +191,6 @@ def build_jobs(
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
-            if len(jobs) >= 200:
-                print("Límite de 200 partidos alcanzado para el lote de precacheo.")
-                break
             mid = match.get("id") or match.get("match_id")
             if mid is None:
                 continue
