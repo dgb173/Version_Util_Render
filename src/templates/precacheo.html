@@ -829,12 +829,18 @@
             margin-top: 4px;
             border-top: 1px dashed #e2e8f0;
             padding-top: 3px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
         .pre-card-stats-toggle {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
@@ -854,10 +860,14 @@
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 5px;
-            padding: 4px;
+            padding: 2px;
             margin-top: 3px;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
             cursor: default;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
 
@@ -2170,6 +2180,10 @@
             border-radius: 10px;
         }
 
+        .mobile-detail-toolbar {
+            display: none;
+        }
+
         @media (max-width: 390px) {
             .mobile-team-grid {
                 grid-template-columns: 1fr;
@@ -2567,6 +2581,180 @@
                 width: 100% !important;
                 max-width: none !important;
             }
+
+            /* Lista móvil horizontal; el análisis se abre como vista interna. */
+            .main-content > .table-responsive {
+                padding: 0 !important;
+                border: 1px solid #d9e1ea !important;
+                border-radius: 10px;
+                background: #fff !important;
+                overflow: hidden !important;
+            }
+
+            .main-content .excel-table tbody { gap: 0 !important; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) {
+                display: grid !important;
+                grid-template-columns: 68px minmax(0, 1fr) minmax(0, 1fr) 32px !important;
+                gap: 0 !important;
+                min-height: 92px;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-bottom: 1px solid #d9e1ea !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: #fff !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td {
+                display: none !important;
+                min-width: 0 !important;
+                padding: 8px 7px !important;
+                border: 0 !important;
+                border-right: 1px solid #e2e8f0 !important;
+                border-radius: 0 !important;
+                background: #fff !important;
+                overflow: hidden;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1),
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2),
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3),
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) {
+                display: flex !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td::before { display: none !important; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1) {
+                grid-column: auto !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 7px 5px !important;
+                background: #f8fafc !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1) .badge {
+                max-width: 62px;
+                padding: 4px 5px;
+                white-space: normal;
+                font-size: .62rem;
+                line-height: 1.2;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1) .mt-1 { max-width: 62px; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2),
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) {
+                flex-direction: column !important;
+                justify-content: center !important;
+                border-left: 0 !important;
+                font-size: .76rem !important;
+                font-weight: 800;
+                line-height: 1.22;
+                overflow-wrap: anywhere;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) { color: #0b66d4 !important; }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) { color: #dc2626 !important; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) .team-cell-league-stats,
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) .team-cell-league-stats {
+                margin-top: 4px !important;
+                font-size: .58rem !important;
+                line-height: 1.16 !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) {
+                grid-column: auto !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                border-right: 0 !important;
+                background: #f8fafc !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .d-flex { display: contents !important; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn:not([title="Ver Estadísticas"]),
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) a { display: none !important; }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"] {
+                width: 32px !important;
+                height: 100% !important;
+                min-height: 92px !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                color: #64748b !important;
+                box-shadow: none !important;
+            }
+
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"] i { display: none; }
+            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
+                content: '\276F';
+                margin: 0;
+                font-size: 1.15rem;
+            }
+
+            .main-content .excel-table tbody tr.stats-collapse-row.is-open {
+                position: fixed !important;
+                inset: 0 !important;
+                z-index: 1085;
+                width: 100vw !important;
+                height: 100dvh !important;
+                margin: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: #f1f5f9 !important;
+                overflow-y: auto !important;
+                overscroll-behavior: contain;
+                box-shadow: none !important;
+            }
+
+            .main-content .stats-collapse-row .collapse > div {
+                padding: 0 0 calc(18px + env(safe-area-inset-bottom)) !important;
+                background: #f1f5f9 !important;
+                overflow: visible !important;
+            }
+
+            .mobile-detail-toolbar {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                display: grid;
+                grid-template-columns: 42px minmax(0, 1fr) 42px;
+                align-items: center;
+                min-height: calc(58px + env(safe-area-inset-top));
+                padding: env(safe-area-inset-top) 8px 0;
+                color: #fff;
+                background: #0f172a;
+                box-shadow: 0 2px 10px rgba(15, 23, 42, .18);
+            }
+
+            .mobile-detail-back {
+                width: 38px;
+                height: 38px;
+                border: 0;
+                border-radius: 50%;
+                color: #fff;
+                background: rgba(255,255,255,.12);
+            }
+
+            .mobile-detail-title {
+                min-width: 0;
+                padding: 7px 8px;
+                text-align: center;
+                font-size: .8rem;
+                font-weight: 800;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            body.mobile-detail-open { overflow: hidden !important; }
         }
     </style>
 </head>
@@ -9440,14 +9628,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
                 return `
                     <tr style="background:${bg}; border-bottom:1px solid #f1f5f9;">
-                        <td style="width:28%; text-align:left; font-size:0.84rem; font-weight:${hWeight}; color:${hColor}; padding:4px 8px;">
-                            ${isRed && hVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.68rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home)}
+                        <td style="width:23%; text-align:left; font-size:0.80rem; font-weight:${hWeight}; color:${hColor}; padding:3px 4px; overflow:hidden; white-space:nowrap;">
+                            ${isRed && hVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home)}
                         </td>
-                        <td style="width:44%; text-align:center; font-size:0.68rem; color:#1e293b; font-weight:800; padding:4px 2px;">
-                            <span style="font-size:0.75rem; margin-right:3px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
+                        <td style="width:54%; text-align:center; font-size:0.63rem; color:#1e293b; font-weight:800; padding:3px 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="font-size:0.68rem; margin-right:2px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
                         </td>
-                        <td style="width:28%; text-align:right; font-size:0.84rem; font-weight:${aWeight}; color:${aColor}; padding:4px 8px;">
-                            ${isRed && aVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.68rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away)}
+                        <td style="width:23%; text-align:right; font-size:0.80rem; font-weight:${aWeight}; color:${aColor}; padding:3px 4px; overflow:hidden; white-space:nowrap;">
+                            ${isRed && aVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away)}
                         </td>
                     </tr>
                 `;
@@ -9458,15 +9646,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 headerHtml = `
                     <thead>
                         <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
-                            <th style="width:38%; text-align:left; font-size:0.70rem; font-weight:900; color:${customHome.color || '#334155'}; padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
-                            <th style="width:24%; text-align:center; font-size:0.62rem; color:#64748b; padding:4px 2px; font-weight:800;">Stats</th>
-                            <th style="width:38%; text-align:right; font-size:0.70rem; font-weight:900; color:${customAway.color || '#334155'}; padding:4px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
+                            <th style="width:40%; text-align:left; font-size:0.64rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
+                            <th style="width:20%; text-align:center; font-size:0.58rem; color:#64748b; padding:3px 1px; font-weight:800;">Stats</th>
+                            <th style="width:40%; text-align:right; font-size:0.64rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
                         </tr>
                     </thead>
                 `;
             }
 
-            return `<table class="table table-sm mb-0" style="margin:0; width:100%; border-collapse:collapse; border-radius:5px; overflow:hidden;">${headerHtml}<tbody>${rows}</tbody></table>`;
+            return `<table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border-radius:5px; box-sizing:border-box; overflow:hidden;">${headerHtml}<tbody>${rows}</tbody></table>`;
         }
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
@@ -13074,7 +13262,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     : '';
                 const viewBtnHtml = APP_PRECACHEO_ONLY
                     ? ''
-                    : `<a href="/estudio/${matchId}" target="_blank" class="btn btn-sm btn-outline-secondary p-0 d-inline-flex align-items-center justify-content-center ms-1" style="width: 22px; height: 22px; border-radius: 50%;" title="Ver Estudio">
+                    : `<a href="/estudio/${matchId}" class="btn btn-sm btn-outline-secondary p-0 d-inline-flex align-items-center justify-content-center ms-1" style="width: 22px; height: 22px; border-radius: 50%;" title="Ver Estudio">
                             <i class="fas fa-eye" style="font-size: 10px;"></i>
                        </a>`;
                 const actionButtonsHtml = `<div class="d-flex align-items-center justify-content-center gap-1">${globalStatsBtn}${searchPatternsBtn}${viewBtnHtml}</div>`;
@@ -13266,14 +13454,30 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <td colspan="13" class="p-0">
                             <div class="collapse" id="${globalStatsId}">
                                 <div class="py-2 px-2" style="background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa); border-top: 1px solid #dee2e6;">
+                                    <div class="mobile-detail-toolbar">
+                                        <button type="button" class="mobile-detail-back" data-bs-toggle="collapse" data-bs-target="#${globalStatsId}" aria-label="Volver a los partidos">
+                                            <i class="fa-solid fa-arrow-left"></i>
+                                        </button>
+                                        <div class="mobile-detail-title">
+                                            <div>${escapeDataAttr(home)} vs ${escapeDataAttr(away)}</div>
+                                            <small style="color:#cbd5e1;">${escapeDataAttr(fecha)}${league ? ` · ${escapeDataAttr(league)}` : ''}</small>
+                                        </div>
+                                        <span aria-hidden="true"></span>
+                                    </div>
                                     ${globalStatsHtmlContent}
                                 </div>
                             </div>
                         </td>
                     `;
                     const collapseElement = collapseTr.querySelector('.collapse');
-                    collapseElement.addEventListener('show.bs.collapse', () => collapseTr.classList.add('is-open'));
-                    collapseElement.addEventListener('hidden.bs.collapse', () => collapseTr.classList.remove('is-open'));
+                    collapseElement.addEventListener('show.bs.collapse', () => {
+                        collapseTr.classList.add('is-open');
+                        if (window.innerWidth <= 768) document.body.classList.add('mobile-detail-open');
+                    });
+                    collapseElement.addEventListener('hidden.bs.collapse', () => {
+                        collapseTr.classList.remove('is-open');
+                        document.body.classList.remove('mobile-detail-open');
+                    });
                     tbody.appendChild(collapseTr);
                 }
             });
@@ -15363,29 +15567,29 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             };
             const hVal = parseVal(stat.home);
             const aVal = parseVal(stat.away);
-            let hStyle = 'color:#475569; font-weight:800; font-size:0.84rem;';
-            let aStyle = 'color:#475569; font-weight:800; font-size:0.84rem;';
+            let hStyle = 'color:#475569; font-weight:800; font-size:0.80rem;';
+            let aStyle = 'color:#475569; font-weight:800; font-size:0.80rem;';
             let labelClass = 'text-dark fw-bold';
             if (isRedCardRow) {
-                hStyle = hVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.84rem;' : 'color:#94a3b8; font-weight:700; font-size:0.84rem;';
-                aStyle = aVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.84rem;' : 'color:#94a3b8; font-weight:700; font-size:0.84rem;';
+                hStyle = hVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.80rem;' : 'color:#94a3b8; font-weight:700; font-size:0.80rem;';
+                aStyle = aVal > 0 ? 'color:#dc2626; font-weight:900; font-size:0.80rem;' : 'color:#94a3b8; font-weight:700; font-size:0.80rem;';
                 labelClass = 'text-danger fw-bold';
             } else if (hVal > aVal) {
-                hStyle = 'color:#16a34a; font-weight:900; font-size:0.84rem;';
-                aStyle = 'color:#dc2626; font-weight:900; font-size:0.84rem;';
+                hStyle = 'color:#16a34a; font-weight:900; font-size:0.80rem;';
+                aStyle = 'color:#dc2626; font-weight:900; font-size:0.80rem;';
             } else if (hVal < aVal) {
-                hStyle = 'color:#dc2626; font-weight:900; font-size:0.84rem;';
-                aStyle = 'color:#16a34a; font-weight:900; font-size:0.84rem;';
+                hStyle = 'color:#dc2626; font-weight:900; font-size:0.80rem;';
+                aStyle = 'color:#16a34a; font-weight:900; font-size:0.80rem;';
             }
             return `
                 <tr>
-                    <td class="text-start" style="padding:4px 8px; ${hStyle}">${lgEscape(stat.home ?? '')}</td>
-                    <td class="text-center ${labelClass}" style="padding:4px 2px; font-size:0.68rem;"><span style="font-size:0.75rem; margin-right:3px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
-                    <td class="text-end" style="padding:4px 8px; ${aStyle}">${lgEscape(stat.away ?? '')}</td>
+                    <td class="text-start" style="width:23%; padding:3px 4px; overflow:hidden; white-space:nowrap; ${hStyle}">${lgEscape(stat.home ?? '')}</td>
+                    <td class="text-center ${labelClass}" style="width:54%; padding:3px 1px; font-size:0.63rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><span style="font-size:0.68rem; margin-right:2px;">${stat.icon || ''}</span>${lgEscape(label)}</td>
+                    <td class="text-end" style="width:23%; padding:3px 4px; overflow:hidden; white-space:nowrap; ${aStyle}">${lgEscape(stat.away ?? '')}</td>
                 </tr>
             `;
         }).join('');
-        return `<table class="table table-sm stat-table mb-0"><tbody>${rows}</tbody></table>`;
+        return `<table class="table table-sm stat-table mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; box-sizing:border-box;"><tbody>${rows}</tbody></table>`;
     }
 
     function getTeamPerspective(data, subjectName) {
