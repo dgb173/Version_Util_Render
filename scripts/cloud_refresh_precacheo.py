@@ -151,6 +151,31 @@ def _validate_outputs(max_json_bytes: int) -> dict:
             "para no reemplazar Render con un snapshot vacío"
         )
 
+    madrid_today = dt.datetime.now(ZoneInfo("Europe/Madrid")).date()
+    stale_upcoming = []
+    for match in upcoming:
+        if not isinstance(match, dict):
+            continue
+        raw_time = match.get("time_obj") or match.get("start_time")
+        parsed_date = None
+        if raw_time:
+            try:
+                parsed = dt.datetime.fromisoformat(str(raw_time).replace("Z", "+00:00"))
+                if parsed.tzinfo is not None:
+                    parsed = parsed.astimezone(ZoneInfo("Europe/Madrid"))
+                parsed_date = parsed.date()
+            except (TypeError, ValueError):
+                parsed_date = None
+        if parsed_date is not None and parsed_date < madrid_today:
+            stale_upcoming.append(str(match.get("id") or match.get("match_id") or "?"))
+
+    if stale_upcoming:
+        preview = ", ".join(stale_upcoming[:10])
+        raise RefreshError(
+            "El scraper marcó como próximos partidos de días anteriores "
+            f"({len(stale_upcoming)}; ids: {preview}). Se cancela la publicación."
+        )
+
     precache = _load_json(PRECACHE_FILE)
     pending = _load_json(PENDING_FILE)
     if not isinstance(precache, list) or not precache:

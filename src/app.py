@@ -1404,6 +1404,45 @@ def _get_cached_upcoming_match_ids(limit=2000):
     return ids
 
 
+def _precache_row_visible_now(match, *, today=None, allow_pending_yesterday=True):
+    """Return whether a pre-cache row belongs in current list responses."""
+    if not isinstance(match, dict):
+        return False
+
+    madrid = ZoneInfo('Europe/Madrid')
+    if today is None:
+        today = datetime.datetime.now(madrid).date()
+
+    parsed = None
+    for key in ('time_obj', 'start_time'):
+        raw = match.get(key)
+        if raw in (None, ''):
+            continue
+        try:
+            parsed = datetime.datetime.fromisoformat(str(raw).replace('Z', '+00:00'))
+            if parsed.tzinfo is not None:
+                parsed = parsed.astimezone(madrid).replace(tzinfo=None)
+            break
+        except (TypeError, ValueError):
+            continue
+
+    if parsed is None:
+        parsed = data_manager.parse_match_date(
+            match.get('match_date') or match.get('date') or match.get('precacheo_date')
+        )
+    if parsed is None:
+        return False
+
+    match_date = parsed.date()
+    if match_date >= today:
+        return True
+    if not allow_pending_yesterday or match_date != today - datetime.timedelta(days=1):
+        return False
+
+    score = str(match.get('score') or match.get('final_score') or '').strip()
+    return not score or '?' in score
+
+
 def _compact_precacheo_match_for_list(match, include_specialist_picks=False):
     """
     Trim heavyweight HTML blobs from precache rows for list APIs.
@@ -5146,6 +5185,7 @@ def api_precacheo_list():
                     bucket=data_manager.PRECACHEO_BUCKET,
                     limit=limit,
                 )
+                matches = [m for m in matches if _precache_row_visible_now(m)]
 
             # Fill remaining slots with latest rows to keep behavior stable for other consumers.
             if len(matches) < limit:
@@ -5162,6 +5202,8 @@ def api_precacheo_list():
                 )
                 for row in refill_rows:
                     if not isinstance(row, dict):
+                        continue
+                    if not _precache_row_visible_now(row):
                         continue
                     raw_id = row.get('match_id') or row.get('id')
                     if raw_id in (None, ''):
@@ -5250,6 +5292,8 @@ def api_precacheo_list():
             for pending_row in pending_rows:
                 if not isinstance(pending_row, dict):
                     continue
+                if not _precache_row_visible_now(pending_row):
+                    continue
                 raw_id = pending_row.get('match_id') or pending_row.get('id')
                 if raw_id in (None, ''):
                     continue
@@ -5267,7 +5311,11 @@ def api_precacheo_list():
         if use_compact:
             matches = [_compact_precacheo_match_for_list(m) for m in matches if isinstance(m, dict)]
 
-        return jsonify({'matches': matches})
+        return jsonify({
+            'matches': matches,
+            'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'offline': False,
+        })
     except Exception as e:
         print(f"Error loading precacheo: {e}")
         return jsonify({'error': str(e)}), 500
