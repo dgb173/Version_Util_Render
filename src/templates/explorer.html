@@ -657,6 +657,298 @@
         .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
         .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
         .pre-context-role.is-all { color: #245a91; background: #e7f1fb; }
+        .pre-context-vs-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 5px;
+            border: 1px solid #c084fc;
+            border-radius: 4px;
+            background: #faf5ff;
+            color: #7e22ce;
+            font-size: .56rem;
+            font-weight: 800;
+            line-height: 1.25;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .pre-context-vs-btn:hover {
+            background: #7e22ce;
+            color: #ffffff;
+            border-color: #7e22ce;
+        }
+        .pre-context-team-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        /* --- ESTILOS TARJETAS MISMARCADORES / FLASHSCORE MÓVIL --- */
+        .pre-context-mobile-list {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 4px 0;
+            width: 100%;
+        }
+
+        .mismarcadores-match-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .mismarcadores-match-card.res-w {
+            border-left: 4px solid #16a34a;
+        }
+        .mismarcadores-match-card.res-d {
+            border-left: 4px solid #f59e0b;
+        }
+        .mismarcadores-match-card.res-l {
+            border-left: 4px solid #dc2626;
+        }
+
+        .mm-match-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: #64748b;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+        }
+
+        .mm-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mm-date {
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .mm-venue {
+            font-size: 0.58rem;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 3px;
+            line-height: 1.15;
+        }
+        .mm-venue.is-home {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .mm-venue.is-away {
+            background: #ffedd5;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+        }
+
+        .mm-league {
+            font-size: 0.62rem;
+            font-weight: 800;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+        }
+
+        .mm-meta-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mm-ah-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #0f766e;
+            background: #ccfbf1;
+            border: 1px solid #99f6e4;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .mm-res-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            font-size: 0.62rem;
+            font-weight: 900;
+            color: #ffffff;
+        }
+        .mm-res-badge.is-w {
+            background: #16a34a;
+        }
+        .mm-res-badge.is-d {
+            background: #f59e0b;
+        }
+        .mm-res-badge.is-l {
+            background: #dc2626;
+        }
+
+        .mm-scoreboard {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 2px 0;
+        }
+
+        .mm-team-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            color: #475569;
+        }
+
+        .mm-team-row.is-subject {
+            font-weight: 900;
+            color: #0f172a;
+        }
+
+        .mm-team-row.is-winner .mm-team-score {
+            font-weight: 900;
+            color: #16a34a;
+        }
+
+        .mm-team-name {
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .mm-team-score {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #1e293b;
+            padding-left: 8px;
+        }
+
+        .mm-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .mm-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 6px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            border-radius: 4px;
+            line-height: 1.2;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.12s ease;
+        }
+
+        .mm-btn-vs {
+            background: #faf5ff;
+            border: 1px solid #c084fc;
+            color: #7e22ce;
+        }
+        .mm-btn-vs:hover {
+            background: #7e22ce;
+            color: #ffffff;
+        }
+
+        .mm-btn-pick {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+        }
+        .mm-btn-pick:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .mm-btn-stats {
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            color: #047857;
+        }
+        .mm-btn-stats:hover, .mm-btn-stats.is-active {
+            background: #059669 !important;
+            color: #ffffff !important;
+            border-color: #047857 !important;
+        }
+
+        .mm-btn-col3 {
+            background: #f5f3ff;
+            border: 1px solid #c4b5fd;
+            color: #6d28d9;
+        }
+        .mm-btn-col3:hover, .mm-btn-col3.is-active {
+            background: #6d28d9 !important;
+            color: #ffffff !important;
+            border-color: #5b21b6 !important;
+        }
+
+        .mm-btn-mov {
+            background: #f0f9ff;
+            border: 1px solid #7dd3fc;
+            color: #0369a1;
+        }
+        .mm-btn-mov:hover, .mm-btn-mov.is-active {
+            background: #0284c7 !important;
+            color: #ffffff !important;
+            border-color: #0369a1 !important;
+        }
+
+        .mm-btn-both {
+            background: #eef2ff;
+            border: 1px solid #a5b4fc;
+            color: #4338ca;
+            padding: 3px 5px;
+        }
+        .mm-btn-both:hover, .mm-btn-both.is-active {
+            background: #4f46e5 !important;
+            color: #ffffff !important;
+            border-color: #4338ca !important;
+        }
+
+        .mm-detail-container {
+            width: 100% !important;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+            padding-top: 6px;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        .mm-detail-container .pre-context-detail-slot {
+            min-width: 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
         .pre-context-team-col3-btn {
             flex: 0 0 auto;
             padding: 2px 7px;
@@ -1041,14 +1333,24 @@
                 font-size: 0.68rem;
             }
             .pre-context-team-head {
-                flex-direction: column;
-                align-items: stretch;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
                 gap: 6px;
                 padding: 6px 8px;
             }
             .pre-context-team-title-wrap {
-                width: 100%;
-                justify-content: space-between;
+                min-width: 0;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .pre-context-team-actions {
+                display: flex;
+                align-items: center;
+                gap: 3px;
+                flex-wrap: wrap;
             }
             .pre-context-team-name {
                 font-size: 0.82rem;
@@ -1057,48 +1359,32 @@
             .pre-context-team-mov-btn,
             .pre-context-team-both-btn,
             .pre-context-team-pattern-btn {
-                flex: 1 1 auto;
+                flex: 0 0 auto;
                 text-align: center;
-                padding: 4px 5px;
-                font-size: 0.65rem;
+                padding: 2px 5px;
+                font-size: 0.62rem;
                 margin: 0;
             }
+            .pre-context-table-responsive {
+                width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
             .pre-context-table {
-                font-size: 0.74rem;
-            }
-            .pre-context-table th, .pre-context-table td {
-                padding: 5px 3px;
-            }
-            .pre-context-table .ctx-date {
-                width: 21%;
-                font-size: 0.68rem;
-            }
-            .pre-context-table .ctx-league {
-                width: 10%;
-                font-size: 0.64rem;
-            }
-            .pre-context-table .ctx-rival {
-                width: 34%;
-                font-size: 0.74rem;
-            }
-            .pre-context-table .ctx-score {
-                width: 11%;
-                font-size: 0.8rem;
-            }
-            .pre-context-table .ctx-ah {
-                width: 10%;
+                width: 100% !important;
+                min-width: 620px !important;
+                table-layout: auto !important;
                 font-size: 0.72rem;
             }
-            .pre-context-table .ctx-col3 {
-                width: 7%;
-            }
-            .pre-context-table .ctx-mov {
-                width: 7%;
+            .pre-context-table th, .pre-context-table td {
+                padding: 5px 6px !important;
+                white-space: nowrap !important;
+                overflow: visible !important;
             }
             .pre-context-col3-btn,
             .pre-context-mov-btn {
-                min-width: 30px;
-                padding: 3px 4px;
+                min-width: 32px;
+                padding: 2px 5px;
                 font-size: 0.62rem;
                 border-radius: 4px;
             }
@@ -2291,18 +2577,18 @@
                 background: transparent;
             }
 
-            .main-content .excel-table thead {
+            .main-content > .table-responsive > .excel-table > thead {
                 display: none !important;
             }
 
-            .main-content .excel-table tbody {
+            .main-content > .table-responsive > .excel-table > tbody {
                 display: flex !important;
                 flex-direction: column;
                 gap: 14px;
             }
 
             /* Tarjeta gráfica moderna del partido (Image 1 en móvil) */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) {
+            .main-content > .table-responsive > .excel-table > tbody > tr:not(.stats-collapse-row) {
                 display: grid !important;
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 gap: 8px !important;
@@ -2316,11 +2602,11 @@
                 transition: transform 0.12s ease, box-shadow 0.12s ease;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row):active {
+            .main-content > .table-responsive > .excel-table > tbody > tr:not(.stats-collapse-row):active {
                 transform: scale(0.99);
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td {
+            .main-content > .table-responsive > .excel-table > tbody > tr:not(.stats-collapse-row) > td {
                 display: flex !important;
                 flex-direction: column;
                 min-width: 0;
@@ -2332,7 +2618,7 @@
                 overflow-wrap: anywhere;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td::before {
+            .main-content > .table-responsive > .excel-table > tbody > tr:not(.stats-collapse-row) > td::before {
                 display: block !important;
                 margin-bottom: 3px;
                 color: #64748b;
@@ -2653,6 +2939,68 @@
                 width: 100% !important;
                 max-width: none !important;
             }
+
+            /* Mostrar Pestañas Móviles en el Contexto (Estilo Pills MisMarcadores) */
+            .pre-context-mobile-tabs {
+                display: flex !important;
+                gap: 6px;
+                margin: 8px 4px 10px 4px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 2px;
+            }
+
+            .pre-context-mobile-tabs .mobile-tab-btn {
+                border-radius: 20px !important;
+                font-size: .70rem !important;
+                font-weight: 900 !important;
+                padding: 6px 12px !important;
+                white-space: nowrap !important;
+                min-height: 32px !important;
+                box-shadow: 0 1px 2px rgba(0,0,0,.06);
+            }
+
+            .pre-context-panel {
+                padding: 8px 6px !important;
+                margin: 6px !important;
+            }
+
+            .pre-context-table-responsive {
+                display: none !important;
+            }
+
+            .pre-context-mobile-list {
+                display: flex !important;
+            }
+
+            .pre-context-stats-btn,
+            .pre-context-col3-btn,
+            .pre-context-mov-btn {
+                min-height: 28px !important;
+                padding: 3px 6px !important;
+                font-size: .65rem !important;
+                font-weight: 900 !important;
+            }
+
+            .pre-context-team-grid {
+                display: block !important;
+            }
+
+            .pre-context-team + .pre-context-team {
+                border-left: none !important;
+                border-top: 2px solid #cbd5e1 !important;
+                padding-top: 10px !important;
+                margin-top: 10px !important;
+            }
+
+            .pre-context-detail-container {
+                width: 100% !important;
+            }
+
+            .pre-context-detail-slot {
+                width: 100% !important;
+                margin-bottom: 8px !important;
+            }
         }
     
 
@@ -2784,9 +3132,9 @@
                             <select class="header-filter mt-1" id="filter-prev-home-res" style="width: 100%;"
                                 onchange="renderTableWithPagination()">
                                 <option value="">Res...</option>
-                                <option value="HOME_WIN">Win</option>
-                                <option value="DRAW">Draw</option>
-                                <option value="AWAY_WIN">Loss</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
                             </select>
                         </th>
                         <th>
@@ -2797,9 +3145,9 @@
                             <select class="header-filter mt-1" id="filter-prev-away-res" style="width: 100%;"
                                 onchange="renderTableWithPagination()">
                                 <option value="">Res...</option>
-                                <option value="HOME_WIN">Win</option>
-                                <option value="DRAW">Draw</option>
-                                <option value="AWAY_WIN">Loss</option>
+                                <option value="COVER">Cubierto</option>
+                                <option value="PUSH">Push</option>
+                                <option value="NO_COVER">No Cubierto</option>
                             </select>
                         </th>
                         <th style="width: 100px;">
@@ -3226,6 +3574,65 @@
         let msHandicap, msOu, msPrevHomeAh, msPrevAwayAh, msH2hCol3Ah, msIndLocalAh, msIndVisitanteAh;
         let msH2hStadiumStartAh, msH2hStadiumEndAh, msH2hGeneralStartAh, msH2hGeneralEndAh;
 
+        function initMultiSelects() {
+            const containerHandicap = document.getElementById('container-filter-handicap');
+            if (!containerHandicap) return;
+            if (msHandicap && containerHandicap.children.length > 0) return;
+
+            const ahOptions = [
+                { value: '0', label: '0' },
+                { value: '0.5', label: '+0.5' },
+                { value: '-0.5', label: '-0.5' },
+                { value: '1', label: '+1.0' },
+                { value: '-1', label: '-1.0' },
+                { value: '1.5', label: '+1.5' },
+                { value: '-1.5', label: '-1.5' },
+                { value: '2', label: '+2.0' },
+                { value: '-2', label: '-2.0' },
+                { value: '2.5', label: '+2.5+' },
+                { value: '-2.5', label: '-2.5-' }
+            ];
+
+            const ouOptions = [
+                { value: '2.0', label: '2.0' },
+                { value: '2.5', label: '2.5' },
+                { value: '3.0', label: '3.0' },
+                { value: '3.5', label: '3.5' },
+                { value: '4+', label: '4+' }
+            ];
+
+            try {
+                msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', () => {
+                    triggerSearch();
+                });
+                msOu = new MultiSelect('container-filter-ou', ouOptions, 'O/U', () => {
+                    syncOuFilterInput();
+                    triggerSearch();
+                });
+                msPrevHomeAh = new MultiSelect('container-filter-prev-home-ah', ahOptions, 'AH', renderTableWithPagination);
+                msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', renderTableWithPagination);
+                msH2hStadiumStartAh = new MultiSelect('container-filter-h2h-stadium-start-ah', ahOptions, 'Ini...', renderTableWithPagination);
+                msH2hStadiumEndAh = new MultiSelect('container-filter-h2h-stadium-end-ah', ahOptions, 'Fin...', renderTableWithPagination);
+                msH2hGeneralStartAh = new MultiSelect('container-filter-h2h-general-start-ah', ahOptions, 'Ini...', renderTableWithPagination);
+                msH2hGeneralEndAh = new MultiSelect('container-filter-h2h-general-end-ah', ahOptions, 'Fin...', renderTableWithPagination);
+                msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', renderTableWithPagination);
+                msIndVisitanteAh = new MultiSelect('container-filter-ind-visitante-ah', ahOptions, 'AH', renderTableWithPagination);
+                msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', renderTableWithPagination);
+                syncOuFilterInput();
+            } catch (err) {
+                console.error("Error initializing MultiSelects:", err);
+            }
+        }
+
+        // Auto-initialize immediately and on ready/load events
+        initMultiSelects();
+        if (document.readyState !== 'loading') {
+            initMultiSelects();
+        } else {
+            document.addEventListener('DOMContentLoaded', initMultiSelects);
+        }
+        window.addEventListener('load', initMultiSelects);
+
         // Helper for MultiSelect AH matching - Uses buckets:
         // 0 = exactly 0
         // 0.5 = 0.25, 0.5, 0.75
@@ -3524,31 +3931,29 @@
             hasPreset = applyMultiSelectValue(msPrevHomeAh, prevHomeAhRaw) || hasPreset;
             const prevHomeResNorm = (() => {
                 const v = (prevHomeResRaw || '').toUpperCase();
-                if (v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'HOME_WIN';
-                if (v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'AWAY_WIN';
-                if (v === 'D' || v === 'DRAW') return 'DRAW';
+                if (v === 'COVER' || v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'COVER';
+                if (v === 'NO_COVER' || v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'NO_COVER';
+                if (v === 'PUSH' || v === 'D' || v === 'DRAW') return 'PUSH';
                 return v;
             })();
-            hasPreset = applySelectRawValue('filter-prev-home-res', prevHomeResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
+            hasPreset = applySelectRawValue('filter-prev-home-res', prevHomeResNorm, ['COVER', 'PUSH', 'NO_COVER', 'HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
             hasPreset = applyMultiSelectValue(msPrevAwayAh, prevAwayAhRaw) || hasPreset;
             const prevAwayResNorm = (() => {
                 const v = (prevAwayResRaw || '').toUpperCase();
-                if (v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'HOME_WIN';
-                if (v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'AWAY_WIN';
-                if (v === 'D' || v === 'DRAW') return 'DRAW';
+                if (v === 'COVER' || v === 'WIN' || v === 'W' || v === 'HOME_WIN') return 'COVER';
+                if (v === 'NO_COVER' || v === 'LOSS' || v === 'L' || v === 'AWAY_WIN') return 'NO_COVER';
+                if (v === 'PUSH' || v === 'D' || v === 'DRAW') return 'PUSH';
                 return v;
             })();
-            hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
+            hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['COVER', 'PUSH', 'NO_COVER', 'HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
 
             const ouLimitRaw = params.get('ou_limit');
             hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
             // Inicializar autocompletado de ligas
             initLeagueAutocomplete();
-            // Solo buscar automáticamente si viene con preset de URL (ej. desde precacheo "Buscar patrones")
-            if (hasPreset || isPatternAutoSearch) {
-                triggerSearch();
-            }
+            // Cargar partidos siempre al abrir el explorador para mostrar los datos de inmediato
+            triggerSearch();
         }
 
 
@@ -3650,11 +4055,10 @@
             const mapPrevResToApi = (rawVal) => {
                 const v = (rawVal || '').toUpperCase();
                 if (!v) return null;
-                if (v === 'HOME_WIN' || v === 'DRAW' || v === 'AWAY_WIN') return v;
-                if (v === 'WIN' || v === 'W') return 'HOME_WIN';
-                if (v === 'LOSS' || v === 'L') return 'AWAY_WIN';
-                if (v === 'D') return 'DRAW';
-                return null;
+                if (v === 'COVER' || v === 'HOME_WIN' || v === 'WIN' || v === 'W') return 'COVER';
+                if (v === 'NO_COVER' || v === 'AWAY_WIN' || v === 'LOSS' || v === 'L') return 'NO_COVER';
+                if (v === 'PUSH' || v === 'DRAW' || v === 'D') return 'PUSH';
+                return v;
             };
 
             const filters = {
@@ -3891,16 +4295,40 @@
             const fPrevHomeRes = document.getElementById('filter-prev-home-res')?.value;
             if (fPrevHomeRes) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i?.prev_home) return false;
-                    return i.prev_home.wdl === fPrevHomeRes;
+                    if (!i?.prev_home || !i.prev_home.score || i.prev_home.score === '?:?') return false;
+                    const currentAh = parseFloat(i.candidate?.ah_real);
+                    if (isNaN(currentAh)) return false;
+                    const localPerspectiveAh = -currentAh;
+                    const coverResult = calculateWDL(i.prev_home.score, localPerspectiveAh, true);
+                    const coverStatus = coverResult === 'HOME_WIN' ? 'COVER' : (coverResult === 'AWAY_WIN' ? 'NO_COVER' : (coverResult === 'DRAW' ? 'PUSH' : ''));
+                    const realWdl = i.prev_home.wdl;
+                    return coverStatus === fPrevHomeRes || coverResult === fPrevHomeRes || realWdl === fPrevHomeRes ||
+                        (fPrevHomeRes === 'COVER' && (coverResult === 'HOME_WIN' || coverStatus === 'COVER')) ||
+                        (fPrevHomeRes === 'NO_COVER' && (coverResult === 'AWAY_WIN' || coverStatus === 'NO_COVER')) ||
+                        (fPrevHomeRes === 'PUSH' && (coverResult === 'DRAW' || coverStatus === 'PUSH')) ||
+                        (fPrevHomeRes === 'WIN' && (coverResult === 'HOME_WIN' || realWdl === 'HOME_WIN' || realWdl === 'WIN')) ||
+                        (fPrevHomeRes === 'LOSS' && (coverResult === 'AWAY_WIN' || realWdl === 'AWAY_WIN' || realWdl === 'LOSS')) ||
+                        (fPrevHomeRes === 'DRAW' && (coverResult === 'DRAW' || realWdl === 'DRAW' || realWdl === 'D'));
                 });
             }
 
             const fPrevAwayRes = document.getElementById('filter-prev-away-res')?.value;
             if (fPrevAwayRes) {
                 filteredResults = filteredResults.filter(i => {
-                    if (!i?.prev_away) return false;
-                    return i.prev_away.wdl === fPrevAwayRes;
+                    if (!i?.prev_away || !i.prev_away.score || i.prev_away.score === '?:?') return false;
+                    const currentAh = parseFloat(i.candidate?.ah_real);
+                    if (isNaN(currentAh)) return false;
+                    const awayPerspectiveAh = currentAh;
+                    const coverResult = calculateWDL(i.prev_away.score, awayPerspectiveAh, false);
+                    const coverStatus = coverResult === 'HOME_WIN' ? 'COVER' : (coverResult === 'AWAY_WIN' ? 'NO_COVER' : (coverResult === 'DRAW' ? 'PUSH' : ''));
+                    const realWdl = i.prev_away.wdl;
+                    return coverStatus === fPrevAwayRes || coverResult === fPrevAwayRes || realWdl === fPrevAwayRes ||
+                        (fPrevAwayRes === 'COVER' && (coverResult === 'HOME_WIN' || coverStatus === 'COVER')) ||
+                        (fPrevAwayRes === 'NO_COVER' && (coverResult === 'AWAY_WIN' || coverStatus === 'NO_COVER')) ||
+                        (fPrevAwayRes === 'PUSH' && (coverResult === 'DRAW' || coverStatus === 'PUSH')) ||
+                        (fPrevAwayRes === 'WIN' && (coverResult === 'HOME_WIN' || realWdl === 'HOME_WIN' || realWdl === 'WIN')) ||
+                        (fPrevAwayRes === 'LOSS' && (coverResult === 'AWAY_WIN' || realWdl === 'AWAY_WIN' || realWdl === 'LOSS')) ||
+                        (fPrevAwayRes === 'DRAW' && (coverResult === 'DRAW' || realWdl === 'DRAW' || realWdl === 'D'));
                 });
             }
 
@@ -4162,6 +4590,7 @@
         }
 
         function renderTable(results) {
+            if (typeof initMultiSelects === 'function') initMultiSelects();
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
@@ -4858,10 +5287,21 @@
                 tr.dataset.handicap = c.ah_real || '';
                 tr.dataset.ou = c.ou_line || '';
                 tr.dataset.ft_res = ftRes;
+                const currentAhNum = parseFloat(c.ah_real);
+                let phCoverAttr = '';
+                if (item.prev_home && item.prev_home.score && !isNaN(currentAhNum)) {
+                    const res = calculateWDL(item.prev_home.score, -currentAhNum, true);
+                    phCoverAttr = res === 'HOME_WIN' ? 'COVER' : (res === 'AWAY_WIN' ? 'NO_COVER' : (res === 'DRAW' ? 'PUSH' : ''));
+                }
+                let paCoverAttr = '';
+                if (item.prev_away && item.prev_away.score && !isNaN(currentAhNum)) {
+                    const res = calculateWDL(item.prev_away.score, currentAhNum, false);
+                    paCoverAttr = res === 'HOME_WIN' ? 'COVER' : (res === 'AWAY_WIN' ? 'NO_COVER' : (res === 'DRAW' ? 'PUSH' : ''));
+                }
                 tr.dataset.prev_home_ah = item.prev_home ? item.prev_home.ah : '';
-                tr.dataset.prev_home_wdl = item.prev_home ? item.prev_home.wdl : '';
+                tr.dataset.prev_home_wdl = phCoverAttr || (item.prev_home ? item.prev_home.wdl : '');
                 tr.dataset.prev_away_ah = item.prev_away ? item.prev_away.ah : '';
-                tr.dataset.prev_away_wdl = item.prev_away ? item.prev_away.wdl : '';
+                tr.dataset.prev_away_wdl = paCoverAttr || (item.prev_away ? item.prev_away.wdl : '');
 
                 tr.innerHTML = `
             <td class="text-center text-muted small">
@@ -5353,15 +5793,13 @@
                 }
 
                 const mainRows = [...team.querySelectorAll('tr.pre-context-row')];
+                const mobileCards = [...team.querySelectorAll('.pre-context-mobile-list .mismarcadores-match-card')];
                 const counts = { W: 0, D: 0, L: 0 };
                 let visibleCount = 0;
 
-                mainRows.forEach(row => {
-                    const detailRow = row.nextElementSibling && row.nextElementSibling.classList.contains('pre-context-detail-row')
-                        ? row.nextElementSibling : null;
-                    const rowVenueMode = row.dataset.venueMode || 'specific';
+                const checkItemVisibility = (item, countIdx) => {
+                    const rowVenueMode = item.dataset.venueMode || 'specific';
                     let visible = true;
-
                     if (onlyRecent5) {
                         if (rowVenueMode !== 'all') visible = false;
                     } else {
@@ -5369,7 +5807,7 @@
                     }
 
                     if (visible && onlyLeague) {
-                        const rawRowLeague = String(row.dataset.contextLeague || '').trim();
+                        const rawRowLeague = String(item.dataset.contextLeague || '').trim();
                         const normRow = normLeagueId(rawRowLeague);
                         if (!normCurrent || normRow !== normCurrent) {
                             visible = false;
@@ -5377,17 +5815,24 @@
                     }
 
                     if (visible && onlySameHa) {
-                        if (row.dataset.sameHa !== '1') {
+                        if (item.dataset.sameHa !== '1') {
                             visible = false;
                         }
                     }
 
                     if (visible && onlyRecent5) {
-                        if (visibleCount >= 5) {
+                        if (countIdx >= 5) {
                             visible = false;
                         }
                     }
+                    return visible;
+                };
 
+                let tableVisCount = 0;
+                mainRows.forEach(row => {
+                    const detailRow = row.nextElementSibling && row.nextElementSibling.classList.contains('pre-context-detail-row')
+                        ? row.nextElementSibling : null;
+                    const visible = checkItemVisibility(row, tableVisCount);
                     row.style.display = visible ? '' : 'none';
                     row.hidden = !visible;
 
@@ -5399,10 +5844,24 @@
                     }
 
                     if (visible) {
-                        visibleCount++;
+                        tableVisCount++;
                         const result = row.dataset.contextResult;
                         if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
                     }
+                });
+                visibleCount = tableVisCount;
+
+                let mobileVisCount = 0;
+                mobileCards.forEach(card => {
+                    const detailContainer = card.querySelector('.mm-detail-container');
+                    const visible = checkItemVisibility(card, mobileVisCount);
+                    card.style.display = visible ? 'flex' : 'none';
+                    card.hidden = !visible;
+                    if (detailContainer && !visible) {
+                        detailContainer.style.display = 'none';
+                        detailContainer.hidden = true;
+                    }
+                    if (visible) mobileVisCount++;
                 });
 
                 const table = team.querySelector('.pre-context-table');
@@ -5489,6 +5948,9 @@
             }
             const renderTeam = (teamName, role, venueMatches, allVenueMatches, allVenues = false) => {
                 let wins = 0, draws = 0, losses = 0;
+                const opponentTeam = role === 'home' ? (current.away_name || pc?.away_name || currentAway) : (current.home_name || pc?.home_name || currentHome);
+                const opponentRoleLabel = role === 'home' ? 'Visitante' : 'Local';
+                const vsBtnLabel = role === 'home' ? 'vs Vis' : 'vs Loc';
 
                 // El targetAh es el mismo hándicap base para ambos lados (+0.25 / +0.5 / +0.75)
                 const teamTargetAh = Number.parseFloat(parentCurrentAh);
@@ -5530,17 +5992,21 @@
                 };
 
                 const buildRows = (matchesList, mode) => {
-                    return asRows(matchesList).map((rawItem, idx) => {
+                    const tableRows = [];
+                    const mobileCards = [];
+
+                    asRows(matchesList).forEach((rawItem) => {
                         const item = enrichMatchItem(rawItem);
                         const score = parseScoreValue(item?.score || item?.score_raw || item?.result);
                         const subjectHome = sameTeamName(item?.home ?? item?.home_team, teamName);
                         const own = score ? (subjectHome ? score.home : score.away) : null;
                         const rivalGoals = score ? (subjectHome ? score.away : score.home) : null;
                         let result = 'D';
+                        let resLetter = 'E';
                         if (own !== null) {
-                            if (own > rivalGoals) result = 'W';
-                            else if (own < rivalGoals) result = 'L';
-                            else result = 'D';
+                            if (own > rivalGoals) { result = 'W'; resLetter = 'G'; }
+                            else if (own < rivalGoals) { result = 'L'; resLetter = 'P'; }
+                            else { result = 'D'; resLetter = 'E'; }
                         }
                         if (mode === 'specific') {
                             if (result === 'W') wins += 1;
@@ -5590,13 +6056,20 @@
                             ? '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó en Casa (Local)">H</span>'
                             : '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>';
 
-                        return `<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+                        // 1. Fila de Escritorio (PC - 100% Idéntica)
+                        tableRows.push(`<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date">${venueBadge}${esc(rowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
-                                <div style="display:flex; align-items:center; justify-content:space-between; gap:2px;">
-                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto;">${esc(rival || '-')}</span>
-                                    <button type="button" class="pre-context-pick-btn" style="padding:1px 4px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.55rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(rival)}')" title="Seleccionar '${esc(rival)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot"></i></button><button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:3px;">
+                                    <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; font-weight:700;">${esc(rival || '-')}</span>
+                                    <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
+                                        <button type="button" class="pre-context-vs-btn" onclick="quickCompareVsOpponent(this, event, '${esc(role)}', '${esc(rival)}')" title="Comparar '${esc(rival)}' vs ${esc(opponentTeam)} (${esc(opponentRoleLabel)}) en la tabla de abajo">
+                                            <i class="fa-solid fa-code-compare"></i>${esc(vsBtnLabel)}
+                                        </button>
+                                        <button type="button" class="pre-context-pick-btn" style="padding:1px 4px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.55rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(rival)}')" title="Seleccionar '${esc(rival)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot"></i></button>
+                                        <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
+                                    </div>
                                 </div>
                             </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
@@ -5613,14 +6086,73 @@
                                     <div class="pre-context-detail-slot mov-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                 </div>
                             </td>
-                        </tr>`;
-                    }).join('');
+                        </tr>`);
+
+                        // 2. Tarjeta Móvil MisMarcadores / Flashscore
+                        const homeScoreVal = score ? score.home : '-';
+                        const awayScoreVal = score ? score.away : '-';
+                        const homeIsWinner = score && score.home > score.away;
+                        const awayIsWinner = score && score.away > score.home;
+
+                        mobileCards.push(`<div class="mismarcadores-match-card res-${result.toLowerCase()} pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
+                            <div class="mm-match-meta">
+                                <div class="mm-meta-left">
+                                    <span class="mm-date">${esc(rowDate)}</span>
+                                    <span class="mm-venue is-${isSubjectHome ? 'home' : 'away'}" title="${isSubjectHome ? 'Jugó en Casa (Local)' : 'Jugó Fuera (Visitante)'}">${isSubjectHome ? 'H' : 'V'}</span>
+                                    <span class="mm-league" title="Liga ID ${esc(leagueId)}"><i class="fa-solid fa-trophy me-1"></i>${esc(leagueId)}</span>
+                                </div>
+                                <div class="mm-meta-right">
+                                    <span class="mm-ah-badge">AH ${esc(rowAh)}</span>
+                                    <span class="mm-res-badge is-${result.toLowerCase()}" title="${result === 'W' ? 'Ganado' : (result === 'L' ? 'Perdido' : 'Empate')}">${resLetter}</span>
+                                </div>
+                            </div>
+                            <div class="mm-scoreboard">
+                                <div class="mm-team-row ${isSubjectHome ? 'is-subject' : ''} ${homeIsWinner ? 'is-winner' : ''}">
+                                    <div class="mm-team-name"><i class="fa-solid fa-shield-halved me-1 ${isSubjectHome ? 'text-primary' : 'text-muted'}"></i>${esc(rowHome || '-')}</div>
+                                    <div class="mm-team-score">${esc(homeScoreVal)}</div>
+                                </div>
+                                <div class="mm-team-row ${!isSubjectHome ? 'is-subject' : ''} ${awayIsWinner ? 'is-winner' : ''}">
+                                    <div class="mm-team-name"><i class="fa-solid fa-shield-halved me-1 ${!isSubjectHome ? 'text-primary' : 'text-muted'}"></i>${esc(rowAway || '-')}</div>
+                                    <div class="mm-team-score">${esc(awayScoreVal)}</div>
+                                </div>
+                            </div>
+                            <div class="mm-actions-bar">
+                                <button type="button" class="mm-btn mm-btn-vs" onclick="quickCompareVsOpponent(this, event, '${esc(role)}', '${esc(rival)}')" title="Comparar '${esc(rival)}' vs ${esc(opponentTeam)} (${esc(opponentRoleLabel)}) en la tabla de abajo">
+                                    <i class="fa-solid fa-code-compare me-1"></i>${esc(vsBtnLabel)}
+                                </button>
+                                <button type="button" class="mm-btn mm-btn-pick" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(rival)}')" title="Seleccionar '${esc(rival)}' en el comparador de abajo">
+                                    <i class="fa-regular fa-circle-dot me-1"></i>Comp
+                                </button>
+                                <button type="button" class="mm-btn mm-btn-stats pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido">
+                                    <i class="fa-solid fa-chart-simple me-1"></i>Stats
+                                </button>
+                                <button type="button" class="mm-btn mm-btn-col3 pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3">
+                                    <i class="fa-regular fa-eye me-1"></i>Col3
+                                </button>
+                                <button type="button" class="mm-btn mm-btn-mov pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo">
+                                    <i class="fa-solid fa-chart-line me-1"></i>Mov.
+                                </button>
+                                <button type="button" class="mm-btn mm-btn-both pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas debajo">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </button>
+                            </div>
+                            <div class="pre-context-detail-container mm-detail-container" style="display:none;">
+                                <div class="pre-context-detail-slot match-stats-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                <div class="pre-context-detail-slot col3-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                                <div class="pre-context-detail-slot mov-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
+                            </div>
+                        </div>`);
+                    });
+
+                    return { tableRows: tableRows.join(''), mobileCards: mobileCards.join('') };
                 };
 
-                const specificRows = buildRows(venueMatches, 'specific');
+                const specificData = buildRows(venueMatches, 'specific');
                 const allRowsList = allVenueMatches && allVenueMatches.length ? allVenueMatches : venueMatches;
-                const allRows = buildRows(allRowsList, 'all');
-                const totalRows = specificRows + allRows;
+                const allData = buildRows(allRowsList, 'all');
+
+                const totalTableRows = specificData.tableRows + allData.tableRows;
+                const totalMobileCards = specificData.mobileCards + allData.mobileCards;
 
                 return `<div class="pre-context-team" data-default-role="${esc(role)}">
                     <div class="pre-context-team-head">
@@ -5629,12 +6161,20 @@
                             <button type="button" class="pre-context-pick-btn ms-1" style="padding:1px 5px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.58rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(teamName)}')" title="Seleccionar '${esc(teamName)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot me-1"></i>Comparar</button>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${totalRows ? `<button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button>` : ''}
+                        ${totalTableRows ? `<div class="pre-context-team-actions"><button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button></div>` : ''}
                     </div>
-                    ${totalRows ? `<table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
-                        <tbody>${totalRows}</tbody>
-                    </table>
+                    ${totalTableRows ? `
+                    <!-- Vista Escritorio (PC): Tabla completa intacta -->
+                    <div class="pre-context-table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%;">
+                        <table class="pre-context-table">
+                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                            <tbody>${totalTableRows}</tbody>
+                        </table>
+                    </div>
+                    <!-- Vista Móvil: Tarjetas MisMarcadores / Flashscore -->
+                    <div class="pre-context-mobile-list">
+                        ${totalMobileCards}
+                    </div>
                     <div class="pre-context-filter-empty">Sin partidos disponibles</div>
                     <div class="pre-context-summary"><span class="is-win" data-summary-result="W">V ${wins}</span><span class="is-draw" data-summary-result="D">E ${draws}</span><span class="is-loss" data-summary-result="L">D ${losses}</span></div>`
                     : '<div class="pre-context-empty">Sin historial previo disponible</div>'}
@@ -5796,26 +6336,39 @@
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; flex-wrap:wrap; gap:4px;">
                             <div>
                                 <span style="font-size:.74rem; font-weight:900; color:#1e293b;">
-                                    <i class="fa-solid fa-table-columns me-1 text-primary"></i>3 Tablas de Comparativa a la Carta (Col3 Custom)
+                                    <i class="fa-solid fa-table-columns me-1 text-primary"></i>Tabla de Comparativa a la Carta (Col3 Custom)
                                 </span>
                                 <span style="font-size:.62rem; font-weight:700; color:#64748b; margin-left:6px;">
-                                    Pulsa 🔘 en las tablas para ir llenando y solapando las 3 comparativas de forma continua
+                                    Pulsa 🔘 en las tablas para llenar los equipos o selecciónalos manualmente
                                 </span>
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.62rem; font-weight:800;" onclick="resetAllCustomCompareSlots(this, event)">
-                                <i class="fa-solid fa-rotate-left me-1"></i>Limpiar las 3 tablas
+                                <i class="fa-solid fa-rotate-left me-1"></i>Limpiar tabla
                             </button>
                         </div>
-                        <div class="custom-compare-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:8px;">
-                            ${renderCompareSlot(0, '#2563eb', '📌 Comparativa 1')}
-                            ${renderCompareSlot(1, '#7c3aed', '📌 Comparativa 2')}
-                            ${renderCompareSlot(2, '#d97706', '📌 Comparativa 3')}
+                        <div class="custom-compare-grid" style="display:grid; grid-template-columns:1fr; gap:8px;">
+                            ${renderCompareSlot(0, '#2563eb', '📌 Comparativa a la Carta')}
                         </div>
+                    </div>
+                `;
+
+                const mobileTabsHtml = `
+                    <div class="pre-context-mobile-tabs" style="display:none;">
+                        <button type="button" class="btn btn-sm btn-primary flex-fill mobile-tab-btn active" style="font-size:0.74rem; font-weight:800; padding:6px 6px; border-radius:6px; min-height:36px;" onclick="switchPreContextMobileTab(this, 'home')">
+                            🏠 ${esc(momentHome)}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary flex-fill mobile-tab-btn" style="font-size:0.74rem; font-weight:800; padding:6px 6px; border-radius:6px; min-height:36px;" onclick="switchPreContextMobileTab(this, 'away')">
+                            ✈️ ${esc(momentAway)}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mobile-tab-btn" style="font-size:0.74rem; font-weight:800; padding:6px 10px; border-radius:6px; min-height:36px;" onclick="switchPreContextMobileTab(this, 'both')" title="Ver ambos apilados">
+                            ⚡ Ambos
+                        </button>
                     </div>
                 `;
 
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
+                    ${mobileTabsHtml}
                     <div class="pre-context-team-grid">
                         ${renderTeam(momentHome, 'home', moment.home_matches, (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : ((pc?.recent_home_matches_all && pc.recent_home_matches_all.length) ? pc.recent_home_matches_all : ((pc?.recent_home_matches_same_league_general && pc.recent_home_matches_same_league_general.length) ? pc.recent_home_matches_same_league_general : moment.home_matches)), homeAllVenues)}
                         ${renderTeam(momentAway, 'away', moment.away_matches, (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : ((pc?.recent_away_matches_all && pc.recent_away_matches_all.length) ? pc.recent_away_matches_all : ((pc?.recent_away_matches_same_league_general && pc.recent_away_matches_same_league_general.length) ? pc.recent_away_matches_same_league_general : moment.away_matches)), awayAllVenues)}
@@ -5895,6 +6448,32 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             </div>`;
         }
 
+        function switchPreContextMobileTab(btn, mode) {
+            const momentEl = btn.closest('.pre-context-moment');
+            if (!momentEl) return;
+            const grid = momentEl.querySelector('.pre-context-team-grid');
+            if (!grid) return;
+            const teamDivs = grid.querySelectorAll('.pre-context-team');
+
+            momentEl.querySelectorAll('.mobile-tab-btn').forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add(b.innerText.includes('Ambos') ? 'btn-outline-secondary' : 'btn-outline-primary');
+            });
+            btn.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+            btn.classList.add('btn-primary', 'active');
+
+            if (mode === 'home') {
+                if (teamDivs[0]) teamDivs[0].style.setProperty('display', 'block', 'important');
+                if (teamDivs[1]) teamDivs[1].style.setProperty('display', 'none', 'important');
+            } else if (mode === 'away') {
+                if (teamDivs[0]) teamDivs[0].style.setProperty('display', 'none', 'important');
+                if (teamDivs[1]) teamDivs[1].style.setProperty('display', 'block', 'important');
+            } else {
+                if (teamDivs[0]) teamDivs[0].style.setProperty('display', 'block', 'important');
+                if (teamDivs[1]) teamDivs[1].style.setProperty('display', 'block', 'important');
+            }
+        }
+
         let preContextCol3Loading = false;
         let preContextCol3ActiveButton = null;
 
@@ -5908,6 +6487,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
 
         function getRowDetailElements(button) {
+            const card = button?.closest('.mismarcadores-match-card');
+            if (card) {
+                const detailRow = card.querySelector('.mm-detail-container');
+                return {
+                    parentRow: card,
+                    detailRow: detailRow,
+                    statsBtn: card.querySelector('.pre-context-stats-btn'),
+                    col3Btn: card.querySelector('.pre-context-col3-btn'),
+                    movBtn: card.querySelector('.pre-context-mov-btn'),
+                    bothBtn: card.querySelector('.pre-context-both-btn'),
+                    statsSlot: detailRow ? detailRow.querySelector('.match-stats-slot') : null,
+                    col3Slot: detailRow ? detailRow.querySelector('.col3-slot') : null,
+                    movSlot: detailRow ? detailRow.querySelector('.mov-slot') : null,
+                };
+            }
             const tr = button?.closest('tr');
             if (!tr) return null;
             const detailRow = tr.classList.contains('pre-context-detail-row')
@@ -5948,7 +6542,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const allVisible = statsVisible && col3Visible && movVisible;
 
             ctx.detailRow.dataset.open = anyVisible ? '1' : '0';
-            ctx.detailRow.style.display = anyVisible ? '' : 'none';
+            ctx.detailRow.style.display = anyVisible ? (ctx.detailRow.classList.contains('mm-detail-container') ? 'flex' : '') : 'none';
             ctx.detailRow.hidden = !anyVisible;
 
             if (ctx.statsBtn) ctx.statsBtn.classList.toggle('is-active', !!statsVisible);
@@ -6045,21 +6639,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!slots.length) return;
 
             let pointer = parseInt(compSection.dataset.activePointer || '0', 10);
-            if (isNaN(pointer) || pointer < 0 || pointer >= 6) pointer = 0;
+            if (isNaN(pointer) || pointer < 0 || pointer >= 2) pointer = 0;
 
-            const slotIndex = Math.floor(pointer / 2);
-            const currentSlotEl = slots[slotIndex];
+            const slotIndex = 0;
+            const currentSlotEl = slots[0];
             if (!currentSlotEl) return;
 
             const selectA = currentSlotEl.querySelector('.custom-rival-select-a');
             const selectB = currentSlotEl.querySelector('.custom-rival-select-b');
 
-            // Si el puntero está en el 2º selector de este slot (Equipo 2):
-            if (pointer % 2 === 1) {
+            // Si el puntero está en el 2º selector (Equipo 2):
+            if (pointer === 1) {
                 const currentValA = selectA ? selectA.value : '';
                 // Si el usuario vuelve a hacer click en el MISMO equipo que ya cargó en Equipo 1:
                 if (currentValA && sameTeamName(currentValA, rivalName)) {
-                    // Evitar duplicado en la misma comparativa (no saltar ni asignar a Equipo 2)
                     if (selectA) {
                         selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
                         selectA.style.boxShadow = '0 0 0 3px #f59e0b';
@@ -6069,7 +6662,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         btn.style.boxShadow = '0 0 0 2px #f59e0b';
                         setTimeout(() => { btn.style.boxShadow = ''; }, 700);
                     }
-                    // Mantener el puntero en 1 esperando a un rival diferente
                     return;
                 }
 
@@ -6086,21 +6678,19 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     setTimeout(() => { selectB.style.boxShadow = ''; }, 700);
 
                     // Ejecutar comparativa automáticamente
-                    runSlotComparison(currentSlotEl, slotIndex, compSection);
+                    runSlotComparison(currentSlotEl, 0, compSection);
                 }
 
-                // Avanzar puntero al siguiente slot (Selector A del siguiente)
-                compSection.dataset.activePointer = String((pointer + 1) % 6);
+                // Avanzar puntero a 0 para el siguiente ciclo
+                compSection.dataset.activePointer = '0';
             } else {
                 // Puntero en Equipo 1 (Selector A):
                 if (selectA) {
-                    // Si ya estaba exactamente este equipo seleccionado en selectA, no duplicar ni saltar a otro slot
                     if (selectA.value && sameTeamName(selectA.value, rivalName)) {
                         selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
                         selectA.style.boxShadow = '0 0 0 3px #3b82f6';
                         setTimeout(() => { selectA.style.boxShadow = ''; }, 700);
-                        // Asegurar que el puntero pase a esperar el Equipo 2 de este mismo slot
-                        compSection.dataset.activePointer = String(slotIndex * 2 + 1);
+                        compSection.dataset.activePointer = '1';
                         return;
                     }
 
@@ -6125,10 +6715,89 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     }
                 }
 
-                // Avanzar puntero a Equipo 2 de este mismo slot
-                compSection.dataset.activePointer = String((pointer + 1) % 6);
+                // Avanzar puntero a Equipo 2
+                compSection.dataset.activePointer = '1';
             }
 
+            compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function quickCompareVsOpponent(btn, event, role, rivalName) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!btn || !rivalName) return;
+            const panel = btn.closest('.pre-context-moment') || btn.closest('.pre-context-panel');
+            if (!panel) return;
+            const compSection = panel.querySelector('.pre-context-custom-compare');
+            if (!compSection) return;
+
+            const slots = compSection.querySelectorAll('.custom-compare-slot');
+            if (!slots.length) return;
+
+            const currentSlotEl = slots[0];
+            if (!currentSlotEl) return;
+
+            const selectA = currentSlotEl.querySelector('.custom-rival-select-a');
+            const selectB = currentSlotEl.querySelector('.custom-rival-select-b');
+            if (!selectA || !selectB) return;
+
+            const parentHome = compSection.dataset.parentHome || '';
+            const parentAway = compSection.dataset.parentAway || '';
+            const opponentTeam = role === 'home' ? parentAway : parentHome;
+
+            // Seleccionar rival en Select A
+            let foundA = false;
+            for (let i = 0; i < selectA.options.length; i++) {
+                if (sameTeamName(selectA.options[i].value, rivalName)) {
+                    selectA.selectedIndex = i;
+                    foundA = true;
+                    break;
+                }
+            }
+
+            // Seleccionar equipo oponente en Select B
+            let foundB = false;
+            for (let i = 0; i < selectB.options.length; i++) {
+                if (sameTeamName(selectB.options[i].value, opponentTeam)) {
+                    selectB.selectedIndex = i;
+                    foundB = true;
+                    break;
+                }
+            }
+
+            // Si por orden inverso estuvieran en grupos diferentes
+            if (!foundA) {
+                for (let i = 0; i < selectA.options.length; i++) {
+                    if (sameTeamName(selectA.options[i].value, opponentTeam)) {
+                        selectA.selectedIndex = i;
+                        foundA = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundB) {
+                for (let i = 0; i < selectB.options.length; i++) {
+                    if (sameTeamName(selectB.options[i].value, rivalName)) {
+                        selectB.selectedIndex = i;
+                        foundB = true;
+                        break;
+                    }
+                }
+            }
+
+            // Efecto de feedback visual
+            selectA.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+            selectA.style.boxShadow = '0 0 0 3px #8b5cf6';
+            selectB.style.transition = 'box-shadow 0.25s ease, border-color 0.25s ease';
+            selectB.style.boxShadow = '0 0 0 3px #8b5cf6';
+            setTimeout(() => {
+                selectA.style.boxShadow = '';
+                selectB.style.boxShadow = '';
+            }, 800);
+
+            // Ejecutar comparativa
+            runSlotComparison(currentSlotEl, 0, compSection);
+
+            // Scroll suave hacia la comparativa
             compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -6345,19 +7014,24 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             const targetOrder = [
                 { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+                { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
                 { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
+                { match: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯' },
                 { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+                { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
                 { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
+                { match: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡' },
                 { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
                 { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
             ];
 
             const result = [];
             for (const target of targetOrder) {
+                if (result.some(r => r.displayName === target.label)) continue;
                 const found = statsList.find(s => {
                     const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
-                    if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
-                    if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                    if ((target.match === 'tiros' || target.match === 'shots') && (name.includes('tiros a puerta') || name.includes('shots on goal') || name.includes('target') || name.includes('puerta'))) return false;
+                    if ((target.match === 'ataques' || target.match === 'attacks') && (name.includes('ataques peligrosos') || name.includes('dangerous attacks') || name.includes('peligros'))) return false;
                     return name === target.match || name.includes(target.match);
                 });
                 if (found) {
@@ -6870,16 +7544,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const rowAh = button.dataset.rowAh || button.dataset.currentAh || '';
             const rowAhNum = Number.parseFloat(rowAh);
 
-            const formatMovBadge = (mov, prevAh) => {
+            const formatMovBadge = (mov, prevAh, isCover, isFail) => {
                 let m = String(mov || '').toUpperCase();
                 if (!m && Number.isFinite(rowAhNum) && Number.isFinite(Number.parseFloat(prevAh))) {
                     const p = Number.parseFloat(prevAh);
                     const diff = Math.abs(rowAhNum) - Math.abs(p);
                     m = Math.abs(diff) < 0.01 ? 'IGUAL' : (diff > 0 ? 'SUBE' : 'BAJA');
                 }
-                if (m === 'SUBE' || m.includes('SUBE')) return '<span class="pre-col3-tag is-up">↑ Sube</span>';
-                if (m === 'BAJA' || m.includes('BAJA')) return '<span class="pre-col3-tag is-down">↓ Baja</span>';
-                if (m === 'IGUAL' || m.includes('IGUAL')) return '<span class="pre-col3-tag is-same">= Igual</span>';
+                if (m === 'SUBE' || m.includes('SUBE')) {
+                    const covTxt = isCover ? ' · Cubre' : (isFail ? ' · No supera' : '');
+                    return `<span class="pre-col3-tag is-up">↑ Sube HA${covTxt}</span>`;
+                }
+                if (m === 'BAJA' || m.includes('BAJA')) {
+                    const covTxt = isCover ? ' · Mejora' : (isFail ? ' · Empeora' : '');
+                    return `<span class="pre-col3-tag is-down">↓ Baja HA${covTxt}</span>`;
+                }
+                if (m === 'IGUAL' || m.includes('IGUAL') || m === 'REPITE') {
+                    const covTxt = isCover ? ' · Cubre' : (isFail ? ' · No supera' : '');
+                    return `<span class="pre-col3-tag is-same">= Repite HA${covTxt}</span>`;
+                }
                 return '';
             };
 
@@ -6898,7 +7581,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 let evalClass = isCover ? 'is-cover' : (isFail ? 'is-fail' : 'is-same');
                 let evalBg = isCover ? '#16a34a' : (isFail ? '#dc2626' : '#64748b');
 
-                const movTag = formatMovBadge(item.movement, ahStr);
+                const movTag = formatMovBadge(item.movement, ahStr, isCover, isFail);
                 const titleLabel = isSameStadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE';
 
                 const boxStyle = isSameStadium
@@ -6906,7 +7589,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
 
                 const titleColor = isSameStadium ? '#854d0e' : '#0369a1';
-                const numbersColor = isCover ? '#15803d' : (isFail ? '#b91c1c' : '#0f172a');
 
                 return `<div style="${boxStyle}">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
@@ -6916,7 +7598,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div style="font-size:.62rem; color:#64748b; font-weight:700; margin:1px 0;">
                         📅 ${escapePreContextCol3(dateStr)}
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px; flex-wrap:wrap; gap:4px;">
                         <span style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:2px 7px; border-radius:4px; font-size:.65rem; font-weight:900; border:1px solid #334155;">
                             <span style="color:#94a3b8; font-size:.56rem; margin-right:3px; text-transform:uppercase;">AH</span>
                             <span style="color:#38bdf8; font-weight:900; font-size:.74rem;">${escapePreContextCol3(String(ahStr))}</span>
@@ -6926,7 +7608,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
                     </div>
                     <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
-                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
+                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver estadísticas...">
                             <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
                         </button>
                         <div class="pre-card-stats-container" style="display:none;"></div>
@@ -7117,7 +7799,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             const container = btn.closest('.pre-context-team');
             if (!container) return;
-            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden]), .pre-context-mobile-list .mismarcadores-match-card:not([style*="display: none"]):not([hidden])'));
             const col3Buttons = visibleRows.map(r => r.querySelector('.pre-context-col3-btn')).filter(Boolean);
             if (!col3Buttons.length) return;
 
@@ -7143,7 +7825,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             const container = btn.closest('.pre-context-team');
             if (!container) return;
-            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden]), .pre-context-mobile-list .mismarcadores-match-card:not([style*="display: none"]):not([hidden])'));
             const movButtons = visibleRows.map(r => r.querySelector('.pre-context-mov-btn')).filter(Boolean);
             if (!movButtons.length) return;
 
@@ -7169,7 +7851,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             const container = btn.closest('.pre-context-team');
             if (!container) return;
-            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden])'));
+            const visibleRows = Array.from(container.querySelectorAll('tbody tr.pre-context-row:not([style*="display: none"]):not([hidden]), .pre-context-mobile-list .mismarcadores-match-card:not([style*="display: none"]):not([hidden])'));
             const bothButtons = visibleRows.map(r => r.querySelector('.pre-context-both-btn')).filter(Boolean);
             if (!bothButtons.length) return;
 
@@ -7319,15 +8001,27 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             return renderPreMatchContext(pc, currentHome, currentAway);
         }
 
+        const clientStatsCache = new Map();
+        const clientContextCache = new Map();
+
         async function fetchContextPreviewOnDemand(containerId, matchId, btn = null) {
             if (!containerId || !matchId) return;
             const slot = document.getElementById(`pre-context-slot-${containerId}`);
             if (!slot) return;
             if (!btn && slot.dataset.contextLoading === '1') return;
+
+            // Revisar cache de cliente si no es forzado
+            if (!btn && clientContextCache.has(matchId)) {
+                const pc = clientContextCache.get(matchId);
+                slot.innerHTML = renderPreMatchContextCard(pc);
+                slot.dataset.contextLoaded = '1';
+                return;
+            }
+
             slot.dataset.contextLoading = '1';
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Scrapeando contexto previo en vivo...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Actualizando contexto...';
             } else {
                 slot.innerHTML = '<div class="text-center py-2 border-top mt-2 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Cargando contexto previo…</div>';
             }
@@ -7354,13 +8048,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     pc.handicap = pc.current?.ah_line || data.context?.handicap || '';
                     pc.last_home_match = data.context?.last_home_match || (pc.current?.home_matches ? pc.current.home_matches[0] : null);
                     pc.last_away_match = data.context?.last_away_match || (pc.current?.away_matches ? pc.current.away_matches[0] : null);
+                    clientContextCache.set(matchId, pc);
                     slot.innerHTML = renderPreMatchContextCard(pc);
                     slot.dataset.contextLoaded = '1';
                 } else {
-                    throw new Error('No se pudo obtener el contexto previo en vivo');
+                    throw new Error('No se pudo obtener el contexto previo');
                 }
             } catch (err) {
-                console.error('Error al solicitar contexto en vivo:', err);
+                console.error('Error al solicitar contexto:', err);
                 slot.innerHTML = `<div class="alert alert-warning py-2 px-2 my-1 small text-center">${lgEscape(err.message || err)} <button type="button" class="btn btn-sm btn-outline-dark ms-2" onclick="fetchContextPreviewOnDemand('${containerId}', '${matchId}', this)"><i class="fa-solid fa-rotate me-1"></i>Reintentar</button></div>`;
             } finally {
                 slot.dataset.contextLoading = '0';
@@ -7374,22 +8069,28 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             // 1. Cargar estadisticas de progresion
             const boxes = [...container.querySelectorAll('[data-progression-match-id][data-stats-loaded="0"]')]
                 .filter(box => /^\d+$/.test(box.dataset.progressionMatchId || ''));
-            Promise.all(boxes.map(async box => {
+            boxes.forEach(async box => {
                 const target = box.querySelector('[data-progression-stats-target]');
                 if (!target || box.dataset.statsLoading === '1') return;
+                const mId = box.dataset.progressionMatchId;
+
+                if (clientStatsCache.has(mId)) {
+                    const rows = clientStatsCache.get(mId);
+                    target.innerHTML = rows && rows.length
+                        ? progressionStatsRowsHtml(rows)
+                        : '<span class="text-muted" style="font-size:0.68rem;">Sin estadísticas publicadas</span>';
+                    box.dataset.statsLoaded = '1';
+                    return;
+                }
+
                 box.dataset.statsLoading = '1';
-                target.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Cargando tiros y ataques…';
+                target.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Cargando…';
                 try {
-                    const response = await fetch(`/api/match/${encodeURIComponent(box.dataset.progressionMatchId)}/progression-stats`);
-                    if (!response.ok) {
-                        throw new Error('Sin datos');
-                    }
-                    const contentType = response.headers.get('content-type') || '';
-                    if (!contentType.includes('application/json')) {
-                        throw new Error('Respuesta no JSON');
-                    }
+                    const response = await fetch(`/api/match/${encodeURIComponent(mId)}/progression-stats`);
+                    if (!response.ok) throw new Error('Sin datos');
                     const payload = await response.json();
                     const rows = Array.isArray(payload.stats_rows) ? payload.stats_rows : [];
+                    clientStatsCache.set(mId, rows);
                     target.innerHTML = rows.length
                         ? progressionStatsRowsHtml(rows)
                         : '<span class="text-muted" style="font-size:0.68rem;">Sin estadísticas publicadas</span>';
@@ -7399,8 +8100,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 } finally {
                     box.dataset.statsLoading = '0';
                 }
-
-            }));
+            });
 
             // 2. Cargar el Contexto Previo directamente al abrir el detalle.
             const slot = document.getElementById(`pre-context-slot-${containerId}`);
@@ -7425,19 +8125,24 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         if (!Array.isArray(stats) || stats.length === 0) return '';
         const targetOrder = [
             { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+            { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
             { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
+            { match: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯' },
             { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+            { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
             { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
+            { match: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡' },
             { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
             { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
         ];
 
         const filtered = [];
         for (const target of targetOrder) {
+            if (filtered.some(r => r.label === target.label)) continue;
             const found = stats.find(s => {
                 const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
-                if (target.match === 'tiros' && name.includes('tiros a puerta')) return false;
-                if (target.match === 'ataques' && name.includes('ataques peligrosos')) return false;
+                if ((target.match === 'tiros' || target.match === 'shots') && (name.includes('tiros a puerta') || name.includes('shots on goal') || name.includes('target') || name.includes('puerta'))) return false;
+                if ((target.match === 'ataques' || target.match === 'attacks') && (name.includes('ataques peligrosos') || name.includes('dangerous attacks') || name.includes('peligros'))) return false;
                 return name === target.match || name.includes(target.match);
             });
             if (found) {
@@ -7940,61 +8645,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 });
         }
         // --- MultiSelect Initialization ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Init other stuff
+        function runExplorerInit() {
+            initMultiSelects();
             if (typeof loadLigasFavoritas === 'function') loadLigasFavoritas();
-
-            // Simplified AH Options - Buckets:
-            // 0.5 includes 0.25, 0.5, 0.75
-            // 1.5 includes 1.25, 1.5, 1.75
-            // 2.5+ includes 2.25 and higher
-            const ahOptions = [
-                { value: '0', label: '0' },
-                { value: '0.5', label: '+0.5' },
-                { value: '-0.5', label: '-0.5' },
-                { value: '1', label: '+1.0' },
-                { value: '-1', label: '-1.0' },
-                { value: '1.5', label: '+1.5' },
-                { value: '-1.5', label: '-1.5' },
-                { value: '2', label: '+2.0' },
-                { value: '-2', label: '-2.0' },
-                { value: '2.5', label: '+2.5+' },
-                { value: '-2.5', label: '-2.5-' }
-            ];
-
-            const ouOptions = [
-                { value: '2.0', label: '2.0' },
-                { value: '2.5', label: '2.5' },
-                { value: '3.0', label: '3.0' },
-                { value: '3.5', label: '3.5' },
-                { value: '4+', label: '4+' }
-            ];
-
-            // Initialize Static MultiSelects
-            // Callback is renderTableWithPagination to refresh client-side filtering on change
-            msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', renderTableWithPagination);
-            msOu = new MultiSelect('container-filter-ou', ouOptions, 'O/U', () => {
-                syncOuFilterInput();
-                renderTableWithPagination();
-            });
-            msPrevHomeAh = new MultiSelect('container-filter-prev-home-ah', ahOptions, 'AH', renderTableWithPagination);
-            msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', renderTableWithPagination);
-            msH2hStadiumStartAh = new MultiSelect('container-filter-h2h-stadium-start-ah', ahOptions, 'Ini...', renderTableWithPagination);
-            msH2hStadiumEndAh = new MultiSelect('container-filter-h2h-stadium-end-ah', ahOptions, 'Fin...', renderTableWithPagination);
-            msH2hGeneralStartAh = new MultiSelect('container-filter-h2h-general-start-ah', ahOptions, 'Ini...', renderTableWithPagination);
-            msH2hGeneralEndAh = new MultiSelect('container-filter-h2h-general-end-ah', ahOptions, 'Fin...', renderTableWithPagination);
-            msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', renderTableWithPagination);
-            msIndVisitanteAh = new MultiSelect('container-filter-ind-visitante-ah', ahOptions, 'AH', renderTableWithPagination);
-
-            // Init H2H Col3 with same simplified options
-            msH2hCol3Ah = new MultiSelect('container-filter-h2h-col3-ah', ahOptions, 'AH...', renderTableWithPagination);
-            syncOuFilterInput();
-
-            // Si llegamos con parámetros desde "Buscar patrones similares", precargar filtros y lanzar búsqueda.
-            // Cargar partidos automáticamente al iniciar el Explorador
             window.setTimeout(() => applyExplorerUrlPresetFilters(), 0);
+        }
 
-        });
+        if (document.readyState !== 'loading') {
+            runExplorerInit();
+        } else {
+            document.addEventListener('DOMContentLoaded', runExplorerInit);
+        }
 
         async function copyToClipboard(text) {
             try {
