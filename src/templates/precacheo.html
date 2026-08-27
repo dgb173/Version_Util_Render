@@ -3174,6 +3174,8 @@
         }
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='mobile_compact.css') }}?v=20260827">
+    <link rel="stylesheet" href="{{ url_for('static', filename='context_comparison_cards.css') }}?v=20260827-2">
+    <script src="{{ url_for('static', filename='js/context_comparison_cards.js') }}?v=20260827-2"></script>
 </head>
 
 <body>
@@ -8889,6 +8891,8 @@
                 const tags = Array.from(slot.querySelectorAll('.pre-col3-tag')).map(t => t.innerText.trim()).filter(Boolean).join(' · ');
 
                 let block = `🟣 [FICHA H2H COL3: ${headStatus}] ${dateText}\n    * Enfrentamiento: ${teams.join(' vs ')} | Score FT: ${score} | AH: ${ah}`;
+                const comparisonLines = Array.from(slot.querySelectorAll('[data-comparison-export]')).map(el => el.dataset.comparisonExport);
+                if (comparisonLines.length) block = '🟣 [FICHA H2H COL3]\n' + comparisonLines.join('\n');
                 if (tags) block += ` | Estado: ${tags}`;
 
                 // Verificar si tiene estadisticas desplegadas dentro
@@ -8928,6 +8932,8 @@
                     }
                 });
                 let block = `🏟️ [${headStatus}]\n` + (cards.length ? cards.join('\n') : '    * Sin datos');
+                const comparisonLines = Array.from(slot.querySelectorAll('[data-comparison-export]')).map(el => el.dataset.comparisonExport);
+                if (comparisonLines.length) block = '🏟️ [MOV · H2H]\n' + comparisonLines.join('\n');
                 openSections.push(block);
             });
 
@@ -9616,7 +9622,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const filterDisabled = !currentLeague;
             const hasPrevious = !!previous;
 
-            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}">
+            return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}" data-comparison-reference="${esc(JSON.stringify(ContextComparisonCards.reference(pc, currentHome, currentAway, parentCurrentAh)))}">
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
@@ -10518,304 +10524,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
 
         function buildPreContextCol3Card(button, data) {
-            const col3 = data?.h2h_col3 || {};
-            const match = data?.match || {};
-            const comparison = data?.comparison || {};
-            const lastHome = comparison.last_home_match || {};
-            const lastAway = comparison.last_away_match || {};
-            const currentAh = Number.parseFloat(button.dataset.currentAh);
-            const parentHome = String(button.dataset.parentHome || match.home_name || '').toLowerCase().trim();
-            const parentAway = String(button.dataset.parentAway || match.away_name || '').toLowerCase().trim();
-            const rowRole = String(button.dataset.rowRole || 'home').toLowerCase().trim();
-
-            const sameName = (a, b) => {
-                const left = String(a || '').toLowerCase().trim();
-                const right = String(b || '').toLowerCase().trim();
-                return !!left && !!right && (left.includes(right) || right.includes(left));
-            };
-
-            const wdlRank = (score, isHome) => {
-                const parts = String(score || '').replace('-', ':').split(':');
-                if (parts.length !== 2) return null;
-                const gh = Number.parseInt(parts[0], 10);
-                const ga = Number.parseInt(parts[1], 10);
-                if (!Number.isFinite(gh) || !Number.isFinite(ga)) return null;
-                const own = isHome ? gh : ga;
-                const rival = isHome ? ga : gh;
-                return own > rival ? 2 : (own === rival ? 1 : 0);
-            };
-
-            const homeOf = row => row?.home_team ?? row?.home ?? '';
-            const awayOf = row => row?.away_team ?? row?.away ?? '';
-            const scoreOf = row => row?.score ?? row?.score_raw ?? '';
-
-            const favIsLocal = Number.isFinite(currentAh) && currentAh > 0;
-            const favIsVisitor = Number.isFinite(currentAh) && currentAh <= 0;
-            let favWdl = null;
-            let mirrorName = '';
-
-            if (favIsLocal && scoreOf(lastHome)) {
-                favWdl = wdlRank(scoreOf(lastHome), sameName(homeOf(lastHome), parentHome));
-                mirrorName = sameName(homeOf(lastAway), parentAway) ? awayOf(lastAway) : homeOf(lastAway);
-            } else if (favIsVisitor && scoreOf(lastAway)) {
-                favWdl = wdlRank(scoreOf(lastAway), sameName(homeOf(lastAway), parentAway));
-                mirrorName = sameName(homeOf(lastHome), parentHome) ? awayOf(lastHome) : homeOf(lastHome);
-            }
-
-            const col3Home = String(col3.h2h_home_team_name || 'Rival A');
-            const col3Away = String(col3.h2h_away_team_name || 'Rival B');
-            const mirrorIsHome = sameName(col3Home, mirrorName);
-            const mirrorIsAway = sameName(col3Away, mirrorName);
-            let comparisonType = mirrorIsHome ? 'directa' : (mirrorIsAway ? 'inversa' : '');
-            if (favIsVisitor && comparisonType) comparisonType = comparisonType === 'directa' ? 'inversa' : 'directa';
-
-            const score = `${col3.goles_home ?? '?'}:${col3.goles_away ?? '?'}`;
-            const mirrorWdl = mirrorIsHome ? wdlRank(score, true) : (mirrorIsAway ? wdlRank(score, false) : null);
-            let performance = 'IGUALA';
-            let statusClass = 'is-equal';
-            if (favWdl !== null && mirrorWdl !== null) {
-                if (favWdl > mirrorWdl) {
-                    performance = 'MEJORA';
-                    statusClass = 'is-better';
-                } else if (favWdl < mirrorWdl) {
-                    performance = 'EMPEORA';
-                    statusClass = 'is-worse';
-                } else {
-                    performance = 'IGUALA';
-                    statusClass = 'is-equal';
-                }
-            }
-
-            const col3Ah = Number.parseFloat(col3.handicap);
-            let cover = '';
-            if (Number.isFinite(col3Ah)) {
-                const gh = Number.parseInt(col3.goles_home, 10);
-                const ga = Number.parseInt(col3.goles_away, 10);
-                if (Number.isFinite(gh) && Number.isFinite(ga)) {
-                    const margin = col3Ah < 0 ? ga - gh : gh - ga;
-                    const pressure = Math.abs(col3Ah);
-                    cover = margin > pressure ? 'CUBIERTO' : (margin < pressure ? 'NO_CUBIERTO' : 'PUSH');
-                }
-            }
-
-            const normalizeAh = value => {
-                const absolute = Math.abs(value);
-                const decimal = absolute % 1;
-                const normalized = decimal >= .2 && decimal <= .8 ? Math.floor(absolute) + .5 : Math.round(absolute);
-                return value >= 0 ? normalized : -normalized;
-            };
-            let movement = '';
-            if (Number.isFinite(currentAh) && Number.isFinite(col3Ah)) {
-                const difference = Math.abs(normalizeAh(currentAh)) - Math.abs(normalizeAh(col3Ah));
-                movement = Math.abs(difference) < .01 ? 'IGUAL' : (difference > 0 ? 'SUBE' : 'BAJA');
-            }
-
-            const typeHtml = comparisonType
-                ? `<span class="pre-col3-badge ${comparisonType === 'directa' ? 'is-direct' : 'is-inverse'}">${comparisonType === 'directa' ? 'Directa' : 'Inversa'}</span>`
-                : '';
-            const coverHtml = cover === 'CUBIERTO'
-                ? '<span class="pre-col3-tag is-cover">✓ Cubrió</span>'
-                : cover === 'NO_CUBIERTO'
-                    ? '<span class="pre-col3-tag is-fail">✕ No Cubrió</span>'
-                    : cover === 'PUSH' ? '<span class="pre-col3-tag is-push">Push</span>' : '';
-            const movementHtml = movement === 'SUBE'
-                ? '<span class="pre-col3-tag is-up">↑ Sube</span>'
-                : movement === 'BAJA'
-                    ? '<span class="pre-col3-tag is-down">↓ Baja</span>'
-                    : movement === 'IGUAL' ? '<span class="pre-col3-tag is-same">= Igual</span>' : '';
-
-            const subtleTagText = performance === 'MEJORA' ? 'Mejor vs rival' : (performance === 'EMPEORA' ? 'Peor vs rival' : 'Igual vs rival');
-            const subtleTagClass = statusClass === 'is-better' ? 'is-cover' : (statusClass === 'is-worse' ? 'is-fail' : 'is-same');
-            const subtleVsTag = `<span class="pre-col3-tag ${subtleTagClass}" style="font-size:.55rem; padding:1px 5px; font-weight:800; border-radius:3px;">${subtleTagText}</span>`;
-
-            // Identificar los 2 rivales para darles color distintivo
-            const rowSubject = rowRole === 'home' ? (button.dataset.parentHome || 'Local') : (button.dataset.parentAway || 'Visitante');
-            const otherSubject = rowRole === 'home' ? (button.dataset.parentAway || 'Visitante') : (button.dataset.parentHome || 'Local');
-
-            const rowHomeName = button.dataset.rowHome || '';
-            const rowAwayName = button.dataset.rowAway || '';
-            const rowRivalName = sameName(rowHomeName, rowSubject) ? rowAwayName : (sameName(rowAwayName, rowSubject) ? rowHomeName : (rowRole === 'home' ? rowAwayName : rowHomeName));
-
-            const isHomeRowRival = sameName(col3Home, rowRivalName);
-            const isAwayRowRival = sameName(col3Away, rowRivalName);
-
-            const getTeamCol3Meta = (teamName, isRowRiv) => {
-                if (isRowRiv) {
-                    return {
-                        color: '#6d28d9',
-                        bg: '#ede9fe',
-                        border: '#c4b5fd',
-                        badgeText: `Rival de ${rowSubject}`,
-                        icon: '🟣'
-                    };
-                } else {
-                    return {
-                        color: '#b45309',
-                        bg: '#fef3c7',
-                        border: '#fde68a',
-                        badgeText: `Rival de ${otherSubject}`,
-                        icon: '🟠'
-                    };
-                }
-            };
-
-            const homeMeta = getTeamCol3Meta(col3Home, isHomeRowRival || (!isAwayRowRival && mirrorIsAway));
-            const awayMeta = getTeamCol3Meta(col3Away, isAwayRowRival || (!isHomeRowRival && mirrorIsHome));
-
-            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <div style="display:flex; align-items:center; gap:4px;"><span class="pre-col3-status ${statusClass}">${performance}</span>${subtleVsTag}</div>
-                    ${typeHtml}
-                </div>
-                <div style="font-size:.65rem; color:#64748b; font-weight:700; margin-bottom:3px;">📅 ${escapePreContextCol3(col3.date || 'Fecha N/D')}</div>
-                
-                <!-- Matchup con Colores Diferenciados de Rivales EN COLUMNAS -->
-                <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:5px 8px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
-                        
-                        <!-- Columna 1: Equipo Local -->
-                        <div style="flex:1 1 120px; display:flex; flex-direction:column; align-items:flex-start; min-width:100px;">
-                            <span style="font-size:.74rem; font-weight:900; color:${homeMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;" title="${escapePreContextCol3(col3Home)}">
-                                ${homeMeta.icon} ${escapePreContextCol3(col3Home)}
-                            </span>
-                            <span style="font-size:.54rem; font-weight:800; background:${homeMeta.bg}; color:${homeMeta.color}; border:1px solid ${homeMeta.border}; padding:1px 4px; border-radius:3px; margin-top:2px; white-space:nowrap;">
-                                ${homeMeta.badgeText}
-                            </span>
-                        </div>
-
-                        <!-- Columna 2: Resultado (Centro destacado) -->
-                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 4px;">
-                            <div style="font-size:.88rem; font-weight:900; color:#0f172a; background:#f8fafc; border:1px solid #cbd5e1; padding:2px 8px; border-radius:4px; box-shadow:0 1px 2px rgba(0,0,0,0.05); letter-spacing:1px;">
-                                ${escapePreContextCol3(score)}
-                            </div>
-                            <span style="font-size:.52rem; font-weight:800; color:#64748b; margin-top:1px;">FT</span>
-                        </div>
-
-                        <!-- Columna 3: Equipo Visitante -->
-                        <div style="flex:1 1 120px; display:flex; flex-direction:column; align-items:flex-end; min-width:100px; text-align:right;">
-                            <span style="font-size:.74rem; font-weight:900; color:${awayMeta.color}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%;" title="${escapePreContextCol3(col3Away)}">
-                                ${escapePreContextCol3(col3Away)} ${awayMeta.icon}
-                            </span>
-                            <span style="font-size:.54rem; font-weight:800; background:${awayMeta.bg}; color:${awayMeta.color}; border:1px solid ${awayMeta.border}; padding:1px 4px; border-radius:3px; margin-top:2px; white-space:nowrap;">
-                                ${awayMeta.badgeText}
-                            </span>
-                        </div>
-
-                        <!-- Columna 4: Hándicap Badge -->
-                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1px solid #cbd5e1; padding-left:6px; min-width:45px;">
-                            <span style="font-size:.52rem; font-weight:800; color:#64748b; text-transform:uppercase;">AH</span>
-                            <span style="font-size:.72rem; font-weight:900; color:#1e293b; background:#e2e8f0; border:1px solid #cbd5e1; padding:1px 5px; border-radius:3px; margin-top:1px;">
-                                ${escapePreContextCol3(col3.handicap ?? '-')}
-                            </span>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="pre-col3-tags" style="display:flex; gap:4px; margin-bottom:4px;">${coverHtml}${movementHtml}</div>
-                <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
-                    <button type="button" class="pre-card-stats-toggle" 
-                        data-col3-home="${escapePreContextCol3(col3Home)}" 
-                        data-col3-home-color="${homeMeta.color}" 
-                        data-col3-away="${escapePreContextCol3(col3Away)}" 
-                        data-col3-away-color="${awayMeta.color}" 
-                        onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" 
-                        title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
-                        <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
-                    </button>
-                    <div class="pre-card-stats-container" style="display:none;"></div>
-                </div>`;
+            return ContextComparisonCards.buildCol3(button, data);
         }
 
         function buildPreContextMovCard(button, data) {
-            const stadium = data?.stadium;
-            const general = data?.general;
-            const rowAh = button.dataset.rowAh || button.dataset.currentAh || '';
-            const rowAhNum = Number.parseFloat(rowAh);
-
-            const formatMovBadge = (mov, prevAh, isCover, isFail) => {
-                let m = String(mov || '').toUpperCase();
-                if (!m && Number.isFinite(rowAhNum) && Number.isFinite(Number.parseFloat(prevAh))) {
-                    const p = Number.parseFloat(prevAh);
-                    const diff = Math.abs(rowAhNum) - Math.abs(p);
-                    m = Math.abs(diff) < 0.01 ? 'IGUAL' : (diff > 0 ? 'SUBE' : 'BAJA');
-                }
-                if (m === 'SUBE' || m.includes('SUBE')) {
-                    const covTxt = isCover ? ' · Cubre' : (isFail ? ' · No supera' : '');
-                    return `<span class="pre-col3-tag is-up">↑ Sube HA${covTxt}</span>`;
-                }
-                if (m === 'BAJA' || m.includes('BAJA')) {
-                    const covTxt = isCover ? ' · Mejora' : (isFail ? ' · Empeora' : '');
-                    return `<span class="pre-col3-tag is-down">↓ Baja HA${covTxt}</span>`;
-                }
-                if (m === 'IGUAL' || m.includes('IGUAL') || m === 'REPITE') {
-                    const covTxt = isCover ? ' · Cubre' : (isFail ? ' · No supera' : '');
-                    return `<span class="pre-col3-tag is-same">= Repite HA${covTxt}</span>`;
-                }
-                return '';
-            };
-
-            const buildSection = (type, icon, item) => {
-                if (!item) return '';
-                const isSameStadium = type === 'ESTADIO';
-                const dateStr = item.date || 'Fecha N/D';
-                const ahStr = (item.ah !== null && item.ah !== undefined && item.ah !== '') ? item.ah : '-';
-                const scoreStr = item.score ?? '-';
-
-                const isCover = item.cover === true || item.cover === 'CUBIERTO' || item.cover === 'WIN';
-                const isFail = item.cover === false || item.cover === 'NO_CUBIERTO' || item.cover === 'NO_WIN';
-                const isPush = item.cover === 'PUSH';
-
-                let evalText = isCover ? 'Cubre' : (isFail ? 'No cubre' : (isPush ? 'Push' : (isSameStadium ? 'Estadio' : 'Diferente')));
-                let evalClass = isCover ? 'is-cover' : (isFail ? 'is-fail' : 'is-same');
-                let evalBg = isCover ? '#16a34a' : (isFail ? '#dc2626' : '#64748b');
-
-                const movTag = formatMovBadge(item.movement, ahStr, isCover, isFail);
-                const titleLabel = isSameStadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE';
-
-                const boxStyle = isSameStadium
-                    ? 'background:#fefce8; border:1px solid #fef08a; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(234, 179, 8, 0.08);'
-                    : 'background:#ffffff; border:1px solid #e2e8f0; border-radius:5px; padding:5px 7px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.03);';
-
-                const titleColor = isSameStadium ? '#854d0e' : '#0369a1';
-
-                return `<div style="${boxStyle}">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                        <span style="font-weight:900; font-size:.68rem; color:${titleColor};">${icon} ${titleLabel}</span>
-                        <span class="pre-col3-tag ${evalClass}" style="font-size:.56rem; padding:1px 6px; font-weight:900; background:${evalBg}; color:#fff; border-radius:3px; white-space:nowrap;">${evalText}</span>
-                    </div>
-                    <div style="font-size:.62rem; color:#64748b; font-weight:700; margin:1px 0;">
-                        📅 ${escapePreContextCol3(dateStr)}
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px; flex-wrap:wrap; gap:4px;">
-                        <span style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:2px 7px; border-radius:4px; font-size:.65rem; font-weight:900; border:1px solid #334155;">
-                            <span style="color:#94a3b8; font-size:.56rem; margin-right:3px; text-transform:uppercase;">AH</span>
-                            <span style="color:#38bdf8; font-weight:900; font-size:.74rem;">${escapePreContextCol3(String(ahStr))}</span>
-                            <span style="color:#64748b; margin:0 5px;">·</span>
-                            <span style="color:#22c55e; font-weight:900; font-size:.78rem;">${escapePreContextCol3(String(scoreStr))}</span>
-                        </span>
-                        <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
-                    </div>
-                    <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
-                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver estadísticas...">
-                            <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
-                        </button>
-                        <div class="pre-card-stats-container" style="display:none;"></div>
-                    </div>
-                </div>`;
-            };
-
-            let sectionsHtml = '';
-            if (stadium) sectionsHtml += buildSection('ESTADIO', '🏟️', stadium);
-            if (general) sectionsHtml += buildSection('GENERAL', '✈️', general);
-
-            if (!sectionsHtml) {
-                return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;"><span class="pre-col3-status is-equal">DIRECTO</span><span class="pre-col3-badge is-inverse">N/D</span></div>
-                    <div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H previo entre ellos</div>`;
-            }
-
-            const headerScope = (stadium && general) ? 'MISMO & DIFERENTE' : (stadium ? 'MISMO ESTADIO' : 'ESTADIO DIFERENTE');
-            return `<div class="pre-col3-card-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;"><span class="pre-col3-status is-better" style="background:#e0f2fe; color:#0369a1;">H2H DIRECTO</span><span class="pre-col3-badge is-direct">${headerScope}</span></div>
-                ${sectionsHtml}`;
+            return ContextComparisonCards.buildMov(button, data);
         }
 
         async function loadPreContextRowCol3(button, event, options = {}) {
@@ -10850,6 +10563,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             button.disabled = true;
             ctx.col3Slot.innerHTML = '<div style="font-size:.68rem; color:#3b82f6; text-align:center; padding:6px;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando H2H Col3...</div>';
 
+            const referenceReady = ContextComparisonCards.ensureReference(button);
             try {
                 const response = await fetch('/api/precacheo_h2h_col3', {
                     method: 'POST',
@@ -10875,14 +10589,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     throw new Error(data.error || 'No se pudo extraer H2H Col3');
                 }
 
+                await referenceReady;
                 const col3 = data.h2h_col3 || {};
                 const found = col3.status === 'found';
                 button.dataset.loaded = '1';
                 button.dataset.found = found ? '1' : '0';
                 ctx.col3Slot.classList.add('is-card');
-                ctx.col3Slot.innerHTML = found
-                    ? buildPreContextCol3Card(button, data)
-                    : '<div class="pre-col3-card-head"><span class="pre-col3-status is-equal">COL3</span><span class="pre-col3-badge is-inverse">N/D</span></div><div style="font-size:.68rem; color:#94a3b8; padding:4px 0; text-align:center;">Sin H2H directo encontrado para este rival</div>';
+                ctx.col3Slot.innerHTML = buildPreContextCol3Card(button, data);
             } catch (error) {
                 ctx.col3Slot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
             } finally {
@@ -11069,7 +10782,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             let col3Mejora = 0, col3Empeora = 0, col3Iguala = 0;
             col3Cards.forEach(card => {
-                const text = card.innerText || '';
+                const text = card.querySelector('.context-comparison-card')?.dataset.performance || card.innerText || '';
                 if (text.includes('MEJORA')) col3Mejora++;
                 else if (text.includes('EMPEORA')) col3Empeora++;
                 else if (text.includes('IGUALA')) col3Iguala++;
@@ -11077,6 +10790,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             let h2hMejor = 0, h2hPeor = 0, h2hIgual = 0;
             movCards.forEach(card => {
+                const comparisons = card.querySelectorAll('.comparison-movement[data-performance]');
+                if (comparisons.length) {
+                    comparisons.forEach(section => {
+                        if (section.dataset.performance === 'MEJORA') h2hMejor++;
+                        else if (section.dataset.performance === 'EMPEORA') h2hPeor++;
+                        else if (section.dataset.performance === 'IGUALA') h2hIgual++;
+                    });
+                    return;
+                }
                 const text = card.innerText || '';
                 if (text.includes('Cubre') || text.includes('Mejor')) h2hMejor++;
                 else if (text.includes('No cubre') || text.includes('Peor')) h2hPeor++;

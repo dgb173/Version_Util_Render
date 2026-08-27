@@ -1,0 +1,36 @@
+/* Two compact scoreboards with a common column grid for direct comparison. */
+.pre-context-detail-slot:has(> .context-comparison-card)::after { display: none; }
+.context-comparison-card { min-width: 0; color: #334155; }
+.context-comparison-card .comparison-head { gap: 4px; margin-bottom: 5px; }
+.comparison-head-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.comparison-type { background: #e0e7ff; color: #3730a3; font-size: .55rem; }
+.comparison-close { border: 0; border-radius: 3px; padding: 3px 5px; background: #ef4444; color: white; font-size: .56rem; font-weight: 800; cursor: pointer; }
+.comparison-close:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+.comparison-box { container-type: inline-size; min-width: 0; margin-top: 4px; padding: 5px; border: 1px solid #d1d5db; border-radius: 5px; background: #f0f1f3; }
+.comparison-box.is-better { background: #edf9f0; border-color: #86cda0; }
+.comparison-box.is-worse { background: #fff0f1; border-color: #f2a0a8; }
+.comparison-box.is-unknown { background: #f8fafc; border-style: dashed; }
+.comparison-reference { margin-top: 5px; border-left-width: 3px; }
+.comparison-box-label, .comparison-meta { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.comparison-box-label { font-size: .58rem; line-height: 1.3; margin-bottom: 3px; }
+.comparison-verdict { font-weight: 900; font-size: .55rem; color: #4b5563; }
+.is-better > .comparison-box-label .comparison-verdict { color: #166534; }
+.is-worse > .comparison-box-label .comparison-verdict { color: #b91c1c; }
+.comparison-meta { justify-content: flex-start; flex-wrap: wrap; font-size: .53rem; color: #64748b; margin-bottom: 3px; }
+.comparison-meta span { margin-left: auto; }
+.comparison-match-line { display: grid; grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr) 40px; align-items: center; gap: 3px; min-width: 0; }
+.comparison-team { display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.5; font-weight: 850; font-size: var(--team-size, .6rem); font-size: clamp(.5rem, 3cqi, var(--team-size, .6rem)); }
+.comparison-team:nth-child(3) { text-align: right; }
+.comparison-team.home-rival { color: #6d28d9; }
+.comparison-team.away-rival { color: #a34d06; }
+.comparison-score { padding: 2px 1px; border: 1px solid #cbd5e1; border-radius: 3px; text-align: center; background: #fff; font-size: .72rem; color: #0f172a; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.comparison-ah { text-align: right; white-space: nowrap; font-size: .61rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.comparison-ah small { font-size: .46rem; color: #64748b; }
+.comparison-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding-right: 43px; margin-top: 2px; font-size: .49rem; color: #64748b; }
+.comparison-roles span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.comparison-roles span:last-child { text-align: right; }
+.comparison-movement + .comparison-movement { border-top: 1px dashed #94a3b8; margin-top: 7px; padding-top: 3px; }
+.comparison-movement-line { margin-top: 4px; padding-top: 3px; border-top: 1px solid #d1d5db; font-size: .59rem; font-weight: 800; }
+.comparison-empty { padding: 7px 5px; font-size: .62rem; color: #64748b; background: #f1f5f9; border-radius: 4px; }
+.comparison-key { margin-top: 4px; font-size: .5rem; line-height: 1.3; color: #64748b; }
+.context-comparison-card .pre-card-stats-toggle { min-height: 24px; font-size: .56rem; padding: 2px; }
