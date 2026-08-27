@@ -83,7 +83,7 @@
             border: 1px solid #dee2e6;
         }
 
-        .excel-table tbody tr:hover {
+        .excel-table > tbody > tr:hover {
             background-color: #e8f0fe;
         }
 
@@ -1829,17 +1829,17 @@
                 background: transparent;
             }
 
-            .excel-table thead {
+            .excel-table > thead {
                 display: none;
             }
 
-            .excel-table tbody {
+            .excel-table > tbody {
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
             }
 
-            .excel-table tbody tr {
+            .excel-table > tbody > tr {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
@@ -1851,12 +1851,12 @@
                 position: relative;
             }
 
-            .excel-table tbody tr:hover {
+            .excel-table > tbody > tr:hover {
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
                 transform: translateY(-1px);
             }
 
-            .excel-table tbody tr td {
+            .excel-table > tbody > tr > td {
                 display: flex;
                 flex-direction: column;
                 padding: 6px 8px !important;
@@ -1866,7 +1866,7 @@
             }
 
             /* Labels de datos */
-            .excel-table tbody tr td::before {
+            .excel-table > tbody > tr > td::before {
                 content: attr(data-label);
                 font-weight: 700;
                 font-size: 0.7rem;
@@ -1877,7 +1877,7 @@
             }
 
             /* Fecha - esquina superior */
-            .excel-table tbody tr td:nth-child(1) {
+            .excel-table > tbody > tr > td:nth-child(1) {
                 grid-column: 1 / -1;
                 flex-direction: row;
                 justify-content: space-between;
@@ -1888,48 +1888,48 @@
             }
 
             /* Equipos prominentes */
-            .excel-table tbody tr td:nth-child(2),
-            .excel-table tbody tr td:nth-child(3) {
+            .excel-table > tbody > tr > td:nth-child(2),
+            .excel-table > tbody > tr > td:nth-child(3) {
                 font-size: 1rem;
                 font-weight: 600;
             }
 
-            .excel-table tbody tr td:nth-child(2)::before {
+            .excel-table > tbody > tr > td:nth-child(2)::before {
                 content: "LOCAL";
             }
 
-            .excel-table tbody tr td:nth-child(3)::before {
+            .excel-table > tbody > tr > td:nth-child(3)::before {
                 content: "VISITANTE";
             }
 
             /* Handicap y FT */
-            .excel-table tbody tr td:nth-child(4)::before {
+            .excel-table > tbody > tr > td:nth-child(4)::before {
                 content: "HÁNDICAP";
             }
 
-            .excel-table tbody tr td:nth-child(5)::before {
+            .excel-table > tbody > tr > td:nth-child(5)::before {
                 content: "RESULTADO";
             }
 
             /* Prev Home y Prev Away */
-            .excel-table tbody tr td:nth-child(6)::before {
+            .excel-table > tbody > tr > td:nth-child(6)::before {
                 content: "PREV HOME";
             }
 
-            .excel-table tbody tr td:nth-child(7)::before {
+            .excel-table > tbody > tr > td:nth-child(7)::before {
                 content: "PREV AWAY";
             }
 
             /* OCULTAR columnas secundarias en móvil */
-            .excel-table tbody tr td:nth-child(8),
+            .excel-table > tbody > tr > td:nth-child(8),
             /* H2H Estadio */
-            .excel-table tbody tr td:nth-child(9),
+            .excel-table > tbody > tr > td:nth-child(9),
             /* H2H General */
-            .excel-table tbody tr td:nth-child(10),
+            .excel-table > tbody > tr > td:nth-child(10),
             /* H2H Col3 */
-            .excel-table tbody tr td:nth-child(11),
+            .excel-table > tbody > tr > td:nth-child(11),
             /* Ind. Local */
-            .excel-table tbody tr td:nth-child(12)
+            .excel-table > tbody > tr > td:nth-child(12)
 
             /* Ind. Visitante */
                 {
@@ -1937,30 +1937,30 @@
             }
 
             /* Pick - ancho completo */
-            .excel-table tbody tr td:nth-child(13) {
+            .excel-table > tbody > tr > td:nth-child(13) {
                 grid-column: 1 / -1;
                 padding-top: 10px !important;
                 border-top: 1px solid #f0f0f0 !important;
             }
 
-            .excel-table tbody tr td:nth-child(13)::before {
+            .excel-table > tbody > tr > td:nth-child(13)::before {
                 content: "PICKS";
             }
 
             /* Acciones - ancho completo */
-            .excel-table tbody tr td:nth-child(14) {
+            .excel-table > tbody > tr > td:nth-child(14) {
                 grid-column: 1 / -1;
                 flex-direction: row;
                 justify-content: flex-end;
                 gap: 8px;
             }
 
-            .excel-table tbody tr td:nth-child(14)::before {
+            .excel-table > tbody > tr > td:nth-child(14)::before {
                 display: none;
             }
 
             /* Botones de acciones más grandes */
-            .excel-table tbody tr td:nth-child(14) .btn {
+            .excel-table > tbody > tr > td:nth-child(14) .btn {
                 width: 44px;
                 height: 44px;
                 padding: 0 !important;
@@ -1993,23 +1993,23 @@
                 padding: 8px !important;
             }
 
-            .excel-table tbody tr {
+            .excel-table > tbody > tr {
                 padding: 14px;
                 gap: 8px;
             }
 
-            .excel-table tbody tr td {
+            .excel-table > tbody > tr > td {
                 font-size: 0.85rem;
             }
 
-            .excel-table tbody tr td:nth-child(2),
-            .excel-table tbody tr td:nth-child(3) {
+            .excel-table > tbody > tr > td:nth-child(2),
+            .excel-table > tbody > tr > td:nth-child(3) {
                 font-size: 0.95rem;
             }
 
             /* Prev también ocultar en pantallas muy pequeñas */
-            .excel-table tbody tr td:nth-child(6),
-            .excel-table tbody tr td:nth-child(7) {
+            .excel-table > tbody > tr > td:nth-child(6),
+            .excel-table > tbody > tr > td:nth-child(7) {
                 display: none !important;
             }
         }
@@ -2629,7 +2629,7 @@
             }
 
             /* 1. Header de Tarjeta: Fecha, Hora y Liga */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(1) {
                 grid-column: 1 / -1 !important;
                 flex-direction: row !important;
                 align-items: center !important;
@@ -2639,35 +2639,35 @@
                 padding: 7px 10px !important;
                 border-radius: 9px !important;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(1)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(1)::before {
                 display: none !important;
             }
 
             /* 2. Equipo Local y Visitante (Matchup gráfico con estadísticas completas) */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(2) {
                 border-left: 3px solid #2563eb !important;
                 background: #eff6ff !important;
                 font-size: .84rem !important;
                 font-weight: 800;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(2)::before {
                 content: 'LOCAL (CASA)' !important;
                 color: #1d4ed8 !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(3) {
                 border-left: 3px solid #dc2626 !important;
                 background: #fef2f2 !important;
                 font-size: .84rem !important;
                 font-weight: 800;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(3)::before {
                 content: 'VISITANTE (FUERA)' !important;
                 color: #b91c1c !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(2) .team-cell-league-stats,
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(3) .team-cell-league-stats {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(2) .team-cell-league-stats,
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(3) .team-cell-league-stats {
                 display: block !important;
                 font-size: .64rem !important;
                 margin-top: 3px;
@@ -2675,19 +2675,19 @@
             }
 
             /* 3. Mercado Hándicap Asiático y Resultado FT */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(4) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(4) {
                 background: #ecfdf5 !important;
                 border: 1px solid #a7f3d0 !important;
                 align-items: center !important;
                 justify-content: center !important;
                 text-align: center;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(4)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(4)::before {
                 content: 'HÁNDICAP / O/U' !important;
                 color: #059669 !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(5) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(5) {
                 background: #fdf2f8 !important;
                 border: 1px solid #fbcfe8 !important;
                 align-items: center !important;
@@ -2696,69 +2696,69 @@
                 font-size: 1rem !important;
                 font-weight: 900;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(5)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(5)::before {
                 content: 'RESULTADO FT' !important;
                 color: #db2777 !important;
             }
 
             /* 4. Precedentes Prev Home & Prev Away */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(6)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(6)::before {
                 content: 'PREV HOME' !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(7)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(7)::before {
                 content: 'PREV AWAY' !important;
             }
 
             /* 5. H2H Stadium & H2H General */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(8)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(8)::before {
                 content: 'H2H ESTADIO' !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(9)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(9)::before {
                 content: 'H2H GENERAL' !important;
             }
 
             /* 6. H2H Col 3 (Destaque Fila Completa) */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(10) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(10) {
                 grid-column: 1 / -1 !important;
                 background: #fdf4ff !important;
                 border: 1px solid #f0abfc !important;
             }
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(10)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(10)::before {
                 content: 'H2H COL 3 (TRIANGULACIÓN)' !important;
                 color: #9333ea !important;
             }
 
             /* 7. Comparativas Indirectas */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(11)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(11)::before {
                 content: 'IND. LOCAL' !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(12)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(12)::before {
                 content: 'IND. VISITANTE' !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(8),
-            .main-content .excel-table tbody tr > td:nth-child(9) {
+            .main-content .excel-table > tbody > tr > td:nth-child(8),
+            .main-content .excel-table > tbody > tr > td:nth-child(9) {
                 background: #fef2f2 !important;
             }
 
-            .main-content .excel-table tbody tr > td:nth-child(11),
-            .main-content .excel-table tbody tr > td:nth-child(12) {
+            .main-content .excel-table > tbody > tr > td:nth-child(11),
+            .main-content .excel-table > tbody > tr > td:nth-child(12) {
                 background: #fff7ed !important;
             }
 
-            .main-content .excel-table tbody tr > td.cell-diff-league {
+            .main-content .excel-table > tbody > tr > td.cell-diff-league {
                 background: #fff9c4 !important;
             }
 
-            .main-content .excel-table tbody tr > td.cell-no-data {
+            .main-content .excel-table > tbody > tr > td.cell-no-data {
                 background: #ffcdd2 !important;
             }
 
             /* 8. Botón Acciones / Ver Contexto Previo (Image 2 trigger) */
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(13) {
                 grid-column: 1 / -1 !important;
                 flex-direction: row !important;
                 justify-content: center !important;
@@ -2769,11 +2769,11 @@
                 border-radius: 9px !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13)::before {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(13)::before {
                 display: none !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"] {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"] {
                 flex: 1 1 auto;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -2791,13 +2791,13 @@
                 box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25) !important;
             }
 
-            .main-content .excel-table tbody tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
+            .main-content .excel-table > tbody > tr:not(.stats-collapse-row) > td:nth-child(13) .btn[title="Ver Estadísticas"]::after {
                 content: ' 📊 Tocar para ver Contexto Previo y Análisis Completo ▾';
                 margin-left: 6px;
                 font-size: .78rem;
             }
 
-            .main-content .excel-table tbody tr > td:last-child .btn:not([title="Ver Estadísticas"]) {
+            .main-content .excel-table > tbody > tr > td:last-child .btn:not([title="Ver Estadísticas"]) {
                 display: inline-flex !important;
                 width: 32px !important;
                 height: 32px !important;
@@ -2811,7 +2811,7 @@
             }
 
             /* Fila Desplegable de Contexto Previo (Image 2) */
-            .main-content .excel-table tbody tr.stats-collapse-row {
+            .main-content .excel-table > tbody > tr.stats-collapse-row {
                 display: none !important;
                 margin-top: -6px !important;
                 margin-bottom: 12px !important;
@@ -2823,11 +2823,11 @@
                 overflow: hidden !important;
             }
 
-            .main-content .excel-table tbody tr.stats-collapse-row.is-open {
+            .main-content .excel-table > tbody > tr.stats-collapse-row.is-open {
                 display: block !important;
             }
 
-            .main-content .excel-table tbody tr.stats-collapse-row > td {
+            .main-content .excel-table > tbody > tr.stats-collapse-row > td {
                 display: block !important;
                 width: 100% !important;
                 min-width: 0 !important;
@@ -2836,7 +2836,7 @@
                 background: transparent !important;
             }
 
-            .main-content .excel-table tbody tr.stats-collapse-row > td::before {
+            .main-content .excel-table > tbody > tr.stats-collapse-row > td::before {
                 display: none !important;
             }
 
@@ -3005,6 +3005,7 @@
     
 
 </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='mobile_compact.css') }}?v=20260827">
 </head>
 
 <body>
@@ -7110,7 +7111,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 `;
             }
 
-            return `<table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border-radius:5px; box-sizing:border-box; overflow:hidden;">${headerHtml}<tbody>${rows}</tbody></table>`;
+            return `<table class="table table-sm mb-0 match-stats-table" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border-radius:5px; box-sizing:border-box; overflow:hidden;">${headerHtml}<tbody>${rows}</tbody></table>`;
         }
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
