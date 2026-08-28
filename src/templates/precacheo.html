@@ -13006,8 +13006,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
                 const home = m.home_team || '-';
                 const away = m.away_team || '-';
-                // Corregir bug: handicap 0 es falsy, usar check explícito
-                const ah = (m.handicap !== undefined && m.handicap !== null && m.handicap !== '') ? m.handicap : '-';
+                const ah = (m.handicap !== undefined && m.handicap !== null && m.handicap !== '' && m.handicap !== 'N/A')
+                    ? m.handicap
+                    : (pc && pc.main_match_odds && pc.main_match_odds.ah_linea && pc.main_match_odds.ah_linea !== 'N/A')
+                        ? pc.main_match_odds.ah_linea
+                        : (pc && pc.handicap && pc.handicap !== 'N/A')
+                            ? pc.handicap
+                            : '-';
+                const ou = (m.goal_line !== undefined && m.goal_line !== null && m.goal_line !== '' && m.goal_line !== 'N/A')
+                    ? m.goal_line
+                    : (pc && pc.main_match_odds && pc.main_match_odds.goals_linea && pc.main_match_odds.goals_linea !== 'N/A')
+                        ? pc.main_match_odds.goals_linea
+                        : (pc && pc.goal_line && pc.goal_line !== 'N/A')
+                            ? pc.goal_line
+                            : '';
                 const league = (pc && pc.league_name && pc.league_name !== 'N/A') ? pc.league_name : (m.league || '');
 
                 const hRankVal = (pc && pc.home_standings && pc.home_standings.ranking && pc.home_standings.ranking !== 'N/A') ? pc.home_standings.ranking : (m.home_rank || '');
