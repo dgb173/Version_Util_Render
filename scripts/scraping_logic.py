@@ -1,5 +1,8 @@
 
 import asyncio
+import os
+import sys
+from pathlib import Path
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 import datetime
@@ -9,6 +12,13 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import threading
 from app_utils import normalize_handicap_to_half_bucket_str, _parse_handicap_to_float
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / 'src'))
+try:
+    from modules import nowgoal_fetcher
+except Exception:
+    nowgoal_fetcher = None
 
 URL_NOWGOAL = "https://live20.nowgoal25.com/"
 REQUEST_TIMEOUT_SECONDS = 12
@@ -287,30 +297,48 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
 
     return paginated_matches
 
-async def get_main_page_matches_async(limit=20, offset=0, handicap_filter=None, goal_line_filter=None):
+async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None, goal_line_filter=None):
+    try:
+        matches = await asyncio.to_thread(
+            nowgoal_fetcher.fetch_main_page_matches_direct,
+            status_filter="upcoming",
+            limit=limit,
+            offset=offset,
+            handicap_filter=handicap_filter,
+            goal_line_filter=goal_line_filter,
+        )
+        if matches:
+            return matches
+    except Exception as exc:
+        print(f"Error en nowgoal_fetcher (upcoming): {exc}")
+
     html_content = await _fetch_nowgoal_html(filter_state=3)
     if not html_content:
         html_content = await _fetch_nowgoal_html(filter_state=3, requests_first=False)
         if not html_content:
             return []
     matches = parse_main_page_matches(html_content, limit, offset, handicap_filter, goal_line_filter)
-    if not matches:
-        html_content = await _fetch_nowgoal_html(filter_state=3, requests_first=False)
-        if not html_content:
-            return []
-        matches = parse_main_page_matches(html_content, limit, offset, handicap_filter, goal_line_filter)
     return matches
 
-async def get_main_page_finished_matches_async(limit=20, offset=0, handicap_filter=None, goal_line_filter=None):
+async def get_main_page_finished_matches_async(limit=1500, offset=0, handicap_filter=None, goal_line_filter=None):
+    try:
+        matches = await asyncio.to_thread(
+            nowgoal_fetcher.fetch_main_page_matches_direct,
+            status_filter="finished",
+            limit=limit,
+            offset=offset,
+            handicap_filter=handicap_filter,
+            goal_line_filter=goal_line_filter,
+        )
+        if matches:
+            return matches
+    except Exception as exc:
+        print(f"Error en nowgoal_fetcher (finished): {exc}")
+
     html_content = await _fetch_nowgoal_html(path='football/results')
     if not html_content:
         html_content = await _fetch_nowgoal_html(path='football/results', requests_first=False)
         if not html_content:
             return []
     matches = parse_main_page_finished_matches(html_content, limit, offset, handicap_filter, goal_line_filter)
-    if not matches:
-        html_content = await _fetch_nowgoal_html(path='football/results', requests_first=False)
-        if not html_content:
-            return []
-        matches = parse_main_page_finished_matches(html_content, limit, offset, handicap_filter, goal_line_filter)
     return matches

@@ -329,16 +329,13 @@ def flag_stale_prev_matches(match_data):
     }
 
 
-def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
+def clean_old_precacheo_matches(days_threshold=3, pending_days_threshold=7):
     """
     Removes old pre-cacheo matches.
-    1. With result: remove if older than (today - days_threshold).
-    2. Without result: keep up to pending_days_threshold days.
+    1. With result: remove if older than (today - days_threshold) [default 3 days].
+    2. Without result: keep up to pending_days_threshold days [default 7 days].
     """
     with _precacheo_lock:
-        # Maintenance only needs scalar headers.  Loading both complete
-        # buckets here used to deserialize the entire 77 MB pre-cache snapshot
-        # and was the largest avoidable memory spike on Render Free.
         headers = sql_store.fetch_match_headers(
             (PRECACHEO_BUCKET, PENDING_RESULTS_BUCKET)
         )
@@ -346,13 +343,13 @@ def clean_old_precacheo_matches(days_threshold=1, pending_days_threshold=2):
             return 0
 
         try:
-            days_threshold = max(0, int(days_threshold))
+            days_threshold = max(0, int(os.getenv('PRECACHEO_DAYS_THRESHOLD', str(days_threshold))))
         except Exception:
-            days_threshold = 1
+            days_threshold = 3
         try:
-            pending_days_threshold = max(0, int(pending_days_threshold))
+            pending_days_threshold = max(0, int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', str(pending_days_threshold))))
         except Exception:
-            pending_days_threshold = 2
+            pending_days_threshold = 7
 
         now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         threshold_date = now - datetime.timedelta(days=days_threshold)

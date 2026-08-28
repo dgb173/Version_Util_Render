@@ -209,8 +209,8 @@ _PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS = max(
     int(os.getenv('PRECACHEO_AUTO_CLEAN_INTERVAL_SECONDS', '300'))
 )
 _PRECACHEO_PENDING_MAX_AGE_DAYS = max(
-    0,
-    int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '2'))
+    1,
+    int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '7'))
 )
 _PRECACHEO_BUCKET_NAME = data_manager.PRECACHEO_BUCKET
 _PRECACHEO_FILE_CANDIDATES = [
@@ -452,7 +452,7 @@ def _maybe_cleanup_precacheo_stale(force=False):
 
     try:
         removed = data_manager.clean_old_precacheo_matches(
-            days_threshold=1,
+            days_threshold=3,
             pending_days_threshold=_PRECACHEO_PENDING_MAX_AGE_DAYS,
         )
         if removed > 0:

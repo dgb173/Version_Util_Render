@@ -26,14 +26,14 @@ ALLOWED_YOUTH_LEAGUES = [
 
 
 def cleanup_precacheo_stale(tag):
-    """Limpia pendientes antiguos de precacheo para evitar bloat."""
+    """Limpia pendientes antiguos de precacheo para evitar bloat sin borrar historial reciente."""
     try:
-        pending_days = max(0, int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '1')))
+        pending_days = max(1, int(os.getenv('PRECACHEO_PENDING_MAX_AGE_DAYS', '7')))
     except Exception:
-        pending_days = 1
+        pending_days = 7
     try:
         removed = data_manager.clean_old_precacheo_matches(
-            days_threshold=1,
+            days_threshold=3,
             pending_days_threshold=pending_days,
         )
         print(
