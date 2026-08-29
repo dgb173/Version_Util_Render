@@ -5285,7 +5285,10 @@
                 // Load precacheo data
                 let precacheRows = [];
                 try {
-                    const precRes = await fetch('/api/precacheo_list');
+                    const precRes = await fetch(`/api/precacheo_list?_=${Date.now()}`, {
+                        cache: 'no-store',
+                        headers: {'Cache-Control': 'no-cache'}
+                    });
                     if (!precRes.ok) throw new Error(`HTTP ${precRes.status}`);
                     const precData = await precRes.json();
                     precacheRows = precData.matches || [];
@@ -5373,11 +5376,8 @@
                     }
                 }
 
-                // En Próximos sí aceptamos un último fallback. En Pendientes no:
-                // mezclaría partidos futuros o ya finalizados en una vista vacía.
-                if (currentViewMode === 'proximos' && (!matchesToShow || matchesToShow.length === 0) && precacheMatches.length > 0) {
-                    matchesToShow = [...precacheMatches];
-                }
+                // Nunca rellenar Próximos con todo el histórico. Si los dos
+                // orígenes actuales están vacíos, la tabla debe quedar vacía.
 
                 // Enriquecer la lista visible con datos de precacheo cuando existan (sin perder fecha/hora del feed principal).
                 matchesToShow = (matchesToShow || []).map(m => {

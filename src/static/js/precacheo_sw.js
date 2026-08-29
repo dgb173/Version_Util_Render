@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'precacheo-static-v1';
-const API_CACHE = 'precacheo-api-v1';
+const STATIC_CACHE = 'precacheo-static-v3';
+const API_CACHE = 'precacheo-api-v3';
 
 const OFFLINE_SHELL = [
     '/precacheo',
@@ -99,7 +99,22 @@ async function networkFirstPrecacheList(request) {
         return response;
     } catch (_) {
         const cached = await cache.match(request) || await cache.match('/api/precacheo_list');
-        if (cached) return cached;
+        if (cached) {
+            try {
+                const payload = await cached.clone().json();
+                payload.offline = true;
+                payload.cache_fallback = true;
+                return new Response(JSON.stringify(payload), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Precacheo-Cache-Fallback': '1',
+                    },
+                    status: 200,
+                });
+            } catch (_) {
+                // Do not present an invalid legacy response as current data.
+            }
+        }
         return new Response(JSON.stringify({ matches: [], offline: true }), {
             headers: { 'Content-Type': 'application/json' },
             status: 200,
