@@ -43,6 +43,12 @@ def main() -> int:
             print(f"ERROR exportando {bucket}: {exc}")
             return 1
 
+    try:
+        from build_precache_fast_store import main as build_fast_store
+        build_fast_store()
+    except Exception as exc:
+        print(f"[AVISO] No se pudo regenerar precacheo_fast_store: {exc}")
+
     return 0
 
 

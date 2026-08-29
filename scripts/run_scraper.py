@@ -43,6 +43,7 @@ def cleanup_precacheo_stale(tag):
     except Exception as exc:
         print(f"[{tag}] Error en limpieza automática de precacheo: {exc}")
 
+
 def is_youth_match(match):
     """Verifica si el partido es de equipos juveniles (excepto ligas permitidas)"""
     home = (match.get('home_team') or match.get('home') or match.get('home_name') or '').lower()
@@ -60,6 +61,7 @@ def is_youth_match(match):
         if re.search(pattern, text_to_check, re.IGNORECASE):
             return True
     return False
+
 
 def filter_youth_matches(matches):
     """Filtra partidos de equipos juveniles de una lista"""
@@ -79,7 +81,7 @@ def sync_cloud_precacheo_to_local():
     print("Sincronizando precacheo cloud con la base local...")
     try:
         subprocess.run(
-            ['git', 'fetch', 'origin', 'main', '--depth=1'],
+            ['git', 'fetch', 'origin', 'main'],
             cwd=PROJECT_ROOT,
             check=True,
             capture_output=True,
@@ -97,27 +99,9 @@ def sync_cloud_precacheo_to_local():
             if isinstance(row, dict)
             and (row.get('match_id') or row.get('id')) not in (None, '')
         ]
-        cloud_ids = {
-            str(row.get('match_id') or row.get('id'))
-            for row in cloud_rows
-        }
 
         conn = sql_store._connect()
         try:
-            local_rows = conn.execute(
-                "SELECT match_id FROM matches WHERE bucket = ?",
-                ('data_precacheo.json',),
-            ).fetchall()
-            stale_ids = [
-                str(row['match_id']) for row in local_rows
-                if str(row['match_id']) not in cloud_ids
-            ]
-            if stale_ids:
-                conn.executemany(
-                    "DELETE FROM matches WHERE bucket = ? AND match_id = ?",
-                    [('data_precacheo.json', match_id) for match_id in stale_ids],
-                )
-
             for row in cloud_rows:
                 sql_store._upsert_match(
                     conn,
@@ -129,11 +113,63 @@ def sync_cloud_precacheo_to_local():
         finally:
             conn.close()
         print(
-            f"Precacheo cloud sincronizado en local: {len(cloud_rows)} partidos; "
-            f"{len(stale_ids)} obsoletos eliminados."
+            f"Precacheo cloud sincronizado en local: {len(cloud_rows)} partidos integrados."
         )
     except Exception as exc:
         print(f"[AVISO] No se pudo sincronizar el precacheo cloud: {exc}")
+
+
+def select_upcoming_with_high_ah(matches: list, base_limit: int = 250) -> list:
+    """
+    Selecciona hasta `base_limit` (250) partidos estándar por orden cronológico,
+    MÁS TODOS los partidos que tengan hándicaps significativos (|AH| >= 1.0:
+    1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, -1, -1.25, -1.5, -1.75, -2, -2.25, -2.5, etc.),
+    garantizando que nunca se queden fuera aunque se supere el límite de 250.
+    """
+    clean_matches = filter_youth_matches(matches)
+
+    def is_significant_ah(m: dict) -> bool:
+        ah_val = m.get("handicap")
+        if ah_val in (None, "", "N/A"):
+            odds = m.get("main_match_odds") or {}
+            ah_val = odds.get("ah_linea")
+        if ah_val in (None, "", "N/A"):
+            return False
+        try:
+            val = float(str(ah_val).replace(",", "."))
+            return abs(val) >= 0.95
+        except (ValueError, TypeError):
+            return False
+
+    selected_ids = set()
+    result = []
+
+    # 1. Añadir los primeros `base_limit` partidos cronológicos
+    for m in clean_matches:
+        mid = str(m.get("id") or m.get("match_id") or "")
+        if not mid or mid in selected_ids:
+            continue
+        if len(result) < base_limit:
+            result.append(m)
+            selected_ids.add(mid)
+
+    # 2. Añadir adicionalmente TODOS los partidos con |AH| >= 1.0 que no estuvieran ya
+    extra_ah_count = 0
+    for m in clean_matches:
+        mid = str(m.get("id") or m.get("match_id") or "")
+        if not mid or mid in selected_ids:
+            continue
+        if is_significant_ah(m):
+            result.append(m)
+            selected_ids.add(mid)
+            extra_ah_count += 1
+
+    print(
+        f"Selección final de próximos: {len(result)} partidos "
+        f"({min(len(result), base_limit)} base + {extra_ah_count} extra con |AH| >= 1.0)"
+    )
+    return result
+
 
 async def main():
     """
@@ -142,17 +178,17 @@ async def main():
     print("Iniciando el proceso de scraping principal...")
     cleanup_precacheo_stale("PRE")
     try:
-        # Obtenemos los partidos próximos (máximo 200) y los finalizados
+        # Obtenemos un universo amplio de partidos próximos (500) y finalizados
         proximos, finalizados = await asyncio.gather(
-            get_main_page_matches_async(limit=200),
+            get_main_page_matches_async(limit=500),
             get_main_page_finished_matches_async(limit=1500)
         )
         
         print(f"Scraping de listas finalizado. {len(proximos)} partidos próximos y {len(finalizados)} finalizados.")
         
-        # Filtrar equipos juveniles (U19, U21, etc.)
-        print("Filtrando partidos de equipos juveniles...")
-        proximos = filter_youth_matches(proximos)[:200]
+        # Filtrar y seleccionar 250 base + TODOS los de hándicap >= 1.0 / <= -1.0
+        print("Filtrando partidos de equipos juveniles y seleccionando cuotas AH objetivo...")
+        proximos = select_upcoming_with_high_ah(proximos, base_limit=250)
         finalizados = filter_youth_matches(finalizados)
         print(f"Después de filtrar: {len(proximos)} próximos y {len(finalizados)} finalizados.")
 
@@ -167,6 +203,7 @@ async def main():
         print("Snapshot de partidos guardado en SQL correctamente.")
     finally:
         cleanup_precacheo_stale("POST")
+
 
 if __name__ == "__main__":
     sync_cloud_precacheo_to_local()

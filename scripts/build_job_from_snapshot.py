@@ -69,9 +69,6 @@ def _looks_like_complete_precache(match):
         return False
     if match.get("error") or match.get("precache_placeholder"):
         return False
-    # Al subir el formato, el siguiente ciclo de GitHub reprocesa una sola vez
-    # los snapshots antiguos. Los nuevos, incluso sin historial disponible,
-    # conservan la versión y no entran en un bucle de reintentos cada 8 horas.
     try:
         history_data_version = int(match.get("history_data_version") or 0)
     except (TypeError, ValueError):
@@ -187,7 +184,7 @@ def build_jobs(
 
         upcoming = payload.get("upcoming_matches", []) if isinstance(payload, dict) else []
         candidate_ids = []
-        upcoming = (upcoming or [])[:200]
+        upcoming = (upcoming or [])[:400]
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
@@ -205,12 +202,11 @@ def build_jobs(
         skipped_existing = 0
         forced_refresh = 0
 
-        upcoming = (upcoming or [])[:200]
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
-            if len(jobs) >= 200:
-                print("Límite de 200 partidos alcanzado para el lote de precacheo.")
+            if len(jobs) >= 400:
+                print("Límite de 400 partidos alcanzado para el lote de precacheo.")
                 break
 
             mid = match.get("id") or match.get("match_id")
