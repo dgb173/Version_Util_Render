@@ -264,7 +264,13 @@ def migrate_archive(root):
         for row in read_json(Path(root) / 'data' / name, []):
             if not isinstance(row, dict):
                 continue
-            path = archive_path(root, 'upcoming', mid(row))
+            try:
+                match_id = mid(row)
+            except ValueError:
+                # Old data may contain placeholders without a numeric NowGoal ID.
+                # They are not valid cache records and must not abort publication.
+                continue
+            path = archive_path(root, 'upcoming', match_id)
             if not path.exists():
                 write_json(path, row)
 

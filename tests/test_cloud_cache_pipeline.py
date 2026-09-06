@@ -65,6 +65,17 @@ def test_merge_missing_shard_fails_before_mutating_data(tmp_path):
     assert not (tmp_path / 'data').exists()
 
 
+def test_archive_migration_skips_legacy_rows_without_numeric_id(tmp_path):
+    cache.write_json(tmp_path / 'data/data_precacheo.json', [
+        {'home_name': 'placeholder'},
+        {'match_id': 'abc', 'home_name': 'invalid'},
+        row(10),
+    ])
+    cache.migrate_archive(tmp_path)
+    paths = list((tmp_path / 'data/cache_archive/upcoming').glob('*.json'))
+    assert [path.name for path in paths] == ['10.json']
+
+
 def test_prepare_unlimited_and_disjoint(monkeypatch, tmp_path):
     from modules import nowgoal_fetcher
     future = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=1)).isoformat()
