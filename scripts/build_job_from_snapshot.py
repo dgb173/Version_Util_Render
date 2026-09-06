@@ -184,7 +184,7 @@ def build_jobs(
 
         upcoming = payload.get("upcoming_matches", []) if isinstance(payload, dict) else []
         candidate_ids = []
-        upcoming = (upcoming or [])[:400]
+        upcoming = upcoming or []
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
@@ -205,9 +205,6 @@ def build_jobs(
         for match in upcoming:
             if not isinstance(match, dict):
                 continue
-            if len(jobs) >= 400:
-                print("Límite de 400 partidos alcanzado para el lote de precacheo.")
-                break
 
             mid = match.get("id") or match.get("match_id")
             if mid is None:

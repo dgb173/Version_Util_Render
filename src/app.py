@@ -61,6 +61,8 @@ from flask import jsonify # Asegúrate de que jsonify está importado
 
 
 app = Flask(__name__)
+from modules.cloud_bots import blueprint as cloud_bots_blueprint
+app.register_blueprint(cloud_bots_blueprint)
 
 _league_market_jobs = {}
 _league_market_jobs_lock = threading.Lock()
@@ -5139,16 +5141,22 @@ def api_precacheo_list():
     try:
         _maybe_cleanup_precacheo_stale(force=False)
 
+        if os.getenv('RENDER') and precache_fast_store.available():
+            upcoming = pending_results_query.fetch_upcoming_page(per_page=400)['matches']
+            pending = pending_results_query.fetch_pending_page(per_page=200)['matches']
+            return jsonify({'matches': upcoming + pending, 'offline': False,
+                'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat()})
+
         try:
-            default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '700'))
+            default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '400'))
         except Exception:
-            default_limit = 700
+            default_limit = 400
         default_limit = max(100, default_limit)
 
         try:
-            max_limit = int(os.getenv('PRECACHEO_LIST_MAX_LIMIT', '2000'))
+            max_limit = int(os.getenv('PRECACHEO_LIST_MAX_LIMIT', '400'))
         except Exception:
-            max_limit = 2000
+            max_limit = 400
         max_limit = max(default_limit, max_limit)
 
         limit = None

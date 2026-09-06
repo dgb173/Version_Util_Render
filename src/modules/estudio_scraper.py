@@ -2488,7 +2488,7 @@ def load_cached_finished_matches():
         print(f"Error loading data.json: {e}")
         return []
 
-def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = False, check_odds_early: bool = False):
+def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True):
     main_match_id = "".join(filter(str.isdigit, str(match_id)))
     if not main_match_id:
         return {"error": "ID de partido inválido."}
@@ -2496,7 +2496,8 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     if not force_refresh:
         cached_payload = _get_cached_analysis(main_match_id)
         if cached_payload and int(cached_payload.get("history_data_version") or 0) >= 3:
-            return cached_payload
+            if not include_summary_stats or cached_payload.get('summary_stats_status') == 'complete':
+                return cached_payload
 
     start_time = time.time()
     try:
@@ -2672,7 +2673,7 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     historical_matches_html = _build_historical_matches_list_html(recent_home_matches, recent_away_matches, home_name, away_name)
 
     def get_stats_rows(match_id_value):
-        if not match_id_value:
+        if not include_summary_stats or not match_id_value:
             return []
         df = get_match_progression_stats_data(str(match_id_value))
         return _df_to_rows(df)
@@ -2689,6 +2690,7 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     results = {
         "match_id": main_match_id,
         "history_data_version": 3,
+        "summary_stats_status": "complete" if include_summary_stats else "deferred",
         "home_name": home_name,
         "away_name": away_name,
         "league_name": league_name,
@@ -2773,11 +2775,12 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     return copy.deepcopy(results)
 
 
-def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False):
+def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True):
     """Run a complete analysis under the process-wide memory guard."""
     with _analysis_semaphore:
         return _analizar_partido_completo_unlocked(
             match_id,
             force_refresh=force_refresh,
             check_odds_early=check_odds_early,
+            include_summary_stats=include_summary_stats,
         )

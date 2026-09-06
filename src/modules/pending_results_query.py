@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import math
+import os
 import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
@@ -299,6 +300,8 @@ def fetch_pending_page(
         pending.append((scheduled_at, match_id))
 
     pending.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if os.getenv("RENDER"):
+        pending = pending[:200]
     total = len(pending)
     total_pages = max(1, math.ceil(total / per_page))
     page = min(page, total_pages)
@@ -366,6 +369,8 @@ def fetch_upcoming_page(
         upcoming.append((scheduled_at, match_id))
 
     upcoming.sort(key=lambda item: (item[0], item[1]))
+    if os.getenv("RENDER"):
+        upcoming = upcoming[:400]
     total = len(upcoming)
     total_pages = max(1, math.ceil(total / per_page))
     page = min(page, total_pages)

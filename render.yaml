@@ -56,9 +56,9 @@ services:
       - key: EXPLORER_SCAN_LIMIT
         value: "2000"
       - key: PRECACHEO_LIST_DEFAULT_LIMIT
-        value: "700"
+        value: "400"
       - key: PRECACHEO_LIST_MAX_LIMIT
-        value: "2000"
+        value: "400"
       - key: RENDER_LITE_MODE
         value: "0"
       - key: APP_PRECACHEO_ONLY
@@ -89,3 +89,11 @@ services:
         value: "1"
       - key: GROQ_API_KEY
         sync: false
+      - key: GITHUB_ACTIONS_TOKEN
+        sync: false
+      - key: ACTIONS_TRIGGER_KEY
+        sync: false
+      - key: GITHUB_REPOSITORY
+        value: "dgb173/Version_Util_Render"
+      - key: GITHUB_WORKFLOW_REF
+        value: "main"

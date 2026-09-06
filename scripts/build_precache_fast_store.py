@@ -28,6 +28,10 @@ SOURCE_FILES = (
     DATA_DIR / "data_pending_results.json",
 )
 EXTRA_KEYS = (
+    "summary_stats_status",
+    "precache_placeholder",
+    "cache_profile",
+    "cloud_cache_version",
     "time",
     "start_time",
     "is_neutral_venue",
@@ -64,6 +68,10 @@ def compact_row(row: dict) -> dict:
 
 
 def main() -> None:
+    # Rebuild the bounded window from the lossless cloud archive at deploy time.
+    if (DATA_DIR / "cache_archive/upcoming").exists():
+        from cloud_cache_pipeline import build_windows
+        build_windows(PROJECT_ROOT)
     existing_sources = [source for source in SOURCE_FILES if source.exists()]
     if INDEX_FILE.exists() and existing_sources:
         newest_source = max(source.stat().st_mtime_ns for source in existing_sources)

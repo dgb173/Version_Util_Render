@@ -1,150 +1,41 @@
-name: Actualizar precacheo para Render
-
-run-name: >-
-  Precacheo ${{ github.event_name == 'schedule' && 'automático cada 3 h' || 'manual desde móvil' }}
-
+name: Precacheo completo (8 bots)
 on:
   workflow_dispatch:
     inputs:
       force_full:
-        description: Reanalizar también partidos ya cacheados
-        required: false
-        default: false
+        description: Reanalizar tambien partidos completos
         type: boolean
+        default: false
+      workers:
+        description: Procesos por bot (1-6)
+        type: string
+        default: '3'
+      max_jobs:
+        description: Solo diagnostico; 0 descarga todos
+        type: string
+        default: '0'
+      handicap:
+        description: Handicap o all
+        type: string
+        default: all
+      ou:
+        description: Over/Under o all
+        type: string
+        default: all
   schedule:
-    - cron: "0 */3 * * *" # Cada 3 horas (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC)
-
+    - cron: '0 */3 * * *'
 permissions:
   contents: write
-
 concurrency:
-  group: actualizar-precacheo-main
+  group: cloud-cache-upcoming-main
   cancel-in-progress: false
-
 jobs:
-  actualizar:
-    name: Generar, publicar y desplegar
-    runs-on: ubuntu-latest
-    timeout-minutes: 240
-    env:
-      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
-      APP_SQLITE_BOOTSTRAP_LOCK: ${{ github.workspace }}/data/app_data_bootstrap.lock
-      DATA_LEGACY_SYNC: "0"
-      SQL_BOOTSTRAP_MODE: partial
-      SQL_BOOTSTRAP_ONLY_BUCKETS: data_precacheo.json,data_pending_results.json
-      PRECACHEO_PENDING_MAX_AGE_DAYS: "7"
-      PRECACHEO_DAYS_THRESHOLD: "3"
-      PRECACHEO_HISTORY_UPGRADE_DAYS: "2"
-      PRECACHEO_RENDER_URL: "https://nowgoal-app-v8fw.onrender.com"
-      PYTHONUNBUFFERED: "1"
-
-    steps:
-      - name: Descargar la versión de Render
-        uses: actions/checkout@v6
-        with:
-          ref: main
-          fetch-depth: 1
-
-      - name: Preparar Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-          cache: pip
-
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install playwright==1.55.0
-          python -m playwright install --with-deps chromium
-
-      - name: Generar data, precacheo y contexto previo
-        env:
-          FORCE_FULL: ${{ inputs.force_full || false }}
-        run: |
-          args=(--workers 10 --upgrade-stale-days "$PRECACHEO_HISTORY_UPGRADE_DAYS")
-          if [[ "$FORCE_FULL" == "true" ]]; then
-            args+=(--force-full)
-          fi
-          python scripts/cloud_refresh_precacheo.py "${args[@]}"
-
-      - name: Revisar archivos que se publicarán
-        run: |
-          git status --short -- \
-            data.json \
-            data/data.json \
-            data/data_precacheo.json \
-            data/data_pending_results.json \
-            data/league_extractions.json
-          python -m json.tool data.json > /dev/null
-          python -m json.tool data/data_precacheo.json > /dev/null
-          python -m json.tool data/data_pending_results.json > /dev/null
-
-      - name: Publicar en main
-        id: publish
-        run: |
-          output_dir="$RUNNER_TEMP/precacheo-output"
-          mkdir -p "$output_dir/data"
-          cp data.json "$output_dir/data.json"
-          cp data/data.json "$output_dir/data/data.json"
-          cp data/data_precacheo.json "$output_dir/data/data_precacheo.json"
-          cp data/data_pending_results.json "$output_dir/data/data_pending_results.json"
-          cp data/league_extractions.json "$output_dir/data/league_extractions.json"
-          stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
-
-          for attempt in 1 2 3; do
-            echo "Intento de publicación $attempt/3"
-            git fetch origin main --depth=1
-
-            publish_dir="$RUNNER_TEMP/precacheo-publish-$attempt"
-            git worktree add --detach "$publish_dir" origin/main
-
-            cp "$output_dir/data.json" "$publish_dir/data.json"
-            cp "$output_dir/data/data.json" "$publish_dir/data/data.json"
-            cp "$output_dir/data/data_precacheo.json" "$publish_dir/data/data_precacheo.json"
-            cp "$output_dir/data/data_pending_results.json" "$publish_dir/data/data_pending_results.json"
-            cp "$output_dir/data/league_extractions.json" "$publish_dir/data/league_extractions.json"
-
-            git -C "$publish_dir" config user.name "github-actions[bot]"
-            git -C "$publish_dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git -C "$publish_dir" add -- \
-              data.json \
-              data/data.json \
-              data/data_precacheo.json \
-              data/data_pending_results.json \
-              data/league_extractions.json
-
-            if git -C "$publish_dir" diff --cached --quiet; then
-              echo "No hay cambios nuevos que publicar."
-              git worktree remove --force "$publish_dir"
-              echo "published=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            git -C "$publish_dir" commit -m "chore: cloud refresh precacheo ${stamp}"
-            if git -C "$publish_dir" push origin HEAD:main; then
-              git worktree remove --force "$publish_dir"
-              echo "published=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            git worktree remove --force "$publish_dir"
-            echo "main avanzó durante la publicación; se reintentará sobre su última versión."
-          done
-
-          echo "No se pudo publicar después de tres intentos." >&2
-          exit 1
-
-      - name: Resumen
-        if: always()
-        run: |
-          {
-            echo "## Actualización de precacheo"
-            echo
-            echo "- Horario automático: **cada 4 horas (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)**"
-            echo "- Ejecución: **${{ github.event_name }}**"
-            echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
-            echo "- Contexto previo: **incremental, caché de 8 horas**"
-            echo
-            echo "Si se publicó un commit, Render recibe automáticamente el push de main."
-          } >> "$GITHUB_STEP_SUMMARY"
+  cache:
+    uses: ./.github/workflows/cloud-cache-worker.yml
+    with:
+      kind: upcoming
+      force_full: ${{ inputs.force_full || false }}
+      workers: ${{ inputs.workers || '3' }}
+      max_jobs: ${{ inputs.max_jobs || '0' }}
+      handicap: ${{ inputs.handicap || 'all' }}
+      ou: ${{ inputs.ou || 'all' }}

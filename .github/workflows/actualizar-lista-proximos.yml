@@ -1,0 +1,13 @@
+name: Actualizar lista de proximos
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: cloud-cache-list-main
+  cancel-in-progress: false
+jobs:
+  cache:
+    uses: ./.github/workflows/cloud-cache-worker.yml
+    with:
+      kind: list

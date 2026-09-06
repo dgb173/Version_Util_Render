@@ -3280,6 +3280,13 @@
             <div class="precache-action-toolbar d-flex gap-2 align-items-center flex-wrap">
                 <div id="scraping-status" class="d-none"></div>
                 <div class="precache-bulk-actions" aria-label="Exportar partidos">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2" style="width:100%">
+                        <button class="btn btn-outline-primary btn-sm" data-cloud-bot onclick="launchCloudCache('list')">↻ Actualizar próximos</button>
+                        <button class="btn btn-outline-success btn-sm" data-cloud-bot onclick="launchCloudCache('upcoming')">Descargar fichas completas</button>
+                        <button class="btn btn-outline-secondary btn-sm" data-cloud-bot onclick="launchCloudCache('finished')">Cachear terminados</button>
+                        <a id="cloud-bot-actions" class="small" target="_blank" rel="noopener">Ver bots</a>
+                        <span id="cloud-bot-status" class="small text-muted" role="status"></span>
+                    </div>
                     <button class="btn btn-outline-primary btn-sm" id="btn-copy-all-precache"
                         onclick="copyAllPrecachePrompts(this)" title="Copiar los datos completos de todos los partidos filtrados visibles">
                         <i class="fa-solid fa-copy me-1"></i> Copiar todos los partidos
@@ -16989,6 +16996,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
     <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
 
+<dialog id="cloud-bot-key-dialog" style="border:0;border-radius:12px;padding:24px;max-width:360px">
+    <form id="cloud-bot-key-form">
+        <label for="cloud-bot-key">Clave de activación</label>
+        <input class="form-control my-2" id="cloud-bot-key" type="password" required autocomplete="off">
+        <button class="btn btn-primary btn-sm" type="submit">Activar</button>
+        <button class="btn btn-light btn-sm" type="button" onclick="document.getElementById('cloud-bot-key-dialog').close()">Cancelar</button>
+    </form>
+</dialog>
+<script src="{{ url_for('static', filename='js/cloud_bots.js') }}"></script>
 </body>
 
 </html>

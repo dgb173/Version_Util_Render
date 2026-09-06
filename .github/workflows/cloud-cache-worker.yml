@@ -1,0 +1,127 @@
+name: Coordinador de cache distribuida
+on:
+  workflow_call:
+    inputs:
+      kind:
+        required: true
+        type: string
+      force_full:
+        type: boolean
+        default: false
+      workers:
+        type: string
+        default: '3'
+      max_jobs:
+        type: string
+        default: '0'
+      handicap:
+        type: string
+        default: all
+      ou:
+        type: string
+        default: all
+permissions:
+  contents: write
+env:
+  PYTHONUNBUFFERED: '1'
+  DATA_LEGACY_SYNC: '0'
+  SQL_BOOTSTRAP_MODE: partial
+  SQL_BOOTSTRAP_ONLY_BUCKETS: data_precacheo.json,data_pending_results.json
+  ANALYSIS_MAX_CONCURRENCY: ${{ inputs.workers }}
+  PLAYWRIGHT_MAX_CONCURRENCY: '1'
+  SCRAPE_MAX_CONCURRENCY: '3'
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Una lista completa y ocho colas sin duplicados
+        env:
+          KIND: ${{ inputs.kind }}
+          FORCE: ${{ inputs.force_full }}
+          MAX_JOBS: ${{ inputs.max_jobs }}
+          HANDICAP: ${{ inputs.handicap }}
+          OU: ${{ inputs.ou }}
+        run: |
+          args=(prepare --kind "$KIND" --shards 8 --max-jobs "$MAX_JOBS" --handicap "$HANDICAP" --ou "$OU")
+          if [[ "$FORCE" == true ]]; then args+=(--force-full); fi
+          python scripts/cloud_cache_pipeline.py "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prepared-cache
+          path: prepared
+          if-no-files-found: error
+          retention-days: 7
+  analyze:
+    if: inputs.kind != 'list'
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-cache
+          path: prepared
+      - name: Analizar con reintentos y guardar cada resultado
+        env:
+          KIND: ${{ inputs.kind }}
+          WORKERS: ${{ inputs.workers }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          python scripts/cloud_cache_pipeline.py worker --kind "$KIND" --workers "$WORKERS" --shard "$SHARD" --input "prepared/jobs_$SHARD.json" --output "results/result_$SHARD.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cache-result-${{ matrix.shard }}
+          path: results
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    if: always() && needs.prepare.result == 'success' && !cancelled()
+    needs: [prepare, analyze]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: cloud-cache-publish-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: prepared-cache
+          path: prepared
+      - uses: actions/download-artifact@v4
+        if: inputs.kind != 'list'
+        with:
+          pattern: cache-result-*
+          path: results
+      - name: Validar y publicar sobre los datos mas recientes
+        env:
+          KIND: ${{ inputs.kind }}
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/publish_cloud_cache.py --kind "$KIND"

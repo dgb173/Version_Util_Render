@@ -1,130 +1,41 @@
-name: Cachear partidos terminados en GitHub
-
-run-name: >-
-  Cacheo de terminados (${{ github.event_name == 'schedule' && 'automático 05:00 Madrid' || inputs.handicap || 'all' }})
-
+name: Terminados primeros filtros (8 bots)
 on:
   workflow_dispatch:
     inputs:
-      handicap:
-        description: "Filtro de Handicap Asiático (ej. 0.5, -0.5, all)"
-        required: false
-        default: "all"
-        type: string
-      ou:
-        description: "Filtro de Over/Under (ej. 2.5, all)"
-        required: false
-        default: "all"
-        type: string
+      force_full:
+        description: Reanalizar tambien partidos completos
+        type: boolean
+        default: false
       workers:
-        description: "Número de hilos/workers paralelos"
-        required: false
-        default: "10"
+        description: Procesos por bot (1-6)
         type: string
-      flush_every:
-        description: "Frecuencia de volcado incremental (cada N partidos)"
-        required: false
-        default: "100"
+        default: '3'
+      max_jobs:
+        description: Solo diagnostico; 0 descarga todos
         type: string
+        default: '0'
+      handicap:
+        description: Handicap o all
+        type: string
+        default: all
+      ou:
+        description: Over/Under o all
+        type: string
+        default: all
   schedule:
-    # 05:00 AM hora de Madrid (UTC+2 en verano = 03:00 UTC)
-    - cron: "0 3 * * *"
-
+    - cron: '20 3 * * *'
 permissions:
   contents: write
-
 concurrency:
-  group: cachear-terminados-main
+  group: cloud-cache-finished-main
   cancel-in-progress: false
-
 jobs:
-  cachear:
-    name: Ejecutar cacheo de terminados
-    runs-on: ubuntu-latest
-    timeout-minutes: 360
-    env:
-      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
-      APP_SQLITE_BOOTSTRAP_LOCK: ${{ github.workspace }}/data/app_data_bootstrap.lock
-      DATA_LEGACY_SYNC: "1"
-      PYTHONUNBUFFERED: "1"
-
-    steps:
-      - name: Descargar repositorio
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 1
-
-      - name: Preparar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install playwright==1.55.0
-          python -m playwright install --with-deps chromium
-
-      - name: Ejecutar cacheo de partidos terminados
-        run: |
-          handicap="${{ inputs.handicap || 'all' }}"
-          ou="${{ inputs.ou || 'all' }}"
-          workers="${{ inputs.workers || '10' }}"
-          flush_every="${{ inputs.flush_every || '5' }}"
-          python scripts/cache_finished_matches.py "$handicap" "$ou" "$workers" "${flush_every:-100}" --auto-push-batches
-
-      - name: Publicar cambios livianos (JSONs) en main (EXCLUYENDO app_data.db para no llenar espacio)
-        id: publish
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          # Asegurar que NUNCA se sube el archivo binario pesado app_data.db a GitHub
-          git rm --cached data/app_data.db 2>/dev/null || true
-
-          git add -- \
-            data.json \
-            data/data.json \
-            data/data_precacheo.json \
-            data/data_pending_results.json \
-            data/data_ah_*.json \
-            data/data_minus_ah_*.json \
-            data/league_extractions.json || true
-
-          if git diff --cached --quiet; then
-            echo "No hay cambios nuevos que publicar."
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
-          git commit -m "chore: cloud cache finished matches ${stamp}"
-          for attempt in 1 2 3; do
-            echo "Intento de push $attempt/3..."
-            git fetch origin main --depth=1 || true
-            git rebase origin/main || git rebase --abort || true
-            if git push origin HEAD:main; then
-              echo "published=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "No se pudo publicar tras 3 intentos."
-          exit 1
-
-      - name: Resumen de ejecución
-        if: always()
-        run: |
-          {
-            echo "## Cacheo de partidos terminados finalizado"
-            echo
-            echo "- Programación: **05:00 AM Madrid** (o manual)"
-            echo "- Handicap: **${{ inputs.handicap || 'all' }}**"
-            echo "- Over/Under: **${{ inputs.ou || 'all' }}**"
-            echo "- Workers: **${{ inputs.workers || '10' }}**"
-            echo "- Commit de JSONs publicado: **${{ steps.publish.outputs.published || 'false' }}**"
-            echo "- **Nota de espacio:** app_data.db se excluye de Git para no ocupar espacio en GitHub."
-          } >> "$GITHUB_STEP_SUMMARY"
+  cache:
+    uses: ./.github/workflows/cloud-cache-worker.yml
+    with:
+      kind: finished
+      force_full: ${{ inputs.force_full || false }}
+      workers: ${{ inputs.workers || '3' }}
+      max_jobs: ${{ inputs.max_jobs || '0' }}
+      handicap: ${{ inputs.handicap || 'all' }}
+      ou: ${{ inputs.ou || 'all' }}

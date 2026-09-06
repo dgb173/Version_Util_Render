@@ -180,7 +180,7 @@ async def main():
     try:
         # Obtenemos un universo amplio de partidos próximos (500) y finalizados
         proximos, finalizados = await asyncio.gather(
-            get_main_page_matches_async(limit=500),
+            get_main_page_matches_async(limit=None),
             get_main_page_finished_matches_async(limit=1500)
         )
         
@@ -188,7 +188,7 @@ async def main():
         
         # Filtrar y seleccionar 250 base + TODOS los de hándicap >= 1.0 / <= -1.0
         print("Filtrando partidos de equipos juveniles y seleccionando cuotas AH objetivo...")
-        proximos = select_upcoming_with_high_ah(proximos, base_limit=250)
+        proximos = proximos  # No extraction cap; Render window is applied separately.
         finalizados = filter_youth_matches(finalizados)
         print(f"Después de filtrar: {len(proximos)} próximos y {len(finalizados)} finalizados.")
 
