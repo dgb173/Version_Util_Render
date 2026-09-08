@@ -79,6 +79,15 @@ def has_score(row):
     return bool(re.fullmatch(r'\d+\s*[:-]\s*\d+', str(row.get('final_score') or row.get('score') or '')))
 
 
+def has_required_markets(row):
+    odds = row.get('main_match_odds') or {}
+    ah = row.get('handicap') if numeric(row.get('handicap')) else odds.get('ah_linea')
+    ou = row.get('goal_line') if numeric(row.get('goal_line')) else odds.get('goals_linea')
+    if not numeric(ah) or not numeric(ou):
+        return False
+    return -10 <= float(ah) <= 10 and 0.5 <= float(ou) <= 10
+
+
 def quality_error(row, kind):
     if not isinstance(row, dict) or row.get('error') or row.get('precache_placeholder'):
         return 'empty_or_placeholder'
@@ -292,7 +301,7 @@ def build_windows(root=ROOT, now=None):
                 if source.get(key) is not None:
                     row[key] = source[key]
         date = scheduled(row)
-        if not date or has_score(row):
+        if not date or has_score(row) or not has_required_markets(row):
             continue
         seen.add(match_id)
         if date > now:
@@ -301,7 +310,7 @@ def build_windows(root=ROOT, now=None):
             pending.append((date, match_id, row))
     for match_id, source in sources.items():
         date = scheduled(source)
-        if match_id not in seen and date and date > now:
+        if match_id not in seen and date and date > now and has_required_markets(source):
             row = dict(source, precache_placeholder=True, summary_stats_status='pending')
             future.append((date, match_id, row))
     future.sort(key=lambda x: (x[0], x[1]))

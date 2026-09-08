@@ -10,12 +10,15 @@ import cloud_cache_pipeline as cache
 
 
 def row(i=1, **kw):
-    return dict(match_id=str(i), home_name='Home', away_name='Away', history_data_version=3,
+    value = dict(match_id=str(i), home_name='Home', away_name='Away', history_data_version=3,
         last_home_match={'match_id': '81'}, last_away_match={'match_id': '82'},
         recent_home_matches=[{}], recent_away_matches=[{}], h2h_col3=None,
         h2h_stadium={}, h2h_general={}, comparativas_indirectas={},
         recent_home_matches_same_league_specific=[{}], recent_away_matches_same_league_specific=[{}],
-        summary_stats_status='complete', main_match_odds={'ah_linea': '0'}, **kw)
+        summary_stats_status='complete', handicap='0', goal_line='2.5',
+        main_match_odds={'ah_linea': '0', 'goals_linea': '2.5'})
+    value.update(kw)
+    return value
 
 
 def test_finished_profile_does_not_require_statistics_but_rejects_blank_context():
@@ -47,6 +50,18 @@ def test_windows_cap_render_without_truncating_archive(tmp_path):
     future = cache.read_json(tmp_path / 'data/data_precacheo.json')
     assert [r['match_id'] for r in future][:2] == ['251', '252']
     assert cache.read_json(tmp_path / 'data/data_pending_results.json')[0]['match_id'] == '250'
+
+
+def test_windows_exclude_legacy_rows_with_random_market_identifiers(tmp_path):
+    now = dt.datetime(2026, 9, 6, 10, tzinfo=dt.timezone.utc)
+    valid = row(1, start_time=(now + dt.timedelta(hours=1)).isoformat())
+    invalid = row(2, start_time=(now + dt.timedelta(hours=2)).isoformat(),
+        handicap='N/A', goal_line='66', main_match_odds={'ah_linea': 'N/A', 'goals_linea': '66'})
+    cache.write_json(cache.archive_path(tmp_path, 'upcoming', '1'), valid)
+    cache.write_json(cache.archive_path(tmp_path, 'upcoming', '2'), invalid)
+    counts = cache.build_windows(tmp_path, now)
+    assert counts['upcoming'] == 1
+    assert [r['match_id'] for r in cache.read_json(tmp_path / 'data/data_precacheo.json')] == ['1']
 
 
 def test_does_not_reuse_stats_for_another_historical_fixture():
