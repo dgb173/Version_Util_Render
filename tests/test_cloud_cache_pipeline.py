@@ -21,13 +21,13 @@ def row(i=1, **kw):
     return value
 
 
-def test_finished_profile_does_not_require_statistics_but_rejects_blank_context():
+def test_finished_profile_does_not_require_statistics_or_invent_missing_history():
     valid = row(final_score='0:0')
     valid['summary_stats_status'] = 'deferred'
     assert cache.quality_error(valid, 'finished') is None
     assert cache.quality_error(valid, 'upcoming') == 'summary_not_downloaded'
     valid['recent_away_matches_same_league_specific'] = []
-    assert cache.quality_error(valid, 'finished') == 'missing_recent_home_away_form'
+    assert cache.quality_error(valid, 'finished') is None
     assert cache.quality_error(dict(valid, precache_placeholder=True), 'upcoming')
 
 

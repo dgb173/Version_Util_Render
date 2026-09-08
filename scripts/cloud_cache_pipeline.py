@@ -111,9 +111,6 @@ def quality_error(row, kind):
             return 'unverified_final_score'
         if not numeric((row.get('main_match_odds') or {}).get('ah_linea')):
             return 'missing_handicap'
-        for side in ('home', 'away'):
-            if not row.get(f'recent_{side}_matches_same_league_specific') or not row.get(f'last_{side}_match'):
-                return 'missing_recent_home_away_form'
     elif row.get('summary_stats_status') != 'complete':
         return 'summary_not_downloaded'
     return None
@@ -185,24 +182,9 @@ def prepare(args):
             if mid(source) not in unique:
                 jobs.append(source)
         if args.kind == 'finished' and args.handicap == 'all' and args.ou == 'all':
-            # Repair the old blank rows too, without trusting their old score as
-            # a verified source. Never skip solely because an ID was processed.
-            queued = {mid(r) for r in jobs} | set(unique)
-            import ijson
-            paths = list((Path(args.root) / 'data').glob('data_ah_*.json')) + list((Path(args.root) / 'data').glob('data_minus_ah_*.json'))
-            for path in paths:
-                with path.open('rb') as handle:
-                    for old in ijson.items(handle, 'item', use_float=True):
-                        date = scheduled(old)
-                        match_id = mid(old)
-                        # Complete legacy histories do not need a mass reanalysis.
-                        if match_id in queued or not date or date > now or (old.get('last_home_match') and old.get('last_away_match')):
-                            continue
-                        repaired = read_json(archive_path(args.root, 'finished', match_id))
-                        if repaired and not quality_error(repaired, 'finished'):
-                            continue
-                        jobs.append({'id': match_id})
-                        queued.add(match_id)
+            # El trabajo diario se limita a los IDs verificados de /football/results.
+            # Los históricos antiguos no se mezclan con esta cola ni bloquean su publicación.
+            jobs = [row for row in jobs if mid(row) in unique]
     if args.max_jobs:
         jobs = jobs[:args.max_jobs]  # Explicit diagnostic runs only; default is unlimited.
     output = Path(args.output)
