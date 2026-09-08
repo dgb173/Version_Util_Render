@@ -145,7 +145,8 @@ def prepare(args):
     from modules.nowgoal_fetcher import fetch_main_page_matches_direct
     source_kind = 'upcoming' if args.kind == 'list' else args.kind
     rows = fetch_main_page_matches_direct(status_filter=source_kind, limit=None,
-        require_handicap=source_kind == 'finished',
+        require_handicap=True,
+        require_goal_line=True,
         handicap_filter=None if args.handicap == 'all' else args.handicap,
         goal_line_filter=None if args.ou == 'all' else args.ou)
     if not rows:

@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import threading
+import time
 import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
@@ -30,6 +31,7 @@ SPAIN_TZ = ZoneInfo("Europe/Madrid")
 UTC_TZ = dt.timezone.utc
 
 NOWGOAL_BASE_HOSTS = [
+    "https://live11.nowgoal26.com",
     "https://live10.nowgoal26.com",
     "https://live20.nowgoal25.com",
     "https://www.nowgoal26.com",
@@ -132,8 +134,19 @@ def _is_valid_numeric_handicap(val: Any) -> bool:
     if val in (None, "", "N/A", "null", "None", "-"):
         return False
     try:
-        float(str(val).strip().replace("−", "-"))
-        return True
+        number = float(str(val).strip().replace("−", "-"))
+        return -10.0 <= number <= 10.0
+    except (TypeError, ValueError):
+        return False
+
+
+def _is_valid_numeric_goal_line(val: Any) -> bool:
+    """Acepta solo totales de goles plausibles; evita confundir IDs de país con O/U."""
+    if val in (None, "", "N/A", "null", "None", "-"):
+        return False
+    try:
+        number = float(str(val).strip().replace("−", "-"))
+        return 0.5 <= number <= 10.0
     except (TypeError, ValueError):
         return False
 
@@ -164,7 +177,12 @@ def fetch_bf_data_raw() -> Optional[str]:
             for ep in endpoints:
                 url = f"{host}{ep}"
                 try:
-                    resp = session.get(url, timeout=6, verify=False)
+                    resp = session.get(
+                        url,
+                        params={"_": int(time.time() * 1000)},
+                        timeout=6,
+                        verify=False,
+                    )
                     if resp.status_code == 200 and ("A[" in resp.text or "var A" in resp.text):
                         combined.append(resp.text)
                 except Exception as exc:
@@ -178,7 +196,12 @@ def fetch_bf_data_raw() -> Optional[str]:
             for ep in ["/gf/data/bf_en.js", "/gf/data/bf_change_en.js"]:
                 url = f"{host}{ep}"
                 try:
-                    resp = session.get(url, timeout=6, verify=False)
+                    resp = session.get(
+                        url,
+                        params={"_": int(time.time() * 1000)},
+                        timeout=6,
+                        verify=False,
+                    )
                     if resp.status_code == 200 and ("A[" in resp.text or "var A" in resp.text):
                         return resp.text
                 except Exception:
@@ -232,7 +255,11 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
             for endpoint in bf_endpoints:
                 try:
                     bf_resp = session.get(
-                        f"{host}{endpoint}", timeout=10, verify=False, headers=headers
+                        f"{host}{endpoint}",
+                        params={"_": int(time.time() * 1000)},
+                        timeout=10,
+                        verify=False,
+                        headers=headers,
                     )
                     if bf_resp.status_code == 200 and "A[" in bf_resp.text:
                         combined_texts.append(bf_resp.text)
@@ -243,6 +270,7 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
                 try:
                     odds_resp = session.get(
                         f"{host}/gf/data/finish/goal8.xml",
+                        params={"_": int(time.time() * 1000)},
                         timeout=10,
                         verify=False,
                         headers=headers,
@@ -264,6 +292,7 @@ def parse_matches_from_bf_content(
     goal_line_filter: Optional[str] = None,
     odds_by_match: Optional[Dict[str, Dict[str, str]]] = None,
     require_handicap: bool = True,
+    require_goal_line: bool = False,
 ) -> List[Dict[str, Any]]:
     """Parsea el contenido de bf_en-idn.js y devuelve una lista de diccionarios normalizados."""
     if not content:
@@ -323,11 +352,9 @@ def parse_matches_from_bf_content(
         date_str = match_dt.strftime("%m/%d/%Y")
         start_time_iso = match_dt.isoformat()
 
-        # Odds: AH en columna 21, O/U en columna 25 (o 23 según versión JS)
-        ah_raw = row[21] if len(row) > 21 and row[21] is not None else None
-        ou_raw = row[25] if len(row) > 25 and row[25] is not None else (
-            row[23] if len(row) > 23 and isinstance(row[23], (int, float)) else None
-        )
+        # La columna 23 es country_id/region_id (64, 66, 164...), no una línea O/U.
+        ah_raw = row[21] if len(row) > 21 and _is_valid_numeric_handicap(row[21]) else None
+        ou_raw = row[25] if len(row) > 25 and _is_valid_numeric_goal_line(row[25]) else None
 
         ah_str = str(ah_raw) if ah_raw is not None and str(ah_raw) != "" else "N/A"
         ou_str = str(ou_raw) if ou_raw is not None and str(ou_raw) != "" else "N/A"
@@ -339,6 +366,8 @@ def parse_matches_from_bf_content(
 
         # Descarte estricto: Todo partido sin línea de hándicap válida queda excluido
         if require_handicap and not _is_valid_numeric_handicap(ah_str):
+            continue
+        if require_goal_line and not _is_valid_numeric_goal_line(ou_str):
             continue
 
         if status_filter == "finished" and odds_by_match is not None:
@@ -428,7 +457,7 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             try:
-                page.goto("https://live10.nowgoal26.com/", wait_until="domcontentloaded", timeout=25000)
+                page.goto("https://live11.nowgoal26.com/", wait_until="domcontentloaded", timeout=25000)
                 page.wait_for_timeout(4000)
 
                 raw_data = page.evaluate("""() => {
@@ -450,13 +479,22 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
                             }
                         }
                     }
-                    return { matches, leagues };
+                    const odds = {};
+                    for (const tr of document.querySelectorAll('tr[id^="tr1_"]')) {
+                        const id = tr.id.replace('tr1_', '');
+                        const values = (tr.getAttribute('odds') || '').split(',');
+                        if (values.length > 10) {
+                            odds[id] = { handicap: values[2], goal_line: values[10] };
+                        }
+                    }
+                    return { matches, leagues, odds };
                 }""")
             finally:
                 browser.close()
 
         raw_matches = raw_data.get("matches", [])
         leagues_map = raw_data.get("leagues", {})
+        odds_by_match = raw_data.get("odds", {})
         now_spain = dt.datetime.now(SPAIN_TZ)
         parsed_matches: List[Dict[str, Any]] = []
         seen_ids = set()
@@ -490,10 +528,13 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
             date_str = match_dt.strftime("%m/%d/%Y")
             start_time_iso = match_dt.isoformat()
 
-            ah_raw = row[21] if len(row) > 21 and row[21] is not None else None
-            ou_raw = row[25] if len(row) > 25 and row[25] is not None else (
-                row[23] if len(row) > 23 and isinstance(row[23], (int, float)) else None
-            )
+            row_odds = odds_by_match.get(match_id, {})
+            ah_raw = row_odds.get("handicap")
+            ou_raw = row_odds.get("goal_line")
+            if not _is_valid_numeric_handicap(ah_raw):
+                ah_raw = row[21] if len(row) > 21 and _is_valid_numeric_handicap(row[21]) else None
+            if not _is_valid_numeric_goal_line(ou_raw):
+                ou_raw = row[25] if len(row) > 25 and _is_valid_numeric_goal_line(row[25]) else None
             ah_str = str(ah_raw) if ah_raw is not None and str(ah_raw) != "" else "N/A"
             ou_str = str(ou_raw) if ou_raw is not None and str(ou_raw) != "" else "N/A"
 
@@ -559,7 +600,7 @@ def fetch_finished_matches_with_playwright() -> List[Dict[str, Any]]:
             page = browser.new_page()
             try:
                 page.goto(
-                    f"https://live10.nowgoal26.com{NOWGOAL_RESULTS_PATH}",
+                    f"https://live11.nowgoal26.com{NOWGOAL_RESULTS_PATH}",
                     wait_until="domcontentloaded",
                     timeout=25000,
                 )
@@ -625,6 +666,7 @@ def fetch_main_page_matches_direct(
     handicap_filter: Optional[str] = None,
     goal_line_filter: Optional[str] = None,
     require_handicap: bool = True,
+    require_goal_line: bool = True,
 ) -> List[Dict[str, Any]]:
     """Descarga de forma ultrarrápida los partidos (HTTP directo con fallback a Playwright)."""
     # 1. Intentar vía HTTP directo (50-100ms)
@@ -642,6 +684,7 @@ def fetch_main_page_matches_direct(
             goal_line_filter=goal_line_filter,
             odds_by_match=odds_by_match,
             require_handicap=require_handicap,
+            require_goal_line=require_goal_line,
         )
 
     # 2. Fallback a Playwright si HTTP directo falló o no devolvió partidos
@@ -653,6 +696,8 @@ def fetch_main_page_matches_direct(
         )
         if require_handicap:
             matches = [m for m in matches if _is_valid_numeric_handicap(m.get("handicap"))]
+        if require_goal_line:
+            matches = [m for m in matches if _is_valid_numeric_goal_line(m.get("goal_line"))]
         if handicap_filter:
             try:
                 target_ah = float(handicap_filter)
