@@ -59,3 +59,29 @@ def test_market_line_ranges_reject_random_identifiers():
     assert not nowgoal_fetcher._is_valid_numeric_goal_line(66)
     assert nowgoal_fetcher._is_valid_numeric_handicap(-0.75)
     assert nowgoal_fetcher._is_valid_numeric_goal_line(3.25)
+
+
+def test_upcoming_rows_are_enriched_with_all_tab_xml_markets():
+    matches = nowgoal_fetcher.parse_matches_from_bf_content(
+        _row(match_id="3088105", handicap=None, goal_line=None),
+        status_filter="upcoming",
+        odds_by_match={"3088105": {"handicap": "0.5", "goal_line": "4"}},
+        require_handicap=True,
+        require_goal_line=True,
+    )
+
+    assert [(row["id"], row["handicap"], row["goal_line"]) for row in matches] == [
+        ("3088105", "0.5", "4")
+    ]
+
+
+def test_split_asian_lines_are_normalized_instead_of_dropped():
+    matches = nowgoal_fetcher.parse_matches_from_bf_content(
+        _row(match_id="9", handicap=None, goal_line=None),
+        status_filter="upcoming",
+        odds_by_match={"9": {"handicap": "0/0.5", "goal_line": "2.5/3"}},
+        require_handicap=True,
+        require_goal_line=True,
+    )
+
+    assert [(row["handicap"], row["goal_line"]) for row in matches] == [("0.25", "2.75")]

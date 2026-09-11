@@ -129,34 +129,62 @@ def _parse_nowgoal_date_to_spain(date_raw: Any) -> Optional[dt.datetime]:
     return None
 
 
-def _is_valid_numeric_handicap(val: Any) -> bool:
-    """Devuelve True solo si val representa un handicap asiático numérico válido."""
-    if val in (None, "", "N/A", "null", "None", "-"):
-        return False
+def _parse_market_number(val: Any, minimum: float, maximum: float) -> Optional[float]:
+    if val in (None, "", "N/A", "null", "None", "-", "?", "--", "undefined"):
+        return None
+    text = str(val).strip().replace("−", "-").replace(",", ".").replace("+", "")
+    if "→" in text:
+        text = text.split("→")[-1].strip()
+    elif "->" in text:
+        text = text.split("->")[-1].strip()
     try:
-        number = float(str(val).strip().replace("−", "-"))
-        return -10.0 <= number <= 10.0
+        if "/" in text:
+            parts = [float(part.strip()) for part in text.split("/")]
+            if len(parts) != 2:
+                return None
+            number = sum(parts) / 2.0
+        else:
+            number = float(text)
     except (TypeError, ValueError):
-        return False
+        return None
+    return number if minimum <= number <= maximum else None
+
+
+def parse_handicap_numeric(val: Any) -> Optional[float]:
+    """Normaliza AH decimal o partido (0/0.5, 0.5/1, etc.)."""
+    return _parse_market_number(val, -10.0, 10.0)
+
+
+def _is_valid_numeric_handicap(val: Any) -> bool:
+    return parse_handicap_numeric(val) is not None
+
+
+def parse_goal_line_numeric(val: Any) -> Optional[float]:
+    """Normaliza O/U decimal o partido (2/2.5, 2.5/3, etc.)."""
+    return _parse_market_number(val, 0.5, 15.0)
 
 
 def _is_valid_numeric_goal_line(val: Any) -> bool:
-    """Acepta solo totales de goles plausibles; evita confundir IDs de país con O/U."""
-    if val in (None, "", "N/A", "null", "None", "-"):
-        return False
-    try:
-        number = float(str(val).strip().replace("−", "-"))
-        return 0.5 <= number <= 10.0
-    except (TypeError, ValueError):
-        return False
+    return parse_goal_line_numeric(val) is not None
 
 
-def fetch_bf_data_raw() -> Optional[str]:
-    """Descarga el contenido JS de partidos próximos unificando ligas principales y secundarias."""
+def fetch_bf_data_raw(return_odds: bool = False) -> Any:
+    """Descarga el feed ``All`` completo y, opcionalmente, sus líneas AH/O-U.
+
+    NowGoal no siempre incrusta las líneas en el array ``A``. Muchos partidos
+    (especialmente reservas y ligas secundarias) solo las publican en los XML de
+    cada casa. Si no se cruzan ambos orígenes, esos partidos desaparecen de la
+    cola aunque sean visibles en la pestaña All.
+    """
     session = get_requests_session()
     endpoints = [
         "/gf/data/bf_en-idn.js",
         "/gf/data/bf_en-idn1.js",
+        "/gf/data/bf_en-idn2.js",
+        "/gf/data/bf_en.js",
+        "/gf/data/bf_en1.js",
+        "/gf/data/bf_en2.js",
+        "/gf/data/bf_change_en.js",
     ]
 
     for host in NOWGOAL_BASE_HOSTS:
@@ -190,7 +218,32 @@ def fetch_bf_data_raw() -> Optional[str]:
                     continue
 
             if combined:
-                return "\n".join(combined)
+                odds: Dict[str, Dict[str, str]] = {}
+                xml_headers = {"Accept": "*/*", "Referer": f"{host}/"}
+                # Cobertura de All: SBOBet, Crown y Bet365. Una casa puede no
+                # cotizar una liga que sí aparece en otra.
+                for cid in ("31", "3", "8"):
+                    try:
+                        odds_resp = session.get(
+                            f"{host}/gf/data/odds/en/goal{cid}.xml",
+                            params={"_": int(time.time() * 1000)},
+                            timeout=6,
+                            verify=False,
+                            headers=xml_headers,
+                        )
+                        if odds_resp.status_code != 200 or not odds_resp.text:
+                            continue
+                        for match_id, market in _parse_finished_odds_xml(odds_resp.text).items():
+                            current = odds.setdefault(match_id, {})
+                            if market.get("handicap") not in (None, ""):
+                                current["handicap"] = market["handicap"]
+                            if market.get("goal_line") not in (None, ""):
+                                current["goal_line"] = market["goal_line"]
+                    except Exception as exc:
+                        LOGGER.debug("Error fetching goal%s.xml on %s: %s", cid, host, exc)
+
+                text_result = "\n".join(combined)
+                return (text_result, odds) if return_odds else text_result
 
             # Fallback a bf_en.js si los anteriores fallaron
             for ep in ["/gf/data/bf_en.js", "/gf/data/bf_change_en.js"]:
@@ -203,18 +256,18 @@ def fetch_bf_data_raw() -> Optional[str]:
                         verify=False,
                     )
                     if resp.status_code == 200 and ("A[" in resp.text or "var A" in resp.text):
-                        return resp.text
+                        return (resp.text, {}) if return_odds else resp.text
                 except Exception:
                     continue
         except Exception as exc:
             LOGGER.debug("Error during handshake on %s: %s", host, exc)
             continue
 
-    return None
+    return (None, {}) if return_odds else None
 
 
 def _parse_finished_odds_xml(content: str) -> Dict[str, Dict[str, str]]:
-    """Convierte goal8.xml en un mapa match_id -> líneas AH/O-U."""
+    """Convierte un XML ``goal*.xml`` en un mapa match_id -> líneas AH/O-U."""
     odds: Dict[str, Dict[str, str]] = {}
     if not content:
         return odds
@@ -237,6 +290,10 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
     bf_endpoints = (
         "/gf/data/finish/bf_en-idn.js",
         "/gf/data/finish/bf_en-idn1.js",
+        "/gf/data/finish/bf_en-idn2.js",
+        "/gf/data/finish/bf_en.js",
+        "/gf/data/finish/bf_en1.js",
+        "/gf/data/finish/bf_en2.js",
     )
     for host in NOWGOAL_BASE_HOSTS:
         results_url = f"{host}{NOWGOAL_RESULTS_PATH}"
@@ -267,18 +324,26 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
                     LOGGER.debug("Error fetching finished endpoint %s on %s: %s", endpoint, host, exc)
 
             if combined_texts:
-                try:
-                    odds_resp = session.get(
-                        f"{host}/gf/data/finish/goal8.xml",
-                        params={"_": int(time.time() * 1000)},
-                        timeout=10,
-                        verify=False,
-                        headers=headers,
-                    )
-                    odds = _parse_finished_odds_xml(odds_resp.text) if odds_resp.status_code == 200 else {}
-                except Exception as exc:
-                    LOGGER.debug("Error fetching goal8.xml on %s: %s", host, exc)
-                    odds = {}
+                odds: Dict[str, Dict[str, str]] = {}
+                for cid in ("31", "3", "8"):
+                    try:
+                        odds_resp = session.get(
+                            f"{host}/gf/data/finish/goal{cid}.xml",
+                            params={"_": int(time.time() * 1000)},
+                            timeout=8,
+                            verify=False,
+                            headers=headers,
+                        )
+                        if odds_resp.status_code != 200 or not odds_resp.text:
+                            continue
+                        for match_id, market in _parse_finished_odds_xml(odds_resp.text).items():
+                            current = odds.setdefault(match_id, {})
+                            if market.get("handicap") not in (None, ""):
+                                current["handicap"] = market["handicap"]
+                            if market.get("goal_line") not in (None, ""):
+                                current["goal_line"] = market["goal_line"]
+                    except Exception as exc:
+                        LOGGER.debug("Error fetching finish goal%s.xml on %s: %s", cid, host, exc)
                 return "\n".join(combined_texts), odds
         except Exception as exc:
             LOGGER.debug("Error during results handshake on %s: %s", host, exc)
@@ -352,22 +417,27 @@ def parse_matches_from_bf_content(
         date_str = match_dt.strftime("%m/%d/%Y")
         start_time_iso = match_dt.isoformat()
 
-        # La columna 23 es country_id/region_id (64, 66, 164...), no una línea O/U.
-        ah_raw = row[21] if len(row) > 21 and _is_valid_numeric_handicap(row[21]) else None
-        ou_raw = row[25] if len(row) > 25 and _is_valid_numeric_goal_line(row[25]) else None
+        # La columna 23 es country_id/region_id, nunca O/U. Las cuotas del XML
+        # prevalecen porque son las mismas que se ven en la tabla All.
+        ah_val = parse_handicap_numeric(row[21]) if len(row) > 21 else None
+        ou_val = parse_goal_line_numeric(row[25]) if len(row) > 25 else None
+        market = (odds_by_match or {}).get(match_id, {})
+        xml_ah = parse_handicap_numeric(market.get("handicap"))
+        xml_ou = parse_goal_line_numeric(market.get("goal_line"))
+        if xml_ah is not None:
+            ah_val = xml_ah
+        if xml_ou is not None:
+            ou_val = xml_ou
 
-        ah_str = str(ah_raw) if ah_raw is not None and str(ah_raw) != "" else "N/A"
-        ou_str = str(ou_raw) if ou_raw is not None and str(ou_raw) != "" else "N/A"
-        finished_odds = (odds_by_match or {}).get(match_id, {})
-        if finished_odds.get("handicap") not in (None, ""):
-            ah_str = str(finished_odds["handicap"])
-        if finished_odds.get("goal_line") not in (None, ""):
-            ou_str = str(finished_odds["goal_line"])
+        ah_str = f"{ah_val:.2f}".rstrip("0").rstrip(".") if ah_val is not None else "N/A"
+        ou_str = f"{ou_val:.2f}".rstrip("0").rstrip(".") if ou_val is not None else "N/A"
+        if ah_str == "-0":
+            ah_str = "0"
 
         # Descarte estricto: Todo partido sin línea de hándicap válida queda excluido
-        if require_handicap and not _is_valid_numeric_handicap(ah_str):
+        if require_handicap and ah_val is None:
             continue
-        if require_goal_line and not _is_valid_numeric_goal_line(ou_str):
+        if require_goal_line and ou_val is None:
             continue
 
         if status_filter == "finished" and odds_by_match is not None:
@@ -674,7 +744,7 @@ def fetch_main_page_matches_direct(
     if status_filter == "finished":
         content, odds_by_match = fetch_finished_data_raw()
     else:
-        content = fetch_bf_data_raw()
+        content, odds_by_match = fetch_bf_data_raw(return_odds=True)
     matches: List[Dict[str, Any]] = []
     if content:
         matches = parse_matches_from_bf_content(
