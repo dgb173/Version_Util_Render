@@ -3921,59 +3921,12 @@
             }
         }
 
-        // Helper for MultiSelect AH matching - Uses buckets:
-        // 0 = exactly 0
-        // 0.5 = 0.25, 0.5, 0.75
-        // 1 = exactly 1
-        // 1.5 = 1.25, 1.5, 1.75
-        // 2.0 = exacto
-        // 2.5+ = 2.25, 2.5, 2.75, 3, etc.
+        // Cada opción representa una línea exacta; no se mezclan 0.25, 0.5 y 0.75.
         const checkAhMatch = (rowAhStr, selectedValues) => {
             if (!selectedValues || selectedValues.length === 0) return true;
             const rowAh = parseFloat(rowAhStr);
             if (isNaN(rowAh)) return false;
-
-            return selectedValues.some(valStr => {
-                const fAh = parseFloat(valStr);
-                const absFAh = Math.abs(fAh);
-
-                // Bucket 2.5+: Includes 2.25 and higher
-                if (absFAh >= 2.49) {
-                    if (fAh > 0) return rowAh >= 2.24;
-                    else return rowAh <= -2.24;
-                }
-
-                // Bucket 2.0: Strict 2.0 (Range [1.99, 2.01])
-                if (Math.abs(absFAh - 2.0) < 0.01) {
-                    if (fAh > 0) return Math.abs(rowAh - 2) < 0.01;
-                    else return Math.abs(rowAh + 2) < 0.01;
-                }
-
-                // Bucket 1.5: Includes 1.25, 1.5, 1.75 (Range [1.24, 1.76])
-                if (Math.abs(absFAh - 1.5) < 0.1) {
-                    if (fAh > 0) return rowAh >= 1.24 && rowAh <= 1.76;
-                    else return rowAh <= -1.24 && rowAh >= -1.76;
-                }
-
-                // Bucket 1.0: Strict 1.0 (Range [0.99, 1.01])
-                if (Math.abs(absFAh - 1.0) < 0.1) {
-                    return Math.abs(rowAh - fAh) < 0.1;
-                }
-
-                // Bucket 0.5: Includes 0.25, 0.5, 0.75 (Range [0.24, 0.76])
-                if (Math.abs(absFAh - 0.5) < 0.1) {
-                    if (fAh > 0) return rowAh >= 0.24 && rowAh <= 0.76;
-                    else return rowAh <= -0.24 && rowAh >= -0.76;
-                }
-
-                // Bucket 0: Strict 0
-                if (absFAh < 0.1) {
-                    return Math.abs(rowAh) < 0.1;
-                }
-
-                // Fallback: Exact match
-                return Math.abs(rowAh - fAh) < 0.01;
-            });
+            return selectedValues.some(value => Math.abs(rowAh - parseFloat(value)) < 0.01);
         };
 
         const getOuFilterValues = () => {
@@ -4002,11 +3955,7 @@
                 const filterOu = parseFloat(String(valStr).replace('+', ''));
                 if (isNaN(filterOu)) return false;
 
-                if (filterOu >= 4.0) {
-                    return rowOu >= 4.0;
-                }
-
-                return Math.abs(rowOu - filterOu) <= 0.26;
+                return Math.abs(rowOu - filterOu) < 0.01;
             });
         };
 
@@ -5157,6 +5106,10 @@
                     const parsed = parseFloat(odds.ah_linea);
                     handicap = isNaN(parsed) ? '' : parsed;
                 }
+                let goalLine = raw ? (raw.goal_line ?? raw.goals_linea ?? raw.ou_line ?? raw.over_under) : '';
+                if (goalLine === undefined || goalLine === null || goalLine === '') {
+                    goalLine = odds.goals_linea ?? '';
+                }
                 const normalized = {
                     ...(raw || {}),
                     id,
@@ -5165,6 +5118,7 @@
                     away_team: (raw && (raw.away_team || raw.away_name)) || '',
                     league: (raw && (raw.league || raw.league_name)) || '',
                     handicap,
+                    goal_line: goalLine,
                     time: (raw && raw.time) || '',
                     _date_format_hint: precacheDateFormatHint
                 };
@@ -5212,6 +5166,10 @@
                     const parsed = parseFloat(odds.ah_linea);
                     handicap = isNaN(parsed) ? '' : parsed;
                 }
+                let goalLine = raw ? (raw.goal_line ?? raw.goals_linea ?? raw.ou_line ?? raw.over_under) : '';
+                if (goalLine === undefined || goalLine === null || goalLine === '') {
+                    goalLine = odds.goals_linea ?? '';
+                }
                 const normalized = {
                     ...(raw || {}),
                     id,
@@ -5220,6 +5178,7 @@
                     away_team: (raw && (raw.away_team || raw.away_name)) || '',
                     league: (raw && (raw.league || raw.league_name)) || '',
                     handicap,
+                    goal_line: goalLine,
                     time: (raw && raw.time) || '',
                     _date_format_hint: precacheDateFormatHint
                 };
@@ -14079,7 +14038,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 tr.setAttribute('data-handicap', m.handicap !== undefined && m.handicap !== null ? m.handicap : '');
                 tr.setAttribute('data-league', league || '');
                 // O/U para filtrado visual
-                const ouValue = pc && pc.main_match_odds && pc.main_match_odds.goals_linea ? pc.main_match_odds.goals_linea : '';
+                const ouValue = (pc && pc.main_match_odds && pc.main_match_odds.goals_linea)
+                    ? pc.main_match_odds.goals_linea
+                    : (m.goal_line ?? m.goals_linea ?? m.ou_line ?? m.over_under ?? '');
                 tr.setAttribute('data-ou', ouValue);
 
                 // Prev Home WDL y AH
@@ -14202,31 +14163,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             });
 
             // --- Initialize MultiSelect Filters ---
-            // Simplified Handicap Options - Buckets:
-            // 0.5 includes 0.25, 0.5, 0.75
-            // 1.5 includes 1.25, 1.5, 1.75
-            // 2+ includes 2.0 and higher
-            const ahOptions = [
-                { value: '0', label: '0' },
-                { value: '0.5', label: '+0.5' },
-                { value: '-0.5', label: '-0.5' },
-                { value: '1', label: '+1.0' },
-                { value: '-1', label: '-1.0' },
-                { value: '1.5', label: '+1.5' },
-                { value: '-1.5', label: '-1.5' },
-                { value: '2', label: '+2.0' },
-                { value: '-2', label: '-2.0' },
-                { value: '2.5', label: '+2.5+' },
-                { value: '-2.5', label: '-2.5-' }
-            ];
-
-            const ouOptions = [
-                { value: '2.0', label: '2.0' },
-                { value: '2.5', label: '2.5' },
-                { value: '3.0', label: '3.0' },
-                { value: '3.5', label: '3.5' },
-                { value: '4+', label: '4+' }
-            ];
+            // Líneas exactas: cada cuarto de hándicap/O-U se filtra por separado.
+            const formatFilterLine = value => {
+                const rounded = Math.round(value * 100) / 100;
+                const text = Number.isInteger(rounded) ? String(rounded) : String(rounded.toFixed(2)).replace(/0$/, '');
+                return rounded > 0 ? `+${text}` : text;
+            };
+            const ahOptions = Array.from({ length: 33 }, (_, index) => {
+                const value = (index - 16) / 4; // -4.00 a +4.00, de 0.25 en 0.25
+                return { value: String(value), label: formatFilterLine(value) };
+            });
+            const ouOptions = Array.from({ length: 23 }, (_, index) => {
+                const value = 0.5 + (index * 0.25); // 0.50 a 6.00
+                return { value: String(value), label: String(Math.round(value * 100) / 100) };
+            });
 
             if (!msHandicap) {
                 msHandicap = new MultiSelect('container-filter-handicap', ahOptions, 'Todos', () => { currentPage = 1; renderTableWithPagination(); });
