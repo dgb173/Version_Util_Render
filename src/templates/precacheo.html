@@ -1748,6 +1748,17 @@
             }
         }
 
+        /* En móviles que aún muestran la tabla completa (769-992 px), los
+           filtros deben permanecer en sus columnas. El panel flotante queda
+           reservado para la vista de tarjetas realmente estrecha. */
+        @media (min-width: 769px) and (max-width: 992px) {
+            .mobile-filters-toggle,
+            .mobile-filters-panel,
+            .mobile-overlay {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 768px) {
             body {
                 font-size: 14px;
@@ -3578,7 +3589,8 @@
     </div>
 
     <!-- Botón flotante de filtros (solo visible en móvil) -->
-    <button class="mobile-filters-toggle" id="mobile-filters-btn" onclick="toggleMobileFilters()">
+    <button class="mobile-filters-toggle" id="mobile-filters-btn" onclick="toggleMobileFilters()"
+        aria-label="Abrir filtros" title="Abrir filtros">
         <i class="fa-solid fa-filter"></i>
         <span class="badge rounded-pill" id="mobile-filters-count" style="display: none;">0</span>
     </button>
@@ -3640,7 +3652,7 @@
                 <summary>Últimos partidos</summary>
                 <div class="mobile-filter-group-grid" id="mobile-filter-previous"></div>
             </details>
-            <details class="mobile-filter-group">
+            <details class="mobile-filter-group" open>
                 <summary>Enfrentamientos H2H</summary>
                 <div class="mobile-filter-group-grid" id="mobile-filter-h2h"></div>
             </details>
@@ -3720,7 +3732,9 @@
         ];
 
         function syncResponsiveFilterControls() {
-            const useMobilePanel = window.matchMedia('(max-width: 992px)').matches;
+            // Entre 769 y 992 px la tabla conserva su cabecera: no sacar los
+            // filtros de las columnas en ese rango.
+            const useMobilePanel = window.matchMedia('(max-width: 768px)').matches;
 
             if (!useMobilePanel) {
                 mobileFilterOrigins.forEach(({ marker, field, element }) => {
@@ -7383,6 +7397,70 @@
             msLeague.renderOptions();
         }
 
+        // Deriva los valores de H2H Col3 usados por los filtros antes de pintar
+        // la tabla. Los datos de precacheo no traen mirror_comp_type ni
+        // performance_status: ambos se calculan al construir la fila.
+        function getH2HCol3FilterMeta(m, pc) {
+            const col3 = pc?.h2h_col3;
+            if (!m || !col3 || col3.status !== 'found') {
+                return { mirror: '', performance: '' };
+            }
+
+            const currentAh = Number.parseFloat(m.handicap);
+            if (!Number.isFinite(currentAh)) return { mirror: '', performance: '' };
+
+            const favIsVisitor = currentAh <= 0;
+            const homeName = String(m.home_team || '').toLowerCase().trim();
+            const awayName = String(m.away_team || '').toLowerCase().trim();
+            const containsTeam = (a, b) => !!a && !!b && (a.includes(b) || b.includes(a));
+            const wdlRank = (score, isHome) => {
+                const parts = String(score || '').replace('-', ':').split(':');
+                if (parts.length !== 2) return null;
+                const own = Number.parseInt(isHome ? parts[0] : parts[1], 10);
+                const rival = Number.parseInt(isHome ? parts[1] : parts[0], 10);
+                if (!Number.isFinite(own) || !Number.isFinite(rival)) return null;
+                return own > rival ? 2 : (own === rival ? 1 : 0);
+            };
+
+            let mirrorTeam = '';
+            let favWdl = null;
+            if (!favIsVisitor && pc.last_home_match?.score) {
+                const prevHome = String(pc.last_home_match.home_team || '').toLowerCase().trim();
+                const favPlayedHome = containsTeam(prevHome, homeName);
+                favWdl = wdlRank(pc.last_home_match.score, favPlayedHome);
+                if (pc.last_away_match) {
+                    const prevAwayHome = String(pc.last_away_match.home_team || '').toLowerCase().trim();
+                    const prevAwayAway = String(pc.last_away_match.away_team || '').toLowerCase().trim();
+                    mirrorTeam = containsTeam(prevAwayHome, awayName) ? prevAwayAway : prevAwayHome;
+                }
+            } else if (favIsVisitor && pc.last_away_match?.score) {
+                const prevAwayHome = String(pc.last_away_match.home_team || '').toLowerCase().trim();
+                const favPlayedHome = containsTeam(prevAwayHome, awayName);
+                favWdl = wdlRank(pc.last_away_match.score, favPlayedHome);
+                if (pc.last_home_match) {
+                    const prevHomeHome = String(pc.last_home_match.home_team || '').toLowerCase().trim();
+                    const prevHomeAway = String(pc.last_home_match.away_team || '').toLowerCase().trim();
+                    mirrorTeam = containsTeam(prevHomeHome, homeName) ? prevHomeAway : prevHomeHome;
+                }
+            }
+
+            const h2hHome = String(col3.h2h_home_team_name || '').toLowerCase().trim();
+            const h2hAway = String(col3.h2h_away_team_name || '').toLowerCase().trim();
+            const mirrorIsHome = containsTeam(h2hHome, mirrorTeam);
+            const mirrorIsAway = containsTeam(h2hAway, mirrorTeam);
+            let mirror = mirrorIsHome ? 'directa' : (mirrorIsAway ? 'inversa' : '');
+            if (favIsVisitor && mirror) mirror = mirror === 'directa' ? 'inversa' : 'directa';
+
+            const mirrorWdl = mirrorIsHome
+                ? wdlRank(`${col3.goles_home}:${col3.goles_away}`, true)
+                : (mirrorIsAway ? wdlRank(`${col3.goles_home}:${col3.goles_away}`, false) : null);
+            let performance = '';
+            if (favWdl !== null && mirrorWdl !== null) {
+                performance = favWdl > mirrorWdl ? 'MEJORA' : (favWdl < mirrorWdl ? 'EMPEORA' : 'IGUALA');
+            }
+            return { mirror, performance };
+        }
+
         function matchPassesAllGlobalFilters(m) {
             if (!m) return false;
             const matchId = m.id;
@@ -7516,15 +7594,11 @@
             // 10. H2H Col3 Espejo & Cover
             const h2hCol3Mirror = document.getElementById('filter-h2h-col3-mirror')?.value;
             if (h2hCol3Mirror) {
-                const col3 = pc?.h2h_col3 || {};
-                const mirrorType = col3.mirror_comp_type || '';
-                if (mirrorType !== h2hCol3Mirror) return false;
+                if (getH2HCol3FilterMeta(m, pc).mirror !== h2hCol3Mirror) return false;
             }
             const h2hCol3Cover = document.getElementById('filter-h2h-col3-cover')?.value;
             if (h2hCol3Cover) {
-                const col3 = pc?.h2h_col3 || {};
-                const performance = col3.performance_status || '';
-                if (performance !== h2hCol3Cover) return false;
+                if (getH2HCol3FilterMeta(m, pc).performance !== h2hCol3Cover) return false;
             }
 
             return true;
@@ -14198,6 +14272,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!msPrevAwayAh) msPrevAwayAh = new MultiSelect('container-filter-prev-away-ah', ahOptions, 'AH', applyFiltersVisually);
             if (!msIndLocalAh) msIndLocalAh = new MultiSelect('container-filter-ind-local-ah', ahOptions, 'AH', applyFiltersVisually);
             if (!msIndVisitanteAh) msIndVisitanteAh = new MultiSelect('container-filter-ind-visitante-ah', ahOptions, 'AH', applyFiltersVisually);
+
+            // Los controles multiselección se crean después de cargar la tabla.
+            // Volvemos a sincronizar aquí para que también aparezcan en el panel
+            // móvil aunque la primera sincronización ocurra antes del render.
+            syncResponsiveFilterControls();
 
         }
 
