@@ -265,6 +265,7 @@ def _is_app_precacheo_only():
 _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS = {
     '/',
     '/favicon.ico',
+    '/healthz',
     '/api/ai_prediction',
     '/precacheo-sw.js',
 }
@@ -280,6 +281,12 @@ _PRECACHEO_ONLY_ALLOWED_PREFIXES = (
     '/api/ligas_',
     '/api/finished_matches_list',
 )
+
+
+@app.route('/healthz')
+def healthz():
+    """Lightweight Render health check that does not render the full UI."""
+    return 'ok', 200, {'Cache-Control': 'no-store'}
 
 
 @app.before_request
