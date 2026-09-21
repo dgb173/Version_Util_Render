@@ -39,3 +39,8 @@ def test_remote_only_connects_without_creating_or_syncing_local_replica(monkeypa
         ((), {"database": "libsql://explorer.example.turso.io", "auth_token": "secret"})
     ]
     assert connection.sync_calls == 0
+
+
+def test_row_value_supports_sqlite_rows_and_remote_tuple_rows():
+    assert sql_store._row_value(("bucket.json",), "bucket", 0) == "bucket.json"
+    assert sql_store._row_value({"bucket": "mapped.json"}, "bucket", 0) == "mapped.json"
