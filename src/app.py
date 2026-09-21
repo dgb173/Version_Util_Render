@@ -4916,11 +4916,15 @@ def api_explorer_search():
 
             # Keep first response fast: scan a recent window instead of full table.
             # For stricter searches we scan a bit wider.
-            explorer_scan_limit = max(500, min(_env_int('EXPLORER_SCAN_LIMIT', 2000), 5000))
+            # Remote libSQL rows still have to be materialized by the Python
+            # client. Keep the search window small enough for Render Free and
+            # let filters/pagination query subsequent bounded windows instead
+            # of pulling hundreds of rich historical payloads at once.
+            explorer_scan_limit = max(25, min(_env_int('EXPLORER_SCAN_LIMIT', 100), 500))
             if has_strict_filters:
-                scan_limit = min(max(filters['limit'] * 3, 1000), explorer_scan_limit)
+                scan_limit = min(max(filters['limit'] * 3, 50), explorer_scan_limit)
             else:
-                scan_limit = min(max(filters['limit'] * 2, 750), explorer_scan_limit)
+                scan_limit = min(max(filters['limit'] * 2, 25), explorer_scan_limit)
 
         if explorer_scope == 'uefa_qualifying':
             uefa_rows = sql_store.fetch_uefa_qualifying_matches(
