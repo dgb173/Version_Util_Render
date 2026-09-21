@@ -4038,6 +4038,44 @@
 
 
 
+        async function fetchExplorerJsonWithRetry(payload, retries = 1) {
+            let lastError = null;
+
+            for (let attempt = 0; attempt <= retries; attempt += 1) {
+                try {
+                    const response = await fetch('/api/explorer_search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        cache: 'no-store',
+                        body: JSON.stringify(payload)
+                    });
+                    const rawBody = await response.text();
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    if (!rawBody.trim()) {
+                        throw new Error('Respuesta vacía del servidor');
+                    }
+
+                    try {
+                        return JSON.parse(rawBody);
+                    } catch (_parseError) {
+                        throw new Error('Respuesta incompleta del servidor');
+                    }
+                } catch (error) {
+                    lastError = error;
+                    if (attempt < retries) {
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                    }
+                }
+            }
+
+            throw lastError || new Error('No se pudo cargar la búsqueda');
+        }
+
         function triggerSearch() {
             const getValuesOrNull = (ms) => {
                 if (!ms) return null;
@@ -4125,22 +4163,15 @@
             const spinner = document.getElementById('loading-overlay');
             spinner.classList.remove('d-none');
 
-            fetch('/api/explorer_search', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    filters: filters,
-                    scope: EXPLORER_SCOPE,
-                    scope_filters: EXPLORER_SCOPE === 'uefa_qualifying' ? {
-                        competitions: document.getElementById('scope-competition')?.value || null,
-                        seasons: document.getElementById('scope-season')?.value || null,
-                        stages: document.getElementById('scope-stage')?.value || null
-                    } : {}
-                })
+            fetchExplorerJsonWithRetry({
+                filters: filters,
+                scope: EXPLORER_SCOPE,
+                scope_filters: EXPLORER_SCOPE === 'uefa_qualifying' ? {
+                    competitions: document.getElementById('scope-competition')?.value || null,
+                    seasons: document.getElementById('scope-season')?.value || null,
+                    stages: document.getElementById('scope-stage')?.value || null
+                } : {}
             })
-                .then(response => response.json())
                 .then(data => {
                     spinner.classList.add('d-none');
                     totalResults = data.results || [];
