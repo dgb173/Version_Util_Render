@@ -5,6 +5,7 @@ import sqlite3
 import sys
 import threading
 import time
+import requests
 from datetime import datetime
 from contextlib import contextmanager
 from pathlib import Path
@@ -701,6 +702,96 @@ def _fetch_matches_rows(
     return conn.execute(query, params).fetchall()
 
 
+def _libsql_http_value(cell: Any) -> Any:
+    """Decode one Hrana/HTTP result cell without loading the native client."""
+    if not isinstance(cell, dict) or cell.get("type") == "null":
+        return None
+    return cell.get("value")
+
+
+def _fetch_matches_http(
+    bucket: Optional[str] = None,
+    state: Optional[str] = None,
+    limit: Optional[int] = None,
+    prefer_explorer_payload: bool = False,
+) -> List[Dict]:
+    """Read bounded Explorer rows through Turso's HTTP pipeline.
+
+    The native remote-only libSQL extension can terminate the small Render
+    worker while materializing query results. HTTP keeps that native code out
+    of the web process and only transfers the already bounded JSON projection.
+    """
+    payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
+    query = f"SELECT {payload_expr} AS payload_json FROM matches"
+    clauses: List[str] = []
+    raw_params: List[Any] = []
+
+    if bucket:
+        clauses.append("bucket = ?")
+        raw_params.append(str(bucket))
+    if state:
+        clauses.append("state = ?")
+        raw_params.append(str(state))
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+    query += " ORDER BY updated_at DESC"
+    if isinstance(limit, int) and limit > 0:
+        query += " LIMIT ?"
+        raw_params.append(int(limit))
+
+    args = []
+    for value in raw_params:
+        if isinstance(value, int):
+            args.append({"type": "integer", "value": str(value)})
+        else:
+            args.append({"type": "text", "value": str(value)})
+
+    endpoint = LIBSQL_URL.replace("libsql://", "https://", 1).rstrip("/") + "/v2/pipeline"
+    response = requests.post(
+        endpoint,
+        headers={
+            "Authorization": f"Bearer {LIBSQL_AUTH_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "requests": [
+                {
+                    "type": "execute",
+                    "stmt": {
+                        "sql": query,
+                        "args": args,
+                        "named_args": [],
+                        "want_rows": True,
+                    },
+                },
+                {"type": "close"},
+            ]
+        },
+        timeout=45,
+    )
+    response.raise_for_status()
+    body = response.json()
+    results = body.get("results") or []
+    if not results or results[0].get("type") != "ok":
+        raise RuntimeError(f"Turso HTTP query failed: {results[:1]}")
+
+    result = ((results[0].get("response") or {}).get("result") or {})
+    output: List[Dict] = []
+    for row in result.get("rows") or []:
+        if not row:
+            continue
+        raw_json = _libsql_http_value(row[0])
+        if not isinstance(raw_json, str):
+            continue
+        try:
+            decoded = json.loads(raw_json)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(decoded, dict):
+            output.append(decoded)
+    return output
+
+
 def _fetch_distinct_buckets(conn: sqlite3.Connection) -> List[str]:
     rows = conn.execute("SELECT DISTINCT bucket FROM matches").fetchall()
     return [_row_value(row, "bucket", 0) for row in rows]
@@ -1147,6 +1238,14 @@ def fetch_matches(
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
 ) -> List[Dict]:
+    if LIBSQL_URL and LIBSQL_REMOTE_ONLY:
+        return _fetch_matches_http(
+            bucket=bucket,
+            state=state,
+            limit=limit,
+            prefer_explorer_payload=prefer_explorer_payload,
+        )
+
     ensure_bootstrap()
     with _connect() as conn:
         rows = _fetch_matches_rows(
