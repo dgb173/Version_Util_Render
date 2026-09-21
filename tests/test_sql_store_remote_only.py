@@ -44,3 +44,23 @@ def test_remote_only_connects_without_creating_or_syncing_local_replica(monkeypa
 def test_row_value_supports_sqlite_rows_and_remote_tuple_rows():
     assert sql_store._row_value(("bucket.json",), "bucket", 0) == "bucket.json"
     assert sql_store._row_value({"bucket": "mapped.json"}, "bucket", 0) == "mapped.json"
+
+
+def test_batch_upsert_writes_and_reads_explorer_payload(monkeypatch, tmp_path):
+    monkeypatch.setattr(sql_store, "DB_PATH", tmp_path / "test.db")
+    monkeypatch.setattr(sql_store, "BOOTSTRAP_LOCK_FILE", tmp_path / "bootstrap.lock")
+    monkeypatch.setattr(sql_store, "LIBSQL_URL", "")
+    monkeypatch.setattr(sql_store, "LIBSQL_REMOTE_ONLY", False)
+    monkeypatch.setattr(sql_store, "SQL_BOOTSTRAP_SKIP_LEGACY", True)
+    monkeypatch.setattr(sql_store, "_BOOTSTRAPPED", False)
+
+    result = sql_store.upsert_matches([
+        ({"match_id": "101", "home_name": "Home", "away_name": "Away"},
+         "data_ah_0.json", "historical"),
+        ({"match_id": "102", "home_name": "Other", "away_name": "Team"},
+         "data_ah_0.5.json", "historical"),
+    ])
+
+    assert result == [(None, "101"), (None, "102")]
+    rows = sql_store.fetch_matches(state="historical", prefer_explorer_payload=True)
+    assert {row["match_id"] for row in rows} == {"101", "102"}
