@@ -146,10 +146,14 @@ def test_collect_finished_rows_validates_and_deduplicates(tmp_path):
 
 
 def test_backfill_streams_only_rows_with_match_ids(tmp_path):
-    cache.write_json(tmp_path / 'data_ah_0.json', [row(1), {'home_name': 'missing id'}])
+    cache.write_json(tmp_path / 'data_ah_0.json', [
+        row(1, handicap=0.25, home_ou_stats={'over_pct': 42.5}),
+        {'home_name': 'missing id'},
+    ])
     cache.write_json(tmp_path / 'data_minus_ah_0.5.json', [dict(row(2), match_id=None, id='22')])
     streamed = list(turso_backfill.iter_rows(tmp_path))
     assert [(item['match_id'], bucket) for item, bucket in streamed] == [
         ('1', 'data_ah_0.json'),
         ('22', 'data_minus_ah_0.5.json'),
     ]
+    assert isinstance(streamed[0][0]['home_ou_stats']['over_pct'], float)
