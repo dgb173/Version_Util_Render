@@ -33,7 +33,9 @@ def iter_rows(data_dir: Path) -> Iterator[Tuple[dict, str]]:
         if not path.exists():
             continue
         with path.open("rb") as handle:
-            for row in ijson.items(handle, "item"):
+            # ``use_float=True`` prevents ijson from returning Decimal values,
+            # which the standard JSON encoder used by sql_store cannot encode.
+            for row in ijson.items(handle, "item", use_float=True):
                 if not isinstance(row, dict):
                     continue
                 match_id = str(row.get("match_id") or row.get("id") or "").strip()
