@@ -935,6 +935,8 @@ def upsert_match(match_data: Dict, bucket: str, state: str) -> Tuple[Optional[st
 
 def upsert_matches(
     entries: Iterable[Tuple[Dict, str, str]],
+    *,
+    compact_payload: bool = False,
 ) -> List[Tuple[Optional[str], str]]:
     """Upsert a validated batch using a single database connection.
 
@@ -956,6 +958,8 @@ def upsert_matches(
         if match_id_raw in (None, ""):
             raise ValueError("match_data requires 'match_id'")
         match_id = str(match_id_raw)
+        explorer_data = _build_explorer_payload(match_data)
+        source_data = explorer_data if compact_payload else match_data
         params.append(
             (
                 match_id,
@@ -964,8 +968,8 @@ def upsert_matches(
                 _extract_handicap(match_data),
                 _normalize_score(match_data),
                 _extract_match_date(match_data),
-                json.dumps(match_data, ensure_ascii=False),
-                json.dumps(_build_explorer_payload(match_data), ensure_ascii=False),
+                json.dumps(source_data, ensure_ascii=False),
+                json.dumps(explorer_data, ensure_ascii=False),
                 ts,
                 ts,
             )
