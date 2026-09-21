@@ -947,10 +947,50 @@ def upsert_matches(
         return []
 
     ensure_bootstrap()
+    params: List[Tuple[Any, ...]] = []
     results: List[Tuple[Optional[str], str]] = []
+    ts = now_iso()
+    for match_data, bucket, state in normalized:
+        normalize_red_card_stats_payload(match_data)
+        match_id_raw = match_data.get("match_id")
+        if match_id_raw in (None, ""):
+            raise ValueError("match_data requires 'match_id'")
+        match_id = str(match_id_raw)
+        params.append(
+            (
+                match_id,
+                bucket,
+                state,
+                _extract_handicap(match_data),
+                _normalize_score(match_data),
+                _extract_match_date(match_data),
+                json.dumps(match_data, ensure_ascii=False),
+                json.dumps(_build_explorer_payload(match_data), ensure_ascii=False),
+                ts,
+                ts,
+            )
+        )
+        results.append((None, match_id))
+
     with _connect() as conn:
-        for match_data, bucket, state in normalized:
-            results.append(_upsert_match(conn, match_data, bucket, state))
+        conn.executemany(
+            """
+            INSERT INTO matches(
+                match_id, bucket, state, handicap, score, match_date,
+                payload_json, explorer_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(match_id) DO UPDATE SET
+                bucket = excluded.bucket,
+                state = excluded.state,
+                handicap = excluded.handicap,
+                score = excluded.score,
+                match_date = excluded.match_date,
+                payload_json = excluded.payload_json,
+                explorer_json = excluded.explorer_json,
+                updated_at = excluded.updated_at
+            """,
+            params,
+        )
     return results
 
 
