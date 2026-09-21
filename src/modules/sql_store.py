@@ -691,6 +691,8 @@ def _fetch_matches_rows(
     if state:
         clauses.append("state = ?")
         params.append(state)
+    if prefer_explorer_payload:
+        clauses.append("handicap IS NOT NULL")
 
     if clauses:
         query += " WHERE " + " AND ".join(clauses)
@@ -732,6 +734,8 @@ def _fetch_matches_http(
     if state:
         clauses.append("state = ?")
         raw_params.append(str(state))
+    if prefer_explorer_payload:
+        clauses.append("handicap IS NOT NULL")
     if clauses:
         query += " WHERE " + " AND ".join(clauses)
     query += " ORDER BY updated_at DESC"
