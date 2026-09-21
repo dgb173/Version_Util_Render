@@ -20,6 +20,11 @@ on:
       ou:
         type: string
         default: all
+    secrets:
+      LIBSQL_URL:
+        required: false
+      LIBSQL_AUTH_TOKEN:
+        required: false
 permissions:
   contents: write
 env:
@@ -125,3 +130,11 @@ jobs:
           KIND: ${{ inputs.kind }}
           GH_TOKEN: ${{ github.token }}
         run: python scripts/publish_cloud_cache.py --kind "$KIND"
+      - name: Sincronizar terminados con el Explorador
+        if: inputs.kind == 'finished'
+        env:
+          LIBSQL_URL: ${{ secrets.LIBSQL_URL }}
+          LIBSQL_AUTH_TOKEN: ${{ secrets.LIBSQL_AUTH_TOKEN }}
+          LIBSQL_REMOTE_ONLY: '1'
+          SQL_BOOTSTRAP_MODE: schema_only
+        run: python scripts/sync_finished_to_turso.py --results results

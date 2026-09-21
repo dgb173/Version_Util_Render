@@ -39,3 +39,6 @@ jobs:
       max_jobs: ${{ inputs.max_jobs || '0' }}
       handicap: ${{ inputs.handicap || 'all' }}
       ou: ${{ inputs.ou || 'all' }}
+    secrets:
+      LIBSQL_URL: ${{ secrets.LIBSQL_URL }}
+      LIBSQL_AUTH_TOKEN: ${{ secrets.LIBSQL_AUTH_TOKEN }}
