@@ -64,3 +64,45 @@ def test_batch_upsert_writes_and_reads_explorer_payload(monkeypatch, tmp_path):
     assert result == [(None, "101"), (None, "102")]
     rows = sql_store.fetch_matches(state="historical", prefer_explorer_payload=True)
     assert {row["match_id"] for row in rows} == {"101", "102"}
+
+
+def test_remote_fetch_uses_http_pipeline_without_native_connection(monkeypatch):
+    class _Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "results": [{
+                    "type": "ok",
+                    "response": {
+                        "result": {
+                            "rows": [[{
+                                "type": "text",
+                                "value": '{"match_id":"301","home_name":"Home"}',
+                            }]],
+                        }
+                    },
+                }]
+            }
+
+    calls = []
+
+    def fake_post(url, **kwargs):
+        calls.append((url, kwargs))
+        return _Response()
+
+    monkeypatch.setattr(sql_store, "LIBSQL_URL", "libsql://example.turso.io")
+    monkeypatch.setattr(sql_store, "LIBSQL_AUTH_TOKEN", "secret")
+    monkeypatch.setattr(sql_store, "LIBSQL_REMOTE_ONLY", True)
+    monkeypatch.setattr(sql_store.requests, "post", fake_post)
+
+    rows = sql_store.fetch_matches(state="historical", limit=25, prefer_explorer_payload=True)
+
+    assert rows == [{"match_id": "301", "home_name": "Home"}]
+    assert calls[0][0] == "https://example.turso.io/v2/pipeline"
+    request = calls[0][1]["json"]["requests"][0]
+    assert request["stmt"]["args"] == [
+        {"type": "text", "value": "historical"},
+        {"type": "integer", "value": "25"},
+    ]
