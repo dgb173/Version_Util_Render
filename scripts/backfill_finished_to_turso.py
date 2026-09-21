@@ -69,13 +69,15 @@ def main() -> int:
     for row, bucket in iter_rows(args.data):
         batch.append((row, bucket, "historical"))
         if len(batch) >= args.batch_size:
-            sql_store.upsert_matches(batch)
+            # Explorer only reads the compact projection. Avoid sending the
+            # legacy HTML/tables that can make one historical row several MB.
+            sql_store.upsert_matches(batch, compact_payload=True)
             synced += len(batch)
             batch.clear()
             print(f"Synced {synced} historical matches", flush=True)
 
     if batch:
-        sql_store.upsert_matches(batch)
+        sql_store.upsert_matches(batch, compact_payload=True)
         synced += len(batch)
 
     print(f"Backfill complete: {synced} historical matches available in Explorer")
