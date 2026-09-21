@@ -7,6 +7,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 import cloud_cache_pipeline as cache
+import backfill_finished_to_turso as turso_backfill
+import sync_finished_to_turso as turso_sync
 
 
 def row(i=1, **kw):
@@ -124,3 +126,30 @@ def test_source_excludes_cancelled_and_live():
         for i,status in enumerate([-1, -10, -11, -14, 1]))
     odds = {str(100+i):{'handicap':'0.5','goal_line':'2.5'} for i in range(5)}
     assert [r['id'] for r in parse_matches_from_bf_content(content, status_filter='finished', odds_by_match=odds)] == ['100']
+
+
+def test_collect_finished_rows_validates_and_deduplicates(tmp_path):
+    results = tmp_path / 'results'
+    cache.write_json(results / 'cache-result-0/result_0.json', {
+        'kind': 'finished', 'rows': [row(1, final_score='2:1')]
+    })
+    cache.write_json(results / 'cache-result-1/result_1.json', {
+        'kind': 'finished', 'rows': [row(2, final_score='0:0')]
+    })
+    assert [item['match_id'] for item in turso_sync.collect_rows(results)] == ['1', '2']
+
+    cache.write_json(results / 'cache-result-2/result_2.json', {
+        'kind': 'finished', 'rows': [row(2, final_score='1:0')]
+    })
+    with pytest.raises(ValueError, match='Duplicate'):
+        turso_sync.collect_rows(results)
+
+
+def test_backfill_streams_only_rows_with_match_ids(tmp_path):
+    cache.write_json(tmp_path / 'data_ah_0.json', [row(1), {'home_name': 'missing id'}])
+    cache.write_json(tmp_path / 'data_minus_ah_0.5.json', [dict(row(2), match_id=None, id='22')])
+    streamed = list(turso_backfill.iter_rows(tmp_path))
+    assert [(item['match_id'], bucket) for item, bucket in streamed] == [
+        ('1', 'data_ah_0.json'),
+        ('22', 'data_minus_ah_0.5.json'),
+    ]
