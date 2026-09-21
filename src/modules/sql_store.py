@@ -972,32 +972,30 @@ def upsert_matches(
         )
         results.append((None, match_id))
 
-    # libSQL's remote ``executemany`` path may serialize every item as a
-    # separate request (and has been observed to stall on large JSON payloads).
-    # Build one multi-row statement instead: one network round-trip per batch.
-    row_placeholders = "(" + ", ".join("?" for _ in range(10)) + ")"
-    values_sql = ", ".join(row_placeholders for _ in params)
-    flat_params = tuple(value for row_params in params for value in row_params)
-
     with _connect() as conn:
-        conn.execute(
-            f"""
-            INSERT INTO matches(
-                match_id, bucket, state, handicap, score, match_date,
-                payload_json, explorer_json, created_at, updated_at
-            ) VALUES {values_sql}
-            ON CONFLICT(match_id) DO UPDATE SET
-                bucket = excluded.bucket,
-                state = excluded.state,
-                handicap = excluded.handicap,
-                score = excluded.score,
-                match_date = excluded.match_date,
-                payload_json = excluded.payload_json,
-                explorer_json = excluded.explorer_json,
-                updated_at = excluded.updated_at
-            """,
-            flat_params,
-        )
+        # Keep a single authenticated connection but send each historical row
+        # separately. Full cached matches can be large enough that combining 25
+        # JSON payloads in one remote request exceeds libSQL transport limits.
+        # This still removes the old SELECT-before-UPDATE round-trip per row.
+        for row_params in params:
+            conn.execute(
+                """
+                INSERT INTO matches(
+                    match_id, bucket, state, handicap, score, match_date,
+                    payload_json, explorer_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(match_id) DO UPDATE SET
+                    bucket = excluded.bucket,
+                    state = excluded.state,
+                    handicap = excluded.handicap,
+                    score = excluded.score,
+                    match_date = excluded.match_date,
+                    payload_json = excluded.payload_json,
+                    explorer_json = excluded.explorer_json,
+                    updated_at = excluded.updated_at
+                """,
+                row_params,
+            )
     return results
 
 
