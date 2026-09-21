@@ -102,6 +102,14 @@ _LIBSQL_SYNC_LOCK = threading.Lock()
 _LIBSQL_INITIAL_SYNC_DONE = False
 
 
+def _row_value(row: Any, key: str, index: int) -> Any:
+    """Read sqlite3.Row, mapping-style rows, or libSQL tuple rows."""
+    try:
+        return row[key]
+    except (TypeError, KeyError, IndexError):
+        return row[index]
+
+
 def now_iso() -> str:
     return datetime.utcnow().replace(microsecond=0).isoformat()
 
@@ -296,7 +304,7 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 
 def _ensure_matches_explorer_column(conn: sqlite3.Connection) -> None:
     cols = conn.execute("PRAGMA table_info(matches)").fetchall()
-    names = {row["name"] for row in cols}
+    names = {_row_value(row, "name", 1) for row in cols}
     if "explorer_json" not in names:
         conn.execute("ALTER TABLE matches ADD COLUMN explorer_json TEXT")
 
@@ -546,7 +554,7 @@ def _backfill_explorer_payload(
             break
 
         for row in rows:
-            raw = row["payload_json"]
+            raw = _row_value(row, "payload_json", 1)
             try:
                 match_data = json.loads(raw)
             except json.JSONDecodeError:
@@ -557,7 +565,7 @@ def _backfill_explorer_payload(
             explorer_payload = _build_explorer_payload(match_data)
             conn.execute(
                 "UPDATE matches SET explorer_json = ? WHERE match_id = ?",
-                (json.dumps(explorer_payload, ensure_ascii=False), row["match_id"]),
+                (json.dumps(explorer_payload, ensure_ascii=False), _row_value(row, "match_id", 0)),
             )
             updated += 1
 
@@ -566,7 +574,7 @@ def _backfill_explorer_payload(
 
 def _get_kv(conn: sqlite3.Connection, key: str) -> Optional[str]:
     row = conn.execute("SELECT value FROM kv_store WHERE key = ?", (key,)).fetchone()
-    return row["value"] if row else None
+    return _row_value(row, "value", 0) if row else None
 
 
 def _set_kv(conn: sqlite3.Connection, key: str, value: str) -> None:
@@ -627,7 +635,7 @@ def _upsert_match(
         "SELECT bucket FROM matches WHERE match_id = ?",
         (match_id,),
     ).fetchone()
-    previous_bucket = previous_row["bucket"] if previous_row else None
+    previous_bucket = _row_value(previous_row, "bucket", 0) if previous_row else None
 
     payload = json.dumps(match_data, ensure_ascii=False)
     explorer_payload = json.dumps(_build_explorer_payload(match_data), ensure_ascii=False)
@@ -695,7 +703,7 @@ def _fetch_matches_rows(
 
 def _fetch_distinct_buckets(conn: sqlite3.Connection) -> List[str]:
     rows = conn.execute("SELECT DISTINCT bucket FROM matches").fetchall()
-    return [row["bucket"] for row in rows]
+    return [_row_value(row, "bucket", 0) for row in rows]
 
 
 def _load_json_file(path: Path):
@@ -1002,12 +1010,12 @@ def fetch_match_headers(buckets: Sequence[str]) -> List[Dict[str, Any]]:
 
     return [
         {
-            "match_id": row["match_id"],
-            "bucket": row["bucket"],
-            "score": row["score"],
-            "match_date": row["match_date"],
-            "start_time": row["start_time"],
-            "time": row["match_time"],
+            "match_id": _row_value(row, "match_id", 0),
+            "bucket": _row_value(row, "bucket", 1),
+            "score": _row_value(row, "score", 2),
+            "match_date": _row_value(row, "match_date", 3),
+            "start_time": _row_value(row, "start_time", 4),
+            "time": _row_value(row, "match_time", 5),
         }
         for row in rows
     ]
@@ -1069,7 +1077,7 @@ def get_match(match_id: str, bucket: Optional[str] = None, state: Optional[str] 
         return None
 
     try:
-        return json.loads(row["payload_json"])
+        return json.loads(_row_value(row, "payload_json", 0))
     except json.JSONDecodeError:
         return None
 
@@ -1081,7 +1089,7 @@ def get_match_bucket(match_id: str) -> Optional[str]:
             "SELECT bucket FROM matches WHERE match_id = ?",
             (str(match_id),),
         ).fetchone()
-    return row["bucket"] if row else None
+    return _row_value(row, "bucket", 0) if row else None
 
 
 def fetch_matches(
@@ -1103,7 +1111,7 @@ def fetch_matches(
     output: List[Dict] = []
     for row in rows:
         try:
-            payload = json.loads(row["payload_json"])
+            payload = json.loads(_row_value(row, "payload_json", 0))
         except json.JSONDecodeError:
             continue
         if isinstance(payload, dict):
@@ -1163,11 +1171,11 @@ def fetch_matches_by_ids(
             rows = conn.execute(query, params).fetchall()
             for row in rows:
                 try:
-                    payload = json.loads(row["payload_json"])
+                    payload = json.loads(_row_value(row, "payload_json", 1))
                 except json.JSONDecodeError:
                     continue
                 if isinstance(payload, dict):
-                    rows_by_id[str(row["match_id"])] = payload
+                    rows_by_id[str(_row_value(row, "match_id", 0))] = payload
 
     output: List[Dict] = []
     for mid in ordered_ids:
@@ -1266,13 +1274,13 @@ def import_legacy_json_to_db(reset_first: bool = False) -> None:
 def _history_rows_to_structure(rows: Sequence[sqlite3.Row]) -> Dict[str, Dict[str, List[Dict]]]:
     data: Dict[str, Dict[str, List[Dict]]] = {}
     for row in rows:
-        season = row["season"]
-        league_id = row["league_id"]
-        raw_item = row["item_json"]
+        season = _row_value(row, "season", 0)
+        league_id = _row_value(row, "league_id", 1)
+        raw_item = _row_value(row, "item_json", 3)
         try:
             item = json.loads(raw_item)
         except json.JSONDecodeError:
-            item = {"id": row["match_id"], "ah": "N/A"}
+            item = {"id": _row_value(row, "match_id", 2), "ah": "N/A"}
 
         data.setdefault(season, {}).setdefault(league_id, []).append(item)
     return data
@@ -1292,7 +1300,9 @@ def history_get_full() -> Dict:
 
     cached: Dict[str, Dict[str, List[str]]] = {}
     for row in cached_rows:
-        cached.setdefault(row["season"], {}).setdefault(row["league_id"], []).append(row["match_id"])
+        cached.setdefault(_row_value(row, "season", 0), {}).setdefault(
+            _row_value(row, "league_id", 1), []
+        ).append(_row_value(row, "match_id", 2))
 
     return {"pending": pending, "cached": cached}
 
@@ -1597,11 +1607,11 @@ def fetch_uefa_qualifying_matches(
     output: List[Dict[str, Any]] = []
     for row in rows:
         try:
-            payload = json.loads(row["source_json"])
+            payload = json.loads(_row_value(row, "source_json", 0))
         except (TypeError, json.JSONDecodeError):
             continue
         if isinstance(payload, dict):
-            payload["deep_status"] = row["deep_status"]
+            payload["deep_status"] = _row_value(row, "deep_status", 1)
             output.append(payload)
     return output
 
@@ -1631,7 +1641,7 @@ def update_uefa_qualifying_stats(
         if not row:
             return False
         try:
-            payload = json.loads(row["source_json"])
+            payload = json.loads(_row_value(row, "source_json", 0))
         except (TypeError, json.JSONDecodeError):
             payload = {}
         if not isinstance(payload, dict):
@@ -1665,7 +1675,7 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
             ).fetchone()
             if match_row:
                 try:
-                    match_payload = json.loads(match_row["payload_json"])
+                    match_payload = json.loads(_row_value(match_row, "payload_json", 0))
                 except (TypeError, json.JSONDecodeError):
                     match_payload = {"match_id": match_id}
                 if not isinstance(match_payload, dict):
@@ -1676,8 +1686,8 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
                 _upsert_match(
                     conn,
                     match_payload,
-                    bucket=str(match_row["bucket"] or "data_uefa_qualifying.json"),
-                    state=str(match_row["state"] or "historical"),
+                    bucket=str(_row_value(match_row, "bucket", 1) or "data_uefa_qualifying.json"),
+                    state=str(_row_value(match_row, "state", 2) or "historical"),
                 )
 
             catalogue_row = conn.execute(
@@ -1686,7 +1696,7 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
             ).fetchone()
             if catalogue_row:
                 try:
-                    catalogue_payload = json.loads(catalogue_row["source_json"])
+                    catalogue_payload = json.loads(_row_value(catalogue_row, "source_json", 0))
                 except (TypeError, json.JSONDecodeError):
                     catalogue_payload = {}
                 if not isinstance(catalogue_payload, dict):
