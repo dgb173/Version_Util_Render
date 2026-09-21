@@ -972,13 +972,20 @@ def upsert_matches(
         )
         results.append((None, match_id))
 
+    # libSQL's remote ``executemany`` path may serialize every item as a
+    # separate request (and has been observed to stall on large JSON payloads).
+    # Build one multi-row statement instead: one network round-trip per batch.
+    row_placeholders = "(" + ", ".join("?" for _ in range(10)) + ")"
+    values_sql = ", ".join(row_placeholders for _ in params)
+    flat_params = tuple(value for row_params in params for value in row_params)
+
     with _connect() as conn:
-        conn.executemany(
-            """
+        conn.execute(
+            f"""
             INSERT INTO matches(
                 match_id, bucket, state, handicap, score, match_date,
                 payload_json, explorer_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES {values_sql}
             ON CONFLICT(match_id) DO UPDATE SET
                 bucket = excluded.bucket,
                 state = excluded.state,
@@ -989,7 +996,7 @@ def upsert_matches(
                 explorer_json = excluded.explorer_json,
                 updated_at = excluded.updated_at
             """,
-            params,
+            flat_params,
         )
     return results
 
