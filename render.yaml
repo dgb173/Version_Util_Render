@@ -41,8 +41,10 @@ services:
         value: "300"
       - key: LIBSQL_SYNC_INTERVAL_SECONDS
         value: "60"
-      - key: LIBSQL_REMOTE_ONLY
+      - key: LIBSQL_LOCAL_ONLY
         value: "1"
+      - key: LIBSQL_REMOTE_ONLY
+        value: "0"
       - key: LIBSQL_URL
         sync: false
       - key: LIBSQL_AUTH_TOKEN
@@ -97,3 +99,51 @@ services:
         value: "dgb173/Version_Util_Render"
       - key: GITHUB_WORKFLOW_REF
         value: "main"
+
+  - type: web
+    name: nowgoal-explorer
+    runtime: python
+    plan: free
+    autoDeployTrigger: off
+    buildCommand: pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn -w 1 --worker-class gthread --threads 2 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 wsgi:app
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.10"
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PYTHONOPTIMIZE
+        value: "1"
+      - key: MALLOC_ARENA_MAX
+        value: "2"
+      - key: DATA_LEGACY_SYNC
+        value: "0"
+      - key: SQL_BOOTSTRAP_MODE
+        value: schema_only
+      - key: APP_SQLITE_PATH
+        value: "/tmp/explorer.db"
+      - key: APP_SQLITE_BOOTSTRAP_LOCK
+        value: "/tmp/explorer_bootstrap.lock"
+      - key: LIBSQL_LOCAL_ONLY
+        value: "0"
+      - key: LIBSQL_REMOTE_ONLY
+        value: "1"
+      - key: LIBSQL_URL
+        sync: false
+      - key: LIBSQL_AUTH_TOKEN
+        sync: false
+      - key: APP_EXPLORER_ONLY
+        value: "1"
+      - key: EXPLORER_CACHE_TTL_SECONDS
+        value: "60"
+      - key: EXPLORER_CACHE_MAX_ENTRIES
+        value: "1"
+      - key: EXPLORER_RESULT_LIMIT
+        value: "750"
+      - key: EXPLORER_BATCH_SIZE
+        value: "150"
+      - key: EXPLORER_SCAN_LIMIT
+        value: "50000"
