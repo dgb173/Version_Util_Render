@@ -1,0 +1,29 @@
+name: Apply Render separation fix
+
+on:
+  push:
+    branches: [fix-render-separation]
+    paths:
+      - .github/apply-render-fix.patch
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-render-separation
+          fetch-depth: 0
+      - name: Apply validated patch
+        run: |
+          git apply --exclude=render.yaml .github/apply-render-fix.patch
+          rm .github/apply-render-fix.patch
+          rm .github/workflows/apply-render-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add render.yaml src/app.py src/modules/data_manager.py src/modules/sql_store.py src/templates/precacheo.html tests/test_sql_store_remote_only.py .github
+          git commit -m "fix: isolate precache JSON from explorer Turso"
+          git push origin HEAD:fix-render-separation
