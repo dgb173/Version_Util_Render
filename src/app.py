@@ -262,6 +262,10 @@ def _is_app_precacheo_only():
     return _env_flag('APP_PRECACHEO_ONLY', default=False)
 
 
+def _is_app_explorer_only():
+    return _env_flag('APP_EXPLORER_ONLY', default=False)
+
+
 _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS = {
     '/',
     '/favicon.ico',
@@ -294,10 +298,17 @@ def _enforce_precacheo_only_mode():
     """
     Render-only deployment option: expose only /precacheo UI + precacheo APIs.
     """
+    path = request.path or '/'
+    if _is_app_explorer_only():
+        if path in {'/healthz', '/favicon.ico'}:
+            return None
+        if path.startswith(('/explorador', '/static/', '/api/')):
+            return None
+        return redirect(url_for('explorador'))
+
     if not _is_app_precacheo_only():
         return None
 
-    path = request.path or '/'
     if path in _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS:
         return None
 
@@ -4881,7 +4892,6 @@ def api_explorer_search():
             req_limit = explorer_result_limit
         filters['limit'] = max(1, min(req_limit, explorer_result_limit))
 
-        analyze_all = bool(filters.get('analyze_all', False))
         # Keep full stat rows available in explorer unless caller explicitly disables them.
         if 'include_stats' not in filters:
             filters['include_stats'] = True
@@ -4893,46 +4903,6 @@ def api_explorer_search():
             ah_filter = raw_ah_filter[0] if len(raw_ah_filter) == 1 else None
         if ah_filter in (None, ''):
             ah_filter = filters.get('exact_handicap')
-        scan_limit = None
-        if not analyze_all and not ah_filter:
-            has_strict_filters = any(
-                filters.get(k)
-                for k in (
-                    'team',
-                    'result',
-                    'prev_home_wdl',
-                    'prev_away_wdl',
-                    'prev_home_real_wdl',
-                    'prev_away_real_wdl',
-                    'prev_home_ah',
-                    'prev_away_ah',
-                    'h2h_stadium_mov',
-                    'h2h_stadium_res',
-                    'h2h_general_mov',
-                    'h2h_general_res',
-                    'h2h_col3_ah',
-                    'ind_local_ah',
-                    'ind_visitante_ah',
-                    'exact_handicap',
-                    'favorite_side',
-                    'favorite_result',
-                    'cover_result',
-                    'ou_limit',
-                )
-            ) or bool(filters.get('exclude_empty')) or bool(filters.get('only_with_history'))
-
-            # Keep first response fast: scan a recent window instead of full table.
-            # For stricter searches we scan a bit wider.
-            # Remote libSQL rows still have to be materialized by the Python
-            # client. Keep the search window small enough for Render Free and
-            # let filters/pagination query subsequent bounded windows instead
-            # of pulling hundreds of rich historical payloads at once.
-            explorer_scan_limit = max(25, min(_env_int('EXPLORER_SCAN_LIMIT', 100), 500))
-            if has_strict_filters:
-                scan_limit = min(max(filters['limit'] * 3, 50), explorer_scan_limit)
-            else:
-                scan_limit = min(max(filters['limit'] * 2, 25), explorer_scan_limit)
-
         if explorer_scope == 'uefa_qualifying':
             uefa_rows = sql_store.fetch_uefa_qualifying_matches(
                 competition_ids=_uefa_filter_values(scope_filters.get('competitions')) or None,
@@ -4947,19 +4917,70 @@ def api_explorer_search():
                 limit=20000,
                 prefer_explorer_payload=True,
             )
+            results = explore_matches(history_data, filters=filters)
+            scanned = len(history_data)
+            search_complete = True
         else:
-            history_data = data_manager.load_explorer_matches(ah_filter, scan_limit=scan_limit)
-            
-        if not history_data:
-             return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
-            
-        results = explore_matches(history_data, filters=filters)
+            # Search Turso/local SQL in bounded pages.  The old implementation
+            # inspected only the newest 100 rows for many filter combinations,
+            # so valid historical patterns were silently omitted.  Paging keeps
+            # memory bounded on Render Free while continuing until the requested
+            # number of matches is found or the historical table is exhausted.
+            batch_size = max(25, min(_env_int('EXPLORER_BATCH_SIZE', 150), 300))
+            configured_scan_limit = max(0, min(_env_int('EXPLORER_SCAN_LIMIT', 0), 50000))
+            requested_results = int(filters['limit'])
+            results = []
+            scanned = 0
+            offset = 0
+            search_complete = False
+
+            while len(results) < requested_results:
+                if configured_scan_limit and scanned >= configured_scan_limit:
+                    break
+                current_batch_size = batch_size
+                if configured_scan_limit:
+                    current_batch_size = min(current_batch_size, configured_scan_limit - scanned)
+                if current_batch_size <= 0:
+                    break
+
+                history_batch = data_manager.load_explorer_matches(
+                    ah_filter,
+                    scan_limit=current_batch_size,
+                    offset=offset,
+                )
+                if not history_batch:
+                    search_complete = True
+                    break
+
+                remaining = requested_results - len(results)
+                batch_filters = dict(filters)
+                batch_filters['limit'] = remaining
+                results.extend(explore_matches(history_batch, filters=batch_filters))
+
+                batch_count = len(history_batch)
+                scanned += batch_count
+                offset += batch_count
+                if batch_count < current_batch_size:
+                    search_complete = True
+                    break
+
+        if not results and scanned == 0:
+            return jsonify({
+                'results': [],
+                'message': 'No hay histórico disponible.',
+                'scanned': 0,
+                'complete': True,
+            })
 
         # A full Explorer response can exceed 50 MB. Browsers advertise gzip by
         # default; compressing here avoids truncated JSON/connection resets while
         # preserving the complete result set and every client-side filter.
         response_payload = json.dumps(
-            {'results': results},
+            {
+                'results': results,
+                'scanned': scanned,
+                'complete': search_complete,
+            },
             ensure_ascii=False,
             separators=(',', ':'),
         ).encode('utf-8')

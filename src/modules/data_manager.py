@@ -178,7 +178,7 @@ def load_matches_by_bucket(ah_filter):
     return sql_store.fetch_matches(bucket=bucket)
 
 
-def load_explorer_matches(ah_filter=None, scan_limit=None):
+def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
     """
     Explorer should run on finalized historical data only.
     Excludes precacheo/pending states to reduce noise and latency.
@@ -189,7 +189,8 @@ def load_explorer_matches(ah_filter=None, scan_limit=None):
         cache_bucket = None
 
     cache_limit = int(scan_limit) if isinstance(scan_limit, int) and scan_limit > 0 else None
-    cache_key = (cache_bucket, cache_limit)
+    safe_offset = max(0, int(offset or 0))
+    cache_key = (cache_bucket, cache_limit, safe_offset)
 
     if _explorer_cache_ttl > 0:
         with _explorer_cache_lock:
@@ -203,20 +204,23 @@ def load_explorer_matches(ah_filter=None, scan_limit=None):
             state='historical',
             limit=scan_limit,
             prefer_explorer_payload=True,
+            offset=safe_offset,
         )
     else:
         rows = sql_store.fetch_matches(
             state='historical',
             limit=scan_limit,
             prefer_explorer_payload=True,
+            offset=safe_offset,
         )
 
     # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
-    if not rows:
+    if not rows and safe_offset == 0:
         rows = sql_store.fetch_matches(
             bucket=cache_bucket if (ah_filter and ah_filter != 'all') else None,
             limit=scan_limit,
             prefer_explorer_payload=True,
+            offset=safe_offset,
         )
 
 
