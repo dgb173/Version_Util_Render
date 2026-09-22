@@ -1,0 +1,530 @@
+From 6a80c7066889d7a1c78da44c814bdb8972eac46c Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Tue, 22 Sep 2026 05:11:48 +0200
+Subject: [PATCH] fix: isolate precache JSON from explorer Turso
+
+---
+ render.yaml                         |  52 +++++++++++-
+ src/app.py                          | 119 ++++++++++++++++------------
+ src/modules/data_manager.py         |  10 ++-
+ src/modules/sql_store.py            |  32 ++++++--
+ src/templates/precacheo.html        |  45 ++++++++---
+ tests/test_sql_store_remote_only.py |  44 +++++++++-
+ 6 files changed, 232 insertions(+), 70 deletions(-)
+
+diff --git a/render.yaml b/render.yaml
+index d26f4a5e..0c8bd33d 100644
+--- a/render.yaml
++++ b/render.yaml
+@@ -41,8 +41,10 @@ services:
+         value: "300"
+       - key: LIBSQL_SYNC_INTERVAL_SECONDS
+         value: "60"
+-      - key: LIBSQL_REMOTE_ONLY
++      - key: LIBSQL_LOCAL_ONLY
+         value: "1"
++      - key: LIBSQL_REMOTE_ONLY
++        value: "0"
+       - key: LIBSQL_URL
+         sync: false
+       - key: LIBSQL_AUTH_TOKEN
+@@ -97,3 +99,51 @@ services:
+         value: "dgb173/Version_Util_Render"
+       - key: GITHUB_WORKFLOW_REF
+         value: "main"
++
++  - type: web
++    name: nowgoal-explorer
++    runtime: python
++    plan: free
++    autoDeployTrigger: off
++    buildCommand: pip install --no-cache-dir -r requirements.txt
++    startCommand: gunicorn -w 1 --worker-class gthread --threads 2 -b 0.0.0.0:$PORT --timeout 300 --graceful-timeout 30 --keep-alive 5 wsgi:app
++    healthCheckPath: /healthz
++    envVars:
++      - key: PYTHON_VERSION
++        value: "3.11.10"
++      - key: FLASK_ENV
++        value: production
++      - key: PYTHONUNBUFFERED
++        value: "1"
++      - key: PYTHONOPTIMIZE
++        value: "1"
++      - key: MALLOC_ARENA_MAX
++        value: "2"
++      - key: DATA_LEGACY_SYNC
++        value: "0"
++      - key: SQL_BOOTSTRAP_MODE
++        value: schema_only
++      - key: APP_SQLITE_PATH
++        value: "/tmp/explorer.db"
++      - key: APP_SQLITE_BOOTSTRAP_LOCK
++        value: "/tmp/explorer_bootstrap.lock"
++      - key: LIBSQL_LOCAL_ONLY
++        value: "0"
++      - key: LIBSQL_REMOTE_ONLY
++        value: "1"
++      - key: LIBSQL_URL
++        sync: false
++      - key: LIBSQL_AUTH_TOKEN
++        sync: false
++      - key: APP_EXPLORER_ONLY
++        value: "1"
++      - key: EXPLORER_CACHE_TTL_SECONDS
++        value: "60"
++      - key: EXPLORER_CACHE_MAX_ENTRIES
++        value: "1"
++      - key: EXPLORER_RESULT_LIMIT
++        value: "750"
++      - key: EXPLORER_BATCH_SIZE
++        value: "150"
++      - key: EXPLORER_SCAN_LIMIT
++        value: "50000"
+diff --git a/src/app.py b/src/app.py
+index d0a81b76..0e67237d 100644
+--- a/src/app.py
++++ b/src/app.py
+@@ -262,6 +262,10 @@ def _is_app_precacheo_only():
+     return _env_flag('APP_PRECACHEO_ONLY', default=False)
+ 
+ 
++def _is_app_explorer_only():
++    return _env_flag('APP_EXPLORER_ONLY', default=False)
++
++
+ _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS = {
+     '/',
+     '/favicon.ico',
+@@ -294,10 +298,17 @@ def _enforce_precacheo_only_mode():
+     """
+     Render-only deployment option: expose only /precacheo UI + precacheo APIs.
+     """
++    path = request.path or '/'
++    if _is_app_explorer_only():
++        if path in {'/healthz', '/favicon.ico'}:
++            return None
++        if path.startswith(('/explorador', '/static/', '/api/')):
++            return None
++        return redirect(url_for('explorador'))
++
+     if not _is_app_precacheo_only():
+         return None
+ 
+-    path = request.path or '/'
+     if path in _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS:
+         return None
+ 
+@@ -4881,7 +4892,6 @@ def api_explorer_search():
+             req_limit = explorer_result_limit
+         filters['limit'] = max(1, min(req_limit, explorer_result_limit))
+ 
+-        analyze_all = bool(filters.get('analyze_all', False))
+         # Keep full stat rows available in explorer unless caller explicitly disables them.
+         if 'include_stats' not in filters:
+             filters['include_stats'] = True
+@@ -4893,46 +4903,6 @@ def api_explorer_search():
+             ah_filter = raw_ah_filter[0] if len(raw_ah_filter) == 1 else None
+         if ah_filter in (None, ''):
+             ah_filter = filters.get('exact_handicap')
+-        scan_limit = None
+-        if not analyze_all and not ah_filter:
+-            has_strict_filters = any(
+-                filters.get(k)
+-                for k in (
+-                    'team',
+-                    'result',
+-                    'prev_home_wdl',
+-                    'prev_away_wdl',
+-                    'prev_home_real_wdl',
+-                    'prev_away_real_wdl',
+-                    'prev_home_ah',
+-                    'prev_away_ah',
+-                    'h2h_stadium_mov',
+-                    'h2h_stadium_res',
+-                    'h2h_general_mov',
+-                    'h2h_general_res',
+-                    'h2h_col3_ah',
+-                    'ind_local_ah',
+-                    'ind_visitante_ah',
+-                    'exact_handicap',
+-                    'favorite_side',
+-                    'favorite_result',
+-                    'cover_result',
+-                    'ou_limit',
+-                )
+-            ) or bool(filters.get('exclude_empty')) or bool(filters.get('only_with_history'))
+-
+-            # Keep first response fast: scan a recent window instead of full table.
+-            # For stricter searches we scan a bit wider.
+-            # Remote libSQL rows still have to be materialized by the Python
+-            # client. Keep the search window small enough for Render Free and
+-            # let filters/pagination query subsequent bounded windows instead
+-            # of pulling hundreds of rich historical payloads at once.
+-            explorer_scan_limit = max(25, min(_env_int('EXPLORER_SCAN_LIMIT', 100), 500))
+-            if has_strict_filters:
+-                scan_limit = min(max(filters['limit'] * 3, 50), explorer_scan_limit)
+-            else:
+-                scan_limit = min(max(filters['limit'] * 2, 25), explorer_scan_limit)
+-
+         if explorer_scope == 'uefa_qualifying':
+             uefa_rows = sql_store.fetch_uefa_qualifying_matches(
+                 competition_ids=_uefa_filter_values(scope_filters.get('competitions')) or None,
+@@ -4947,19 +4917,70 @@ def api_explorer_search():
+                 limit=20000,
+                 prefer_explorer_payload=True,
+             )
++            results = explore_matches(history_data, filters=filters)
++            scanned = len(history_data)
++            search_complete = True
+         else:
+-            history_data = data_manager.load_explorer_matches(ah_filter, scan_limit=scan_limit)
+-            
+-        if not history_data:
+-             return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
+-            
+-        results = explore_matches(history_data, filters=filters)
++            # Search Turso/local SQL in bounded pages.  The old implementation
++            # inspected only the newest 100 rows for many filter combinations,
++            # so valid historical patterns were silently omitted.  Paging keeps
++            # memory bounded on Render Free while continuing until the requested
++            # number of matches is found or the historical table is exhausted.
++            batch_size = max(25, min(_env_int('EXPLORER_BATCH_SIZE', 150), 300))
++            configured_scan_limit = max(0, min(_env_int('EXPLORER_SCAN_LIMIT', 0), 50000))
++            requested_results = int(filters['limit'])
++            results = []
++            scanned = 0
++            offset = 0
++            search_complete = False
++
++            while len(results) < requested_results:
++                if configured_scan_limit and scanned >= configured_scan_limit:
++                    break
++                current_batch_size = batch_size
++                if configured_scan_limit:
++                    current_batch_size = min(current_batch_size, configured_scan_limit - scanned)
++                if current_batch_size <= 0:
++                    break
++
++                history_batch = data_manager.load_explorer_matches(
++                    ah_filter,
++                    scan_limit=current_batch_size,
++                    offset=offset,
++                )
++                if not history_batch:
++                    search_complete = True
++                    break
++
++                remaining = requested_results - len(results)
++                batch_filters = dict(filters)
++                batch_filters['limit'] = remaining
++                results.extend(explore_matches(history_batch, filters=batch_filters))
++
++                batch_count = len(history_batch)
++                scanned += batch_count
++                offset += batch_count
++                if batch_count < current_batch_size:
++                    search_complete = True
++                    break
++
++        if not results and scanned == 0:
++            return jsonify({
++                'results': [],
++                'message': 'No hay histórico disponible.',
++                'scanned': 0,
++                'complete': True,
++            })
+ 
+         # A full Explorer response can exceed 50 MB. Browsers advertise gzip by
+         # default; compressing here avoids truncated JSON/connection resets while
+         # preserving the complete result set and every client-side filter.
+         response_payload = json.dumps(
+-            {'results': results},
++            {
++                'results': results,
++                'scanned': scanned,
++                'complete': search_complete,
++            },
+             ensure_ascii=False,
+             separators=(',', ':'),
+         ).encode('utf-8')
+diff --git a/src/modules/data_manager.py b/src/modules/data_manager.py
+index f11f63ad..d5823a41 100644
+--- a/src/modules/data_manager.py
++++ b/src/modules/data_manager.py
+@@ -178,7 +178,7 @@ def load_matches_by_bucket(ah_filter):
+     return sql_store.fetch_matches(bucket=bucket)
+ 
+ 
+-def load_explorer_matches(ah_filter=None, scan_limit=None):
++def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
+     """
+     Explorer should run on finalized historical data only.
+     Excludes precacheo/pending states to reduce noise and latency.
+@@ -189,7 +189,8 @@ def load_explorer_matches(ah_filter=None, scan_limit=None):
+         cache_bucket = None
+ 
+     cache_limit = int(scan_limit) if isinstance(scan_limit, int) and scan_limit > 0 else None
+-    cache_key = (cache_bucket, cache_limit)
++    safe_offset = max(0, int(offset or 0))
++    cache_key = (cache_bucket, cache_limit, safe_offset)
+ 
+     if _explorer_cache_ttl > 0:
+         with _explorer_cache_lock:
+@@ -203,20 +204,23 @@ def load_explorer_matches(ah_filter=None, scan_limit=None):
+             state='historical',
+             limit=scan_limit,
+             prefer_explorer_payload=True,
++            offset=safe_offset,
+         )
+     else:
+         rows = sql_store.fetch_matches(
+             state='historical',
+             limit=scan_limit,
+             prefer_explorer_payload=True,
++            offset=safe_offset,
+         )
+ 
+     # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
+-    if not rows:
++    if not rows and safe_offset == 0:
+         rows = sql_store.fetch_matches(
+             bucket=cache_bucket if (ah_filter and ah_filter != 'all') else None,
+             limit=scan_limit,
+             prefer_explorer_payload=True,
++            offset=safe_offset,
+         )
+ 
+ 
+diff --git a/src/modules/sql_store.py b/src/modules/sql_store.py
+index 85868a22..86943a7c 100644
+--- a/src/modules/sql_store.py
++++ b/src/modules/sql_store.py
+@@ -15,10 +15,21 @@ from .red_cards import normalize_red_card_stats_payload
+ 
+ LOGGER = logging.getLogger(__name__)
+ 
+-try:
+-    import libsql as _libsql  # type: ignore
+-except Exception:
++LIBSQL_LOCAL_ONLY = os.getenv("LIBSQL_LOCAL_ONLY", "0").strip().lower() in {
++    "1", "true", "yes", "on"
++}
++
++# The Pre-Cacheo Render service only needs the bot-generated files bundled in
++# each deploy.  Do not even load the native libSQL extension there: apart from
++# being unnecessary, the native client has terminated the small free worker
++# with status 139 under load.
++if LIBSQL_LOCAL_ONLY:
+     _libsql = None
++else:
++    try:
++        import libsql as _libsql  # type: ignore
++    except Exception:
++        _libsql = None
+ 
+ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+ DATA_DIR = PROJECT_ROOT / "data"
+@@ -35,8 +46,8 @@ BOOTSTRAP_LOCK_FILE = Path(
+ SQL_BOOTSTRAP_MODE = os.getenv("SQL_BOOTSTRAP_MODE", "full").strip().lower()
+ SQL_BOOTSTRAP_SKIP_LEGACY = SQL_BOOTSTRAP_MODE in {"none", "schema_only", "no_legacy"}
+ SQL_BOOTSTRAP_HISTORY_ONLY = SQL_BOOTSTRAP_MODE == "history_only"
+-LIBSQL_URL = os.getenv("LIBSQL_URL", "").strip()
+-LIBSQL_AUTH_TOKEN = os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
++LIBSQL_URL = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_URL", "").strip()
++LIBSQL_AUTH_TOKEN = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
+ LIBSQL_SYNC_INTERVAL_SECONDS = max(0, int(os.getenv("LIBSQL_SYNC_INTERVAL_SECONDS", "60")))
+ LIBSQL_REMOTE_ONLY = os.getenv("LIBSQL_REMOTE_ONLY", "0").strip().lower() in {
+     "1", "true", "yes", "on"
+@@ -679,6 +690,7 @@ def _fetch_matches_rows(
+     state: Optional[str] = None,
+     limit: Optional[int] = None,
+     prefer_explorer_payload: bool = False,
++    offset: int = 0,
+ ) -> List[sqlite3.Row]:
+     payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
+     query = f"SELECT {payload_expr} AS payload_json FROM matches"
+@@ -701,6 +713,9 @@ def _fetch_matches_rows(
+     if isinstance(limit, int) and limit > 0:
+         query += " LIMIT ?"
+         params.append(limit)
++        if isinstance(offset, int) and offset > 0:
++            query += " OFFSET ?"
++            params.append(offset)
+     return conn.execute(query, params).fetchall()
+ 
+ 
+@@ -716,6 +731,7 @@ def _fetch_matches_http(
+     state: Optional[str] = None,
+     limit: Optional[int] = None,
+     prefer_explorer_payload: bool = False,
++    offset: int = 0,
+ ) -> List[Dict]:
+     """Read bounded Explorer rows through Turso's HTTP pipeline.
+ 
+@@ -742,6 +758,9 @@ def _fetch_matches_http(
+     if isinstance(limit, int) and limit > 0:
+         query += " LIMIT ?"
+         raw_params.append(int(limit))
++        if isinstance(offset, int) and offset > 0:
++            query += " OFFSET ?"
++            raw_params.append(int(offset))
+ 
+     args = []
+     for value in raw_params:
+@@ -1241,6 +1260,7 @@ def fetch_matches(
+     state: Optional[str] = None,
+     limit: Optional[int] = None,
+     prefer_explorer_payload: bool = False,
++    offset: int = 0,
+ ) -> List[Dict]:
+     if LIBSQL_URL and LIBSQL_REMOTE_ONLY:
+         return _fetch_matches_http(
+@@ -1248,6 +1268,7 @@ def fetch_matches(
+             state=state,
+             limit=limit,
+             prefer_explorer_payload=prefer_explorer_payload,
++            offset=offset,
+         )
+ 
+     ensure_bootstrap()
+@@ -1258,6 +1279,7 @@ def fetch_matches(
+             state=state,
+             limit=limit,
+             prefer_explorer_payload=prefer_explorer_payload,
++            offset=offset,
+         )
+ 
+     output: List[Dict] = []
+diff --git a/src/templates/precacheo.html b/src/templates/precacheo.html
+index 76ff79b2..9256c76a 100644
+--- a/src/templates/precacheo.html
++++ b/src/templates/precacheo.html
+@@ -5090,6 +5090,39 @@
+             await triggerSearch();
+         }
+ 
++        async function fetchPrecacheListJson(url) {
++            const retryableStatuses = new Set([429, 502, 503, 504]);
++            let lastError = null;
++            for (let attempt = 0; attempt < 3; attempt++) {
++                try {
++                    const response = await fetch(url, { cache: 'no-store' });
++                    if (!response.ok) {
++                        const error = new Error(`HTTP ${response.status}`);
++                        error.retryable = retryableStatuses.has(response.status);
++                        throw error;
++                    }
++                    const raw = await response.text();
++                    if (!raw.trim()) {
++                        const error = new Error('respuesta vacía');
++                        error.retryable = true;
++                        throw error;
++                    }
++                    try {
++                        return JSON.parse(raw);
++                    } catch (_) {
++                        const error = new Error('respuesta incompleta');
++                        error.retryable = true;
++                        throw error;
++                    }
++                } catch (error) {
++                    lastError = error;
++                    if (attempt >= 2 || error.retryable === false) break;
++                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
++                }
++            }
++            throw lastError || new Error('No se pudo cargar la lista');
++        }
++
+         async function loadUpcomingMatchesPage() {
+             const params = new URLSearchParams({
+                 page: '1',
+@@ -5098,11 +5131,7 @@
+             const handicapValues = msHandicap ? msHandicap.getValues() : [];
+             handicapValues.forEach(value => params.append('handicap', value));
+ 
+-            const response = await fetch(`/api/precacheo_upcoming_list?${params.toString()}`, {
+-                cache: 'no-store'
+-            });
+-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+-            const data = await response.json();
++            const data = await fetchPrecacheListJson(`/api/precacheo_upcoming_list?${params.toString()}`);
+             if (data.error) throw new Error(data.error);
+ 
+             const rows = Array.isArray(data.matches) ? data.matches : [];
+@@ -5157,11 +5186,7 @@
+             const handicapValues = msHandicap ? msHandicap.getValues() : [];
+             handicapValues.forEach(value => params.append('handicap', value));
+ 
+-            const response = await fetch(`/api/precacheo_pending_list?${params.toString()}`, {
+-                cache: 'no-store'
+-            });
+-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+-            const data = await response.json();
++            const data = await fetchPrecacheListJson(`/api/precacheo_pending_list?${params.toString()}`);
+             if (data.error) throw new Error(data.error);
+ 
+             const rows = Array.isArray(data.matches) ? data.matches : [];
+diff --git a/tests/test_sql_store_remote_only.py b/tests/test_sql_store_remote_only.py
+index 0e0f6842..b23b7b61 100644
+--- a/tests/test_sql_store_remote_only.py
++++ b/tests/test_sql_store_remote_only.py
+@@ -55,9 +55,9 @@ def test_batch_upsert_writes_and_reads_explorer_payload(monkeypatch, tmp_path):
+     monkeypatch.setattr(sql_store, "_BOOTSTRAPPED", False)
+ 
+     result = sql_store.upsert_matches([
+-        ({"match_id": "101", "home_name": "Home", "away_name": "Away"},
++        ({"match_id": "101", "home_name": "Home", "away_name": "Away", "handicap": 0},
+          "data_ah_0.json", "historical"),
+-        ({"match_id": "102", "home_name": "Other", "away_name": "Team"},
++        ({"match_id": "102", "home_name": "Other", "away_name": "Team", "handicap": 0.5},
+          "data_ah_0.5.json", "historical"),
+     ])
+ 
+@@ -106,3 +106,43 @@ def test_remote_fetch_uses_http_pipeline_without_native_connection(monkeypatch):
+         {"type": "text", "value": "historical"},
+         {"type": "integer", "value": "25"},
+     ]
++
++
++def test_remote_fetch_supports_bounded_pagination(monkeypatch):
++    class _Response:
++        def raise_for_status(self):
++            return None
++
++        def json(self):
++            return {
++                "results": [{
++                    "type": "ok",
++                    "response": {"result": {"rows": []}},
++                }]
++            }
++
++    calls = []
++
++    def fake_post(url, **kwargs):
++        calls.append((url, kwargs))
++        return _Response()
++
++    monkeypatch.setattr(sql_store, "LIBSQL_URL", "libsql://example.turso.io")
++    monkeypatch.setattr(sql_store, "LIBSQL_AUTH_TOKEN", "secret")
++    monkeypatch.setattr(sql_store, "LIBSQL_REMOTE_ONLY", True)
++    monkeypatch.setattr(sql_store.requests, "post", fake_post)
++
++    assert sql_store.fetch_matches(
++        state="historical",
++        limit=150,
++        offset=300,
++        prefer_explorer_payload=True,
++    ) == []
++
++    request = calls[0][1]["json"]["requests"][0]
++    assert request["stmt"]["sql"].endswith("LIMIT ? OFFSET ?")
++    assert request["stmt"]["args"] == [
++        {"type": "text", "value": "historical"},
++        {"type": "integer", "value": "150"},
++        {"type": "integer", "value": "300"},
++    ]
+-- 
+2.51.1
+
