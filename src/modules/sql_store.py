@@ -15,10 +15,21 @@ from .red_cards import normalize_red_card_stats_payload
 
 LOGGER = logging.getLogger(__name__)
 
-try:
-    import libsql as _libsql  # type: ignore
-except Exception:
+LIBSQL_LOCAL_ONLY = os.getenv("LIBSQL_LOCAL_ONLY", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+# The Pre-Cacheo Render service only needs the bot-generated files bundled in
+# each deploy.  Do not even load the native libSQL extension there: apart from
+# being unnecessary, the native client has terminated the small free worker
+# with status 139 under load.
+if LIBSQL_LOCAL_ONLY:
     _libsql = None
+else:
+    try:
+        import libsql as _libsql  # type: ignore
+    except Exception:
+        _libsql = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -35,8 +46,8 @@ BOOTSTRAP_LOCK_FILE = Path(
 SQL_BOOTSTRAP_MODE = os.getenv("SQL_BOOTSTRAP_MODE", "full").strip().lower()
 SQL_BOOTSTRAP_SKIP_LEGACY = SQL_BOOTSTRAP_MODE in {"none", "schema_only", "no_legacy"}
 SQL_BOOTSTRAP_HISTORY_ONLY = SQL_BOOTSTRAP_MODE == "history_only"
-LIBSQL_URL = os.getenv("LIBSQL_URL", "").strip()
-LIBSQL_AUTH_TOKEN = os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
+LIBSQL_URL = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_URL", "").strip()
+LIBSQL_AUTH_TOKEN = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
 LIBSQL_SYNC_INTERVAL_SECONDS = max(0, int(os.getenv("LIBSQL_SYNC_INTERVAL_SECONDS", "60")))
 LIBSQL_REMOTE_ONLY = os.getenv("LIBSQL_REMOTE_ONLY", "0").strip().lower() in {
     "1", "true", "yes", "on"
@@ -679,6 +690,7 @@ def _fetch_matches_rows(
     state: Optional[str] = None,
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
+    offset: int = 0,
 ) -> List[sqlite3.Row]:
     payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
     query = f"SELECT {payload_expr} AS payload_json FROM matches"
@@ -701,6 +713,9 @@ def _fetch_matches_rows(
     if isinstance(limit, int) and limit > 0:
         query += " LIMIT ?"
         params.append(limit)
+        if isinstance(offset, int) and offset > 0:
+            query += " OFFSET ?"
+            params.append(offset)
     return conn.execute(query, params).fetchall()
 
 
@@ -716,6 +731,7 @@ def _fetch_matches_http(
     state: Optional[str] = None,
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
+    offset: int = 0,
 ) -> List[Dict]:
     """Read bounded Explorer rows through Turso's HTTP pipeline.
 
@@ -742,6 +758,9 @@ def _fetch_matches_http(
     if isinstance(limit, int) and limit > 0:
         query += " LIMIT ?"
         raw_params.append(int(limit))
+        if isinstance(offset, int) and offset > 0:
+            query += " OFFSET ?"
+            raw_params.append(int(offset))
 
     args = []
     for value in raw_params:
@@ -1241,6 +1260,7 @@ def fetch_matches(
     state: Optional[str] = None,
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
+    offset: int = 0,
 ) -> List[Dict]:
     if LIBSQL_URL and LIBSQL_REMOTE_ONLY:
         return _fetch_matches_http(
@@ -1248,6 +1268,7 @@ def fetch_matches(
             state=state,
             limit=limit,
             prefer_explorer_payload=prefer_explorer_payload,
+            offset=offset,
         )
 
     ensure_bootstrap()
@@ -1258,6 +1279,7 @@ def fetch_matches(
             state=state,
             limit=limit,
             prefer_explorer_payload=prefer_explorer_payload,
+            offset=offset,
         )
 
     output: List[Dict] = []

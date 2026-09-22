@@ -55,9 +55,9 @@ def test_batch_upsert_writes_and_reads_explorer_payload(monkeypatch, tmp_path):
     monkeypatch.setattr(sql_store, "_BOOTSTRAPPED", False)
 
     result = sql_store.upsert_matches([
-        ({"match_id": "101", "home_name": "Home", "away_name": "Away"},
+        ({"match_id": "101", "home_name": "Home", "away_name": "Away", "handicap": 0},
          "data_ah_0.json", "historical"),
-        ({"match_id": "102", "home_name": "Other", "away_name": "Team"},
+        ({"match_id": "102", "home_name": "Other", "away_name": "Team", "handicap": 0.5},
          "data_ah_0.5.json", "historical"),
     ])
 
@@ -105,4 +105,44 @@ def test_remote_fetch_uses_http_pipeline_without_native_connection(monkeypatch):
     assert request["stmt"]["args"] == [
         {"type": "text", "value": "historical"},
         {"type": "integer", "value": "25"},
+    ]
+
+
+def test_remote_fetch_supports_bounded_pagination(monkeypatch):
+    class _Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "results": [{
+                    "type": "ok",
+                    "response": {"result": {"rows": []}},
+                }]
+            }
+
+    calls = []
+
+    def fake_post(url, **kwargs):
+        calls.append((url, kwargs))
+        return _Response()
+
+    monkeypatch.setattr(sql_store, "LIBSQL_URL", "libsql://example.turso.io")
+    monkeypatch.setattr(sql_store, "LIBSQL_AUTH_TOKEN", "secret")
+    monkeypatch.setattr(sql_store, "LIBSQL_REMOTE_ONLY", True)
+    monkeypatch.setattr(sql_store.requests, "post", fake_post)
+
+    assert sql_store.fetch_matches(
+        state="historical",
+        limit=150,
+        offset=300,
+        prefer_explorer_payload=True,
+    ) == []
+
+    request = calls[0][1]["json"]["requests"][0]
+    assert request["stmt"]["sql"].endswith("LIMIT ? OFFSET ?")
+    assert request["stmt"]["args"] == [
+        {"type": "text", "value": "historical"},
+        {"type": "integer", "value": "150"},
+        {"type": "integer", "value": "300"},
     ]

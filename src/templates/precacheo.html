@@ -5090,6 +5090,39 @@
             await triggerSearch();
         }
 
+        async function fetchPrecacheListJson(url) {
+            const retryableStatuses = new Set([429, 502, 503, 504]);
+            let lastError = null;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    const response = await fetch(url, { cache: 'no-store' });
+                    if (!response.ok) {
+                        const error = new Error(`HTTP ${response.status}`);
+                        error.retryable = retryableStatuses.has(response.status);
+                        throw error;
+                    }
+                    const raw = await response.text();
+                    if (!raw.trim()) {
+                        const error = new Error('respuesta vacía');
+                        error.retryable = true;
+                        throw error;
+                    }
+                    try {
+                        return JSON.parse(raw);
+                    } catch (_) {
+                        const error = new Error('respuesta incompleta');
+                        error.retryable = true;
+                        throw error;
+                    }
+                } catch (error) {
+                    lastError = error;
+                    if (attempt >= 2 || error.retryable === false) break;
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                }
+            }
+            throw lastError || new Error('No se pudo cargar la lista');
+        }
+
         async function loadUpcomingMatchesPage() {
             const params = new URLSearchParams({
                 page: '1',
@@ -5098,11 +5131,7 @@
             const handicapValues = msHandicap ? msHandicap.getValues() : [];
             handicapValues.forEach(value => params.append('handicap', value));
 
-            const response = await fetch(`/api/precacheo_upcoming_list?${params.toString()}`, {
-                cache: 'no-store'
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
+            const data = await fetchPrecacheListJson(`/api/precacheo_upcoming_list?${params.toString()}`);
             if (data.error) throw new Error(data.error);
 
             const rows = Array.isArray(data.matches) ? data.matches : [];
@@ -5157,11 +5186,7 @@
             const handicapValues = msHandicap ? msHandicap.getValues() : [];
             handicapValues.forEach(value => params.append('handicap', value));
 
-            const response = await fetch(`/api/precacheo_pending_list?${params.toString()}`, {
-                cache: 'no-store'
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
+            const data = await fetchPrecacheListJson(`/api/precacheo_pending_list?${params.toString()}`);
             if (data.error) throw new Error(data.error);
 
             const rows = Array.isArray(data.matches) ? data.matches : [];
