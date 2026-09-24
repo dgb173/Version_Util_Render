@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 UTC = dt.timezone.utc
 SPAIN = ZoneInfo('Europe/Madrid')
-VERSION = 1
+VERSION = 2
 
 
 def read_json(path, default=None):
@@ -111,7 +111,7 @@ def quality_error(row, kind):
             return 'unverified_final_score'
         if not numeric((row.get('main_match_odds') or {}).get('ah_linea')):
             return 'missing_handicap'
-    elif row.get('summary_stats_status') != 'complete':
+    if row.get('summary_stats_status') != 'complete':
         return 'summary_not_downloaded'
     return None
 
@@ -201,7 +201,7 @@ def analyze(source, kind, attempts=2):
     error = 'analysis_failed'
     for attempt in range(attempts):
         try:
-            row = analizar_partido_completo(mid(source), force_refresh=True, include_summary_stats=kind == 'upcoming')
+            row = analizar_partido_completo(mid(source), force_refresh=True, include_summary_stats=True)
             if not row or row.get('error'):
                 raise ValueError((row or {}).get('error') or 'Empty analysis')
             row['match_id'] = mid(source)
@@ -222,7 +222,7 @@ def analyze(source, kind, attempts=2):
                 row['cloud_cache_version'] = VERSION
                 row['cached_at'] = dt.datetime.now(UTC).isoformat()
                 row['state'] = 'historical' if kind == 'finished' else 'precacheo'
-                row['cache_profile'] = 'filters' if kind == 'finished' else 'full'
+                row['cache_profile'] = 'full'
                 return row, None
         except Exception as exc:
             error = str(exc)
@@ -340,27 +340,17 @@ def merge(args):
             failures.extend(payload['failures'])
     # Validate every shard before changing any persistent data.
     migrate_archive(root)
-    changed_buckets = {}
     for row in all_rows:
+        # Finished fixtures live in Turso. Keeping a second full copy in Git
+        # grew handicap JSON files beyond GitHub's 100 MB hard limit and made
+        # every daily publish fail before the SQL sync could run. Upcoming
+        # fixtures keep their bounded JSON archive for Render Pre-Cacheo.
+        if args.kind == 'finished':
+            continue
         path = archive_path(root, args.kind, mid(row))
         old = read_json(path, {})
         row = preserve_stats(old, row)
         write_json(path, row)
-        if args.kind == 'finished':
-            from modules.data_manager import get_bucket_name
-            bucket = get_bucket_name((row.get('main_match_odds') or {}).get('ah_linea'))
-            if bucket not in changed_buckets:
-                changed_buckets[bucket] = {mid(r): r for r in read_json(root / 'data' / bucket, [])}
-            previous = changed_buckets[bucket].get(mid(row), {})
-            changed_buckets[bucket][mid(row)] = preserve_stats(previous, row)
-            cached_path = archive_path(root, 'upcoming', mid(row))
-            if cached_path.exists():
-                cached = read_json(cached_path)
-                cached['final_score'] = cached['score'] = row['final_score']
-                cached['state'] = 'historical'
-                write_json(cached_path, cached)
-    for bucket, rows in changed_buckets.items():
-        write_json(root / 'data' / bucket, list(rows.values()))
     snapshot = read_json(prepared / 'snapshot.json')
     if args.kind in ('list', 'upcoming'):
         write_json(root / 'data/cache_control/upcoming_snapshot.json', snapshot)

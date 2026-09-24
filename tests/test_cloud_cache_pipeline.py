@@ -23,11 +23,12 @@ def row(i=1, **kw):
     return value
 
 
-def test_finished_profile_does_not_require_statistics_or_invent_missing_history():
+def test_finished_profile_requires_complete_statistics_without_inventing_history():
     valid = row(final_score='0:0')
     valid['summary_stats_status'] = 'deferred'
-    assert cache.quality_error(valid, 'finished') is None
+    assert cache.quality_error(valid, 'finished') == 'summary_not_downloaded'
     assert cache.quality_error(valid, 'upcoming') == 'summary_not_downloaded'
+    valid['summary_stats_status'] = 'complete'
     valid['recent_away_matches_same_league_specific'] = []
     assert cache.quality_error(valid, 'finished') is None
     assert cache.quality_error(dict(valid, precache_placeholder=True), 'upcoming')
@@ -116,7 +117,33 @@ def test_analyze_passes_correct_profile_and_removes_future_zero_score(monkeypatc
     assert calls[-1]['include_summary_stats'] is True
     result, error = cache.analyze({'id':'1', 'source_verified':True, 'final_score':'2:1'}, 'finished', attempts=1)
     assert not error and result['final_score'] == '2:1'
-    assert calls[-1]['include_summary_stats'] is False
+    assert calls[-1]['include_summary_stats'] is True
+    assert result['cache_profile'] == 'full'
+
+
+def test_finished_merge_publishes_status_without_growing_git_data_files(tmp_path):
+    prepared = tmp_path / 'prepared'
+    results = tmp_path / 'results/cache-result-0'
+    cache.write_json(prepared / 'manifest.json', {
+        'kind': 'finished', 'shards': 1, 'jobs': 1, 'available': 1,
+    })
+    cache.write_json(prepared / 'jobs_0.json', [row(1, final_score='2:1')])
+    cache.write_json(prepared / 'snapshot.json', {
+        'kind': 'finished', 'at': dt.datetime.now(dt.timezone.utc).isoformat(), 'matches': [],
+    })
+    cache.write_json(results / 'result_0.json', {
+        'kind': 'finished', 'shard': 0, 'rows': [row(1, final_score='2:1')],
+        'failures': [], 'attempted': 1,
+    })
+
+    cache.merge(SimpleNamespace(
+        root=tmp_path, prepared=prepared, results=tmp_path / 'results', kind='finished',
+    ))
+
+    assert not cache.archive_path(tmp_path, 'finished', '1').exists()
+    assert not list((tmp_path / 'data').glob('data_ah_*.json'))
+    status = cache.read_json(tmp_path / 'data/cache_control/finished_status.json')
+    assert status['saved'] == 1 and status['status'] == 'complete'
 
 
 def test_source_excludes_cancelled_and_live():
