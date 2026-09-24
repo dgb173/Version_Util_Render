@@ -137,6 +137,8 @@ services:
         sync: false
       - key: APP_EXPLORER_ONLY
         value: "1"
+      - key: MAIN_APP_URL
+        value: "https://nowgoal-app-v8fw.onrender.com"
       - key: EXPLORER_CACHE_TTL_SECONDS
         value: "60"
       - key: EXPLORER_CACHE_MAX_ENTRIES

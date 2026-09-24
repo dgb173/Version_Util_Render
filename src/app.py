@@ -266,6 +266,10 @@ def _is_app_explorer_only():
     return _env_flag('APP_EXPLORER_ONLY', default=False)
 
 
+def _main_app_url():
+    return os.getenv('MAIN_APP_URL', 'https://nowgoal-app-v8fw.onrender.com').rstrip('/')
+
+
 _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS = {
     '/',
     '/favicon.ico',
@@ -302,6 +306,10 @@ def _enforce_precacheo_only_mode():
     if _is_app_explorer_only():
         if path in {'/healthz', '/favicon.ico'}:
             return None
+        # El servicio de Explorador es un apoyo del principal, no la portada.
+        # Al abrir su dominio sin ruta devolvemos al usuario a Pre-Cacheo.
+        if path == '/':
+            return redirect(f"{_main_app_url()}/precacheo")
         if path.startswith(('/explorador', '/static/', '/api/')):
             return None
         return redirect(url_for('explorador'))
@@ -4223,6 +4231,14 @@ def api_sofascore_league_table():
     league_name = str(payload.get('league_name') or '').strip()[:160]
     match_date = str(payload.get('match_date') or '').strip()[:20]
     goal_line = payload.get('goal_line')
+    fallback_home = payload.get('home_standings')
+    fallback_away = payload.get('away_standings')
+    match_id = str(payload.get('match_id') or '').strip()[:80]
+
+    if match_id and (not isinstance(fallback_home, dict) or not isinstance(fallback_away, dict)):
+        cached_match = sql_store.get_match(match_id) or {}
+        fallback_home = cached_match.get('home_standings')
+        fallback_away = cached_match.get('away_standings')
 
     if not home_name or not away_name:
         return jsonify({'available': False, 'reason': 'missing_teams', 'views': {}})
@@ -4235,6 +4251,18 @@ def api_sofascore_league_table():
         'goal_line': goal_line,
     }
     result = sofascore_context.get_league_table_context(**query)
+    fallback = sofascore_context.build_match_standings_fallback(
+        home_name=home_name,
+        away_name=away_name,
+        league_name=league_name,
+        home_standings=fallback_home,
+        away_standings=fallback_away,
+    )
+
+    # Si Render no puede alcanzar SofaScore, responder ya con la clasificación
+    # incluida por NowGoal en vez de encadenar varios timeouts externos.
+    if not result.get('available') and fallback.get('available'):
+        return jsonify(fallback)
 
     # SofaScore puede fallar de forma puntual aunque el torneo sí exista. Un
     # segundo intento evita convertir ese corte breve en un falso "sin tabla".

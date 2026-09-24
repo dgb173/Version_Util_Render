@@ -185,6 +185,19 @@ def test_flatten_standings_keeps_goals_and_points():
     }]
 
 
+def test_match_standings_fallback_is_ordered_and_marks_partial():
+    result = sofa.build_match_standings_fallback(
+        "Local", "Visitante", "Liga Uno",
+        {"ranking": "8", "total_pj": "10", "total_v": "4", "total_e": "2", "total_d": "4", "total_gf": "14", "total_gc": "12"},
+        {"ranking": "3", "total_pj": "10", "total_v": "6", "total_e": "1", "total_d": "3", "total_gf": "18", "total_gc": "11"},
+    )
+    assert result["available"] is True
+    assert result["partial"] is True
+    assert result["source"] == "NowGoal"
+    assert [row["team"] for row in result["views"]["total"]] == ["Visitante", "Local"]
+    assert result["views"]["total"][0]["points"] == 19
+
+
 def test_full_context_normalizes_all_available_views(monkeypatch):
     sofa._memory_cache.clear()
     monkeypatch.setattr(sofa, "sql_store", None)

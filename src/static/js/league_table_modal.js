@@ -155,7 +155,17 @@
         let hasRelegation = false;
 
         let htmlRows = '';
-        rows.forEach((row, index) => {
+        let previousGroup = null;
+        [...rows].sort((left, right) => {
+            const groupOrder = String(left.group || '').localeCompare(String(right.group || ''), 'es');
+            if (groupOrder) return groupOrder;
+            return (numberOrNull(left.position) ?? 9999) - (numberOrNull(right.position) ?? 9999);
+        }).forEach((row, index) => {
+            const group = String(row.group || '').trim();
+            if (group && group !== previousGroup && rows.some(item => String(item.group || '').trim() !== group)) {
+                htmlRows += `<tr class="sofa-group-row"><th colspan="11">${esc(group)}</th></tr>`;
+            }
+            previousGroup = group;
             const pos = numberOrNull(row.position) ?? (index + 1);
             let promoBarClass = '';
             const promoText = String(row.promotion || '').toLowerCase();
@@ -240,7 +250,7 @@
             <div class="sofa-legend-bar">
                 ${hasPromotion ? `<div class="sofa-legend-item"><span class="sofa-legend-box promotion"></span> Promotion</div>` : ''}
                 ${hasRelegation ? `<div class="sofa-legend-item"><span class="sofa-legend-box relegation"></span> Relegation</div>` : ''}
-                <div class="ms-auto text-muted" style="font-size:0.7rem">Datos: SofaScore Oficial</div>
+                <div class="ms-auto text-muted" style="font-size:0.7rem">Datos: ${esc(tableData.source || 'SofaScore')}${tableData.partial ? ' · Equipos del partido' : ''}</div>
             </div>`;
 
         // Eventos
@@ -358,6 +368,7 @@
             match_date: button.dataset.matchDate || '',
             goal_line: button.dataset.goalLine || '2.5',
             handicap: button.dataset.handicap || '0',
+            match_id: button.closest('tr')?.dataset.matchId || '',
         };
 
         openStatusModal(button, 'loading');
