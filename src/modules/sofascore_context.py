@@ -60,7 +60,17 @@ def _http_session() -> requests.Session:
             session.mount("https://", HTTPAdapter(max_retries=retry))
             session.headers.update({
                 "Accept": "application/json, text/plain, */*",
-                "User-Agent": "Mozilla/5.0 (compatible; LeagueTableContext/1.0)",
+                "Accept-Language": "es-ES,es;q=0.9,en;q=0.7",
+                "Referer": "https://www.sofascore.com/",
+                "Origin": "https://www.sofascore.com",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+                "User-Agent": (
+                    "Mozilla/5.0 (Linux; Android 14; Mobile) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/126.0.0.0 Mobile Safari/537.36"
+                ),
             })
             _session = session
     return _session
@@ -255,7 +265,72 @@ def _flatten_standings(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "points": raw.get("points", 0),
                 "promotion": promotion.get("text") or "",
             })
-    return rows
+    return sorted(rows, key=lambda row: (
+        str(row.get("group") or ""),
+        int(row.get("position") or 9999),
+        str(row.get("team") or ""),
+    ))
+
+
+def build_match_standings_fallback(
+    home_name: str,
+    away_name: str,
+    league_name: str,
+    home_standings: Any,
+    away_standings: Any,
+) -> Dict[str, Any]:
+    """Build a small, reliable table from the standings embedded by NowGoal."""
+    rows: List[Dict[str, Any]] = []
+    for team_name, raw in ((home_name, home_standings), (away_name, away_standings)):
+        if not isinstance(raw, dict):
+            continue
+        try:
+            position = int(raw.get("ranking"))
+        except (TypeError, ValueError):
+            continue
+
+        def number(key: str) -> int:
+            try:
+                return int(raw.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0
+
+        scores_for = number("total_gf")
+        scores_against = number("total_gc")
+        wins = number("total_v")
+        draws = number("total_e")
+        rows.append({
+            "group": league_name or "Clasificación",
+            "position": position,
+            "team_id": None,
+            "team": team_name,
+            "short_name": team_name,
+            "matches": number("total_pj"),
+            "wins": wins,
+            "draws": draws,
+            "losses": number("total_d"),
+            "scores_for": scores_for,
+            "scores_against": scores_against,
+            "goal_difference": scores_for - scores_against,
+            "points": wins * 3 + draws,
+            "promotion": "",
+        })
+    rows.sort(key=lambda row: (row["position"], row["team"]))
+    if not rows:
+        return _unavailable("standings_not_available")
+    return {
+        "available": True,
+        "cached": True,
+        "partial": True,
+        "source": "NowGoal",
+        "tournament": league_name or "Clasificación",
+        "season": "",
+        "home_name": home_name,
+        "away_name": away_name,
+        "views": {"total": rows},
+        "ou": {},
+        "external_links": {},
+    }
 
 
 def _event_score(event: Dict[str, Any], side: str) -> Optional[int]:
@@ -555,4 +630,4 @@ def get_league_table_context(
         return _unavailable("provider_unavailable")
 
 
-__all__ = ["get_league_table_context"]
+__all__ = ["build_match_standings_fallback", "get_league_table_context"]
