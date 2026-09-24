@@ -125,11 +125,6 @@ jobs:
         with:
           pattern: cache-result-*
           path: results
-      - name: Validar y publicar sobre los datos mas recientes
-        env:
-          KIND: ${{ inputs.kind }}
-          GH_TOKEN: ${{ github.token }}
-        run: python scripts/publish_cloud_cache.py --kind "$KIND"
       - name: Sincronizar terminados con el Explorador
         if: inputs.kind == 'finished'
         env:
@@ -138,3 +133,8 @@ jobs:
           LIBSQL_REMOTE_ONLY: '1'
           SQL_BOOTSTRAP_MODE: schema_only
         run: python scripts/sync_finished_to_turso.py --results results
+      - name: Validar y publicar estado sobre los datos mas recientes
+        env:
+          KIND: ${{ inputs.kind }}
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/publish_cloud_cache.py --kind "$KIND"
