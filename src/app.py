@@ -149,6 +149,7 @@ def save_match_to_csv(match_data):
         print(f"Error guardando en CSV: {e}")
 
 from modules import data_manager
+from modules import precache_fast_store
 from modules import sql_store
 from modules import pending_results_query
 from scripts.finished_result_validation import validate_finished_result
