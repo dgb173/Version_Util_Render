@@ -4236,9 +4236,10 @@ def api_sofascore_league_table():
     fallback_away = payload.get('away_standings')
     match_id = str(payload.get('match_id') or '').strip()[:80]
 
-    if match_id and (not isinstance(fallback_home, dict) or not isinstance(fallback_away, dict)):
-        cached_match = sql_store.get_match(match_id) or {}
+    cached_match = (sql_store.get_match(match_id) or {}) if match_id else {}
+    if not isinstance(fallback_home, dict):
         fallback_home = cached_match.get('home_standings')
+    if not isinstance(fallback_away, dict):
         fallback_away = cached_match.get('away_standings')
 
     if not home_name or not away_name:
@@ -4257,6 +4258,18 @@ def api_sofascore_league_table():
     public_table = sofascore_public_page.get_context(home_name, away_name, league_name, goal_line)
     if public_table.get('available'):
         return jsonify(public_table)
+    from modules import nowgoal_verified_tables
+    pre_match = cached_match.get('pre_match_context') or {}
+    if not isinstance(pre_match, dict):
+        pre_match = {}
+    current_pre_match = pre_match.get('current') or {}
+    if not isinstance(current_pre_match, dict):
+        current_pre_match = {}
+    nowgoal_id = (payload.get('nowgoal_league_id') or cached_match.get('league_id')
+                  or pre_match.get('league_id') or current_pre_match.get('league_id'))
+    verified_table = nowgoal_verified_tables.get_context(home_name, away_name, league_name, nowgoal_id)
+    if verified_table.get('available'):
+        return jsonify(verified_table)
     result = sofascore_context.get_league_table_context(**query)
     fallback = sofascore_context.build_match_standings_fallback(
         home_name=home_name,

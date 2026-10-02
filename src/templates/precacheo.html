@@ -14026,6 +14026,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const rawGoalLine = (pc && pc.ou_line) || (m && m.ou_line) || (m && m.over_under) || '2.5';
                 const goalLineNum = parseFloat(String(rawGoalLine).replace(/[^0-9.]/g, '')) || 2.5;
                 const rawHandicap = (m && m.handicap !== undefined && m.handicap !== null && m.handicap !== '') ? m.handicap : ((pc && pc.handicap) || '');
+                const nowgoalLeagueId = (pc && (pc.league_id || pc.pre_match_context?.league_id || pc.current?.league_id)) || (m && m.league_id) || '';
 
                 const sofaTableBtn = `
                     <button type="button" 
@@ -14033,11 +14034,12 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         data-home-name="${escapeDataAttr(home)}"
                         data-away-name="${escapeDataAttr(away)}"
                         data-league-name="${escapeDataAttr(league)}"
+                        data-nowgoal-league-id="${escapeDataAttr(nowgoalLeagueId)}"
                         data-match-date="${escapeDataAttr(fecha)}"
                         data-handicap="${escapeDataAttr(rawHandicap)}"
                         data-goal-line="${escapeDataAttr(goalLineNum)}"
                         style="width: 32px; height: 32px; min-width: 32px; border-radius: 50%;"
-                        title="Ver Clasificación SofaScore (${escapeDataAttr(league || 'Liga')})">
+                        title="Ver clasificación (${escapeDataAttr(league || 'Liga')})">
                         <i class="fa-solid fa-ranking-star" style="font-size: 13px;"></i>
                     </button>
                 `;

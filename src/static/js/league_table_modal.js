@@ -367,6 +367,7 @@
             home_name: button.dataset.homeName || '',
             away_name: button.dataset.awayName || '',
             league_name: button.dataset.leagueName || '',
+            nowgoal_league_id: button.dataset.nowgoalLeagueId || '',
             match_date: button.dataset.matchDate || '',
             goal_line: button.dataset.goalLine || '2.5',
             handicap: button.dataset.handicap || '0',
