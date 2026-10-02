@@ -4251,6 +4251,12 @@ def api_sofascore_league_table():
         'match_date': match_date,
         'goal_line': goal_line,
     }
+    # A verified public tournament page can remain accessible when the JSON API
+    # challenges Render. Curated mappings avoid picking a similarly named league.
+    from modules import sofascore_public_page
+    public_table = sofascore_public_page.get_context(home_name, away_name, league_name, goal_line)
+    if public_table.get('available'):
+        return jsonify(public_table)
     result = sofascore_context.get_league_table_context(**query)
     fallback = sofascore_context.build_match_standings_fallback(
         home_name=home_name,

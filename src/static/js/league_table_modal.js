@@ -386,7 +386,7 @@
                 const reasons = {
                     teams_not_resolved: 'SofaScore no ha reconocido ninguno de los dos equipos.',
                     match_not_resolved: 'SofaScore no ha podido relacionar este partido con su liga.',
-                    standings_not_available: 'SofaScore no publica una tabla para esta competición.',
+                    standings_not_available: 'No se ha podido recuperar una tabla verificada para esta competición y temporada.',
                     provider_unavailable: 'SofaScore no está disponible en este momento.',
                 };
                 openStatusModal(button, 'error', reasons[data.reason] || 'No hay clasificación disponible para esta liga.');
