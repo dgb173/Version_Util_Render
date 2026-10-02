@@ -72,10 +72,12 @@
     max-height: 65vh;
     overflow-y: auto;
     overflow-x: auto;
+    overscroll-behavior: contain;
     background: #ffffff;
 }
 .sofa-standings-table {
     width: 100%;
+    min-width: 760px;
     border-collapse: collapse;
     font-size: 0.82rem;
     white-space: nowrap;
@@ -102,6 +104,10 @@
 .sofa-standings-table tbody tr:hover td {
     background: #f8fafc;
 }
+.sofa-standings-table tbody tr.sofa-match-home td {background:#eff8ff}
+.sofa-standings-table tbody tr.sofa-match-away td {background:#fff1f2}
+.sofa-standings-table tbody tr.sofa-match-home:hover td {background:#e0f2fe}
+.sofa-standings-table tbody tr.sofa-match-away:hover td {background:#ffe4e6}
 .sofa-standings-table .sofa-group-row th{padding:.55rem .75rem;background:#e9f2f8;color:#0c426c;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;text-align:left}
 .col-promo-bar {
     width: 6px;
@@ -222,6 +228,15 @@
 }
 .sofa-legend-box.relegation {
     background: #ef4444;
+}
+@media (max-width:700px) {
+    .league-table-modal .modal-dialog {margin:.45rem;max-width:calc(100vw - .9rem)}
+    .sofa-header-bar {padding:.7rem;align-items:flex-start}
+    .sofa-tournament-season {flex-wrap:wrap;min-width:0}
+    .sofa-tournament-name {overflow-wrap:anywhere}
+    .sofa-view-pills {flex-wrap:wrap}
+    .sofa-legend-bar {flex-wrap:wrap;gap:.5rem;padding:.65rem .75rem}
+    .sofa-legend-bar .ms-auto {margin-left:0!important;width:100%}
 }
 
 /* --- ESTADOS DE CARGA Y VACÍO --- */

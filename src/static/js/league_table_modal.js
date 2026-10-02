@@ -61,7 +61,7 @@
     };
 
     const findStandingById = (view, teamId) => (
-        (tableData?.views?.[view] || []).find(row => String(row.team_id) === String(teamId)) || null
+        teamId == null ? null : ((tableData?.views?.[view] || []).find(row => row.team_id != null && String(row.team_id) === String(teamId)) || null)
     );
 
     const findTeamRowByName = (view, name) => {
@@ -128,8 +128,10 @@
     };
 
     const renderStandings = (view = 'total') => {
+        const availableViews = Object.entries(tableData?.views || {}).filter(([, items]) => Array.isArray(items) && items.length);
+        if (!availableViews.some(([key]) => key === view)) view = 'total';
         activeView = view;
-        const rows = tableData?.views?.[view] || tableData?.views?.total || [];
+        const rows = tableData?.views?.[view] || [];
         const body = document.getElementById('leagueTableModalBody');
         if (!body) return;
 
@@ -170,16 +172,16 @@
             let promoBarClass = '';
             const promoText = String(row.promotion || '').toLowerCase();
 
-            if (promoText.includes('promotion') || promoText.includes('ascenso') || promoText.includes('champions') || (pos <= 2 && rows.length > 3)) {
+            if (promoText.includes('promotion') || promoText.includes('ascenso') || promoText.includes('champions')) {
                 promoBarClass = 'promotion';
                 hasPromotion = true;
-            } else if (promoText.includes('relegation') || promoText.includes('descenso') || (pos >= rows.length - 1 && rows.length > 5)) {
+            } else if (promoText.includes('relegation') || promoText.includes('descenso')) {
                 promoBarClass = 'relegation';
                 hasRelegation = true;
             }
 
-            const isHome = String(row.team_id) === String(tableData.home_team_id);
-            const isAway = String(row.team_id) === String(tableData.away_team_id);
+            const isHome = row.team_id != null && tableData.home_team_id != null && String(row.team_id) === String(tableData.home_team_id);
+            const isAway = row.team_id != null && tableData.away_team_id != null && String(row.team_id) === String(tableData.away_team_id);
 
             let teamClasses = ['sofa-team-name'];
             let tag = '';
@@ -194,7 +196,7 @@
             const gls = `${esc(row.scores_for ?? 0)}:${esc(row.scores_against ?? 0)}`;
 
             htmlRows += `
-                <tr>
+                <tr class="${isHome ? 'sofa-match-home' : (isAway ? 'sofa-match-away' : '')}">
                     <td class="col-promo-bar"><span class="promo-bar ${promoBarClass}"></span></td>
                     <td class="text-center"><span class="sofa-pos-badge">${pos}</span></td>
                     <td><div class="${teamClasses.join(' ')}"><span>${esc(row.team)}</span>${tag}</div></td>
@@ -220,9 +222,9 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="sofa-view-pills">
-                        <button type="button" class="sofa-pill ${view === 'total' ? 'active' : ''}" data-sofa-view="total">All</button>
-                        <button type="button" class="sofa-pill ${view === 'home' ? 'active' : ''}" data-sofa-view="home">Home</button>
-                        <button type="button" class="sofa-pill ${view === 'away' ? 'active' : ''}" data-sofa-view="away">Away</button>
+                        <button type="button" class="sofa-pill ${view === 'total' ? 'active' : ''}" data-sofa-view="total">General</button>
+                        ${tableData?.views?.home?.length ? `<button type="button" class="sofa-pill ${view === 'home' ? 'active' : ''}" data-sofa-view="home">Local</button>` : ''}
+                        ${tableData?.views?.away?.length ? `<button type="button" class="sofa-pill ${view === 'away' ? 'active' : ''}" data-sofa-view="away">Visitante</button>` : ''}
                     </div>
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" data-open-analysis><i class="fa-solid fa-chart-pie me-1"></i> Análisis AH / O-U</button>
                 </div>

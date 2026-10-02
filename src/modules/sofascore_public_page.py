@@ -77,7 +77,7 @@ def get_context(home_name: str, away_name: str, league_name: str, goal_line: Any
             if kind in ("total", "home", "away"):
                 rows = sofa._flatten_standings({"standings": [table]})
                 if rows:
-                    views[kind] = rows
+                    views.setdefault(kind, []).extend(rows)
         if not views.get("total"):
             return {"available": False, "reason": "standings_not_available", "views": {}}
         rows = views["total"]

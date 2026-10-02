@@ -51,3 +51,17 @@ def test_bundled_snapshot_works_when_provider_blocks_server(monkeypatch):
     assert result["cached"] is True
     assert result["season_id"] == 103218
     assert len(result["views"]["total"]) == 19
+
+
+def test_grouped_snapshot_keeps_all_groups(monkeypatch):
+    class BlockedSession:
+        def get(self, *args, **kwargs):
+            raise RuntimeError("provider blocked")
+
+    monkeypatch.setattr(public.sofa, "_http_session", lambda: BlockedSession())
+    public._cache.clear()
+    result = public.get_context("France", "Italy", "UEFA Nations League")
+    assert result["available"] is True
+    assert len(result["views"]["total"]) == 54
+    assert result["home_team_id"] != result["away_team_id"]
+    assert len({row["group"] for row in result["views"]["total"]}) > 1
