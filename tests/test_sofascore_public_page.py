@@ -65,3 +65,20 @@ def test_grouped_snapshot_keeps_all_groups(monkeypatch):
     assert len(result["views"]["total"]) == 54
     assert result["home_team_id"] != result["away_team_id"]
     assert len({row["group"] for row in result["views"]["total"]}) > 1
+
+
+def test_regional_and_womens_snapshots_keep_group_rows(monkeypatch):
+    class BlockedSession:
+        def get(self, *args, **kwargs):
+            raise RuntimeError("provider blocked")
+
+    monkeypatch.setattr(public.sofa, "_http_session", lambda: BlockedSession())
+    public._cache.clear()
+    ghana = public.get_context("Yapei United", "Techiman Liberty Youth", "Ghana Division 1")
+    women = public.get_context(
+        "Ferro Carril Oeste (W)", "Union Santa Fe (W)", "The women＇s league of Argentina"
+    )
+    assert ghana["available"] and len(ghana["views"]["total"]) == 48
+    assert women["available"] and len(women["views"]["total"]) == 32
+    assert ghana["home_team_id"] != ghana["away_team_id"]
+    assert women["home_team_id"] != women["away_team_id"]
