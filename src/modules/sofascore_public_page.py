@@ -13,6 +13,7 @@ from typing import Any, Dict
 from . import sofascore_context as sofa
 
 _ALIASES = Path(__file__).resolve().parents[2] / "data" / "sofascore_league_aliases.json"
+_SNAPSHOTS = Path(__file__).resolve().parents[2] / "data" / "sofascore_public_snapshots"
 _cache: Dict[int, tuple[float, Dict[str, Any]]] = {}
 _lock = threading.Lock()
 
@@ -22,15 +23,24 @@ def _public_page(tournament_id: int) -> Dict[str, Any]:
         entry = _cache.get(tournament_id)
         if entry and time.time() - entry[0] < 300:
             return entry[1]
-    url = f"https://www.sofascore.com/football/tournament/x/x/{tournament_id}"
-    response = sofa._http_session().get(
-        url, timeout=sofa.REQUEST_TIMEOUT_SECONDS, verify=sofa.VERIFY_SSL
-    )
-    response.raise_for_status()
-    script = re.search(r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', response.text, re.S)
-    if not script:
-        return {}
-    page = (json.loads(unescape(script.group(1))).get("props") or {}).get("pageProps") or {}
+    page = {}
+    try:
+        url = f"https://www.sofascore.com/football/tournament/x/x/{tournament_id}"
+        response = sofa._http_session().get(
+            url, timeout=sofa.REQUEST_TIMEOUT_SECONDS, verify=sofa.VERIFY_SSL
+        )
+        response.raise_for_status()
+        script = re.search(r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', response.text, re.S)
+        if script:
+            page = (json.loads(unescape(script.group(1))).get("props") or {}).get("pageProps") or {}
+    except Exception:
+        pass
+    if not page:
+        snapshot_path = _SNAPSHOTS / f"{tournament_id}.json"
+        if snapshot_path.exists():
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+            page = dict(snapshot.get("page") or {})
+            page["_snapshot_captured_at"] = snapshot.get("captured_at")
     if str((page.get("uniqueTournament") or {}).get("id")) != str(tournament_id):
         return {}
     with _lock:
@@ -82,9 +92,11 @@ def get_context(home_name: str, away_name: str, league_name: str, goal_line: Any
 
         home_id = team_id(home_name)
         away_id = team_id(away_name, home_id)
+        snapshot_at = page.get("_snapshot_captured_at")
         return {
-            "available": True, "cached": False, "source": "SofaScore",
-            "fetched_at": datetime.now(timezone.utc).isoformat(),
+            "available": True, "cached": bool(snapshot_at),
+            "source": "SofaScore (copia verificada)" if snapshot_at else "SofaScore",
+            "fetched_at": snapshot_at or datetime.now(timezone.utc).isoformat(),
             "tournament": (page.get("uniqueTournament") or {}).get("name") or league_name,
             "season": season.get("name") or season.get("year") or "",
             "tournament_id": tournament_id, "season_id": season.get("id"),

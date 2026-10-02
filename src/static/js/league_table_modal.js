@@ -250,7 +250,7 @@
             <div class="sofa-legend-bar">
                 ${hasPromotion ? `<div class="sofa-legend-item"><span class="sofa-legend-box promotion"></span> Promotion</div>` : ''}
                 ${hasRelegation ? `<div class="sofa-legend-item"><span class="sofa-legend-box relegation"></span> Relegation</div>` : ''}
-                <div class="ms-auto text-muted" style="font-size:0.7rem">Datos: ${esc(tableData.source || 'SofaScore')}${tableData.partial ? ' · Equipos del partido' : ''}</div>
+                <div class="ms-auto text-muted" style="font-size:0.7rem">Datos: ${esc(tableData.source || 'SofaScore')}${tableData.cached && tableData.fetched_at ? ` · ${esc(String(tableData.fetched_at).slice(0, 10))}` : ''}${tableData.partial ? ' · Equipos del partido' : ''}</div>
             </div>`;
 
         // Eventos
