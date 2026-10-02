@@ -82,3 +82,17 @@ def test_regional_and_womens_snapshots_keep_group_rows(monkeypatch):
     assert women["available"] and len(women["views"]["total"]) == 32
     assert ghana["home_team_id"] != ghana["away_team_id"]
     assert women["home_team_id"] != women["away_team_id"]
+
+
+def test_public_table_rejects_match_with_neither_team_in_table(monkeypatch):
+    class BlockedSession:
+        def get(self, *args, **kwargs):
+            raise RuntimeError("provider blocked")
+
+    monkeypatch.setattr(public.sofa, "_http_session", lambda: BlockedSession())
+    public._cache.clear()
+    result = public.get_context(
+        "Nongthymai SC", "Laitkyrhong", "India Shillong Premier League"
+    )
+    assert result["available"] is False
+    assert result["reason"] == "teams_not_resolved"

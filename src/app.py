@@ -4244,6 +4244,8 @@ def api_sofascore_league_table():
 
     if not home_name or not away_name:
         return jsonify({'available': False, 'reason': 'missing_teams', 'views': {}})
+    if 'friendly' in league_name.casefold() or 'amistoso' in league_name.casefold():
+        return jsonify({'available': False, 'reason': 'competition_has_no_standings', 'views': {}})
 
     query = {
         'home_name': home_name,

@@ -92,6 +92,8 @@ def get_context(home_name: str, away_name: str, league_name: str, goal_line: Any
 
         home_id = team_id(home_name)
         away_id = team_id(away_name, home_id)
+        if home_id is None and away_id is None:
+            return {"available": False, "reason": "teams_not_resolved", "views": {}}
         snapshot_at = page.get("_snapshot_captured_at")
         return {
             "available": True, "cached": bool(snapshot_at),

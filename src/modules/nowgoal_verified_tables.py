@@ -39,6 +39,8 @@ def get_context(home_name: str, away_name: str, league_name: str, league_id: Any
 
         home_id = best_id(home_name)
         away_id = best_id(away_name, home_id)
+        if home_id is None and away_id is None:
+            return {"available": False, "reason": "teams_not_resolved", "views": {}}
         return {
             "available": True, "cached": True, "source": "NowGoal (copia verificada)",
             "fetched_at": table.get("captured_at") or datetime.now(timezone.utc).isoformat(),
