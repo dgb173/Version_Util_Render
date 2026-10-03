@@ -587,7 +587,7 @@
         .pre-context-moments { display: flex; flex-direction: column; gap: 14px; }
         .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
         .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
-        .pre-context-content-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+        .pre-context-content-grid { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
         .pre-context-content-grid.has-inline-table { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1.08fr) minmax(360px, .94fr); }
         .pre-context-content-grid.has-inline-table .pre-context-team-grid { display: contents; }
         .pre-context-content-grid.has-inline-table .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
