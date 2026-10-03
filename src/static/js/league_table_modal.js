@@ -365,7 +365,7 @@
         const detailRow = row?.nextElementSibling?.classList.contains('pre-context-detail-row')
             ? row.nextElementSibling
             : null;
-        const panel = detailRow?.querySelector('.pre-context-panel');
+        const panel = button.closest('.pre-context-panel') || detailRow?.querySelector('.pre-context-panel');
         const moment = panel?.querySelector('.pre-context-moment');
         const host = moment?.querySelector('.sofa-inline-column');
         return host ? { host, contentGrid: host.closest('.pre-context-content-grid') } : null;
@@ -426,6 +426,11 @@
             host.classList.remove('is-open');
             host.closest('.pre-context-content-grid')?.classList.remove('has-inline-table');
             host._leagueTableTrigger?.setAttribute('aria-expanded', 'false');
+            const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.querySelector('span').textContent = 'Ver tabla';
+            }
         });
         host.querySelectorAll('[data-inline-view]').forEach(control => control.addEventListener('click', () => {
             renderInlineStandings(host, data, control.dataset.inlineView, query);
@@ -455,11 +460,21 @@
             host.classList.remove('is-open');
             contentGrid?.classList.remove('has-inline-table');
             button.setAttribute('aria-expanded', 'false');
+            const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.querySelector('span').textContent = 'Ver tabla';
+            }
             return;
         }
         host.classList.add('is-open');
         contentGrid?.classList.add('has-inline-table');
         button.setAttribute('aria-expanded', 'true');
+        const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.querySelector('span').textContent = 'Ocultar tabla';
+        }
         if (host._leagueTableData) {
             renderInlineStandings(host, host._leagueTableData, 'total', query);
             return;
