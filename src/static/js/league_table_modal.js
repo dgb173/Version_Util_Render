@@ -358,6 +358,135 @@
         bootstrap.Modal.getOrCreateInstance(modal).show();
     };
 
+    // In Precacheo, place standings in the current match context so the two
+    // team histories and the league table can be read side by side.
+    const findInlineStandingsHost = button => {
+        const row = button.closest('tr');
+        const detailRow = row?.nextElementSibling?.classList.contains('pre-context-detail-row')
+            ? row.nextElementSibling
+            : null;
+        const panel = detailRow?.querySelector('.pre-context-panel');
+        const moment = panel?.querySelector('.pre-context-moment');
+        const host = moment?.querySelector('.sofa-inline-column');
+        return host ? { host, contentGrid: host.closest('.pre-context-content-grid') } : null;
+    };
+
+    const renderInlineStatus = (host, message, loading = false) => {
+        host.innerHTML = `<div class="sofa-inline-status ${loading ? 'is-loading' : ''}">
+            ${loading ? '<span class="spinner-border spinner-border-sm text-primary" role="status"></span>' : '<i class="fa-solid fa-chart-simple"></i>'}
+            <strong>${esc(message)}</strong>
+        </div>`;
+    };
+
+    const renderInlineStandings = (host, data, view = 'total', query = {}) => {
+        const rows = data?.views?.[view]?.length ? data.views[view] : (data?.views?.total || []);
+        const activeView = data?.views?.[view]?.length ? view : 'total';
+        if (!rows.length) {
+            renderInlineStatus(host, 'No hay clasificación disponible para esta liga.');
+            return;
+        }
+        const seasons = data.seasons || [];
+        const seasonOptions = seasons.length > 1
+            ? `<select class="sofa-inline-season" aria-label="Temporada">${seasons.map(season => `<option value="${esc(season.id)}" ${String(season.id) === String(data.season_id || '') ? 'selected' : ''}>${esc(season.name || season.year || '')}</option>`).join('')}</select>`
+            : '';
+        let previousGroup = null;
+        const multipleGroups = rows.some(row => String(row.group || '').trim());
+        const tableRows = [...rows].sort((a, b) => String(a.group || '').localeCompare(String(b.group || ''), 'es') || (numberOrNull(a.position) ?? 9999) - (numberOrNull(b.position) ?? 9999)).map((row, index) => {
+            const group = String(row.group || '').trim();
+            const groupHeader = multipleGroups && group && group !== previousGroup ? `<tr class="sofa-group-row"><th colspan="5">${esc(group)}</th></tr>` : '';
+            previousGroup = group;
+            const isHome = row.team_id != null && data.home_team_id != null && String(row.team_id) === String(data.home_team_id);
+            const isAway = row.team_id != null && data.away_team_id != null && String(row.team_id) === String(data.away_team_id);
+            return `${groupHeader}<tr class="${isHome ? 'sofa-match-home' : (isAway ? 'sofa-match-away' : '')}">
+                <td class="text-center">${esc(row.position ?? index + 1)}</td>
+                <td class="sofa-inline-team" title="${esc(row.team)}">${esc(row.team)}${isHome ? '<small class="home">L</small>' : (isAway ? '<small class="away">V</small>' : '')}</td>
+                <td class="text-center">${esc(row.matches ?? '-')}</td>
+                <td class="text-center">${signed(row.goal_difference)}</td>
+                <td class="text-center sofa-pts-cell">${esc(row.points ?? '-')}</td>
+            </tr>`;
+        }).join('');
+        host.innerHTML = `<div class="sofa-inline-head">
+            <div class="sofa-inline-title"><i class="fa-solid fa-ranking-star me-1"></i><span title="${esc(data.tournament || query.league_name || 'Clasificación')}">${esc(data.tournament || query.league_name || 'Clasificación')}</span></div>
+            <button type="button" class="sofa-inline-close" aria-label="Ocultar clasificación" title="Ocultar clasificación">×</button>
+        </div>
+        <div class="sofa-inline-controls">
+            <div class="sofa-inline-views">
+                <button type="button" data-inline-view="total" class="${activeView === 'total' ? 'active' : ''}">General</button>
+                ${data.views?.home?.length ? `<button type="button" data-inline-view="home" class="${activeView === 'home' ? 'active' : ''}">Local</button>` : ''}
+                ${data.views?.away?.length ? `<button type="button" data-inline-view="away" class="${activeView === 'away' ? 'active' : ''}">Fuera</button>` : ''}
+            </div>${seasonOptions}
+        </div>
+        <div class="sofa-inline-table-scroll"><table class="sofa-inline-table">
+            <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr></thead>
+            <tbody>${tableRows}</tbody>
+        </table></div>
+        <div class="sofa-inline-footer">${esc(data.season || '')}${data.season && data.source ? ' · ' : ''}${esc(data.source || 'SofaScore')}${data.cached && data.fetched_at ? ` · ${esc(String(data.fetched_at).slice(0, 10))}` : ''}</div>`;
+
+        host.querySelector('.sofa-inline-close')?.addEventListener('click', () => {
+            host.classList.remove('is-open');
+            host.closest('.pre-context-content-grid')?.classList.remove('has-inline-table');
+            host._leagueTableTrigger?.setAttribute('aria-expanded', 'false');
+        });
+        host.querySelectorAll('[data-inline-view]').forEach(control => control.addEventListener('click', () => {
+            renderInlineStandings(host, data, control.dataset.inlineView, query);
+        }));
+        host.querySelector('.sofa-inline-season')?.addEventListener('change', async event => {
+            renderInlineStatus(host, 'Cargando temporada…', true);
+            try {
+                const response = await fetch('/api/sofascore/league-table', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...query, tournament_id: data.tournament_id, season_id: event.target.value }),
+                });
+                const nextData = await response.json();
+                if (!response.ok || !nextData.available) throw new Error('No hay datos para esta temporada.');
+                host._leagueTableData = nextData;
+                renderInlineStandings(host, nextData, activeView, query);
+            } catch (error) {
+                renderInlineStatus(host, error.message || 'No se pudo cargar la temporada.');
+            }
+        });
+    };
+
+    const loadInlineStandings = async (button, target, query) => {
+        const { host, contentGrid } = target;
+        host._leagueTableTrigger = button;
+        const isOpen = host.classList.contains('is-open');
+        if (isOpen) {
+            host.classList.remove('is-open');
+            contentGrid?.classList.remove('has-inline-table');
+            button.setAttribute('aria-expanded', 'false');
+            return;
+        }
+        host.classList.add('is-open');
+        contentGrid?.classList.add('has-inline-table');
+        button.setAttribute('aria-expanded', 'true');
+        if (host._leagueTableData) {
+            renderInlineStandings(host, host._leagueTableData, 'total', query);
+            return;
+        }
+        renderInlineStatus(host, 'Consultando clasificación…', true);
+        try {
+            const response = await fetch('/api/sofascore/league-table', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.available) {
+                const reasons = {
+                    teams_not_resolved: 'No se han podido identificar los equipos.',
+                    match_not_resolved: 'No se ha podido relacionar el partido con la competición.',
+                    standings_not_available: 'La fuente no ofrece una clasificación verificada.',
+                    competition_has_no_standings: 'Esta competición no tiene clasificación.',
+                    provider_unavailable: 'La fuente de clasificación no está disponible ahora.',
+                };
+                throw new Error(reasons[data.reason] || 'No hay clasificación disponible para esta liga.');
+            }
+            host._leagueTableData = data;
+            renderInlineStandings(host, data, 'total', query);
+        } catch (error) {
+            renderInlineStatus(host, error.message || 'No se pudo cargar la clasificación.');
+        }
+    };
+
     document.addEventListener('click', async event => {
         const button = event.target.closest('.league-table-trigger, [data-league-table-trigger]');
         if (!button) return;
@@ -373,6 +502,12 @@
             handicap: button.dataset.handicap || '0',
             match_id: button.closest('tr')?.dataset.matchId || '',
         };
+
+        const inlineTarget = findInlineStandingsHost(button);
+        if (inlineTarget) {
+            await loadInlineStandings(button, inlineTarget, currentQuery);
+            return;
+        }
 
         openStatusModal(button, 'loading');
 
