@@ -393,7 +393,7 @@
         const multipleGroups = rows.some(row => String(row.group || '').trim());
         const tableRows = [...rows].sort((a, b) => String(a.group || '').localeCompare(String(b.group || ''), 'es') || (numberOrNull(a.position) ?? 9999) - (numberOrNull(b.position) ?? 9999)).map((row, index) => {
             const group = String(row.group || '').trim();
-            const groupHeader = multipleGroups && group && group !== previousGroup ? `<tr class="sofa-group-row"><th colspan="5">${esc(group)}</th></tr>` : '';
+            const groupHeader = multipleGroups && group && group !== previousGroup ? `<tr class="sofa-group-row"><th colspan="8">${esc(group)}</th></tr>` : '';
             previousGroup = group;
             const isHome = row.team_id != null && data.home_team_id != null && String(row.team_id) === String(data.home_team_id);
             const isAway = row.team_id != null && data.away_team_id != null && String(row.team_id) === String(data.away_team_id);
@@ -401,6 +401,9 @@
                 <td class="text-center">${esc(row.position ?? index + 1)}</td>
                 <td class="sofa-inline-team" title="${esc(row.team)}">${esc(row.team)}${isHome ? '<small class="home">L</small>' : (isAway ? '<small class="away">V</small>' : '')}</td>
                 <td class="text-center">${esc(row.matches ?? '-')}</td>
+                <td class="text-center sofa-win-cell">${esc(row.wins ?? '-')}</td>
+                <td class="text-center sofa-loss-cell">${esc(row.losses ?? '-')}</td>
+                <td class="text-center sofa-gf-cell">${esc(row.scores_for ?? '-')}</td>
                 <td class="text-center">${signed(row.goal_difference)}</td>
                 <td class="text-center sofa-pts-cell">${esc(row.points ?? '-')}</td>
             </tr>`;
@@ -417,7 +420,7 @@
             </div>${seasonOptions}
         </div>
         <div class="sofa-inline-table-scroll"><table class="sofa-inline-table">
-            <thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr></thead>
+            <thead><tr><th title="Posición">#</th><th>Equipo</th><th title="Partidos jugados">PJ</th><th title="Victorias">V</th><th title="Derrotas">D</th><th title="Goles a favor">GF</th><th title="Diferencia de goles">DG</th><th title="Puntos">Pts</th></tr></thead>
             <tbody>${tableRows}</tbody>
         </table></div>
         <div class="sofa-inline-footer">${esc(data.season || '')}${data.season && data.source ? ' · ' : ''}${esc(data.source || 'SofaScore')}${data.cached && data.fetched_at ? ` · ${esc(String(data.fetched_at).slice(0, 10))}` : ''}</div>`;

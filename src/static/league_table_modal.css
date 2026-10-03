@@ -17,10 +17,11 @@
 .sofa-inline-table-scroll{max-height:52vh;overflow:auto;overscroll-behavior:contain}
 .sofa-inline-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.68rem}
 .sofa-inline-table th{position:sticky;top:0;z-index:1;padding:5px 3px;background:#eaf0f6;color:#475569;text-align:center;font-size:.58rem;font-weight:850;text-transform:uppercase}
-.sofa-inline-table th:nth-child(1){width:30px}.sofa-inline-table th:nth-child(2){width:auto;text-align:left}.sofa-inline-table th:nth-child(3){width:34px}.sofa-inline-table th:nth-child(4){width:36px}.sofa-inline-table th:nth-child(5){width:38px}
+.sofa-inline-table th:nth-child(1){width:27px}.sofa-inline-table th:nth-child(2){width:auto;text-align:left}.sofa-inline-table th:nth-child(3){width:31px}.sofa-inline-table th:nth-child(4),.sofa-inline-table th:nth-child(5){width:27px}.sofa-inline-table th:nth-child(6){width:32px}.sofa-inline-table th:nth-child(7){width:32px}.sofa-inline-table th:nth-child(8){width:36px}
 .sofa-inline-table td{padding:4px 3px;border-bottom:1px solid #edf1f5;color:#334155;line-height:1.15}
 .sofa-inline-table tbody tr:hover td{background:#f8fafc}
 .sofa-inline-table td.sofa-inline-team{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650}
+.sofa-inline-table td.sofa-win-cell{color:#16834b;font-weight:800}.sofa-inline-table td.sofa-loss-cell{color:#dc3545;font-weight:800}.sofa-inline-table td.sofa-gf-cell{color:#0f4c81;font-weight:800}
 .sofa-inline-team small{display:inline-block;margin-left:3px;padding:1px 3px;border-radius:3px;font-size:.5rem;font-weight:900}
 .sofa-inline-team small.home{background:#dbeafe;color:#0369a1}.sofa-inline-team small.away{background:#fee2e2;color:#b91c1c}
 .sofa-inline-table .sofa-match-home td{background:#eff8ff}.sofa-inline-table .sofa-match-away td{background:#fff1f2}
