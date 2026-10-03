@@ -515,7 +515,7 @@
             match_date: button.dataset.matchDate || '',
             goal_line: button.dataset.goalLine || '2.5',
             handicap: button.dataset.handicap || '0',
-            match_id: button.closest('tr')?.dataset.matchId || '',
+            match_id: button.closest('tr')?.dataset.matchId || button.dataset.matchId || '',
         };
 
         const inlineTarget = findInlineStandingsHost(button);
