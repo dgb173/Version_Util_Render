@@ -17788,6 +17788,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-2" id="teamHistoryLiveBtn" onclick="refreshTeamHistoryLive()" title="Consultar NowGoal en directo para traer los partidos más recientes al día de hoy" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i>Al día
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="teamHistoryResizeBtn" onclick="toggleTeamHistorySize()" title="Alternar tamaño (Mini 370px / Medio 480px / Grande 680px)" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
                             <i class="fa-solid fa-compress me-1"></i>Mini
                         </button>
@@ -17807,12 +17810,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
     <script>
         window._teamHistoryCache = window._teamHistoryCache || {};
         window._currentTeamHistoryData = null;
+        window._currentTeamHistoryTeamName = '';
+        window._currentTeamHistoryMatchId = '';
+        window._currentTeamHistoryParentMatchId = '';
+        window._currentTeamHistoryLeagueId = '';
+        window._currentTeamHistoryTeamId = '';
         window._currentTeamHistoryVenueFilter = 'all';
         window._currentTeamHistoryCommonFilter = false;
         window._currentTeamHistoryLeagueFilter = false;
         window._currentTeamHistorySearchQuery = '';
-        window._currentTeamHistoryLeagueId = '';
-        window._currentTeamHistoryParentMatchId = '';
         window._teamHistoryLimit = 10; // Por defecto mostrar últimos 10 partidos
         window._teamHistoryModalState = null;
 
@@ -18207,7 +18213,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
         }
 
-        async function openTeamHistoryPopup(teamName, matchId, parentMatchId, leagueId, event) {
+        async function openTeamHistoryPopup(teamName, matchId, parentMatchId, leagueId, event, teamId) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             if (!teamName) return;
 
@@ -18217,8 +18223,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const modalTitle = document.getElementById('teamHistoryModalLabel');
             const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
             const modalBody = document.getElementById('teamHistoryModalBody');
+            const liveBtn = document.getElementById('teamHistoryLiveBtn');
 
             const cleanTeam = String(teamName).trim();
+            window._currentTeamHistoryTeamName = cleanTeam;
+            window._currentTeamHistoryMatchId = String(matchId || '').trim();
+            window._currentTeamHistoryParentMatchId = String(parentMatchId || matchId || '').replace(/\D/g, '');
+            window._currentTeamHistoryLeagueId = String(leagueId || '').trim();
+            window._currentTeamHistoryTeamId = String(teamId || '').trim();
+
+            if (liveBtn) {
+                liveBtn.disabled = false;
+                liveBtn.classList.remove('btn-success', 'text-white');
+                liveBtn.classList.add('btn-outline-success');
+                liveBtn.innerHTML = `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
+            }
+
             if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${cleanTeam}`;
             if (modalSubtitle) modalSubtitle.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
             if (modalBody) {
@@ -18258,13 +18278,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             window._currentTeamHistoryCommonFilter = false;
             window._currentTeamHistoryLeagueFilter = false;
             window._currentTeamHistorySearchQuery = '';
-            window._currentTeamHistoryLeagueId = String(leagueId || '').trim();
-            window._currentTeamHistoryParentMatchId = String(parentMatchId || matchId || '').replace(/\D/g, '');
             window._teamHistoryLimit = 10; // Siempre inicia mostrando los últimos 10 partidos por defecto
 
             const cacheKey = `${cleanTeam.toLowerCase()}:${matchId || ''}:${parentMatchId || ''}`;
             if (window._teamHistoryCache[cacheKey]) {
                 window._currentTeamHistoryData = window._teamHistoryCache[cacheKey];
+                if (window._currentTeamHistoryData?.team_id) {
+                    window._currentTeamHistoryTeamId = String(window._currentTeamHistoryData.team_id);
+                }
                 renderTeamHistoryModalContent();
                 return;
             }
@@ -18278,11 +18299,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         match_id: matchId || '',
                         parent_match_id: parentMatchId || '',
                         league_id: leagueId || '',
+                        team_id: window._currentTeamHistoryTeamId || '',
                     })
                 });
                 const data = await response.json();
                 if (!response.ok || data.status !== 'success') {
                     throw new Error(data.error || 'No se pudo obtener el historial del equipo');
+                }
+
+                if (data.team_id) {
+                    window._currentTeamHistoryTeamId = String(data.team_id);
                 }
 
                 window._teamHistoryCache[cacheKey] = data;
@@ -18295,6 +18321,75 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${err.message}
                         </div>
                     `;
+                }
+            }
+        }
+
+        async function refreshTeamHistoryLive() {
+            const btn = document.getElementById('teamHistoryLiveBtn');
+            const teamName = window._currentTeamHistoryTeamName;
+            if (!teamName) return;
+
+            const originalBtnHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i>Actualizando...`;
+            }
+
+            const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
+            if (modalSubtitle) {
+                modalSubtitle.innerHTML = `<span class="text-primary"><i class="fa-solid fa-spinner fa-spin me-1"></i>Sincronizando partidos al día desde NowGoal...</span>`;
+            }
+
+            try {
+                const response = await fetch('/api/team_recent_history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        team_name: teamName,
+                        match_id: window._currentTeamHistoryMatchId || '',
+                        parent_match_id: window._currentTeamHistoryParentMatchId || '',
+                        league_id: window._currentTeamHistoryLeagueId || '',
+                        team_id: window._currentTeamHistoryTeamId || '',
+                        force_live: true,
+                        force_refresh: true,
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo actualizar en directo');
+                }
+
+                if (data.team_id) {
+                    window._currentTeamHistoryTeamId = String(data.team_id);
+                }
+
+                const cacheKey = `${teamName.toLowerCase()}:${window._currentTeamHistoryMatchId || ''}:${window._currentTeamHistoryParentMatchId || ''}`;
+                window._teamHistoryCache[cacheKey] = data;
+                window._currentTeamHistoryData = data;
+
+                renderTeamHistoryModalContent();
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success', 'text-white');
+                    btn.innerHTML = `<i class="fa-solid fa-check me-1"></i>Al día (${data.matches?.length || 0})`;
+                    setTimeout(() => {
+                        if (btn) {
+                            btn.classList.remove('btn-success', 'text-white');
+                            btn.classList.add('btn-outline-success');
+                            btn.innerHTML = `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
+                        }
+                    }, 3500);
+                }
+            } catch (err) {
+                if (modalSubtitle) {
+                    modalSubtitle.innerHTML = `<span class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>Error en sincronización: ${escapeTeamHistoryHtml(err.message)}</span>`;
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml || `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
                 }
             }
         }
@@ -18373,10 +18468,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             if (modalSubtitle) {
                 const commonTag = isCommonFilter ? ` · <span class="text-warning fw-bold"><i class="fa-solid fa-bolt me-1"></i>Solo Rivales vs ${escapeTeamHistoryHtml(opponentName)}</span>` : '';
+                const liveTag = data.is_live ? ` · <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.56rem; padding:1px 4px;"><i class="fa-solid fa-bolt me-1"></i>NowGoal al día</span>` : '';
                 if (isLimited) {
-                    modalSubtitle.innerHTML = `Últimos 10 de ${filtered.length} partidos · Cobertura AH: ${coverPct}%${commonTag}`;
+                    modalSubtitle.innerHTML = `Últimos 10 de ${filtered.length} partidos · Cobertura AH: ${coverPct}%${commonTag}${liveTag}`;
                 } else {
-                    modalSubtitle.innerHTML = `${totalVis} partidos · Cobertura AH: ${coverPct}%${commonTag}`;
+                    modalSubtitle.innerHTML = `${totalVis} partidos · Cobertura AH: ${coverPct}%${commonTag}${liveTag}`;
                 }
             }
 
@@ -18500,6 +18596,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 Todos (${filtered.length})
                             </button>
                         </div>
+
+                        <!-- Botón Actualizar al Día (NowGoal) -->
+                        <button type="button" class="btn ${data.is_live ? 'btn-success text-white' : 'btn-outline-success'} py-0 px-2 ms-1" onclick="refreshTeamHistoryLive()" style="font-size:.62rem; font-weight:800;" title="Consultar NowGoal en directo para traer los partidos más recientes al día de hoy">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i>${data.is_live ? 'Al día' : 'Actualizar'}
+                        </button>
                     </div>
 
                     <div class="d-flex align-items-center gap-1">
