@@ -17931,68 +17931,91 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             renderTeamHistoryModalContent();
         }
 
-        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam) {
+        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx) {
+            const m = (window._currentTeamHistoryData?.matches && typeof idx === 'number') ? window._currentTeamHistoryData.matches[idx] : null;
+            const effectiveDate = date || (m && m.date) || '';
+            const effectiveScore = score || (m && m.score) || '';
+            const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((m && m.ah) || '-');
+            const effectiveLeague = leagueId || (m && m.league_id) || '';
+            const targetTeam = String(window._currentTeamHistoryData?.team_name || '').toLowerCase().trim();
+            const isTargetHome = String(homeTeam || '').toLowerCase().trim() === targetTeam;
+            const isTargetAway = String(awayTeam || '').toLowerCase().trim() === targetTeam;
+
             if (!Array.isArray(statsList) || !statsList.length) {
-                return '<div class="text-center text-muted small py-2"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal para este partido</div>';
+                return `
+                    <div class="p-2 my-1 text-center" style="background:#ffffff; border:1px solid #cbd5e1; border-top:3px solid #059669 !important; border-radius:7px; box-shadow:0 1px 3px rgba(15,23,42,0.08);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.65rem; padding:2px 6px; border-radius:3px; border:1px solid #bbf7d0;">📊 ESTADÍSTICAS DEL PARTIDO</span>
+                                ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
+                                ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
+                            </div>
+                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem;" onclick="toggleTeamHistoryRowStats(${idx})">✕ ocultar</button>` : ''}
+                        </div>
+                        <div class="text-muted small py-2" style="font-size:.65rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal para este partido</div>
+                    </div>
+                `;
             }
 
-            const priorityOrder = [
-                { match: 'ataques peligrosos', alt: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡', highlight: true },
-                { match: 'ataques', alt: 'attacks', label: 'Ataques Totales', icon: '📈', highlight: false },
-                { match: 'tiros a puerta', alt: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯', highlight: false },
-                { match: 'tiros', alt: 'shots', label: 'Tiros Totales', icon: '⚽', highlight: false },
-                { match: 'córners', alt: 'corners', label: 'Córners', icon: '🚩', highlight: false },
-                { match: 'posesión', alt: 'possession', label: 'Posesión', icon: '⏱️', highlight: false },
-                { match: 'tarjetas rojas', alt: 'red cards', label: 'Tarjetas Rojas', icon: '🟥', highlight: false },
+            const targetOrder = [
+                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+                { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
+                { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
+                { match: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯' },
+                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+                { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
+                { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
+                { match: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡' },
+                { match: 'córners', label: 'Córners', icon: '🚩' },
+                { match: 'corners', label: 'Córners', icon: '🚩' },
+                { match: 'posesión', label: 'Posesión', icon: '⏱️' },
+                { match: 'possession', label: 'Posesión', icon: '⏱️' },
+                { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
+                { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
             ];
 
             const matchedItems = [];
-            for (const item of priorityOrder) {
+            for (const target of targetOrder) {
+                if (matchedItems.some(r => r.displayName === target.label)) continue;
                 const found = statsList.find(s => {
-                    const n = String(s.name || s.label || '').toLowerCase().trim();
-                    if (item.match === 'tiros' && (n.includes('puerta') || n.includes('goal') || n.includes('target'))) return false;
-                    if (item.match === 'ataques' && (n.includes('peligros') || n.includes('danger'))) return false;
-                    return n.includes(item.match) || (item.alt && n.includes(item.alt));
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    if ((target.match === 'tiros' || target.match === 'shots') && (name.includes('tiros a puerta') || name.includes('shots on goal') || name.includes('target') || name.includes('puerta'))) return false;
+                    if ((target.match === 'ataques' || target.match === 'attacks') && (name.includes('ataques peligrosos') || name.includes('dangerous attacks') || name.includes('peligros'))) return false;
+                    return name === target.match || name.includes(target.match);
                 });
                 if (found) {
                     matchedItems.push({
-                        label: item.label,
-                        icon: item.icon,
+                        displayName: target.label,
+                        icon: target.icon,
                         home: String(found.home ?? '-').trim(),
                         away: String(found.away ?? '-').trim(),
-                        highlight: item.highlight,
-                        isRed: item.label.includes('Rojas')
+                        isRed: target.label.includes('Rojas')
                     });
                 }
             }
 
             statsList.forEach(s => {
-                const n = String(s.name || s.label || '').trim();
+                const n = String(s.name || s.label || s.stat_name || '').trim();
                 const nLower = n.toLowerCase();
-                const already = matchedItems.some(m => m.label.toLowerCase() === nLower);
+                const already = matchedItems.some(m => m.displayName.toLowerCase() === nLower);
                 if (!already && n) {
                     matchedItems.push({
-                        label: n,
+                        displayName: n,
                         icon: '📊',
                         home: String(s.home ?? '-').trim(),
                         away: String(s.away ?? '-').trim(),
-                        highlight: false,
                         isRed: nLower.includes('rojas') || nLower.includes('red')
                     });
                 }
             });
 
-            if (!matchedItems.length) {
-                return '<div class="text-center text-muted small py-2">Sin estadísticas registradas</div>';
-            }
+            const rowsHtml = matchedItems.map((s, rowIdx) => {
+                const hVal = parseInt(s.home, 10);
+                const aVal = parseInt(s.away, 10);
+                let hColor = '#475569', aColor = '#475569';
+                let hWeight = '800', aWeight = '800';
 
-            const rowsHtml = matchedItems.map(item => {
-                const hVal = parseInt(item.home, 10);
-                const aVal = parseInt(item.away, 10);
-                let hColor = '#334155', aColor = '#334155';
-                let hWeight = '700', aWeight = '700';
-
-                if (item.isRed) {
+                if (s.isRed) {
                     hColor = hVal > 0 ? '#dc2626' : '#94a3b8';
                     aColor = aVal > 0 ? '#dc2626' : '#94a3b8';
                     hWeight = hVal > 0 ? '900' : '700';
@@ -18002,49 +18025,79 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         hColor = '#16a34a';
                         aColor = '#dc2626';
                         hWeight = '900';
+                        aWeight = '900';
                     } else if (aVal > hVal) {
                         hColor = '#dc2626';
                         aColor = '#16a34a';
+                        hWeight = '900';
                         aWeight = '900';
                     }
                 }
 
-                const containerStyle = item.highlight
-                    ? 'background: #fefce8; border: 1.5px solid #facc15; box-shadow: 0 1px 3px rgba(234, 179, 8, 0.18);'
-                    : 'background: #ffffff; border: 1px solid #e2e8f0;';
-                const labelStyle = item.highlight
-                    ? 'font-weight: 900; color: #854d0e; font-size: .74rem;'
-                    : 'font-weight: 700; color: #475569; font-size: .68rem;';
-                const numSize = item.highlight ? 'font-size: .88rem;' : 'font-size: .76rem;';
+                const bg = rowIdx % 2 === 0 ? '#f8fafc' : '#ffffff';
+                const hDisplay = (s.isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapeTeamHistoryHtml(s.home)}</span>` : escapeTeamHistoryHtml(s.home);
+                const aDisplay = (s.isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapeTeamHistoryHtml(s.away)}</span>` : escapeTeamHistoryHtml(s.away);
 
                 return `
-                    <div class="d-flex align-items-center justify-content-between p-1 px-2 mb-1 rounded" style="${containerStyle}">
-                        <div style="width:28%; text-align:left; font-weight:${hWeight}; color:${hColor}; ${numSize}">
-                            ${escapeTeamHistoryHtml(item.home)}
-                        </div>
-                        <div class="text-center text-truncate px-1" style="width:44%; ${labelStyle}">
-                            <span class="me-1">${item.icon}</span>${escapeTeamHistoryHtml(item.label)}
-                        </div>
-                        <div style="width:28%; text-align:right; font-weight:${aWeight}; color:${aColor}; ${numSize}">
-                            ${escapeTeamHistoryHtml(item.away)}
-                        </div>
-                    </div>
+                    <tr style="background:${bg}; border-bottom:1px solid #e2e8f0;">
+                        <td style="width:25%; text-align:left; font-size:0.84rem; font-weight:${hWeight}; color:${hColor}; padding:4px 8px; border-right:1px solid #e2e8f0; overflow:hidden; white-space:nowrap;">
+                            ${hDisplay}
+                        </td>
+                        <td style="width:50%; text-align:center; font-size:0.68rem; color:#1e293b; font-weight:800; padding:4px 4px; border-right:1px solid #e2e8f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="font-size:0.72rem; margin-right:4px;">${s.icon}</span>${escapeTeamHistoryHtml(s.displayName)}
+                        </td>
+                        <td style="width:25%; text-align:right; font-size:0.84rem; font-weight:${aWeight}; color:${aColor}; padding:4px 8px; overflow:hidden; white-space:nowrap;">
+                            ${aDisplay}
+                        </td>
+                    </tr>
                 `;
             }).join('');
 
             return `
-                <div class="p-2 rounded border shadow-sm my-1" style="background:#f8fafc; border-color:#cbd5e1 !important;">
-                    <div class="d-flex justify-content-between align-items-center pb-1 mb-1 border-bottom small fw-bold" style="font-size:.68rem;">
-                        <span class="text-truncate fw-bold" style="color:#166534; max-width:44%;" title="${escapeTeamHistoryHtml(homeTeam)}">🏠 ${escapeTeamHistoryHtml(homeTeam)}</span>
-                        <span class="badge bg-secondary" style="font-size:.56rem; padding:1px 4px;">VS</span>
-                        <span class="text-truncate fw-bold" style="color:#1e40af; max-width:44%; text-align:right;" title="${escapeTeamHistoryHtml(awayTeam)}">✈️ ${escapeTeamHistoryHtml(awayTeam)}</span>
+                <div class="p-2 rounded border shadow-sm my-1" style="background:#ffffff; border:1px solid #cbd5e1; border-top:3px solid #059669 !important; border-radius:7px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; flex-wrap:nowrap; gap:6px;">
+                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; overflow:hidden;">
+                            <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.65rem; padding:2px 6px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap;">📊 ESTADÍSTICAS DEL PARTIDO</span>
+                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px; white-space:nowrap;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
+                            ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
+                        </div>
+                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem; cursor:pointer; white-space:nowrap;" onclick="toggleTeamHistoryRowStats(${idx})">✕ ocultar</button>` : ''}
                     </div>
-                    ${rowsHtml}
+
+                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:5px 7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <div style="flex:1 1 36%; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="color:${isTargetHome ? '#6d28d9' : '#166534'}; font-weight:900; font-size:.74rem;" title="${escapeTeamHistoryHtml(homeTeam)}">
+                                ${isTargetHome ? '🟣 ' : '🏠 '}${escapeTeamHistoryHtml(homeTeam)}
+                            </span>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                            <div style="padding:2px 7px; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:.85rem; color:#0f172a; letter-spacing:1px; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+                                ${escapeTeamHistoryHtml(effectiveScore || '-')}
+                            </div>
+                            <div style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:2px 7px; border-radius:4px; border:1px solid #334155; font-size:.68rem; font-weight:900; box-shadow:0 1px 2px rgba(0,0,0,0.12);">
+                                <span style="color:#94a3b8; font-size:.56rem; margin-right:3px; text-transform:uppercase;">AH</span>
+                                <span style="color:#38bdf8; font-weight:900; font-size:.78rem;">${escapeTeamHistoryHtml(effectiveAh || '-')}</span>
+                            </div>
+                        </div>
+
+                        <div style="flex:1 1 36%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="color:${isTargetAway ? '#6d28d9' : '#166534'}; font-weight:900; font-size:.74rem;" title="${escapeTeamHistoryHtml(awayTeam)}">
+                                ${escapeTeamHistoryHtml(awayTeam)}${isTargetAway ? ' 🟣' : ' ✈️'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border:1px solid #e2e8f0; border-radius:5px; box-sizing:border-box; overflow:hidden;">
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
                 </div>
             `;
         }
 
-        async function toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event) {
+        async function toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event, leagueId) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             const subrow = document.getElementById(`th-stats-row-${idx}`);
             const cell = document.getElementById(`th-stats-cell-${idx}`);
@@ -18116,16 +18169,23 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             `;
 
             try {
+                const effectiveHome = homeTeam || (matchObj && matchObj.home_team) || '';
+                const effectiveAway = awayTeam || (matchObj && matchObj.away_team) || '';
+                const effectiveDate = date || (matchObj && matchObj.date) || '';
+                const effectiveScore = score || (matchObj && matchObj.score) || '';
+                const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((matchObj && matchObj.ah) || '');
+                const effectiveLeague = leagueId || (matchObj && matchObj.league_id) || '';
+
                 const response = await fetch('/api/match_stats', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        match_id: String(matchId || '').replace(/\D/g, ''),
-                        row_home: homeTeam,
-                        row_away: awayTeam,
-                        row_date: date,
-                        row_score: score,
-                        row_ah: ah,
+                        match_id: String(matchId || (matchObj && matchObj.match_id) || '').replace(/\D/g, ''),
+                        row_home: effectiveHome,
+                        row_away: effectiveAway,
+                        row_date: effectiveDate,
+                        row_score: effectiveScore,
+                        row_ah: effectiveAh,
                         parent_match_id: window._currentTeamHistoryParentMatchId || '',
                     })
                 });
@@ -18135,13 +18195,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const stats = data.stats || [];
                 cell.dataset.loaded = '1';
-                cell.innerHTML = compCardHtml + formatTeamHistoryStatsCard(stats, homeTeam, awayTeam);
+                cell.innerHTML = compCardHtml + formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx);
             } catch (err) {
                 cell.innerHTML = `
                     ${compCardHtml}
                     <div class="alert alert-warning py-1 px-2 my-1 small d-flex justify-content-between align-items-center" style="font-size:.65rem;">
                         <span><i class="fa-solid fa-triangle-exclamation me-1"></i>${err.message || 'Sin estadísticas disponibles'}</span>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event)">Reintentar</button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event, '${escapeTeamHistoryHtml(leagueId)}')">Reintentar</button>
                     </div>
                 `;
             }
@@ -18365,7 +18425,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     }
 
                     const statsBtn = m.match_id
-                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${idx}" style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2;" onclick="toggleTeamHistoryRowStats(${idx}, '${m.match_id}', '${escapeTeamHistoryHtml(m.home_team)}', '${escapeTeamHistoryHtml(m.away_team)}', '${escapeTeamHistoryHtml(m.date)}', '${escapeTeamHistoryHtml(m.score)}', '${escapeTeamHistoryHtml(m.ah)}', event)" title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
+                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${idx}" style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2;" onclick="toggleTeamHistoryRowStats(${idx}, '${m.match_id}', '${escapeTeamHistoryHtml(m.home_team)}', '${escapeTeamHistoryHtml(m.away_team)}', '${escapeTeamHistoryHtml(m.date)}', '${escapeTeamHistoryHtml(m.score)}', '${escapeTeamHistoryHtml(m.ah)}', event, '${escapeTeamHistoryHtml(m.league_id || '')}')" title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
                         : `<span class="text-muted small">-</span>`;
 
                     const commonRivalBadge = (m.has_common_rival && m.comparative_match) ? `

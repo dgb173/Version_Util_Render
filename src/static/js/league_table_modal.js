@@ -3,17 +3,8 @@
     window.__leagueTableModalLoaded = true;
 
     let tableData = null;
-    let activeMainTab = 'standings'; // 'standings' | 'ou'
-    let activeVenue = 'total';       // 'total' | 'home' | 'away'
-    let activeOuLine = '2.5';
+    let activeView = 'total';
     let currentQuery = null;
-
-    const labels = {
-        total: 'General',
-        home: 'En casa',
-        away: 'Fuera',
-        analysis: 'Lectura AH / O-U'
-    };
 
     const esc = value => String(value ?? '')
         .replaceAll('&', '&amp;')
@@ -69,26 +60,32 @@
         return best;
     };
 
-    const isMatchHomeTeam = row => {
-        if (!row || !tableData) return false;
-        if (tableData.home_team_id && String(row.team_id) === String(tableData.home_team_id)) return true;
-        return nameSimilarity(tableData.home_name, row) >= 65;
-    };
+    const findStandingById = (view, teamId) => (
+        teamId == null ? null : ((tableData?.views?.[view] || []).find(row => row.team_id != null && String(row.team_id) === String(teamId)) || null)
+    );
 
-    const isMatchAwayTeam = row => {
-        if (!row || !tableData) return false;
-        if (tableData.away_team_id && String(row.team_id) === String(tableData.away_team_id)) return true;
-        return nameSimilarity(tableData.away_name, row) >= 65;
+    const findTeamRowByName = (view, name) => {
+        const rows = tableData?.views?.[view] || [];
+        let bestRow = null;
+        let bestScore = 0;
+        rows.forEach(row => {
+            const score = nameSimilarity(name, row);
+            if (score > bestScore) {
+                bestScore = score;
+                bestRow = row;
+            }
+        });
+        return bestScore >= 42 ? bestRow : null;
     };
 
     const renderFormPills = formList => {
-        if (!Array.isArray(formList) || !formList.length) return '<span class="text-muted" style="opacity:0.4">—</span>';
+        if (!Array.isArray(formList) || !formList.length) return '<span class="text-muted">—</span>';
         return `<div class="sofa-form-list">` +
             formList.map(item => {
                 const res = String(item).toUpperCase();
                 const cls = res === 'W' || res === 'V' ? 'win' : (res === 'L' ? 'loss' : 'draw');
                 const label = res === 'W' || res === 'V' ? 'W' : (res === 'L' ? 'L' : 'D');
-                return `<span class="sofa-form-badge ${cls}" title="${res === 'W' ? 'Victoria' : (res === 'L' ? 'Derrota' : 'Empate')}">${label}</span>`;
+                return `<span class="sofa-form-badge ${cls}">${label}</span>`;
             }).join('') +
             `</div>`;
     };
@@ -100,7 +97,7 @@
             body.innerHTML = `
                 <div class="league-loading-state">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <strong>Cargando temporada…</strong>
+                    <strong>Cargando temporada de SofaScore…</strong>
                 </div>`;
         }
         try {
@@ -115,361 +112,210 @@
                 body: JSON.stringify(payload),
             });
             const data = await res.json();
-            if (data && data.available) {
+            if (data.available) {
                 tableData = data;
-                renderModalContent();
+                renderStandings(activeView);
             } else {
                 body.innerHTML = `
                     <div class="league-empty-state">
                         <i class="fa-solid fa-triangle-exclamation text-warning"></i>
-                        <strong>No hay datos disponibles para esta temporada</strong>
+                        <strong>No hay datos para esta temporada</strong>
                     </div>`;
             }
         } catch (e) {
-            console.error('Error al cambiar temporada:', e);
+            console.error('Error al cambiar de temporada:', e);
         }
     };
 
-    const renderHeaderControls = () => {
-        const seasons = tableData?.seasons || [];
-        const currentSeasonId = String(tableData?.season_id || '');
-        const tournamentName = tableData?.tournament || 'Clasificación';
-        const sourceName = tableData?.source || 'Oficial';
+    const renderStandings = (view = 'total') => {
+        const availableViews = Object.entries(tableData?.views || {}).filter(([, items]) => Array.isArray(items) && items.length);
+        if (!availableViews.some(([key]) => key === view)) view = 'total';
+        activeView = view;
+        const rows = tableData?.views?.[view] || [];
+        const body = document.getElementById('leagueTableModalBody');
+        if (!body) return;
+
+        if (!rows.length) {
+            body.innerHTML = `
+                <div class="league-empty-state">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <strong>No hay clasificación disponible para esta vista</strong>
+                </div>`;
+            return;
+        }
+
+        const seasons = tableData.seasons || [];
+        const currentSeasonId = String(tableData.season_id || '');
+        const tournamentName = tableData.tournament || 'Clasificación';
 
         const seasonOptionsHtml = seasons.map(s => {
             const selected = String(s.id) === currentSeasonId ? 'selected' : '';
             return `<option value="${esc(s.id)}" ${selected}>${esc(s.name || s.year)}</option>`;
         }).join('');
 
-        // Líneas disponibles para O/U
-        const ouTables = tableData?.ou?.tables || {};
-        const availableLines = Object.keys(ouTables).length ? Object.keys(ouTables) : ['1.5', '2.5', '3.5', '4.5'];
-        if (!availableLines.includes(activeOuLine)) {
-            activeOuLine = String(tableData?.ou?.line || availableLines[0] || '2.5');
-        }
-
-        return `
-            <div class="sofa-top-bar">
-                <div class="sofa-meta-group">
-                    <span class="sofa-comp-title"><i class="fa-solid fa-trophy text-warning me-1"></i>${esc(tournamentName)}</span>
-                    ${seasons.length > 1 ? `
-                        <select class="sofa-season-select" id="sofaSeasonSelect">
-                            ${seasonOptionsHtml}
-                        </select>
-                    ` : (tableData?.season ? `<span class="sofa-season-pill">${esc(tableData.season)}</span>` : '')}
-                    <span class="sofa-source-badge">${esc(sourceName)}</span>
-                </div>
-
-                <div class="sofa-nav-controls">
-                    <!-- Switch Principal: Clasificación / Over Under -->
-                    <div class="sofa-segmented-control">
-                        <button type="button" class="sofa-segment-btn ${activeMainTab === 'standings' ? 'active' : ''}" data-main-tab="standings">
-                            <i class="fa-solid fa-ranking-star me-1"></i>Clasificación
-                        </button>
-                        <button type="button" class="sofa-segment-btn ${activeMainTab === 'ou' ? 'active' : ''}" data-main-tab="ou">
-                            <i class="fa-solid fa-futbol me-1"></i>Over / Under
-                        </button>
-                    </div>
-
-                    <!-- Píldoras de Localización: General / En casa / Fuera -->
-                    <div class="sofa-venue-pills">
-                        <button type="button" class="sofa-venue-btn ${activeVenue === 'total' ? 'active' : ''}" data-venue-tab="total">General</button>
-                        <button type="button" class="sofa-venue-btn ${activeVenue === 'home' ? 'active' : ''}" data-venue-tab="home">En casa</button>
-                        <button type="button" class="sofa-venue-btn ${activeVenue === 'away' ? 'active' : ''}" data-venue-tab="away">Fuera</button>
-                    </div>
-                </div>
-            </div>
-            ${activeMainTab === 'ou' ? `
-                <div class="sofa-ou-line-bar">
-                    <span class="sofa-line-label"><i class="fa-solid fa-sliders me-1"></i>Línea de goles:</span>
-                    <div class="sofa-line-selector">
-                        ${availableLines.map(line => `
-                            <button type="button" class="sofa-line-btn ${String(line) === String(activeOuLine) ? 'active' : ''}" data-ou-line="${esc(line)}">
-                                ${esc(line)}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : ''}
-        `;
-    };
-
-    const renderStandingsTableHtml = () => {
-        const rows = tableData?.views?.[activeVenue] || tableData?.views?.total || [];
-        if (!rows.length) {
-            return `
-                <div class="league-empty-state">
-                    <i class="fa-solid fa-table-list"></i>
-                    <strong>No hay datos de clasificación para la vista seleccionada</strong>
-                </div>`;
-        }
-
         let hasPromotion = false;
         let hasRelegation = false;
 
         let htmlRows = '';
-        rows.forEach((row, index) => {
+        let previousGroup = null;
+        [...rows].sort((left, right) => {
+            const groupOrder = String(left.group || '').localeCompare(String(right.group || ''), 'es');
+            if (groupOrder) return groupOrder;
+            return (numberOrNull(left.position) ?? 9999) - (numberOrNull(right.position) ?? 9999);
+        }).forEach((row, index) => {
+            const group = String(row.group || '').trim();
+            if (group && group !== previousGroup && rows.some(item => String(item.group || '').trim() !== group)) {
+                htmlRows += `<tr class="sofa-group-row"><th colspan="11">${esc(group)}</th></tr>`;
+            }
+            previousGroup = group;
             const pos = numberOrNull(row.position) ?? (index + 1);
             let promoBarClass = '';
             const promoText = String(row.promotion || '').toLowerCase();
 
-            if (promoText.includes('promotion') || promoText.includes('ascenso') || promoText.includes('champions') || (pos <= 2 && rows.length > 4)) {
+            if (promoText.includes('promotion') || promoText.includes('ascenso') || promoText.includes('champions')) {
                 promoBarClass = 'promotion';
                 hasPromotion = true;
-            } else if (promoText.includes('relegation') || promoText.includes('descenso') || (pos >= rows.length - 1 && rows.length > 5)) {
+            } else if (promoText.includes('relegation') || promoText.includes('descenso')) {
                 promoBarClass = 'relegation';
                 hasRelegation = true;
             }
 
-            const isHome = isMatchHomeTeam(row);
-            const isAway = isMatchAwayTeam(row);
+            const isHome = row.team_id != null && tableData.home_team_id != null && String(row.team_id) === String(tableData.home_team_id);
+            const isAway = row.team_id != null && tableData.away_team_id != null && String(row.team_id) === String(tableData.away_team_id);
 
-            let rowClass = '';
-            let badgeTag = '';
+            let teamClasses = ['sofa-team-name'];
+            let tag = '';
             if (isHome) {
-                rowClass = 'row-highlight-home';
-                badgeTag = '<span class="team-mini-badge home">LOCAL</span>';
+                teamClasses.push('highlight-home');
+                tag = '<span class="team-context-tag home">LOCAL</span>';
             } else if (isAway) {
-                rowClass = 'row-highlight-away';
-                badgeTag = '<span class="team-mini-badge away">VISITANTE</span>';
+                teamClasses.push('highlight-away');
+                tag = '<span class="team-context-tag away">VISITANTE</span>';
             }
 
-            const gf = esc(row.scores_for ?? 0);
-            const gc = esc(row.scores_against ?? 0);
-            const gls = `${gf}:${gc}`;
+            const gls = `${esc(row.scores_for ?? 0)}:${esc(row.scores_against ?? 0)}`;
 
             htmlRows += `
-                <tr class="${rowClass}">
-                    <td class="col-indicator"><span class="promo-indicator ${promoBarClass}"></span></td>
-                    <td class="text-center col-pos"><span class="pos-num">${pos}</span></td>
-                    <td class="col-team">
-                        <div class="team-cell">
-                            <span class="team-title text-truncate">${esc(row.team || row.short_name)}</span>
-                            ${badgeTag}
-                        </div>
-                    </td>
+                <tr class="${isHome ? 'sofa-match-home' : (isAway ? 'sofa-match-away' : '')}">
+                    <td class="col-promo-bar"><span class="promo-bar ${promoBarClass}"></span></td>
+                    <td class="text-center"><span class="sofa-pos-badge">${pos}</span></td>
+                    <td><div class="${teamClasses.join(' ')}"><span>${esc(row.team)}</span>${tag}</div></td>
                     <td class="text-center">${esc(row.matches ?? 0)}</td>
-                    <td class="text-center font-stat-win">${esc(row.wins ?? 0)}</td>
-                    <td class="text-center text-muted">${esc(row.draws ?? 0)}</td>
-                    <td class="text-center font-stat-loss">${esc(row.losses ?? 0)}</td>
+                    <td class="text-center win-stat">${esc(row.wins ?? 0)}</td>
+                    <td class="text-center">${esc(row.draws ?? 0)}</td>
+                    <td class="text-center loss-stat">${esc(row.losses ?? 0)}</td>
+                    <td class="text-center">${signed(row.goal_difference)}</td>
                     <td class="text-center text-muted font-monospace">${gls}</td>
-                    <td class="text-center fw-bold ${numberOrNull(row.goal_difference) > 0 ? 'text-success' : (numberOrNull(row.goal_difference) < 0 ? 'text-danger' : 'text-muted')}">${signed(row.goal_difference)}</td>
-                    <td class="text-center col-pts"><strong>${esc(row.points ?? 0)}</strong></td>
-                    <td class="text-center col-form">${renderFormPills(row.form)}</td>
+                    <td class="text-center">${renderFormPills(row.form)}</td>
+                    <td class="text-center sofa-pts-cell">${esc(row.points ?? 0)}</td>
                 </tr>`;
         });
 
-        return `
-            <div class="sofa-table-scroll-area">
-                <table class="sofa-clean-table">
+        body.innerHTML = `
+            <div class="sofa-header-bar">
+                <div class="sofa-tournament-season">
+                    <span class="sofa-tournament-name"><i class="fa-solid fa-trophy text-warning"></i> ${esc(tournamentName)}</span>
+                    ${seasons.length > 1 ? `
+                        <select class="sofa-season-select" id="sofaSeasonSelect">
+                            ${seasonOptionsHtml}
+                        </select>` : (tableData.season ? `<span class="badge bg-light text-dark border">${esc(tableData.season)}</span>` : '')}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="sofa-view-pills">
+                        <button type="button" class="sofa-pill ${view === 'total' ? 'active' : ''}" data-sofa-view="total">General</button>
+                        ${tableData?.views?.home?.length ? `<button type="button" class="sofa-pill ${view === 'home' ? 'active' : ''}" data-sofa-view="home">Local</button>` : ''}
+                        ${tableData?.views?.away?.length ? `<button type="button" class="sofa-pill ${view === 'away' ? 'active' : ''}" data-sofa-view="away">Visitante</button>` : ''}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill fw-bold" data-open-analysis><i class="fa-solid fa-chart-pie me-1"></i> Análisis AH / O-U</button>
+                </div>
+            </div>
+            <div class="sofa-table-container">
+                <table class="sofa-standings-table">
                     <thead>
                         <tr>
-                            <th class="col-indicator"></th>
+                            <th class="col-promo-bar"></th>
                             <th class="text-center" style="width:36px">#</th>
-                            <th>Equipo</th>
-                            <th class="text-center" style="width:42px" title="Partidos Jugados">PJ</th>
-                            <th class="text-center" style="width:38px" title="Victorias">V</th>
-                            <th class="text-center" style="width:38px" title="Empates">E</th>
-                            <th class="text-center" style="width:38px" title="Derrotas">D</th>
-                            <th class="text-center" style="width:65px" title="Goles a favor y en contra">GF:GC</th>
-                            <th class="text-center" style="width:50px" title="Diferencia de goles">DG</th>
-                            <th class="text-center col-pts" style="width:52px" title="Puntos">PTS</th>
-                            <th class="text-center col-form" style="width:125px" title="Últimos 5 partidos">Racha</th>
+                            <th>Team</th>
+                            <th class="text-center" style="width:40px">P</th>
+                            <th class="text-center" style="width:40px">W</th>
+                            <th class="text-center" style="width:40px">D</th>
+                            <th class="text-center" style="width:40px">L</th>
+                            <th class="text-center" style="width:50px">DIFF</th>
+                            <th class="text-center" style="width:60px">GLS</th>
+                            <th class="text-center" style="width:115px">Last 5</th>
+                            <th class="text-center" style="width:45px">PTS</th>
                         </tr>
                     </thead>
                     <tbody>${htmlRows}</tbody>
                 </table>
             </div>
-            <div class="sofa-footer-legend">
-                ${hasPromotion ? `<span class="legend-item"><i class="legend-dot promotion"></i> Ascenso / Champions</span>` : ''}
-                ${hasRelegation ? `<span class="legend-item"><i class="legend-dot relegation"></i> Descenso</span>` : ''}
-                <span class="ms-auto text-muted small"><i class="fa-solid fa-circle-check text-success me-1"></i>Actualizado</span>
-            </div>
-        `;
-    };
+            <div class="sofa-legend-bar">
+                ${hasPromotion ? `<div class="sofa-legend-item"><span class="sofa-legend-box promotion"></span> Promotion</div>` : ''}
+                ${hasRelegation ? `<div class="sofa-legend-item"><span class="sofa-legend-box relegation"></span> Relegation</div>` : ''}
+                <div class="ms-auto text-muted" style="font-size:0.7rem">Datos: ${esc(tableData.source || 'SofaScore')}${tableData.cached && tableData.fetched_at ? ` · ${esc(String(tableData.fetched_at).slice(0, 10))}` : ''}${tableData.partial ? ' · Equipos del partido' : ''}</div>
+            </div>`;
 
-    const renderOuTableHtml = () => {
-        const lineKey = String(activeOuLine);
-        const ouData = tableData?.ou || {};
-        const tables = ouData.tables || {};
-        const selectedTable = tables[lineKey] || ouData;
-        const lineViews = selectedTable.views || ouData.views || {};
-        const rows = lineViews[activeVenue] || lineViews.total || [];
-        const signal = selectedTable.signal || ouData.signal || {};
-
-        // Resumen rápido del cruce
-        const homeRow = rows.find(r => isMatchHomeTeam(r)) || (lineViews.total || []).find(r => isMatchHomeTeam(r));
-        const awayRow = rows.find(r => isMatchAwayTeam(r)) || (lineViews.total || []).find(r => isMatchAwayTeam(r));
-
-        let signalBadgeCls = 'bg-secondary';
-        if (signal.tone === 'over') signalBadgeCls = 'bg-success';
-        else if (signal.tone === 'under') signalBadgeCls = 'bg-danger';
-
-        let htmlRows = '';
-        if (rows.length) {
-            rows.forEach((row, index) => {
-                const isHome = isMatchHomeTeam(row);
-                const isAway = isMatchAwayTeam(row);
-
-                let rowClass = '';
-                let badgeTag = '';
-                if (isHome) {
-                    rowClass = 'row-highlight-home';
-                    badgeTag = '<span class="team-mini-badge home">LOCAL</span>';
-                } else if (isAway) {
-                    rowClass = 'row-highlight-away';
-                    badgeTag = '<span class="team-mini-badge away">VISITANTE</span>';
-                }
-
-                const matches = numberOrNull(row.matches) || 0;
-                const over = numberOrNull(row.over) || 0;
-                const under = numberOrNull(row.under) || 0;
-                const push = numberOrNull(row.push) || 0;
-                const overPct = numberOrNull(row.over_pct) ?? (matches ? Math.round((over / matches) * 100) : 0);
-                const avgGoals = decimal(row.avg_goals, 2);
-
-                const pctColor = overPct >= 60 ? 'text-success fw-bold' : (overPct <= 40 ? 'text-danger fw-bold' : 'text-dark');
-
-                htmlRows += `
-                    <tr class="${rowClass}">
-                        <td class="text-center col-pos"><span class="pos-num">${index + 1}</span></td>
-                        <td class="col-team">
-                            <div class="team-cell">
-                                <span class="team-title text-truncate">${esc(row.team || row.short_name)}</span>
-                                ${badgeTag}
-                            </div>
-                        </td>
-                        <td class="text-center">${matches}</td>
-                        <td class="text-center text-success fw-bold">${over}</td>
-                        <td class="text-center text-danger fw-bold">${under}</td>
-                        <td class="text-center text-muted">${push}</td>
-                        <td class="text-center">
-                            <span class="${pctColor}">${overPct}%</span>
-                            <div class="sofa-progress-bar-wrap">
-                                <div class="sofa-progress-bar" style="width:${Math.min(100, Math.max(0, overPct))}%"></div>
-                            </div>
-                        </td>
-                        <td class="text-center font-monospace">${avgGoals}</td>
-                    </tr>`;
-            });
-        }
-
-        return `
-            <div class="sofa-ou-summary-card">
-                <div class="ou-summary-left">
-                    <span class="ou-summary-label">CRUCE LÍNEA ${esc(activeOuLine)}</span>
-                    <div class="ou-teams-rate">
-                        <span class="ou-rate-item ${homeRow ? 'fw-bold text-primary' : ''}">
-                            <b>${esc(tableData?.home_name || 'Local')}:</b> ${homeRow ? `${esc(homeRow.over_pct)}% Over (${homeRow.over}/${homeRow.matches})` : '—'}
-                        </span>
-                        <span class="ou-separator">vs</span>
-                        <span class="ou-rate-item ${awayRow ? 'fw-bold text-danger' : ''}">
-                            <b>${esc(tableData?.away_name || 'Visitante')}:</b> ${awayRow ? `${esc(awayRow.over_pct)}% Over (${awayRow.over}/${awayRow.matches})` : '—'}
-                        </span>
-                    </div>
-                </div>
-                <div class="ou-summary-right">
-                    <span class="badge ${signalBadgeCls} rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size:0.75rem;">
-                        ${esc(signal.label || 'PERFIL EQUILIBRADO')}
-                    </span>
-                </div>
-            </div>
-
-            <div class="sofa-table-scroll-area">
-                ${rows.length ? `
-                    <table class="sofa-clean-table">
-                        <thead>
-                            <tr>
-                                <th class="text-center" style="width:36px">#</th>
-                                <th>Equipo</th>
-                                <th class="text-center" style="width:45px">PJ</th>
-                                <th class="text-center text-success" style="width:50px">Over</th>
-                                <th class="text-center text-danger" style="width:50px">Under</th>
-                                <th class="text-center text-muted" style="width:45px">Nulo</th>
-                                <th class="text-center" style="width:110px">% Over</th>
-                                <th class="text-center" style="width:65px">Media</th>
-                            </tr>
-                        </thead>
-                        <tbody>${htmlRows}</tbody>
-                    </table>
-                ` : `
-                    <div class="league-empty-state">
-                        <i class="fa-solid fa-futbol"></i>
-                        <strong>No hay partidos registrados de la temporada para calcular O/U</strong>
-                    </div>
-                `}
-            </div>
-            <div class="sofa-footer-legend">
-                <span class="text-muted small">Cálculo en base a partidos oficiales de la temporada actual.</span>
-            </div>
-        `;
-    };
-
-    const renderModalContent = () => {
-        const body = document.getElementById('leagueTableModalBody');
-        if (!body) return;
-
-        const headerHtml = renderHeaderControls();
-        const contentHtml = activeMainTab === 'standings' ? renderStandingsTableHtml() : renderOuTableHtml();
-
-        body.innerHTML = headerHtml + contentHtml;
-
-        // Limpiar contenedor exterior antiguo de pestañas si existe en la plantilla
-        const oldTabs = document.getElementById('leagueTableTabs');
-        if (oldTabs) oldTabs.innerHTML = '';
-
-        // Bind events
+        // Eventos
         body.querySelector('#sofaSeasonSelect')?.addEventListener('change', e => {
             fetchSeasonTable(e.target.value);
         });
 
-        body.querySelectorAll('[data-main-tab]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeMainTab = btn.dataset.mainTab;
-                renderModalContent();
-            });
+        body.querySelectorAll('[data-sofa-view]').forEach(btn => {
+            btn.addEventListener('click', () => renderStandings(btn.dataset.sofaView));
         });
 
-        body.querySelectorAll('[data-venue-tab]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeVenue = btn.dataset.venueTab;
-                renderModalContent();
-            });
-        });
-
-        body.querySelectorAll('[data-ou-line]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeOuLine = btn.dataset.ouLine;
-                renderModalContent();
-            });
-        });
-    };
-
-    // Funciones requeridas por tests o accesos directos
-    const renderStandings = (venue = 'total') => {
-        activeMainTab = 'standings';
-        activeVenue = venue;
-        renderModalContent();
-    };
-
-    const renderOuTable = (line = null) => {
-        activeMainTab = 'ou';
-        if (line) activeOuLine = String(line);
-        renderModalContent();
+        body.querySelector('[data-open-analysis]')?.addEventListener('click', () => renderAnalysis());
     };
 
     const renderAnalysis = () => {
-        // Redirige limpiamente a Over/Under dentro de la tabla
-        activeMainTab = 'ou';
-        renderModalContent();
-    };
+        const body = document.getElementById('leagueTableModalBody');
+        if (!body || !tableData) return;
 
-    const buildHandicapDiagnosis = (info) => {
-        return {
-            title: 'Lectura de tabla',
-            text: 'Información directa de clasificación y estadísticas Over/Under.',
-            tone: 'neutral'
-        };
+        const homeRow = findStandingById('total', tableData.home_team_id) || findTeamRowByName('total', tableData.home_name);
+        const awayRow = findStandingById('total', tableData.away_team_id) || findTeamRowByName('total', tableData.away_name);
+        const ou = tableData.ou || {};
+        const signal = ou.signal || {};
+
+        body.innerHTML = `
+            <div class="table-view-heading">
+                <div><span class="insight-eyebrow">LECTURA COMPARATIVA</span><h5>${esc(tableData.home_name)} vs ${esc(tableData.away_name)}</h5></div>
+                <button type="button" class="back-to-insight" data-back-standings><i class="fa-solid fa-list-ol"></i> Ver Tabla SofaScore</button>
+            </div>
+            <div class="league-insight-dashboard">
+                <div class="league-profile-grid">
+                    <div class="league-profile-card favorite">
+                        <span class="profile-kicker">LOCAL</span>
+                        <h6>${esc(tableData.home_name)}</h6>
+                        <span class="profile-position">#${esc(homeRow?.position ?? '-')}</span>
+                        <div class="profile-metrics">
+                            <span><small>PJ</small><strong>${esc(homeRow?.matches ?? '-')}</strong></span>
+                            <span><small>PTS</small><strong>${esc(homeRow?.points ?? '-')}</strong></span>
+                            <span><small>DG</small><strong>${signed(homeRow?.goal_difference)}</strong></span>
+                        </div>
+                    </div>
+                    <div class="league-profile-card opponent">
+                        <span class="profile-kicker">VISITANTE</span>
+                        <h6>${esc(tableData.away_name)}</h6>
+                        <span class="profile-position">#${esc(awayRow?.position ?? '-')}</span>
+                        <div class="profile-metrics">
+                            <span><small>PJ</small><strong>${esc(awayRow?.matches ?? '-')}</strong></span>
+                            <span><small>PTS</small><strong>${esc(awayRow?.points ?? '-')}</strong></span>
+                            <span><small>DG</small><strong>${signed(awayRow?.goal_difference)}</strong></span>
+                        </div>
+                    </div>
+                    <div class="league-profile-card">
+                        <span class="profile-kicker">TENDENCIA GOLES (O/U ${esc(ou.line ?? 2.5)})</span>
+                        <h6>${esc(signal.label || 'PERFIL EQUILIBRADO')}</h6>
+                        <div class="profile-metrics">
+                            <span><small>% OVER</small><strong>${esc(signal.over_pct ?? '-')}%</strong></span>
+                            <span><small>MUESTRA</small><strong>${esc(ou.matches_analyzed ?? 0)} part.</strong></span>
+                            <span><small>LÍNEA</small><strong>${esc(ou.line ?? 2.5)}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        body.querySelector('[data-back-standings]')?.addEventListener('click', () => renderStandings(activeView));
     };
 
     const showTable = data => {
@@ -478,13 +324,7 @@
         document.getElementById('leagueTableModalSubtitle').textContent =
             [data.season, `${data.home_name} vs ${data.away_name}`].filter(Boolean).join(' · ');
 
-        activeMainTab = 'standings';
-        activeVenue = 'total';
-        if (data.ou?.line) {
-            activeOuLine = String(data.ou.line);
-        }
-
-        renderModalContent();
+        renderStandings('total');
         bootstrap.Modal.getOrCreateInstance(document.getElementById('leagueTableModal')).show();
     };
 
@@ -494,10 +334,8 @@
         const title = document.getElementById('leagueTableModalTitle');
         const subtitle = document.getElementById('leagueTableModalSubtitle');
         const body = document.getElementById('leagueTableModalBody');
-        const tabs = document.getElementById('leagueTableTabs');
         if (!modal || !title || !subtitle || !body) return;
 
-        if (tabs) tabs.innerHTML = '';
         title.textContent = button.dataset.leagueName || 'Clasificación de liga';
         subtitle.textContent = [button.dataset.homeName, button.dataset.awayName]
             .filter(Boolean).join(' vs ');
@@ -506,26 +344,30 @@
             body.innerHTML = `
                 <div class="league-loading-state">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <strong>Cargando clasificación y Over/Under…</strong>
-                    <span>Consultando datos actualizados</span>
+                    <strong>Consultando SofaScore…</strong>
+                    <span>Cargando clasificación y temporadas</span>
                 </div>`;
         } else {
             body.innerHTML = `
                 <div class="league-empty-state">
                     <i class="fa-solid fa-chart-simple"></i>
-                    <strong>${esc(message || 'No hay clasificación disponible')}</strong>
-                    <span>No se ha podido recuperar una clasificación verificada en este momento.</span>
+                    <strong>${esc(message)}</strong>
+                    <span>No se mostrará una conclusión si la fuente no ofrece datos suficientes.</span>
                 </div>`;
         }
         bootstrap.Modal.getOrCreateInstance(modal).show();
     };
 
-    // Desde la ficha de Pre-Cacheo, la tabla se monta dentro del partido.
+    // In Precacheo, place standings in the current match context so the two
+    // team histories and the league table can be read side by side.
     const findInlineStandingsHost = button => {
         const row = button.closest('tr');
-        const detailRow = row?.nextElementSibling?.classList.contains('pre-context-detail-row') ? row.nextElementSibling : null;
+        const detailRow = row?.nextElementSibling?.classList.contains('pre-context-detail-row')
+            ? row.nextElementSibling
+            : null;
         const panel = button.closest('.pre-context-panel') || detailRow?.querySelector('.pre-context-panel');
-        const host = panel?.querySelector('.pre-context-moment .sofa-inline-column');
+        const moment = panel?.querySelector('.pre-context-moment');
+        const host = moment?.querySelector('.sofa-inline-column');
         return host ? { host, contentGrid: host.closest('.pre-context-content-grid') } : null;
     };
 
@@ -563,55 +405,104 @@
                 <td class="text-center sofa-loss-cell">${esc(row.losses ?? '-')}</td>
                 <td class="text-center sofa-gf-cell">${esc(row.scores_for ?? '-')}</td>
                 <td class="text-center">${signed(row.goal_difference)}</td>
-                <td class="text-center sofa-pts-cell">${esc(row.points ?? '-')}</td></tr>`;
+                <td class="text-center sofa-pts-cell">${esc(row.points ?? '-')}</td>
+            </tr>`;
         }).join('');
-        host.innerHTML = `<div class="sofa-inline-head"><div class="sofa-inline-title"><i class="fa-solid fa-ranking-star me-1"></i><span title="${esc(data.tournament || query.league_name || 'Clasificación')}">${esc(data.tournament || query.league_name || 'Clasificación')}</span></div><button type="button" class="sofa-inline-close" aria-label="Ocultar clasificación" title="Ocultar clasificación">×</button></div>
-            <div class="sofa-inline-controls"><div class="sofa-inline-views"><button type="button" data-inline-view="total" class="${activeView === 'total' ? 'active' : ''}">General</button>${data.views?.home?.length ? `<button type="button" data-inline-view="home" class="${activeView === 'home' ? 'active' : ''}">Local</button>` : ''}${data.views?.away?.length ? `<button type="button" data-inline-view="away" class="${activeView === 'away' ? 'active' : ''}">Fuera</button>` : ''}</div>${seasonOptions}</div>
-            <div class="sofa-inline-table-scroll"><table class="sofa-inline-table"><thead><tr><th title="Posición">#</th><th>Equipo</th><th title="Partidos jugados">PJ</th><th title="Victorias">V</th><th title="Derrotas">D</th><th title="Goles a favor">GF</th><th title="Diferencia de goles">DG</th><th title="Puntos">Pts</th></tr></thead><tbody>${tableRows}</tbody></table></div>
-            <div class="sofa-inline-footer">${esc(data.season || '')}${data.season && data.source ? ' · ' : ''}${esc(data.source || 'SofaScore')}${data.cached && data.fetched_at ? ` · ${esc(String(data.fetched_at).slice(0, 10))}` : ''}</div>`;
+        host.innerHTML = `<div class="sofa-inline-head">
+            <div class="sofa-inline-title"><i class="fa-solid fa-ranking-star me-1"></i><span title="${esc(data.tournament || query.league_name || 'Clasificación')}">${esc(data.tournament || query.league_name || 'Clasificación')}</span></div>
+            <button type="button" class="sofa-inline-close" aria-label="Ocultar clasificación" title="Ocultar clasificación">×</button>
+        </div>
+        <div class="sofa-inline-controls">
+            <div class="sofa-inline-views">
+                <button type="button" data-inline-view="total" class="${activeView === 'total' ? 'active' : ''}">General</button>
+                ${data.views?.home?.length ? `<button type="button" data-inline-view="home" class="${activeView === 'home' ? 'active' : ''}">Local</button>` : ''}
+                ${data.views?.away?.length ? `<button type="button" data-inline-view="away" class="${activeView === 'away' ? 'active' : ''}">Fuera</button>` : ''}
+            </div>${seasonOptions}
+        </div>
+        <div class="sofa-inline-table-scroll"><table class="sofa-inline-table">
+            <thead><tr><th title="Posición">#</th><th>Equipo</th><th title="Partidos jugados">PJ</th><th title="Victorias">V</th><th title="Derrotas">D</th><th title="Goles a favor">GF</th><th title="Diferencia de goles">DG</th><th title="Puntos">Pts</th></tr></thead>
+            <tbody>${tableRows}</tbody>
+        </table></div>
+        <div class="sofa-inline-footer">${esc(data.season || '')}${data.season && data.source ? ' · ' : ''}${esc(data.source || 'SofaScore')}${data.cached && data.fetched_at ? ` · ${esc(String(data.fetched_at).slice(0, 10))}` : ''}</div>`;
 
         host.querySelector('.sofa-inline-close')?.addEventListener('click', () => {
             host.classList.remove('is-open');
             host.closest('.pre-context-content-grid')?.classList.remove('has-inline-table');
             host._leagueTableTrigger?.setAttribute('aria-expanded', 'false');
             const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
-            if (toggle) { toggle.setAttribute('aria-expanded', 'false'); toggle.querySelector('span').textContent = 'Ver tabla'; }
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.querySelector('span').textContent = 'Ver tabla';
+            }
         });
-        host.querySelectorAll('[data-inline-view]').forEach(control => control.addEventListener('click', () => renderInlineStandings(host, data, control.dataset.inlineView, query)));
+        host.querySelectorAll('[data-inline-view]').forEach(control => control.addEventListener('click', () => {
+            renderInlineStandings(host, data, control.dataset.inlineView, query);
+        }));
         host.querySelector('.sofa-inline-season')?.addEventListener('change', async event => {
             renderInlineStatus(host, 'Cargando temporada…', true);
             try {
-                const response = await fetch('/api/sofascore/league-table', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...query, tournament_id: data.tournament_id, season_id: event.target.value }) });
+                const response = await fetch('/api/sofascore/league-table', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...query, tournament_id: data.tournament_id, season_id: event.target.value }),
+                });
                 const nextData = await response.json();
                 if (!response.ok || !nextData.available) throw new Error('No hay datos para esta temporada.');
                 host._leagueTableData = nextData;
                 renderInlineStandings(host, nextData, activeView, query);
-            } catch (error) { renderInlineStatus(host, error.message || 'No se pudo cargar la temporada.'); }
+            } catch (error) {
+                renderInlineStatus(host, error.message || 'No se pudo cargar la temporada.');
+            }
         });
     };
 
     const loadInlineStandings = async (button, target, query) => {
         const { host, contentGrid } = target;
         host._leagueTableTrigger = button;
-        const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
-        if (host.classList.contains('is-open')) {
-            host.classList.remove('is-open'); contentGrid?.classList.remove('has-inline-table'); button.setAttribute('aria-expanded', 'false');
-            if (toggle) { toggle.setAttribute('aria-expanded', 'false'); toggle.querySelector('span').textContent = 'Ver tabla'; }
+        const isOpen = host.classList.contains('is-open');
+        if (isOpen) {
+            host.classList.remove('is-open');
+            contentGrid?.classList.remove('has-inline-table');
+            button.setAttribute('aria-expanded', 'false');
+            const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.querySelector('span').textContent = 'Ver tabla';
+            }
             return;
         }
-        host.classList.add('is-open'); contentGrid?.classList.add('has-inline-table'); button.setAttribute('aria-expanded', 'true');
-        if (toggle) { toggle.setAttribute('aria-expanded', 'true'); toggle.querySelector('span').textContent = 'Ocultar tabla'; }
-        if (host._leagueTableData) { renderInlineStandings(host, host._leagueTableData, 'total', query); return; }
+        host.classList.add('is-open');
+        contentGrid?.classList.add('has-inline-table');
+        button.setAttribute('aria-expanded', 'true');
+        const toggle = host.closest('.pre-context-panel')?.querySelector('.pre-context-standings-btn');
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'true');
+            toggle.querySelector('span').textContent = 'Ocultar tabla';
+        }
+        if (host._leagueTableData) {
+            renderInlineStandings(host, host._leagueTableData, 'total', query);
+            return;
+        }
         renderInlineStatus(host, 'Consultando clasificación…', true);
         try {
-            const response = await fetch('/api/sofascore/league-table', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query) });
+            const response = await fetch('/api/sofascore/league-table', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query),
+            });
             const data = await response.json();
             if (!response.ok || !data.available) {
-                const reasons = { teams_not_resolved: 'No se han podido identificar los equipos.', match_not_resolved: 'No se ha podido relacionar el partido con la competición.', standings_not_available: 'La fuente no ofrece una clasificación verificada.', competition_has_no_standings: 'Esta competición no tiene clasificación.', provider_unavailable: 'La fuente de clasificación no está disponible ahora.' };
+                const reasons = {
+                    teams_not_resolved: 'No se han podido identificar los equipos.',
+                    match_not_resolved: 'No se ha podido relacionar el partido con la competición.',
+                    standings_not_available: 'La fuente no ofrece una clasificación verificada.',
+                    competition_has_no_standings: 'Esta competición no tiene clasificación.',
+                    provider_unavailable: 'La fuente de clasificación no está disponible ahora.',
+                };
                 throw new Error(reasons[data.reason] || 'No hay clasificación disponible para esta liga.');
             }
-            host._leagueTableData = data; renderInlineStandings(host, data, 'total', query);
-        } catch (error) { renderInlineStatus(host, error.message || 'No se pudo cargar la clasificación.'); }
+            host._leagueTableData = data;
+            renderInlineStandings(host, data, 'total', query);
+        } catch (error) {
+            renderInlineStatus(host, error.message || 'No se pudo cargar la clasificación.');
+        }
     };
 
     document.addEventListener('click', async event => {
@@ -631,7 +522,10 @@
         };
 
         const inlineTarget = findInlineStandingsHost(button);
-        if (inlineTarget) { await loadInlineStandings(button, inlineTarget, currentQuery); return; }
+        if (inlineTarget) {
+            await loadInlineStandings(button, inlineTarget, currentQuery);
+            return;
+        }
 
         openStatusModal(button, 'loading');
 
@@ -646,28 +540,16 @@
                 showTable(data);
             } else {
                 const reasons = {
-                    teams_not_resolved: 'No se reconocieron los equipos en la fuente.',
-                    match_not_resolved: 'No se pudo relacionar este partido con su competición.',
-                    standings_not_available: 'No se ha podido recuperar una clasificación verificada para esta competición y temporada.',
-                    provider_unavailable: 'El proveedor de clasificaciones no está disponible ahora.',
-                    provider_access_challenge: 'El proveedor ha bloqueado temporalmente la consulta de clasificación.',
-                    provider_rate_limited: 'El proveedor ha limitado temporalmente las consultas de clasificación.',
-                    competition_not_resolved: 'No se ha podido identificar con seguridad esta competición.',
-                    competition_ambiguous: 'Hay varias competiciones posibles; falta confirmar cuál corresponde al partido.',
+                    teams_not_resolved: 'SofaScore no ha reconocido ninguno de los dos equipos.',
+                    match_not_resolved: 'SofaScore no ha podido relacionar este partido con su liga.',
+                    standings_not_available: 'No se ha podido recuperar una tabla verificada para esta competición y temporada.',
+                    competition_has_no_standings: 'Este amistoso no pertenece a una liga con clasificación.',
+                    provider_unavailable: 'SofaScore no está disponible en este momento.',
                 };
                 openStatusModal(button, 'error', reasons[data.reason] || 'No hay clasificación disponible para esta liga.');
             }
         } catch (error) {
-            openStatusModal(button, 'error', 'No se ha podido conectar con el servicio de clasificación.');
+            openStatusModal(button, 'error', 'No se ha podido conectar con SofaScore.');
         }
     });
-
-    // Exponer helpers por si se necesitan
-    window.__leagueTableHelpers = {
-        labels,
-        renderOuTable,
-        renderStandings,
-        renderAnalysis,
-        buildHandicapDiagnosis
-    };
 })();

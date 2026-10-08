@@ -129,76 +129,53 @@ def _parse_nowgoal_date_to_spain(date_raw: Any) -> Optional[dt.datetime]:
     return None
 
 
+def _parse_market_number(val: Any, minimum: float, maximum: float) -> Optional[float]:
+    if val in (None, "", "N/A", "null", "None", "-", "?", "--", "undefined"):
+        return None
+    text = str(val).strip().replace("−", "-").replace(",", ".").replace("+", "")
+    if "→" in text:
+        text = text.split("→")[-1].strip()
+    elif "->" in text:
+        text = text.split("->")[-1].strip()
+    try:
+        if "/" in text:
+            parts = [float(part.strip()) for part in text.split("/")]
+            if len(parts) != 2:
+                return None
+            number = sum(parts) / 2.0
+        else:
+            number = float(text)
+    except (TypeError, ValueError):
+        return None
+    return number if minimum <= number <= maximum else None
+
+
 def parse_handicap_numeric(val: Any) -> Optional[float]:
-    """
-    Convierte cualquier representación de hándicap asiático a float numérico.
-    Soporta formato decimal (-0.25, 0.5, 1.0) y fraccional/split (0/-0.5 -> -0.25, 0/0.5 -> 0.25, 0.5/1 -> 0.75).
-    """
-    if val in (None, "", "N/A", "null", "None", "-", "?", "--", "undefined"):
-        return None
-    s = str(val).strip().replace("−", "-").replace(",", ".").replace("+", "")
-    if not s or s in ("-", "--"):
-        return None
-    if "→" in s:
-        s = s.split("→")[-1].strip()
-    elif "->" in s:
-        s = s.split("->")[-1].strip()
-    if "/" in s:
-        parts = s.split("/")
-        if len(parts) == 2:
-            try:
-                p1 = float(parts[0].strip())
-                p2 = float(parts[1].strip())
-                avg = (p1 + p2) / 2.0
-                return avg if -10.0 <= avg <= 10.0 else None
-            except (ValueError, TypeError):
-                pass
-    try:
-        number = float(s)
-        return number if -10.0 <= number <= 10.0 else None
-    except (TypeError, ValueError):
-        return None
-
-
-def parse_goal_line_numeric(val: Any) -> Optional[float]:
-    """
-    Convierte cualquier representación de línea O/U (goles) a float numérico.
-    Soporta formato decimal (2.5, 3.0) y fraccional/split (2.5/3 -> 2.75, 2/2.5 -> 2.25).
-    """
-    if val in (None, "", "N/A", "null", "None", "-", "?", "--", "undefined"):
-        return None
-    s = str(val).strip().replace("−", "-").replace(",", ".").replace("+", "")
-    if not s or s in ("-", "--"):
-        return None
-    if "/" in s:
-        parts = s.split("/")
-        if len(parts) == 2:
-            try:
-                p1 = float(parts[0].strip())
-                p2 = float(parts[1].strip())
-                avg = (p1 + p2) / 2.0
-                return avg if 0.5 <= avg <= 15.0 else None
-            except (ValueError, TypeError):
-                pass
-    try:
-        number = float(s)
-        return number if 0.5 <= number <= 15.0 else None
-    except (TypeError, ValueError):
-        return None
+    """Normaliza AH decimal o partido (0/0.5, 0.5/1, etc.)."""
+    return _parse_market_number(val, -10.0, 10.0)
 
 
 def _is_valid_numeric_handicap(val: Any) -> bool:
-    """Devuelve True solo si val representa un handicap asiático numérico válido."""
     return parse_handicap_numeric(val) is not None
 
 
+def parse_goal_line_numeric(val: Any) -> Optional[float]:
+    """Normaliza O/U decimal o partido (2/2.5, 2.5/3, etc.)."""
+    return _parse_market_number(val, 0.5, 15.0)
+
+
 def _is_valid_numeric_goal_line(val: Any) -> bool:
-    """Acepta solo totales de goles plausibles; evita confundir IDs de país con O/U."""
     return parse_goal_line_numeric(val) is not None
 
 
 def fetch_bf_data_raw(return_odds: bool = False) -> Any:
-    """Descarga el contenido JS de partidos próximos unificando ligas principales y secundarias (All) y sus cuotas XML."""
+    """Descarga el feed ``All`` completo y, opcionalmente, sus líneas AH/O-U.
+
+    NowGoal no siempre incrusta las líneas en el array ``A``. Muchos partidos
+    (especialmente reservas y ligas secundarias) solo las publican en los XML de
+    cada casa. Si no se cruzan ambos orígenes, esos partidos desaparecen de la
+    cola aunque sean visibles en la pestaña All.
+    """
     session = get_requests_session()
     endpoints = [
         "/gf/data/bf_en-idn.js",
@@ -242,11 +219,9 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
 
             if combined:
                 odds: Dict[str, Dict[str, str]] = {}
-                xml_headers = {
-                    "Accept": "*/*",
-                    "Referer": f"{host}/",
-                }
-                # Descargar cuotas de Bet365 (8), Crown (3) y Sbobet (31)
+                xml_headers = {"Accept": "*/*", "Referer": f"{host}/"}
+                # Cobertura de All: SBOBet, Crown y Bet365. Una casa puede no
+                # cotizar una liga que sí aparece en otra.
                 for cid in ("31", "3", "8"):
                     try:
                         odds_resp = session.get(
@@ -256,22 +231,19 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
                             verify=False,
                             headers=xml_headers,
                         )
-                        if odds_resp.status_code == 200 and odds_resp.text:
-                            parsed_c = _parse_finished_odds_xml(odds_resp.text)
-                            for mid, od in parsed_c.items():
-                                if mid not in odds:
-                                    odds[mid] = {}
-                                if od.get("handicap") not in (None, ""):
-                                    odds[mid]["handicap"] = od["handicap"]
-                                if od.get("goal_line") not in (None, ""):
-                                    odds[mid]["goal_line"] = od["goal_line"]
+                        if odds_resp.status_code != 200 or not odds_resp.text:
+                            continue
+                        for match_id, market in _parse_finished_odds_xml(odds_resp.text).items():
+                            current = odds.setdefault(match_id, {})
+                            if market.get("handicap") not in (None, ""):
+                                current["handicap"] = market["handicap"]
+                            if market.get("goal_line") not in (None, ""):
+                                current["goal_line"] = market["goal_line"]
                     except Exception as exc:
                         LOGGER.debug("Error fetching goal%s.xml on %s: %s", cid, host, exc)
 
                 text_result = "\n".join(combined)
-                if return_odds:
-                    return text_result, odds
-                return text_result
+                return (text_result, odds) if return_odds else text_result
 
             # Fallback a bf_en.js si los anteriores fallaron
             for ep in ["/gf/data/bf_en.js", "/gf/data/bf_change_en.js"]:
@@ -284,52 +256,18 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
                         verify=False,
                     )
                     if resp.status_code == 200 and ("A[" in resp.text or "var A" in resp.text):
-                        if return_odds:
-                            # Intentar también descargar XMLs de cuotas en fallback
-                            fallback_odds: Dict[str, Dict[str, str]] = {}
-                            xml_headers = {
-                                "Accept": "*/*",
-                                "Referer": f"{host}/",
-                            }
-                            for cid in ("31", "3", "8"):
-                                try:
-                                    odds_resp = session.get(
-                                        f"{host}/gf/data/odds/en/goal{cid}.xml",
-                                        params={"_": int(time.time() * 1000)},
-                                        timeout=6,
-                                        verify=False,
-                                        headers=xml_headers,
-                                    )
-                                    if odds_resp.status_code == 200 and odds_resp.text:
-                                        parsed_c = _parse_finished_odds_xml(odds_resp.text)
-                                        for mid_c, od in parsed_c.items():
-                                            if mid_c not in fallback_odds:
-                                                fallback_odds[mid_c] = {}
-                                            if od.get("handicap") not in (None, ""):
-                                                fallback_odds[mid_c]["handicap"] = od["handicap"]
-                                            if od.get("goal_line") not in (None, ""):
-                                                fallback_odds[mid_c]["goal_line"] = od["goal_line"]
-                                except Exception:
-                                    pass
-                            return resp.text, fallback_odds
-                        return resp.text
+                        return (resp.text, {}) if return_odds else resp.text
                 except Exception:
                     continue
         except Exception as exc:
             LOGGER.debug("Error during handshake on %s: %s", host, exc)
             continue
 
-    if return_odds:
-        return None, {}
-    return None
+    return (None, {}) if return_odds else None
+
 
 def _parse_finished_odds_xml(content: str) -> Dict[str, Dict[str, str]]:
-    """Convierte goal8.xml / goal3.xml en un mapa match_id -> líneas AH/O-U.
-
-    Acepta nodos con menos de 11 campos: extrae AH de parts[2] si hay >=3
-    campos, y O/U de parts[10] si hay >=11. Así no se pierden partidos cuyo
-    XML solo incluye línea AH pero no O/U (o viceversa).
-    """
+    """Convierte un XML ``goal*.xml`` en un mapa match_id -> líneas AH/O-U."""
     odds: Dict[str, Dict[str, str]] = {}
     if not content:
         return odds
@@ -340,22 +278,9 @@ def _parse_finished_odds_xml(content: str) -> Dict[str, Dict[str, str]]:
 
     for node in root.findall(".//m"):
         parts = [part.strip() for part in (node.text or "").split(",")]
-        if len(parts) < 3 or not parts[0]:
+        if len(parts) < 11 or not parts[0]:
             continue
-        entry: Dict[str, str] = {}
-        if parts[2]:
-            entry["handicap"] = parts[2]
-        if len(parts) > 10 and parts[10]:
-            entry["goal_line"] = parts[10]
-        if entry:
-            mid = parts[0]
-            if mid not in odds:
-                odds[mid] = entry
-            else:
-                # Merge: no sobreescribir con vacío
-                for k, v in entry.items():
-                    if v and not odds[mid].get(k):
-                        odds[mid][k] = v
+        odds[parts[0]] = {"handicap": parts[2], "goal_line": parts[10]}
     return odds
 
 
@@ -400,10 +325,6 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
 
             if combined_texts:
                 odds: Dict[str, Dict[str, str]] = {}
-                xml_headers = {
-                    "Accept": "*/*",
-                    "Referer": results_url,
-                }
                 for cid in ("31", "3", "8"):
                     try:
                         odds_resp = session.get(
@@ -411,23 +332,21 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
                             params={"_": int(time.time() * 1000)},
                             timeout=8,
                             verify=False,
-                            headers=xml_headers,
+                            headers=headers,
                         )
-                        if odds_resp.status_code == 200 and odds_resp.text:
-                            parsed_c = _parse_finished_odds_xml(odds_resp.text)
-                            for mid, od in parsed_c.items():
-                                if mid not in odds:
-                                    odds[mid] = {}
-                                if od.get("handicap") not in (None, ""):
-                                    odds[mid]["handicap"] = od["handicap"]
-                                if od.get("goal_line") not in (None, ""):
-                                    odds[mid]["goal_line"] = od["goal_line"]
+                        if odds_resp.status_code != 200 or not odds_resp.text:
+                            continue
+                        for match_id, market in _parse_finished_odds_xml(odds_resp.text).items():
+                            current = odds.setdefault(match_id, {})
+                            if market.get("handicap") not in (None, ""):
+                                current["handicap"] = market["handicap"]
+                            if market.get("goal_line") not in (None, ""):
+                                current["goal_line"] = market["goal_line"]
                     except Exception as exc:
                         LOGGER.debug("Error fetching finish goal%s.xml on %s: %s", cid, host, exc)
                 return "\n".join(combined_texts), odds
         except Exception as exc:
             LOGGER.debug("Error during results handshake on %s: %s", host, exc)
-            continue
     return None, {}
 
 
@@ -440,6 +359,7 @@ def parse_matches_from_bf_content(
     require_handicap: bool = True,
     require_goal_line: bool = False,
 ) -> List[Dict[str, Any]]:
+    """Parsea el contenido de bf_en-idn.js y devuelve una lista de diccionarios normalizados."""
     if not content:
         return []
 
@@ -469,11 +389,8 @@ def parse_matches_from_bf_content(
         seen_ids.add(match_id)
 
         league_id = str(row[1]) if len(row) > 1 and row[1] is not None else ""
-        _raw_fb = str(row[2]) if len(row) > 2 and row[2] else ""
-        # row[2] en array A[] suele ser un ID numérico de país (ej. "6"), no el nombre de liga.
-        # Sólo usarlo como fallback si no es un número puro.
         league_name = leagues_map.get(league_id) or (
-            _raw_fb if _raw_fb and not _raw_fb.lstrip("-").isdigit() else "Unknown League"
+            str(row[2]) if len(row) > 2 and row[2] else "Unknown League"
         )
 
         home_team = str(row[4]) if len(row) > 4 and row[4] is not None else "Local"
@@ -499,34 +416,35 @@ def parse_matches_from_bf_content(
         time_str = match_dt.strftime("%H:%M")
         date_str = match_dt.strftime("%m/%d/%Y")
         start_time_iso = match_dt.isoformat()
-        # Handicap asiático (AH) y Totales (O/U)
+
+        # La columna 23 es country_id/region_id, nunca O/U. Las cuotas del XML
+        # prevalecen porque son las mismas que se ven en la tabla All.
         ah_val = parse_handicap_numeric(row[21]) if len(row) > 21 else None
         ou_val = parse_goal_line_numeric(row[25]) if len(row) > 25 else None
-
-        # Si tenemos cuotas enriquecidas (ej. goal8.xml en partidos finalizados), sobreescribir si son válidas
-        finished_odds = (odds_by_match or {}).get(match_id, {})
-        if finished_odds.get("handicap") not in (None, ""):
-            f_ah = parse_handicap_numeric(finished_odds["handicap"])
-            if f_ah is not None:
-                ah_val = f_ah
-        if finished_odds.get("goal_line") not in (None, ""):
-            f_ou = parse_goal_line_numeric(finished_odds["goal_line"])
-            if f_ou is not None:
-                ou_val = f_ou
+        market = (odds_by_match or {}).get(match_id, {})
+        xml_ah = parse_handicap_numeric(market.get("handicap"))
+        xml_ou = parse_goal_line_numeric(market.get("goal_line"))
+        if xml_ah is not None:
+            ah_val = xml_ah
+        if xml_ou is not None:
+            ou_val = xml_ou
 
         ah_str = f"{ah_val:.2f}".rstrip("0").rstrip(".") if ah_val is not None else "N/A"
-        if ah_str in ("", "-0"):
-            ah_str = "0"
         ou_str = f"{ou_val:.2f}".rstrip("0").rstrip(".") if ou_val is not None else "N/A"
-        if ou_str == "":
-            ou_str = "N/A"
+        if ah_str == "-0":
+            ah_str = "0"
 
+        # Descarte estricto: Todo partido sin línea de hándicap válida queda excluido
         if require_handicap and ah_val is None:
             continue
         if require_goal_line and ou_val is None:
             continue
 
-        is_finished = status_val in (-1, 13, 14, 15) or (
+        if status_filter == "finished" and odds_by_match is not None:
+            # En el feed /finish: -1=FT; -10=cancelado, -11=pendiente y -14=aplazado.
+            is_finished = status_val == -1
+        else:
+            is_finished = status_val in (-1, 13, 14, 15) or (
                 score_str is not None
                 and score_str != "-:-"
                 and home_score != ""
@@ -610,22 +528,7 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
             page = browser.new_page()
             try:
                 page.goto("https://live11.nowgoal26.com/", wait_until="domcontentloaded", timeout=25000)
-                page.wait_for_timeout(3000)
-                try:
-                    page.evaluate("""() => {
-                        const candidates = Array.from(document.querySelectorAll('a, li, span, button'));
-                        const allBtn = candidates.find(el => {
-                            const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
-                            const id = (el.id || '').toLowerCase();
-                            return (txt === 'all' || txt === 'all matches' || id === 'allleague' || id === 'li_filterall');
-                        });
-                        if (allBtn) { allBtn.click(); }
-                        if (typeof FilterOption === 'function') { FilterOption(0); }
-                        if (typeof FilterByOption === 'function') { FilterByOption(0); }
-                    }""")
-                    page.wait_for_timeout(2000)
-                except Exception:
-                    pass
+                page.wait_for_timeout(4000)
 
                 raw_data = page.evaluate("""() => {
                     const matches = [];
@@ -673,10 +576,7 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
             seen_ids.add(match_id)
 
             league_id = str(row[1]) if len(row) > 1 and row[1] is not None else ""
-            _raw_fb = str(row[2]) if len(row) > 2 and row[2] else ""
-            league_name = leagues_map.get(league_id) or (
-                _raw_fb if _raw_fb and not _raw_fb.lstrip("-").isdigit() else "Unknown League"
-            )
+            league_name = leagues_map.get(league_id) or (str(row[2]) if len(row) > 2 and row[2] else "Unknown League")
             home_team = str(row[4]) if len(row) > 4 and row[4] is not None else "Local"
             away_team = str(row[5]) if len(row) > 5 and row[5] is not None else "Visitante"
 
@@ -836,7 +736,7 @@ def fetch_main_page_matches_direct(
     handicap_filter: Optional[str] = None,
     goal_line_filter: Optional[str] = None,
     require_handicap: bool = True,
-    require_goal_line: bool = False,
+    require_goal_line: bool = True,
 ) -> List[Dict[str, Any]]:
     """Descarga de forma ultrarrápida los partidos (HTTP directo con fallback a Playwright)."""
     # 1. Intentar vía HTTP directo (50-100ms)
@@ -856,6 +756,8 @@ def fetch_main_page_matches_direct(
             require_handicap=require_handicap,
             require_goal_line=require_goal_line,
         )
+
+    # 2. Fallback a Playwright si HTTP directo falló o no devolvió partidos
     if not matches:
         matches = (
             fetch_finished_matches_with_playwright()

@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
-import sys
 import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
@@ -20,13 +18,7 @@ _INDEX_ROWS: List[Dict[str, Any]] = []
 
 
 def available() -> bool:
-    if not INDEX_FILE.is_file():
-        return False
-    # En local, SQLite (app_data.db) es la fuente de verdad siempre actualizada.
-    # El índice rápido queda reservado para Render o entornos con variable explícita/tests.
-    if os.getenv("RENDER") or os.getenv("USE_PRECACHEO_FAST") or "pytest" in sys.modules:
-        return True
-    return False
+    return INDEX_FILE.is_file()
 
 
 def _load_index() -> List[Dict[str, Any]]:

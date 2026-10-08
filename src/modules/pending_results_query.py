@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import math
+import os
 import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
@@ -299,6 +300,8 @@ def fetch_pending_page(
         pending.append((scheduled_at, match_id))
 
     pending.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if os.getenv("RENDER"):
+        pending = pending[:200]
     total = len(pending)
     total_pages = max(1, math.ceil(total / per_page))
     page = min(page, total_pages)
@@ -365,41 +368,15 @@ def fetch_upcoming_page(
         headers_by_id[match_id] = row
         upcoming.append((scheduled_at, match_id))
 
-    # Incorporar partidos frescos del snapshot principal si aún no tienen ficha en precacheo
-    snapshot = sql_store.get_json_state("app_main_page_cache_v1", default={}) or {}
-    snapshot_matches = snapshot.get("upcoming_matches", []) if isinstance(snapshot, dict) else []
-    snapshot_payloads: Dict[str, Dict[str, Any]] = {}
-
-    for row in snapshot_matches:
-        if not isinstance(row, dict):
-            continue
-        match_id = str(row.get("match_id") or row.get("id") or "").strip()
-        if not match_id or match_id in seen_ids or _has_final_score(row):
-            continue
-        scheduled_at = _scheduled_at_utc(row)
-        if not scheduled_at or scheduled_at <= now_utc:
-            continue
-        ah_val = row.get("handicap")
-        if ah_val in (None, "", "N/A", "-"):
-            ah_val = (row.get("main_match_odds") or {}).get("ah_linea")
-        if handicap_buckets and not precache_fast_store._matches_handicap(ah_val, handicap_buckets):
-            continue
-        seen_ids.add(match_id)
-        headers_by_id[match_id] = row
-        snapshot_payloads[match_id] = row
-        upcoming.append((scheduled_at, match_id))
-
     upcoming.sort(key=lambda item: (item[0], item[1]))
+    if os.getenv("RENDER"):
+        upcoming = upcoming[:400]
     total = len(upcoming)
     total_pages = max(1, math.ceil(total / per_page))
     page = min(page, total_pages)
     start = (page - 1) * per_page
     page_ids = [item[1] for item in upcoming[start:start + per_page]]
     payloads = _fetch_payloads_by_ids(page_ids)
-    for match_id in page_ids:
-        if match_id not in payloads and match_id in snapshot_payloads:
-            payloads[match_id] = snapshot_payloads[match_id]
-
     matches = []
     for match_id in page_ids:
         payload = payloads.get(match_id)

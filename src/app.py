@@ -26,9 +26,6 @@ import urllib3
 import csv
 import os
 import gzip
-import subprocess
-import shutil
-import secrets
 
 # Desactivar advertencias de SSL inseguro para verify=False
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -59,11 +56,14 @@ from modules.pattern_search import find_similar_patterns, explore_matches
 from modules.bookie_decoder import analyze_match_bookie_logic
 from modules.scah_analyzer import analizar_partido_scah
 from modules.handicap_similar_analyzer import analizar_partido_handicap_similar
-from modules import winner_tracker, lexington_pattern, favorite_process_pattern, local_rerate_pattern, col3_indirect_pattern, quarter_away_pattern, last_general_context, rival_handicap_samples, housemind_ou, league_handicap_scraper, league_extraction_registry, uefa_qualifying, sofascore_context, league_market_tracker, league_evolution_learning, nowgoal_fetcher, team_recent_history
+from modules import team_recent_history
+from modules import winner_tracker, lexington_pattern, favorite_process_pattern, local_rerate_pattern, col3_indirect_pattern, quarter_away_pattern, last_general_context, rival_handicap_samples, housemind_ou, league_handicap_scraper, league_extraction_registry, uefa_qualifying, sofascore_context, league_market_tracker, league_evolution_learning
 from flask import jsonify # Asegúrate de que jsonify está importado
 
 
 app = Flask(__name__)
+from modules.cloud_bots import blueprint as cloud_bots_blueprint
+app.register_blueprint(cloud_bots_blueprint)
 
 _league_market_jobs = {}
 _league_market_jobs_lock = threading.Lock()
@@ -150,6 +150,7 @@ def save_match_to_csv(match_data):
         print(f"Error guardando en CSV: {e}")
 
 from modules import data_manager
+from modules import precache_fast_store
 from modules import sql_store
 from modules import pending_results_query
 from scripts.finished_result_validation import validate_finished_result
@@ -192,7 +193,6 @@ _requests_fetch_lock = threading.Lock()
 _EMPTY_DATA_TEMPLATE = {"upcoming_matches": [], "finished_matches": []}
 UTC_TZ = datetime.timezone.utc
 SPAIN_TZ = ZoneInfo("Europe/Madrid")
-BEIJING_TZ = ZoneInfo("Asia/Shanghai")
 MAIN_PAGE_CACHE_KEY = "app_main_page_cache_v1"
 _DATA_FILE_CANDIDATES = [
     Path(__file__).resolve().parent / 'data.json',
@@ -252,7 +252,7 @@ def _env_int(name, default):
 
 def _bounded_scrape_workers(requested, default=1):
     """Keep every job, but bound simultaneous memory-heavy work."""
-    configured_max = max(1, _env_int('SCRAPE_MAX_CONCURRENCY', 8))
+    configured_max = max(1, _env_int('SCRAPE_MAX_CONCURRENCY', 2))
     try:
         requested_workers = int(requested)
     except (TypeError, ValueError):
@@ -264,9 +264,18 @@ def _is_app_precacheo_only():
     return _env_flag('APP_PRECACHEO_ONLY', default=False)
 
 
+def _is_app_explorer_only():
+    return _env_flag('APP_EXPLORER_ONLY', default=False)
+
+
+def _main_app_url():
+    return os.getenv('MAIN_APP_URL', 'https://nowgoal-app-v8fw.onrender.com').rstrip('/')
+
+
 _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS = {
     '/',
     '/favicon.ico',
+    '/healthz',
     '/api/ai_prediction',
     '/precacheo-sw.js',
 }
@@ -281,8 +290,13 @@ _PRECACHEO_ONLY_ALLOWED_PREFIXES = (
     '/api/matches',
     '/api/ligas_',
     '/api/finished_matches_list',
-    '/api/high-over-leagues',
 )
+
+
+@app.route('/healthz')
+def healthz():
+    """Lightweight Render health check that does not render the full UI."""
+    return 'ok', 200, {'Cache-Control': 'no-store'}
 
 
 @app.before_request
@@ -290,10 +304,21 @@ def _enforce_precacheo_only_mode():
     """
     Render-only deployment option: expose only /precacheo UI + precacheo APIs.
     """
+    path = request.path or '/'
+    if _is_app_explorer_only():
+        if path in {'/healthz', '/favicon.ico'}:
+            return None
+        # El servicio de Explorador es un apoyo del principal, no la portada.
+        # Al abrir su dominio sin ruta devolvemos al usuario a Pre-Cacheo.
+        if path == '/':
+            return redirect(f"{_main_app_url()}/precacheo")
+        if path.startswith(('/explorador', '/static/', '/api/')):
+            return None
+        return redirect(url_for('explorador'))
+
     if not _is_app_precacheo_only():
         return None
 
-    path = request.path or '/'
     if path in _PRECACHEO_ONLY_ALLOWED_EXACT_PATHS:
         return None
 
@@ -399,15 +424,8 @@ def _snapshot_has_matches(snapshot):
     if not isinstance(snapshot, dict):
         return False
     upcoming = snapshot.get('upcoming_matches', [])
-    if not upcoming:
-        return bool(snapshot.get('finished_matches', []))
-    now_utc = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
-    future_count = 0
-    for m in upcoming:
-        p_time = _parse_time_obj(m.get('time_obj')) or _parse_start_time_to_utc(m.get('start_time'))
-        if p_time and p_time >= now_utc:
-            future_count += 1
-    return future_count >= 5
+    finished = snapshot.get('finished_matches', [])
+    return bool(upcoming) or bool(finished)
 
 
 async def _refresh_main_page_snapshot_if_empty():
@@ -469,12 +487,12 @@ def _maybe_cleanup_precacheo_stale(force=False):
         )
         if removed > 0:
             print(
-                f"[CLEANUP] Precacheo cleanup: {removed} eliminados "
+                f"🧹 Precacheo cleanup: {removed} eliminados "
                 f"(pendientes>{_PRECACHEO_PENDING_MAX_AGE_DAYS}d)."
             )
         return removed
     except Exception as exc:
-        print(f"[AVISO] Error en precacheo cleanup: {exc}")
+        print(f"⚠️ Error en precacheo cleanup: {exc}")
         return 0
 
 
@@ -1104,64 +1122,60 @@ async def get_main_page_finished_matches_async(limit=None, offset=0, handicap_fi
 
 async def scrape_main_page_matches_async_direct(limit=None, offset=0, handicap_filter=None, goal_line_filter=None, min_time=None):
     """
-    Descarga directamente desde los endpoints JS de NowGoal (próximos).
+    Versión DEDICADA para scripts de fondo (Colab). Descarga la web fresca.
+    NO USAR EN LA WEB (lento).
     """
-    try:
-        matches = await asyncio.to_thread(
-            nowgoal_fetcher.fetch_main_page_matches_direct,
-            status_filter="upcoming",
-            limit=limit,
-            offset=offset,
-            handicap_filter=handicap_filter,
-            goal_line_filter=goal_line_filter,
-            require_handicap=True,
-            require_goal_line=True,
-        )
-        if matches:
-            matches = [m for m in matches if _match_has_handicap(m)]
-            if min_time:
-                filtered = []
-                for m in matches:
-                    t_str = m.get('start_time')
-                    if t_str and t_str != 'N/A':
-                        try:
-                            t_obj = datetime.datetime.fromisoformat(t_str)
-                            if t_obj.replace(tzinfo=None) >= min_time.replace(tzinfo=None):
-                                filtered.append(m)
-                        except Exception:
-                            pass
-                matches = filtered
-            print(f"[DIRECT SCRAPE] Encontrados {len(matches)} partidos próximos con hándicap válido.")
-            return matches
-    except Exception as exc:
-        print(f"[DIRECT SCRAPE] Error en nowgoal_fetcher upcoming: {exc}")
+    print("[DIRECT SCRAPE] Descargando pagina principal (Proximos)...")
+    html = await _fetch_nowgoal_html() # path None = home
+    if not html:
+        print("[DIRECT SCRAPE] Error: No se pudo descargar HTML.")
+        return []
 
-    return []
+    print(f"[DIRECT SCRAPE] HTML descargado ({len(html)} bytes). Parseando...")
+    matches = parse_main_page_matches(
+        html, 
+        limit=limit, 
+        offset=offset, 
+        handicap_filter=handicap_filter, 
+        goal_line_filter=goal_line_filter
+    )
+    
+    if min_time:
+        filtered = []
+        for m in matches:
+            t_str = m.get('start_time')
+            if t_str and t_str != 'N/A':
+                try:
+                    t_obj = datetime.datetime.fromisoformat(t_str)
+                    if t_obj.replace(tzinfo=None) >= min_time.replace(tzinfo=None):
+                        filtered.append(m)
+                except Exception as e:
+                    pass
+        matches = filtered
 
+    print(f"[DIRECT SCRAPE] Encontrados {len(matches)} partidos.")
+    return matches
 
 async def scrape_main_page_finished_matches_async_direct(limit=None, offset=0, handicap_filter=None, goal_line_filter=None):
     """
-    Descarga directamente desde los endpoints JS de NowGoal (finalizados).
+    Versión DEDICADA para scripts de fondo (Colab). Descarga la web fresca para terminados.
     """
-    try:
-        matches = await asyncio.to_thread(
-            nowgoal_fetcher.fetch_main_page_matches_direct,
-            status_filter="finished",
-            limit=limit,
-            offset=offset,
-            handicap_filter=handicap_filter,
-            goal_line_filter=goal_line_filter,
-            require_handicap=True,
-            require_goal_line=True,
-        )
-        if matches:
-            matches = [m for m in matches if _match_has_handicap(m)]
-            print(f"[DIRECT SCRAPE] Encontrados {len(matches)} partidos terminados con hándicap válido.")
-            return matches
-    except Exception as exc:
-        print(f"[DIRECT SCRAPE] Error en nowgoal_fetcher finished: {exc}")
+    print("[DIRECT SCRAPE] Descargando pagina principal (Finalizados)...")
+    html = await _fetch_nowgoal_html()
+    if not html:
+        print("[DIRECT SCRAPE] Error: No se pudo descargar HTML.")
+        return []
 
-    return []
+    print(f"[DIRECT SCRAPE] HTML descargado. Parseando...")
+    matches = parse_main_page_finished_matches(
+        html,
+        limit=limit,
+        offset=offset,
+        handicap_filter=handicap_filter,
+        goal_line_filter=goal_line_filter
+    )
+    print(f"[DIRECT SCRAPE] Encontrados {len(matches)} partidos terminados.")
+    return matches
 
 
 
@@ -1602,11 +1616,6 @@ def _compact_precacheo_match_for_list(match, include_specialist_picks=False):
         compact['clave_u22_pickem_dog_win_home_dnb_under'] = False
         compact['clave_over_counter_confirmers'] = 0
 
-    if compact.get('handicap') in (None, '', 'N/A', '-', 'null', 'None'):
-        compact['handicap'] = (compact.get('main_match_odds') or {}).get('ah_linea')
-    if compact.get('goal_line') in (None, '', 'N/A', '-', 'null', 'None'):
-        compact['goal_line'] = (compact.get('main_match_odds') or {}).get('goals_linea')
-
     return compact
 
 
@@ -1669,16 +1678,13 @@ def api_export_prompts_bulk():
         from modules import llm_exporter
         prompts = []
         for mid in match_ids:
-            # Obtener primero de precacheo (tiene H2H completo), luego fallback genérico
-            match_data = sql_store.get_match(str(mid), bucket='data_precacheo.json')
-            if not match_data:
-                match_data = sql_store.get_match(str(mid))
+            # Obtener el partido directamente de la base de datos
+            match_data = sql_store.get_match(str(mid))
             if not match_data:
                 # Fallback de análisis si no está en la base de datos
                 match_data = analizar_partido_completo(str(mid), force_refresh=False)
                 if isinstance(match_data, tuple):
                     match_data = match_data[0]
-
 
             if isinstance(match_data, dict) and "error" not in match_data:
                 prompt = llm_exporter.generate_llm_prompt(match_data)
@@ -1719,11 +1725,7 @@ def api_export_context_prompts_txt():
 
         matches = []
         for match_id in match_ids:
-            # Buscar primero en precacheo (tiene el análisis H2H completo).
-            # Si no está, intentar cualquier bucket como fallback.
-            stored = sql_store.get_match(match_id, bucket='data_precacheo.json')
-            if not isinstance(stored, dict) or 'error' in stored:
-                stored = sql_store.get_match(match_id)
+            stored = sql_store.get_match(match_id)
             if isinstance(stored, dict) and 'error' not in stored:
                 matches.append(stored)
 
@@ -1901,8 +1903,8 @@ def _fetch_grandes_ligas_upcoming_matches(limit: int | None = None, max_days: in
     Returns list sorted by start_time asc.
     """
     all_matches = []
-    now_spain = datetime.datetime.now(SPAIN_TZ)
-    max_date_spain = now_spain + datetime.timedelta(days=max_days)
+    now = datetime.datetime.now()
+    max_date = now + datetime.timedelta(days=max_days)
     session = _get_shared_requests_session()
 
     for liga_name, liga_info in GRANDES_LIGAS_DATA_URLS.items():
@@ -1943,10 +1945,7 @@ def _fetch_grandes_ligas_upcoming_matches(limit: int | None = None, max_days: in
                         except Exception:
                             continue
 
-                        # Convertir de GMT+8 (Pekín) a España (Europe/Madrid)
-                        spain_time = match_time.replace(tzinfo=BEIJING_TZ).astimezone(SPAIN_TZ)
-
-                        if spain_time < now_spain or spain_time > max_date_spain:
+                        if match_time < now or match_time > max_date:
                             continue
 
                         clean_score = score.replace("'", "").strip()
@@ -1955,6 +1954,9 @@ def _fetch_grandes_ligas_upcoming_matches(limit: int | None = None, max_days: in
 
                         home_name = teams.get(home_id, f"Team {home_id}")
                         away_name = teams.get(away_id, f"Team {away_id}")
+
+                        # Source time is GMT+8; convert to Spain (CET/CEST approx by -7h used in existing code).
+                        spain_time = match_time - datetime.timedelta(hours=7)
 
                         all_matches.append({
                             'id': match_id,
@@ -2679,8 +2681,8 @@ def api_favoritas_matches():
             })
         
         all_matches = []
-        now_spain = datetime.datetime.now(SPAIN_TZ)
-        max_date_spain = now_spain + datetime.timedelta(days=7)
+        now = datetime.datetime.now()
+        max_date = now + datetime.timedelta(days=7)
         
         # Cargar datos ya precacheados
         precache_data = load_favoritas_precache()
@@ -2797,16 +2799,15 @@ def api_favoritas_matches():
                             except:
                                 continue
                             
-                            # Convertir de GMT+8 (Pekín) a España (Europe/Madrid)
-                            spain_time = match_time.replace(tzinfo=BEIJING_TZ).astimezone(SPAIN_TZ)
-                            
-                            if spain_time < now_spain or spain_time > max_date_spain:
+                            if match_time < now or match_time > max_date:
                                 continue
                             
                             clean_score = score.replace("'", "").strip()
                             if clean_score and clean_score != '-' and ':' not in clean_score and '-' in clean_score:
                                 continue
                             
+                            # Convertir de GMT+8 a CET (UTC+1)
+                            spain_time = match_time - datetime.timedelta(hours=7)
                             date_key = spain_time.strftime('%Y-%m-%d')
                             
                             # Buscar si ya tenemos datos de análisis para este partido en el precache
@@ -3036,8 +3037,9 @@ def api_favoritas_precache_start():
         if not ligas_to_scrape:
             return jsonify({'error': 'No hay ligas favoritas configuradas con ID localizable.'}), 400
         
-        now_spain = datetime.datetime.now(SPAIN_TZ)
-        max_date_spain = now_spain + datetime.timedelta(days=7)
+        all_matches = []
+        now = datetime.datetime.now()
+        max_date = now + datetime.timedelta(days=7)
         session = _get_shared_requests_session()
         
         for liga_name, liga_info in ligas_to_scrape.items():
@@ -3113,14 +3115,13 @@ def api_favoritas_precache_start():
                             match_id = parts[0].strip()
                             date_str = parts[3].strip().strip("'")
                             match_time = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M')
+                            if match_time < now or match_time > max_date: continue
                             
-                            # Convertir de GMT+8 (Pekín) a España (Europe/Madrid)
-                            spain_time = match_time.replace(tzinfo=BEIJING_TZ).astimezone(SPAIN_TZ)
-                            if spain_time < now_spain or spain_time > max_date_spain: continue
-
                             score = parts[6].strip().strip("'")
                             clean_score = score.replace("'", "").strip()
                             if clean_score and clean_score != '-' and ':' not in clean_score and '-' in clean_score: continue
+                            
+                            spain_time = match_time - datetime.timedelta(hours=7)
                             all_matches.append({
                                 'id': match_id,
                                 'league': liga_name,
@@ -3336,99 +3337,15 @@ def add_precache_processed_id(match_id):
         state['processed_ids'].append(str(match_id))
         save_precache_state(state)
 
-
-def _valid_numeric_handicap(value):
-    """Devuelve True solo para una línea AH numérica real (incluido 0)."""
-    if value in (None, "", "-", "N/A", "null", "None", "?", "--", "undefined"):
-        return False
-    return nowgoal_fetcher.parse_handicap_numeric(value) is not None
-
-
-def _match_has_handicap(match):
-    if not isinstance(match, dict):
-        return False
-    odds = match.get('main_match_odds') or {}
-    return _valid_numeric_handicap(
-        match.get('handicap')
-        if _valid_numeric_handicap(match.get('handicap'))
-        else odds.get('ah_linea')
-    )
-
-
-def _has_required_recent_venue_form(match_data):
-    if not isinstance(match_data, dict):
-        return False
-    home_form = match_data.get('recent_home_matches_same_league_specific')
-    away_form = match_data.get('recent_away_matches_same_league_specific')
-    return isinstance(home_form, list) and bool(home_form) and isinstance(away_form, list) and bool(away_form)
-
-
-def _finished_cache_is_complete(match_data):
-    """Decide si un terminado puede omitirse sin conservar celdas vacías."""
-    if not isinstance(match_data, dict) or match_data.get('error'):
-        return False
-    try:
-        if int(match_data.get('history_data_version') or 0) < 3:
-            return False
-    except (TypeError, ValueError):
-        return False
-    required_sections = (
-        'last_home_match',
-        'last_away_match',
-        'h2h_stadium',
-        'h2h_general',
-        'comparativas_indirectas',
-    )
-    return all(key in match_data for key in required_sections)
-
-
-def _merge_finished_source_fields(match_data, source_match):
-    """Conserva la línea AH y metadatos verificados en la página de resultados."""
-    if not isinstance(match_data, dict) or not isinstance(source_match, dict):
-        return match_data
-    source_odds = source_match.get('main_match_odds') or {}
-    handicap = source_match.get('handicap')
-    if not _valid_numeric_handicap(handicap):
-        handicap = source_odds.get('ah_linea')
-    goal_line = source_match.get('goal_line') or source_odds.get('goals_linea')
-
-    match_data['results_source_url'] = 'https://live11.nowgoal26.com/football/results'
-    if _valid_numeric_handicap(handicap):
-        match_data['handicap'] = str(handicap)
-        match_data.setdefault('main_match_odds', {})['ah_linea'] = str(handicap)
-    if goal_line not in (None, '', 'N/A'):
-        match_data['goal_line'] = str(goal_line)
-        match_data.setdefault('main_match_odds', {})['goals_linea'] = str(goal_line)
-    for source_key, target_key in (
-        ('final_score', 'final_score'),
-        ('score', 'score'),
-        ('start_time', 'start_time'),
-    ):
-        if source_match.get(source_key) not in (None, ''):
-            match_data[target_key] = source_match[source_key]
-    return match_data
-
-
-def process_single_match_worker(
-    match_id,
-    include_summary_stats=True,
-    require_recent_venue_form=True,
-    source_match=None,
-):
+def process_single_match_worker(match_id):
     """Worker function for single match processing."""
     try:
         # Check if already processed in this session/state
         # (Though we check before submitting, keeping it robust)
         
         # Analyze
-        match_data = analizar_partido_completo(
-            str(match_id),
-            include_summary_stats=include_summary_stats,
-        )
+        match_data = analizar_partido_completo(str(match_id))
         if match_data and not match_data.get('error'):
-            match_data = _merge_finished_source_fields(match_data, source_match)
-            if require_recent_venue_form and not _has_required_recent_venue_form(match_data):
-                return False, match_id, None, 'missing_recent_home_away_form'
             saved = save_match_to_json(match_data)
             add_processed_id(match_id)
             bucket = sql_store.get_match_bucket(str(match_id)) if saved else None
@@ -3446,38 +3363,11 @@ def process_single_precache_worker(match_id):
     try:
         match_data = analizar_partido_completo(str(match_id))
         if match_data and not match_data.get('error'):
-            if match_data.get("handicap") in (None, "", "N/A", "-", "null", "None"):
-                match_data["handicap"] = (match_data.get("main_match_odds") or {}).get("ah_linea")
-            if match_data.get("goal_line") in (None, "", "N/A", "-", "null", "None"):
-                match_data["goal_line"] = (match_data.get("main_match_odds") or {}).get("goals_linea")
-            if not _match_has_handicap(match_data):
-                try:
-                    snapshot = sql_store.get_json_state('app_main_page_cache_v1', default={}) or {}
-                    for snap_m in snapshot.get('upcoming_matches', []):
-                        if str(snap_m.get('id') or snap_m.get('match_id')) == str(match_id):
-                            ah_snap = snap_m.get('handicap') or (snap_m.get('main_match_odds') or {}).get('ah_linea')
-                            gl_snap = snap_m.get('goal_line') or (snap_m.get('main_match_odds') or {}).get('goals_linea')
-                            if _valid_numeric_handicap(ah_snap):
-                                match_data['handicap'] = ah_snap
-                                if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                    match_data['main_match_odds'] = {}
-                                match_data['main_match_odds']['ah_linea'] = ah_snap
-                            if gl_snap and gl_snap not in ('-', 'N/A', '?'):
-                                match_data['goal_line'] = gl_snap
-                                if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                    match_data['main_match_odds'] = {}
-                                match_data['main_match_odds']['goals_linea'] = gl_snap
-                            break
-                except Exception:
-                    pass
-            if not _match_has_handicap(match_data):
-                print(f"  ↷ {match_id}: omitido en precacheo; no tiene handicap asiático válido.")
-                return False, match_id
-            match_data['match_id'] = str(match_id)
-            match_data['precacheo_date'] = datetime.datetime.now().isoformat()
-            data_manager.save_precacheo_match(match_data)
-            add_precache_processed_id(match_id)
-            return True, match_id
+             match_data['match_id'] = str(match_id)
+             match_data['precacheo_date'] = datetime.datetime.now().isoformat()
+             data_manager.save_precacheo_match(match_data)
+             add_precache_processed_id(match_id)
+             return True, match_id
         else:
             return False, match_id
     except Exception as e:
@@ -3499,32 +3389,25 @@ def process_upcoming_matches_background(handicap_filter=None, goal_line_filter=N
     _maybe_cleanup_precacheo_stale(force=True)
 
     try:
-        # 1. Obtener partidos frescos directamente desde NowGoal (con cuotas de goal8.xml / goal3.xml)
-        matches = asyncio.run(scrape_main_page_matches_async_direct(
+        # 1. Obtener TODOS los partidos del día (sin filtro min_time para incluir los que ya empezaron)
+        # Esto permite scrapear también los que están pendientes de resultado
+        matches = asyncio.run(get_main_page_matches_async(
             limit=2000, 
             offset=0, 
             handicap_filter=handicap_filter, 
             goal_line_filter=goal_line_filter,
-            min_time=None
+            min_time=None  # Sin filtro de tiempo para incluir todos
         ))
         
         if not matches:
-            print("⚠️ [BACKGROUND] Falló scraping directo. Intentando caché local...")
-            matches = asyncio.run(get_main_page_matches_async(
+            print("⚠️ [BACKGROUND] No hay partidos en caché local. Intentando scraping directo...")
+            matches = asyncio.run(scrape_main_page_matches_async_direct(
                 limit=2000, 
                 offset=0, 
                 handicap_filter=handicap_filter, 
                 goal_line_filter=goal_line_filter,
-                min_time=None  # Sin filtro de tiempo para incluir todos
+                min_time=None
             ))
-        else:
-            # Actualizar snapshot con los partidos frescos obtenidos para que la UI los tenga disponibles
-            try:
-                current_snap = load_data_from_file()
-                current_snap['upcoming_matches'] = matches
-                save_data_snapshot(current_snap)
-            except Exception:
-                pass
         
         print(f"Se encontraron {len(matches)} partidos próximos candidatos.")
         
@@ -3752,60 +3635,6 @@ def scrape_pending_results_background():
         print(f"Error fatal en scrape de resultados pendientes: {e}")
 
 
-class AdaptiveScraperPool:
-    """Controlador de flujo adaptativo en tiempo real (AIMD / Congestion Avoidance)."""
-
-    def __init__(self, min_workers: int = 2, max_workers: int = 8, start_workers: int = 5):
-        self.min_workers = min_workers
-        self.max_workers = max_workers
-        self.current_workers = max(min_workers, min(max_workers, start_workers))
-        self.lock = threading.Lock()
-        self.semaphore = threading.Semaphore(self.current_workers)
-        self.cooldown_until = 0.0
-        self.consecutive_fast_matches = 0
-
-    def acquire(self):
-        now = time.time()
-        with self.lock:
-            wait_time = self.cooldown_until - now
-        if wait_time > 0:
-            time.sleep(wait_time)
-        self.semaphore.acquire()
-
-    def release(self):
-        self.semaphore.release()
-
-    def record_match_health(self, duration: float, is_error: bool = False, error_msg: str = ""):
-        now = time.time()
-        with self.lock:
-            err_lower = str(error_msg or "").lower()
-            is_throttled = is_error and any(
-                tok in err_lower for tok in ("429", "403", "forbidden", "too many", "captcha", "timeout", "reset")
-            ) or (duration > 5.5)
-
-            if is_throttled:
-                old_w = self.current_workers
-                self.current_workers = max(self.min_workers, self.current_workers // 2)
-                self.cooldown_until = now + 2.5
-                self.consecutive_fast_matches = 0
-                print(
-                    f"[ADAPTIVE-SLOW] Latencia o throttle detectado ({duration:.1f}s, {error_msg}). "
-                    f"Ajustando de {old_w} a {self.current_workers} workers con pausa preventiva de 2.5s.",
-                    flush=True,
-                )
-            elif duration < 1.8 and not is_error:
-                self.consecutive_fast_matches += 1
-                if self.consecutive_fast_matches >= 6 and self.current_workers < self.max_workers:
-                    old_w = self.current_workers
-                    self.current_workers = min(self.max_workers, self.current_workers + 1)
-                    self.consecutive_fast_matches = 0
-                    print(
-                        f"[ADAPTIVE-FAST] Servidor respondiendo con alta fluidez ({duration:.2f}s). "
-                        f"Acelerando velocidad a {self.current_workers} workers.",
-                        flush=True,
-                    )
-
-
 def process_all_finished_matches_background(
     handicap_filter=None,
     goal_line_filter=None,
@@ -3813,12 +3642,6 @@ def process_all_finished_matches_background(
     flush_every=100,
     export_legacy=None,
     on_batch_hook=None,
-    include_summary_stats=False,
-    shard_index=None,
-    shard_total=1,
-    output_shard=None,
-    results_page_only=True,
-    require_recent_venue_form=True,
 ):
     """
     Procesa partidos finalizados en segundo plano con optimizaciones:
@@ -3865,36 +3688,25 @@ def process_all_finished_matches_background(
             print(f"Export incremental completado ({exported} bucket(s)).")
 
     try:
-        # 1. La fuente autoritativa es la página de resultados, no el marcador en vivo.
-        matches = asyncio.run(scrape_main_page_finished_matches_async_direct(
-            limit=None,
-            offset=0,
-            handicap_filter=handicap_filter,
-            goal_line_filter=goal_line_filter,
+        # 1. Obtener partidos (usando filtros si existen)
+        # Traemos MUCHOS para filtrar luego si es necesario, o confiamos en el endpoint
+        matches = asyncio.run(get_main_page_finished_matches_async(
+            limit=2000, 
+            offset=0, 
+            handicap_filter=handicap_filter, 
+            goal_line_filter=goal_line_filter
         ))
-        if not matches and not results_page_only:
-            print("⚠️ [BACKGROUND] Falló la página de resultados; usando caché local como fallback.")
-            matches = asyncio.run(get_main_page_finished_matches_async(
-                limit=None,
-                offset=0,
-                handicap_filter=handicap_filter,
-                goal_line_filter=goal_line_filter,
-            ))
-
+        
         if not matches:
-            print("No se pudieron obtener partidos desde la página de resultados.")
-            if output_shard:
-                output_path = Path(output_shard)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_text('[]\n', encoding='utf-8')
-            return
-
-        total_results = len(matches)
-        matches = [match for match in matches if _match_has_handicap(match)]
-        print(
-            f"Página de resultados: {total_results} terminados; "
-            f"{len(matches)} con hándicap válido."
-        )
+            print("⚠️ [BACKGROUND] No hay partidos terminados en caché local. Intentando scraping directo...")
+            matches = asyncio.run(scrape_main_page_finished_matches_async_direct(
+                limit=2000, 
+                offset=0, 
+                handicap_filter=handicap_filter, 
+                goal_line_filter=goal_line_filter
+            ))
+        
+        print(f"Se encontraron {len(matches)} partidos candidatos.")
         
         # 2. Cargar estado anterior
         state = load_cache_state()
@@ -3902,101 +3714,47 @@ def process_all_finished_matches_background(
         
         # 3. Filtrar los que ya están hechos
         to_process = []
-        source_by_id = {}
         for m in matches:
-            mid = str(m.get('id') or m.get('match_id') or '')
-            if not mid:
-                continue
-            source_by_id[mid] = m
-            cached_match = sql_store.get_match(mid) if mid in processed_ids else None
-            if mid not in processed_ids or not _finished_cache_is_complete(cached_match):
+            mid = str(m.get('id'))
+            if mid not in processed_ids:
                 to_process.append(mid)
                 
         print(f"De los cuales {len(to_process)} son nuevos y se procesarán.")
-
-        if shard_index is not None:
-            shard_total = max(1, int(shard_total or 1))
-            shard_index = max(0, min(int(shard_index), shard_total - 1))
-            to_process = to_process[shard_index::shard_total]
-            print(f"Shard {shard_index}/{shard_total}: {len(to_process)} partidos asignados.")
         
         if not to_process:
-            if output_shard:
-                output_path = Path(output_shard)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_text('[]\n', encoding='utf-8')
             print("Nada nuevo que procesar.")
             return
 
-        # 4. Procesar en paralelo con Pool Adaptativo para máxima velocidad y 0 bloqueos
-        is_adaptive = True
-        try:
-            w_int = int(workers)
-            if w_int > 0:
-                is_adaptive = False
-                pool_workers = max(1, min(10, w_int))
-        except (ValueError, TypeError):
-            is_adaptive = True
-
-        if is_adaptive:
-            pool = AdaptiveScraperPool(min_workers=2, max_workers=8, start_workers=6)
-            pool_workers = 8
-            print(f"[ADAPTIVE] Concurrencia adaptativa activa en terminados (min=2, start=6, max=8).")
-        else:
-            pool = None
-            print(f"[FIXED] Concurrencia fija en terminados: {pool_workers} workers.")
-
+        # 4. Procesar en paralelo con reparto fijo por worker (misma metodología que análisis previo)
+        max_workers = _bounded_scrape_workers(workers, default=1)
         total = len(to_process)
         state_progress = {
             'completed': 0,
             'changed_buckets': set(),
         }
         progress_lock = threading.Lock()
-        shard_rows = []
+        
+        print(f"Iniciando Pool con {max_workers} workers...")
 
-        def _process_item(mid):
-            if STOP_CACHE_EVENT.is_set():
-                return False, None, 'stopped'
-            t0 = time.time()
-            is_err = False
-            err_str = ""
-            if pool:
-                pool.acquire()
-            try:
-                success, _, bucket_name, status = process_single_match_worker(
-                    mid,
-                    include_summary_stats=include_summary_stats,
-                    require_recent_venue_form=require_recent_venue_form,
-                    source_match=source_by_id.get(mid),
-                )
-                if not success and status not in ('missing_recent_home_away_form', 'filtered'):
-                    is_err = True
-                    err_str = str(status or '')
-                return success, bucket_name, status
-            except Exception as exc:
-                is_err = True
-                err_str = str(exc)
-                return False, None, str(exc)
-            finally:
-                if pool:
-                    pool.release()
-                    duration = time.time() - t0
-                    pool.record_match_health(duration, is_err, err_str)
+        # Reparto determinista: worker i procesa to_process[i::max_workers]
+        worker_batches = [to_process[i::max_workers] for i in range(max_workers)]
+        for worker_idx, batch in enumerate(worker_batches):
+            if batch:
+                print(f"Worker fijo {worker_idx}: {len(batch)} partidos asignados.")
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=pool_workers) as executor:
-            futures = {executor.submit(_process_item, mid): mid for mid in to_process}
-            for future in concurrent.futures.as_completed(futures):
+        def process_worker_batch(worker_idx, batch_ids):
+            local_done = 0
+            for mid in batch_ids:
                 if STOP_CACHE_EVENT.is_set():
                     break
-                mid = futures[future]
+
                 try:
-                    res = future.result()
-                    if not res:
-                        continue
-                    success, bucket_name, status = res
+                    success, _, bucket_name, status = process_single_match_worker(mid)
                 except Exception as worker_err:
-                    print(f"Excepción para {mid}: {worker_err}")
-                    success, bucket_name, status = False, None, 'worker_error'
+                    print(f"Excepción en worker fijo {worker_idx} para {mid}: {worker_err}")
+                    success, bucket_name = False, None
+
+                local_done += 1
 
                 with progress_lock:
                     state_progress['completed'] += 1
@@ -4004,16 +3762,6 @@ def process_all_finished_matches_background(
 
                     if success and bucket_name:
                         state_progress['changed_buckets'].add(bucket_name)
-                        if output_shard:
-                            stored = sql_store.get_match(str(mid))
-                            if isinstance(stored, dict):
-                                shard_rows.append(stored)
-
-                    if not success and status == 'missing_recent_home_away_form':
-                        print(
-                            f"  ↷ {mid}: omitido; falta forma reciente del local en casa "
-                            "o del visitante fuera."
-                        )
 
                     if completed_now % 5 == 0 or completed_now == total:
                         print(f"Progreso: {completed_now}/{total} procesados.")
@@ -4027,16 +3775,25 @@ def process_all_finished_matches_background(
                             except Exception as hook_err:
                                 print(f"Aviso en hook de lote: {hook_err}")
 
+            print(f"Worker fijo {worker_idx}: completados {local_done}/{len(batch_ids)}.")
+            return local_done
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(process_worker_batch, worker_idx, batch): worker_idx
+                for worker_idx, batch in enumerate(worker_batches)
+                if batch
+            }
+
+            for future in concurrent.futures.as_completed(futures):
+                worker_idx = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"Excepción final en worker fijo {worker_idx}: {e}")
+
         # Flush final de buckets pendientes de export.
         export_changed_buckets(state_progress['changed_buckets'])
-        if output_shard:
-            output_path = Path(output_shard)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(
-                json.dumps(shard_rows, ensure_ascii=False, indent=2),
-                encoding='utf-8',
-            )
-            print(f"Shard terminado exportado: {output_path} ({len(shard_rows)} partidos).")
                     
         if STOP_CACHE_EVENT.is_set():
             print(f"Proceso detenido. {state_progress['completed']} partidos completados antes de parar.")
@@ -4197,29 +3954,6 @@ def api_precacheo_scrape_match():
         match_data = analizar_partido_completo(str(match_id), force_refresh=True)
         
         if match_data and 'error' not in match_data:
-            match_data['match_id'] = str(match_id)
-            match_data['precacheo_date'] = datetime.datetime.now().isoformat()
-            if not _match_has_handicap(match_data):
-                try:
-                    snapshot = sql_store.get_json_state('app_main_page_cache_v1', default={}) or {}
-                    for snap_m in snapshot.get('upcoming_matches', []):
-                        if str(snap_m.get('id') or snap_m.get('match_id')) == str(match_id):
-                            ah_snap = snap_m.get('handicap') or (snap_m.get('main_match_odds') or {}).get('ah_linea')
-                            gl_snap = snap_m.get('goal_line') or (snap_m.get('main_match_odds') or {}).get('goals_linea')
-                            if _valid_numeric_handicap(ah_snap):
-                                match_data['handicap'] = ah_snap
-                                if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                    match_data['main_match_odds'] = {}
-                                match_data['main_match_odds']['ah_linea'] = ah_snap
-                            if gl_snap and gl_snap not in ('-', 'N/A', '?'):
-                                match_data['goal_line'] = gl_snap
-                                if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                    match_data['main_match_odds'] = {}
-                                match_data['main_match_odds']['goals_linea'] = gl_snap
-                            break
-                except Exception:
-                    pass
-            data_manager.save_precacheo_match(match_data)
             save_match_to_json(match_data)
             return jsonify({'status': 'success', 'message': f'Partido {match_id} actualizado.'})
         else:
@@ -4228,96 +3962,6 @@ def api_precacheo_scrape_match():
     except Exception as e:
         print(f"Error en precacheo_scrape_match: {e}")
         return jsonify({'error': str(e)}), 500
-
-
-def _summary_cards_from_match(match):
-    """Adapta los bloques persistidos al formato ligero del panel bajo demanda."""
-    cards = []
-
-    def add(title, block, *, ah_keys=(), home_keys=(), away_keys=(), score_keys=(), date_keys=()):
-        block = block if isinstance(block, dict) else {}
-
-        def first(keys, default=''):
-            for key in keys:
-                value = block.get(key)
-                if value not in (None, '', 'N/A', '?', '?:?', '?-?'):
-                    return value
-            return default
-
-        cards.append({
-            'title': title,
-            'home': first(home_keys),
-            'away': first(away_keys),
-            'score': first(score_keys),
-            'date': first(date_keys),
-            'ah': first(ah_keys),
-            'stats': block.get('stats_rows') if isinstance(block.get('stats_rows'), list) else [],
-        })
-
-    add('Prev Home', match.get('last_home_match'),
-        ah_keys=('handicap_line_raw', 'ah'), home_keys=('home_team',), away_keys=('away_team',),
-        score_keys=('score',), date_keys=('date',))
-    add('Prev Away', match.get('last_away_match'),
-        ah_keys=('handicap_line_raw', 'ah'), home_keys=('home_team',), away_keys=('away_team',),
-        score_keys=('score',), date_keys=('date',))
-
-    stadium = match.get('h2h_stadium') or {}
-    stadium = dict(stadium) if isinstance(stadium, dict) else {}
-    stadium.setdefault('home_team', match.get('home_name') or match.get('home_team'))
-    stadium.setdefault('away_team', match.get('away_name') or match.get('away_team'))
-    add('H2H Estadio', stadium,
-        ah_keys=('ah1', 'handicap'), home_keys=('home_team',), away_keys=('away_team',),
-        score_keys=('res1', 'res1_raw', 'score'), date_keys=('date1', 'date'))
-
-    general = match.get('h2h_general') or {}
-    add('H2H General', general,
-        ah_keys=('ah6', 'ah1', 'handicap'), home_keys=('h2h_gen_home', 'home_team'),
-        away_keys=('h2h_gen_away', 'away_team'), score_keys=('res6', 'res6_raw', 'score'),
-        date_keys=('date6', 'date'))
-
-    col3 = match.get('h2h_col3') or {}
-    if isinstance(col3, dict):
-        col3 = dict(col3)
-        if col3.get('goles_home') is not None and col3.get('goles_away') is not None:
-            col3.setdefault('score', f"{col3.get('goles_home')}:{col3.get('goles_away')}")
-    add('H2H Col3', col3,
-        ah_keys=('handicap_line_raw', 'handicap', 'ah'), home_keys=('h2h_home_team_name', 'home_team'),
-        away_keys=('h2h_away_team_name', 'away_team'), score_keys=('score',), date_keys=('date',))
-
-    comparisons = match.get('comparativas_indirectas') or {}
-    add('Ind. Local', comparisons.get('left') if isinstance(comparisons, dict) else None,
-        ah_keys=('ah_line', 'ah'), home_keys=('home_team',), away_keys=('away_team',),
-        score_keys=('score',), date_keys=('date',))
-    add('Ind. Visitante', comparisons.get('right') if isinstance(comparisons, dict) else None,
-        ah_keys=('ah_line', 'ah'), home_keys=('home_team',), away_keys=('away_team',),
-        score_keys=('score',), date_keys=('date',))
-    return cards
-
-
-@app.route('/api/precacheo_summary_stats/<string:match_id>', methods=['POST'])
-def api_precacheo_summary_stats(match_id):
-    """Carga las fichas pesadas de un solo partido cuando el usuario las abre."""
-    clean_id = ''.join(filter(str.isdigit, str(match_id)))
-    if not clean_id:
-        return jsonify({'error': 'ID de partido invalido'}), 400
-    try:
-        match = data_manager.get_precacheo_match(clean_id) or sql_store.get_match(clean_id)
-        if not isinstance(match, dict):
-            return jsonify({'error': 'El partido no esta en el precacheo'}), 404
-        if match.get('summary_stats_status') != 'complete':
-            match = estudio_scraper.hydrate_summary_stats(match)
-            if match.get('error'):
-                return jsonify(match), 502
-            data_manager.save_precacheo_match(match)
-        return jsonify({
-            'status': 'success',
-            'match_id': clean_id,
-            'summary_stats_status': match.get('summary_stats_status'),
-            'cards': _summary_cards_from_match(match),
-        })
-    except Exception as exc:
-        logging.exception('Error cargando Fichas Resumen de %s', clean_id)
-        return jsonify({'error': str(exc)}), 500
 
 
 @app.route('/api/preview_basico/<string:match_id>')
@@ -4579,217 +4223,85 @@ def api_league_market_sync_status(job_id):
         return jsonify({'error': 'Sincronizacion no encontrada'}), 404
     return jsonify(job)
 
-def _lookup_precache_table_fallback(home_name, away_name, league_name='', goal_line=2.5):
-    """Fallback si ni SofaScore ni NowGoal devuelven la tabla en vivo."""
-    if not home_name or not away_name:
-        return None
-    root_dir = Path(__file__).resolve().parent.parent
-    candidates = [
-        root_dir / 'data' / 'data_precacheo.json',
-        root_dir / 'data' / 'data.json',
-        root_dir / 'data.json',
-    ]
-    h_target = str(home_name).strip().casefold()
-    a_target = str(away_name).strip().casefold()
-
-    for path in candidates:
-        if not path.exists():
-            continue
-        try:
-            payload = json.loads(path.read_text(encoding='utf-8-sig'))
-            rows = payload.values() if isinstance(payload, dict) else payload
-            for row in rows:
-                if not isinstance(row, dict):
-                    continue
-                r_home = str(row.get('home_name') or row.get('home_team') or '').strip().casefold()
-                r_away = str(row.get('away_name') or row.get('away_team') or '').strip().casefold()
-                if not (h_target in r_home or r_home in h_target):
-                    continue
-                if not (a_target in r_away or r_away in a_target):
-                    continue
-                hs = row.get('home_standings') or {}
-                as_ = row.get('away_standings') or {}
-                if not hs and not as_:
-                    continue
-
-                total_rows = []
-                if hs:
-                    total_rows.append({
-                        'position': hs.get('ranking') or 1,
-                        'team': row.get('home_name') or home_name,
-                        'matches': hs.get('total_pj') or 0,
-                        'wins': hs.get('total_v') or 0,
-                        'draws': hs.get('total_e') or 0,
-                        'losses': hs.get('total_d') or 0,
-                        'scores_for': hs.get('total_gf') or 0,
-                        'scores_against': hs.get('total_gc') or 0,
-                        'goal_difference': int(hs.get('total_gf') or 0) - int(hs.get('total_gc') or 0),
-                        'points': hs.get('total_pts') or (int(hs.get('total_v') or 0) * 3 + int(hs.get('total_e') or 0)),
-                    })
-                if as_:
-                    total_rows.append({
-                        'position': as_.get('ranking') or 2,
-                        'team': row.get('away_name') or away_name,
-                        'matches': as_.get('total_pj') or 0,
-                        'wins': as_.get('total_v') or 0,
-                        'draws': as_.get('total_e') or 0,
-                        'losses': as_.get('total_d') or 0,
-                        'scores_for': as_.get('total_gf') or 0,
-                        'scores_against': as_.get('total_gc') or 0,
-                        'goal_difference': int(as_.get('total_gf') or 0) - int(as_.get('total_gc') or 0),
-                        'points': as_.get('total_pts') or (int(as_.get('total_v') or 0) * 3 + int(as_.get('total_e') or 0)),
-                    })
-                total_rows.sort(key=lambda x: int(x.get('position') or 99))
-                hou = row.get('home_ou_stats') or {}
-                aou = row.get('away_ou_stats') or {}
-                ou_rows = []
-                if hou:
-                    ou_rows.append({
-                        'position': 1,
-                        'team': row.get('home_name') or home_name,
-                        'matches': hou.get('total', 0),
-                        'over': hou.get('over', 0),
-                        'under': hou.get('under', 0),
-                        'push': hou.get('push', 0),
-                        'over_pct': hou.get('over_pct', 0.0),
-                        'avg_goals': '-',
-                    })
-                if aou:
-                    ou_rows.append({
-                        'position': 2,
-                        'team': row.get('away_name') or away_name,
-                        'matches': aou.get('total', 0),
-                        'over': aou.get('over', 0),
-                        'under': aou.get('under', 0),
-                        'push': aou.get('push', 0),
-                        'over_pct': aou.get('over_pct', 0.0),
-                        'avg_goals': '-',
-                    })
-                try:
-                    num_line = float(goal_line)
-                except Exception:
-                    num_line = 2.5
-                return {
-                    'available': True,
-                    'source': 'Precacheo Local',
-                    'tournament': row.get('league_name') or league_name or 'Competición',
-                    'home_name': home_name,
-                    'away_name': away_name,
-                    'views': {'total': total_rows, 'home': total_rows[:1], 'away': total_rows[1:]},
-                    'ou': {
-                        'line': num_line,
-                        'views': {'total': ou_rows, 'home': ou_rows[:1], 'away': ou_rows[1:]},
-                        'tables': {f"{num_line:g}": {'line': num_line, 'views': {'total': ou_rows, 'home': ou_rows[:1], 'away': ou_rows[1:]}}},
-                    }
-                }
-        except Exception:
-            continue
-    return None
-
 
 @app.route('/api/sofascore/league-table', methods=['POST'])
 def api_sofascore_league_table():
-    """Carga la clasificación externa solo cuando la solicita el panel de estudio o precacheo."""
-    try:
-        payload = request.get_json(silent=True) or {}
-        home_name = str(payload.get('home_name') or '').strip()[:120]
-        away_name = str(payload.get('away_name') or '').strip()[:120]
-        league_name = str(payload.get('league_name') or '').strip()[:160]
-        match_date = str(payload.get('match_date') or '').strip()[:20]
-        goal_line = payload.get('goal_line')
-        tournament_id = payload.get('tournament_id')
-        season_id = payload.get('season_id')
+    """Carga la clasificación externa solo cuando la solicita el panel de estudio."""
+    payload = request.get_json(silent=True) or {}
+    home_name = str(payload.get('home_name') or '').strip()[:120]
+    away_name = str(payload.get('away_name') or '').strip()[:120]
+    league_name = str(payload.get('league_name') or '').strip()[:160]
+    match_date = str(payload.get('match_date') or '').strip()[:20]
+    goal_line = payload.get('goal_line')
+    fallback_home = payload.get('home_standings')
+    fallback_away = payload.get('away_standings')
+    match_id = str(payload.get('match_id') or '').strip()[:80]
 
-        if not home_name or not away_name:
-            return jsonify({'available': False, 'reason': 'missing_teams', 'views': {}})
+    cached_match = (sql_store.get_match(match_id) or {}) if match_id else {}
+    if not isinstance(fallback_home, dict):
+        fallback_home = cached_match.get('home_standings')
+    if not isinstance(fallback_away, dict):
+        fallback_away = cached_match.get('away_standings')
 
-        from modules import nowgoal_tables
-        nowgoal_id = payload.get('nowgoal_league_id')
-        if not nowgoal_id or not str(nowgoal_id).isdigit():
-            nowgoal_id = nowgoal_tables.resolve_league(league_name, home_name=home_name, away_name=away_name)
+    if not home_name or not away_name:
+        return jsonify({'available': False, 'reason': 'missing_teams', 'views': {}})
+    if 'friendly' in league_name.casefold() or 'amistoso' in league_name.casefold():
+        return jsonify({'available': False, 'reason': 'competition_has_no_standings', 'views': {}})
 
-        # Si el cliente solicita explícitamente nowgoal, o si es una liga exclusiva nowgoal sin alias sofascore
-        alias_info = None
-        try:
-            if hasattr(sofascore_context, '_lookup_league_alias'):
-                alias_info = sofascore_context._lookup_league_alias(league_name)
-        except Exception:
-            pass
+    query = {
+        'home_name': home_name,
+        'away_name': away_name,
+        'league_name': league_name,
+        'match_date': match_date,
+        'goal_line': goal_line,
+    }
+    # A verified public tournament page can remain accessible when the JSON API
+    # challenges Render. Curated mappings avoid picking a similarly named league.
+    from modules import sofascore_public_page
+    public_table = sofascore_public_page.get_context(home_name, away_name, league_name, goal_line)
+    if public_table.get('available'):
+        return jsonify(public_table)
+    from modules import nowgoal_verified_tables
+    pre_match = cached_match.get('pre_match_context') or {}
+    if not isinstance(pre_match, dict):
+        pre_match = {}
+    current_pre_match = pre_match.get('current') or {}
+    if not isinstance(current_pre_match, dict):
+        current_pre_match = {}
+    nowgoal_id = (payload.get('nowgoal_league_id') or cached_match.get('league_id')
+                  or pre_match.get('league_id') or current_pre_match.get('league_id'))
+    verified_table = nowgoal_verified_tables.get_context(home_name, away_name, league_name, nowgoal_id)
+    if verified_table.get('available'):
+        return jsonify(verified_table)
+    result = sofascore_context.get_league_table_context(**query)
+    fallback = sofascore_context.build_match_standings_fallback(
+        home_name=home_name,
+        away_name=away_name,
+        league_name=league_name,
+        home_standings=fallback_home,
+        away_standings=fallback_away,
+    )
 
-        if payload.get('provider') == 'nowgoal' or (nowgoal_id and not tournament_id and not alias_info):
-            try:
-                alternative = nowgoal_tables.get_context(
-                    home_name, away_name, league_name, league_id=nowgoal_id,
-                    season_id=season_id, goal_line=goal_line,
-                )
-                if alternative.get('available') or payload.get('provider') == 'nowgoal':
-                    return jsonify(alternative)
-            except Exception as ng_err:
-                print(f"[LEAGUE_TABLE] Aviso en NowGoal directo: {ng_err}")
+    # Si Render no puede alcanzar SofaScore, responder ya con la clasificación
+    # incluida por NowGoal en vez de encadenar varios timeouts externos.
+    if not result.get('available') and fallback.get('available'):
+        return jsonify(fallback)
 
-        query = {
-            'home_name': home_name,
-            'away_name': away_name,
-            'league_name': league_name,
-            'match_date': match_date,
-            'goal_line': goal_line,
-            'tournament_id': tournament_id,
-            'season_id': season_id,
-        }
+    # SofaScore puede fallar de forma puntual aunque el torneo sí exista. Un
+    # segundo intento evita convertir ese corte breve en un falso "sin tabla".
+    if not result.get('available') and result.get('reason') == 'provider_unavailable':
+        time.sleep(0.2)
+        result = sofascore_context.get_league_table_context(**query)
 
-        result = None
-        try:
-            result = sofascore_context.get_league_table_context(**query)
-        except Exception as sc_err:
-            print(f"[LEAGUE_TABLE] SofaScore context error: {sc_err}")
-            result = {'available': False, 'reason': 'provider_unavailable', 'views': {}}
-
-        # Si falló puntualmente SofaScore, reintentar una vez
-        if not result.get('available') and result.get('reason') == 'provider_unavailable':
-            time.sleep(0.2)
-            try:
-                result = sofascore_context.get_league_table_context(**query)
-            except Exception:
-                pass
-
-        # Si la fecha bloqueó la resolución de evento, probar sin fecha
-        if (
-            not result.get('available')
-            and match_date
-            and result.get('reason') in {'provider_unavailable', 'match_not_resolved'}
-        ):
-            try:
-                result = sofascore_context.get_league_table_context(**{**query, 'match_date': None})
-            except Exception:
-                pass
-
-        if result and result.get('available'):
-            return jsonify(result)
-
-        # Fallback a NowGoal si SofaScore no encontró la competición
-        if nowgoal_id and not season_id:
-            try:
-                alternative = nowgoal_tables.get_context(
-                    home_name, away_name, league_name,
-                    league_id=nowgoal_id, goal_line=goal_line
-                )
-                if alternative and alternative.get('available'):
-                    return jsonify(alternative)
-            except Exception as fb_err:
-                print(f"[LEAGUE_TABLE] Error en fallback NowGoal: {fb_err}")
-
-        # Fallback a datos precacheados si existen en data_precacheo.json o data.json
-        try:
-            fb_local = _lookup_precache_table_fallback(home_name, away_name, league_name, goal_line)
-            if fb_local and fb_local.get('available'):
-                return jsonify(fb_local)
-        except Exception:
-            pass
-
-        return jsonify(result or {'available': False, 'reason': 'standings_not_available', 'views': {}})
-    except Exception as general_err:
-        print(f"[LEAGUE_TABLE] Error general no controlado: {general_err}")
-        return jsonify({'available': False, 'reason': 'provider_unavailable', 'error': str(general_err), 'views': {}})
+    # La fecha ayuda a escoger el evento, pero no forma parte de la tabla. Si
+    # viene con un formato inesperado, dejamos que el resolvedor use el cruce.
+    if (
+        not result.get('available')
+        and match_date
+        and result.get('reason') in {'provider_unavailable', 'match_not_resolved'}
+    ):
+        result = sofascore_context.get_league_table_context(**{**query, 'match_date': None})
+    return jsonify(result)
 
 # --- NUEVA RUTA PARA ANALIZAR PARTIDOS FINALIZADOS ---
 @app.route('/analizar_partido', methods=['GET', 'POST'])
@@ -5423,7 +4935,14 @@ def api_explorer_search():
         scope_filters = data.get('scope_filters') or {}
         print(f"DEBUG: Explorer Search Request. Filters: {filters}")
 
-        analyze_all = bool(filters.get('analyze_all', False))
+        # Allow deep analysis while keeping a hard safety ceiling.
+        explorer_result_limit = max(50, min(_env_int('EXPLORER_RESULT_LIMIT', 750), 1500))
+        try:
+            req_limit = int(filters.get('limit', explorer_result_limit))
+        except (TypeError, ValueError):
+            req_limit = explorer_result_limit
+        filters['limit'] = max(1, min(req_limit, explorer_result_limit))
+
         # Keep full stat rows available in explorer unless caller explicitly disables them.
         if 'include_stats' not in filters:
             filters['include_stats'] = True
@@ -5431,48 +4950,10 @@ def api_explorer_search():
         # Explorer should read finalized historical rows from SQL only.
         raw_ah_filter = filters.get('handicap')
         ah_filter = raw_ah_filter
-        if ah_filter in (None, '', [], ()):
+        if isinstance(raw_ah_filter, list):
+            ah_filter = raw_ah_filter[0] if len(raw_ah_filter) == 1 else None
+        if ah_filter in (None, ''):
             ah_filter = filters.get('exact_handicap')
-
-        has_strict_filters = any(
-            filters.get(k)
-            for k in (
-                'handicap',
-                'team',
-                'result',
-                'prev_home_wdl',
-                'prev_away_wdl',
-                'prev_home_real_wdl',
-                'prev_away_real_wdl',
-                'prev_home_ah',
-                'prev_away_ah',
-                'prev_favorite_ah',
-                'prev_favorite_result',
-                'prev_favorite_movement',
-                'h2h_stadium_mov',
-                'h2h_stadium_res',
-                'h2h_general_mov',
-                'h2h_general_res',
-                'h2h_col3_ah',
-                'ind_local_ah',
-                'ind_visitante_ah',
-                'exact_handicap',
-                'favorite_side',
-                'favorite_result',
-                'cover_result',
-                'ou_limit',
-            )
-        ) or bool(filters.get('exclude_empty')) or bool(filters.get('only_with_history'))
-
-        # Explorador sin límite: carga y evalúa todo el histórico disponible
-        raw_limit = filters.get('limit')
-        if raw_limit in (None, '', 0, 'none', 'all', 'unlimited', -1):
-            filters['limit'] = None
-        else:
-            try:
-                filters['limit'] = int(raw_limit) if int(raw_limit) > 0 else None
-            except (TypeError, ValueError):
-                filters['limit'] = None
         if explorer_scope == 'uefa_qualifying':
             uefa_rows = sql_store.fetch_uefa_qualifying_matches(
                 competition_ids=_uefa_filter_values(scope_filters.get('competitions')) or None,
@@ -5488,41 +4969,69 @@ def api_explorer_search():
                 prefer_explorer_payload=True,
             )
             results = explore_matches(history_data, filters=filters)
-            history_available = bool(history_data)
+            scanned = len(history_data)
+            search_complete = True
         else:
-            # The index selects a small page before SQLite reads the large JSON
-            # payloads. Keep paging for selective filters so no later match is lost.
+            # Search Turso/local SQL in bounded pages.  The old implementation
+            # inspected only the newest 100 rows for many filter combinations,
+            # so valid historical patterns were silently omitted.  Paging keeps
+            # memory bounded on Render Free while continuing until the requested
+            # number of matches is found or the historical table is exhausted.
+            batch_size = max(25, min(_env_int('EXPLORER_BATCH_SIZE', 150), 300))
+            configured_scan_limit = max(0, min(_env_int('EXPLORER_SCAN_LIMIT', 0), 50000))
+            requested_results = int(filters['limit'])
             results = []
+            scanned = 0
             offset = 0
-            page_size = 750
-            requested_limit = filters['limit']
-            while requested_limit is None or len(results) < requested_limit:
-                history_data, scanned = data_manager.load_explorer_matches(
-                    ah_filter,
-                    scan_limit=page_size,
-                    compact=not filters['include_stats'],
-                    offset=offset,
-                    with_scan_count=True,
-                )
-                if scanned == 0:
-                    break
-                page_filters = dict(filters)
-                if requested_limit is not None:
-                    page_filters['limit'] = requested_limit - len(results)
-                results.extend(explore_matches(history_data, filters=page_filters))
-                offset += scanned
-                if scanned < page_size:
-                    break
-            history_available = offset > 0
+            search_complete = False
 
-        if not history_available:
-            return jsonify({'results': [], 'message': 'No hay histórico disponible.'})
+            while len(results) < requested_results:
+                if configured_scan_limit and scanned >= configured_scan_limit:
+                    break
+                current_batch_size = batch_size
+                if configured_scan_limit:
+                    current_batch_size = min(current_batch_size, configured_scan_limit - scanned)
+                if current_batch_size <= 0:
+                    break
+
+                history_batch = data_manager.load_explorer_matches(
+                    ah_filter,
+                    scan_limit=current_batch_size,
+                    offset=offset,
+                )
+                if not history_batch:
+                    search_complete = True
+                    break
+
+                remaining = requested_results - len(results)
+                batch_filters = dict(filters)
+                batch_filters['limit'] = remaining
+                results.extend(explore_matches(history_batch, filters=batch_filters))
+
+                batch_count = len(history_batch)
+                scanned += batch_count
+                offset += batch_count
+                if batch_count < current_batch_size:
+                    search_complete = True
+                    break
+
+        if not results and scanned == 0:
+            return jsonify({
+                'results': [],
+                'message': 'No hay histórico disponible.',
+                'scanned': 0,
+                'complete': True,
+            })
 
         # A full Explorer response can exceed 50 MB. Browsers advertise gzip by
         # default; compressing here avoids truncated JSON/connection resets while
         # preserving the complete result set and every client-side filter.
         response_payload = json.dumps(
-            {'results': results},
+            {
+                'results': results,
+                'scanned': scanned,
+                'complete': search_complete,
+            },
             ensure_ascii=False,
             separators=(',', ':'),
         ).encode('utf-8')
@@ -5599,75 +5108,10 @@ def _get_precacheo_view_config():
     }
 
 
-_HIGH_OVER_LEAGUES_CACHE = None
-_HIGH_OVER_LEAGUES_MAP = None
-
-
-def _normalize_high_over_league_key(name: str) -> str:
-    if not name:
-        return ""
-    import unicodedata
-    s = str(name).strip().lower()
-    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode('utf-8')
-    s = re.sub(r"['`’´\"]", "", s)
-    s = re.sub(r"[^a-z0-9]", " ", s)
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
-
-
-def _load_high_over_leagues():
-    global _HIGH_OVER_LEAGUES_CACHE, _HIGH_OVER_LEAGUES_MAP
-    if _HIGH_OVER_LEAGUES_CACHE is not None and _HIGH_OVER_LEAGUES_MAP is not None:
-        return _HIGH_OVER_LEAGUES_CACHE, _HIGH_OVER_LEAGUES_MAP
-
-    candidate_files = [
-        Path(__file__).resolve().parent.parent / 'data' / 'high_over_leagues.json',
-        Path(__file__).resolve().parent / 'data' / 'high_over_leagues.json',
-    ]
-
-    leagues = []
-    l_map = {}
-
-    for fp in candidate_files:
-        if fp.exists():
-            try:
-                data = json.loads(fp.read_text(encoding='utf-8'))
-                if isinstance(data, list):
-                    leagues = data
-                    for row in leagues:
-                        lname = row.get('league')
-                        if lname:
-                            clean_key = _normalize_high_over_league_key(lname)
-                            raw_key = lname.strip().lower()
-                            l_map[clean_key] = row
-                            l_map[raw_key] = row
-                    break
-            except Exception as exc:
-                print(f"[WARN] Error cargando high_over_leagues desde {fp}: {exc}")
-
-    _HIGH_OVER_LEAGUES_CACHE = leagues
-    _HIGH_OVER_LEAGUES_MAP = l_map
-    return _HIGH_OVER_LEAGUES_CACHE, _HIGH_OVER_LEAGUES_MAP
-
-
-@app.route('/api/precacheo/high-over-leagues', methods=['GET'])
-@app.route('/api/high-over-leagues', methods=['GET'])
-def api_high_over_leagues():
-    """Devuelve las ligas con tendencia Over 3.5/4.5/5.5 superior al 50%."""
-    leagues, l_map = _load_high_over_leagues()
-    return jsonify({
-        'ok': True,
-        'count': len(leagues),
-        'leagues': leagues,
-        'map': l_map
-    })
-
-
 @app.route('/precacheo')
 def precacheo():
     """Muestra la vista de Pre-Cacheo para partidos próximos."""
     cfg = _get_precacheo_view_config()
-    _, high_over_map = _load_high_over_leagues()
     return render_template(
         'precacheo.html',
         app_precacheo_only=_is_app_precacheo_only(),
@@ -5680,7 +5124,6 @@ def precacheo():
         precacheo_auto_scrape_on_gap=cfg['auto_scrape_on_gap'],
         precacheo_auto_scrape_batch_max=cfg['auto_scrape_batch_max'],
         precacheo_auto_scrape_concurrency=cfg['auto_scrape_concurrency'],
-        high_over_leagues_json=json.dumps(high_over_map or {}, ensure_ascii=False),
     )
 
 
@@ -5781,16 +5224,22 @@ def api_precacheo_list():
     try:
         _maybe_cleanup_precacheo_stale(force=False)
 
+        if os.getenv('RENDER') and precache_fast_store.available():
+            upcoming = pending_results_query.fetch_upcoming_page(per_page=400)['matches']
+            pending = pending_results_query.fetch_pending_page(per_page=200)['matches']
+            return jsonify({'matches': upcoming + pending, 'offline': False,
+                'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat()})
+
         try:
-            default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '700'))
+            default_limit = int(os.getenv('PRECACHEO_LIST_DEFAULT_LIMIT', '400'))
         except Exception:
-            default_limit = 700
+            default_limit = 400
         default_limit = max(100, default_limit)
 
         try:
-            max_limit = int(os.getenv('PRECACHEO_LIST_MAX_LIMIT', '2000'))
+            max_limit = int(os.getenv('PRECACHEO_LIST_MAX_LIMIT', '400'))
         except Exception:
-            max_limit = 2000
+            max_limit = 400
         max_limit = max(default_limit, max_limit)
 
         limit = None
@@ -6125,28 +5574,6 @@ def api_precacheo_scrape():
         match_data['match_id'] = str(match_id)
         match_data['precacheo_date'] = datetime.datetime.now().isoformat()
 
-        # Si match_data no tiene handicap o goal_line, recuperar del snapshot de upcoming_matches
-        if not _match_has_handicap(match_data):
-            try:
-                snapshot = sql_store.get_json_state('app_main_page_cache_v1', default={}) or {}
-                for snap_m in snapshot.get('upcoming_matches', []):
-                    if str(snap_m.get('id') or snap_m.get('match_id')) == str(match_id):
-                        ah_snap = snap_m.get('handicap') or (snap_m.get('main_match_odds') or {}).get('ah_linea')
-                        gl_snap = snap_m.get('goal_line') or (snap_m.get('main_match_odds') or {}).get('goals_linea')
-                        if _valid_numeric_handicap(ah_snap):
-                            match_data['handicap'] = ah_snap
-                            if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                match_data['main_match_odds'] = {}
-                            match_data['main_match_odds']['ah_linea'] = ah_snap
-                        if gl_snap and gl_snap not in ('-', 'N/A', '?'):
-                            match_data['goal_line'] = gl_snap
-                            if 'main_match_odds' not in match_data or not isinstance(match_data['main_match_odds'], dict):
-                                match_data['main_match_odds'] = {}
-                            match_data['main_match_odds']['goals_linea'] = gl_snap
-                        break
-            except Exception:
-                pass
-
         # Save to precacheo
         data_manager.save_precacheo_match(match_data)
 
@@ -6305,266 +5732,6 @@ def api_precacheo_pending_list():
     except Exception as exc:
         logging.exception("Error loading paginated pending results")
         return jsonify({'error': str(exc), 'matches': []}), 500
-
-
-@app.route('/api/precacheo_push_to_render', methods=['POST'])
-def api_precacheo_push_to_render():
-    """Exporta el precacheo local a JSON y hace push seguro a Render (GitHub origin main)."""
-    try:
-        from modules import sql_store
-        # 1. Exportar data_precacheo.json y data_pending_results.json (hasta 400 partidos)
-        sql_store.export_bucket_to_json("data_precacheo.json")
-        sql_store.export_bucket_to_json("data_pending_results.json")
-
-        project_root = Path(__file__).resolve().parent.parent
-        stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        msg = f"chore: manual precache push to Render ({stamp})"
-
-        subprocess.run(
-            ["git", "-c", "core.hooksPath=", "add", "--", "data/data_precacheo.json", "data/data_pending_results.json", "data/league_extractions.json"],
-            cwd=str(project_root),
-            check=False,
-        )
-        subprocess.run(
-            ["git", "-c", "core.hooksPath=", "commit", "-m", msg, "--no-verify", "--no-gpg-sign", "--", "data/data_precacheo.json", "data/data_pending_results.json", "data/league_extractions.json"],
-            cwd=str(project_root),
-            check=False,
-        )
-        subprocess.run(
-            ["git", "-c", "core.hooksPath=", "fetch", "origin", "main", "--depth=1"],
-            cwd=str(project_root),
-            check=False,
-        )
-        subprocess.run(
-            ["git", "-c", "core.hooksPath=", "pull", "origin", "main", "--no-rebase", "--no-edit", "--no-verify", "-X", "theirs"],
-            cwd=str(project_root),
-            check=False,
-        )
-        push_res = subprocess.run(
-            ["git", "-c", "core.hooksPath=", "push", "origin", "HEAD:main", "--no-verify"],
-            cwd=str(project_root),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if push_res.returncode == 0:
-            return jsonify({'status': 'ok', 'message': f'Subido con éxito a Render a las {stamp}'})
-        else:
-            err_msg = (push_res.stderr or push_res.stdout or 'Push rechazado').strip()
-            return jsonify({'status': 'error', 'error': err_msg}), 500
-    except Exception as exc:
-        logging.exception("Error subiendo precacheo a Render")
-        return jsonify({'status': 'error', 'error': str(exc)}), 500
-
-
-_BOT_WORKFLOWS = {
-    'upcoming': {
-        'workflows': ['precacheo-rapido.yml', 'actualizar-precacheo.yml'],
-        'label': 'Bots de próximos',
-    },
-    'finished': {
-        'workflows': ['cachear-terminados-10x.yml', 'cachear-terminados-5x.yml', 'cachear-terminados.yml'],
-        'label': 'Bots de terminados',
-    },
-    'league': {
-        'workflows': ['extraer-liga-cloud.yml'],
-        'label': 'Bots de extracción de liga',
-    },
-}
-
-
-def _workflow_dispatch_inputs(kind, workflow, inputs):
-    """Adapta los nombres de inputs entre workflows nuevos y legacy ya publicados."""
-    compatible = dict(inputs or {})
-    if kind == 'upcoming' and workflow == 'actualizar-precacheo.yml':
-        return {'force_full': compatible.get('force_full', 'false')}
-    if kind == 'finished':
-        workers = str(compatible.get('workers_per_bot') or compatible.get('workers') or '4')
-        base = {
-            'handicap': str(compatible.get('handicap') or 'all'),
-            'ou': str(compatible.get('ou') or 'all'),
-        }
-        if workflow == 'cachear-terminados.yml':
-            base['workers'] = workers
-        else:
-            base['workers_per_bot'] = workers
-        return base
-    return compatible
-
-
-def _unexpected_workflow_inputs(response):
-    """Extrae inputs rechazados por GitHub para poder reintentar de forma compatible."""
-    if getattr(response, 'status_code', None) != 422:
-        return []
-    message = str(getattr(response, 'text', '') or '')
-    match = re.search(r'Unexpected inputs provided:\s*\[(.*?)\]', message, re.IGNORECASE)
-    if not match:
-        return []
-    return re.findall(r'["\']([^"\']+)["\']', match.group(1))
-
-
-def _is_local_trigger_request():
-    remote = str(request.remote_addr or '').strip().lower()
-    return remote in {'127.0.0.1', '::1', 'localhost'}
-
-
-@app.route('/api/precacheo_trigger_bots', methods=['POST'])
-def api_precacheo_trigger_bots():
-    """Dispara el workflow elegido desde Render (API) o local (API/gh CLI), con fallback automático."""
-    data = request.get_json(silent=True) or {}
-    kind = str(data.get('kind') or '').strip().lower()
-    config = _BOT_WORKFLOWS.get(kind)
-    if not config:
-        return jsonify({'error': 'Tipo de bots no valido'}), 400
-
-    configured_key = str(os.getenv('ACTIONS_TRIGGER_KEY') or '')
-    provided_key = str(request.headers.get('X-Trigger-Key') or data.get('trigger_key') or '')
-    if configured_key and not secrets.compare_digest(configured_key, provided_key):
-        return jsonify({'error': 'Clave de activacion incorrecta', 'requires_key': True}), 401
-    require_key = bool(os.getenv('RENDER')) or str(os.getenv('ACTIONS_TRIGGER_REQUIRE_KEY') or '').lower() in {'1', 'true', 'yes', 'on'}
-    if require_key and not configured_key:
-        return jsonify({
-            'error': 'Configura ACTIONS_TRIGGER_KEY en Render antes de exponer este boton.',
-            'requires_configuration': True,
-        }), 503
-
-    if kind == 'upcoming':
-        try:
-            workers = max(1, min(int(data.get('workers') or 4), 6))
-        except Exception:
-            workers = 4
-        inputs = {
-            'force_full': 'true' if bool(data.get('force_full')) else 'false',
-            'workers_per_shard': str(workers),
-        }
-    elif kind == 'league':
-        league_ref = str(data.get('league_reference') or data.get('league') or '').strip()
-        if not league_ref:
-            return jsonify({'error': 'Debes indicar la URL o ID de la liga'}), 400
-        season = str(data.get('season') or '').strip()
-        match_status = str(data.get('match_status') or 'finished').strip()
-        ah = str(data.get('ah') or '').strip()
-        label = str(data.get('label') or '').strip()
-        workers = str(data.get('workers') or '5').strip()
-        max_matches = str(data.get('max_matches') or '0').strip()
-        force = 'true' if bool(data.get('force')) else 'false'
-        inputs = {
-            'league_reference': league_ref,
-            'season': season,
-            'match_status': match_status,
-            'ah': ah,
-            'label': label,
-            'workers': workers,
-            'max_matches': max_matches,
-            'force': force,
-        }
-    else:
-        try:
-            workers = max(1, min(int(data.get('workers') or 4), 10))
-        except Exception:
-            workers = 4
-        handicap = str(data.get('handicap') or 'all').strip()[:16] or 'all'
-        ou = str(data.get('ou') or 'all').strip()[:16] or 'all'
-        inputs = {
-            'handicap': handicap,
-            'ou': ou,
-            'workers_per_bot': str(workers),
-        }
-
-    repository = str(os.getenv('GITHUB_REPOSITORY') or 'dgb173/Version_Util_Render').strip()
-    ref = str(os.getenv('GITHUB_WORKFLOW_REF') or 'main').strip()
-    workflows_to_try = config.get('workflows', [config.get('workflow')])
-    token = str(os.getenv('GITHUB_ACTIONS_TOKEN') or os.getenv('GH_TOKEN') or '').strip()
-
-    if token:
-        last_error = None
-        for wf in workflows_to_try:
-            api_url = f"https://api.github.com/repos/{repository}/actions/workflows/{wf}/dispatches"
-            actions_url = f"https://github.com/{repository}/actions/workflows/{wf}"
-            workflow_inputs = _workflow_dispatch_inputs(kind, wf, inputs)
-            response = None
-            for _ in range(2):
-                response = requests.post(
-                    api_url,
-                    headers={
-                        'Accept': 'application/vnd.github+json',
-                        'Authorization': f'Bearer {token}',
-                        'X-GitHub-Api-Version': '2022-11-28',
-                    },
-                    json={'ref': ref, 'inputs': workflow_inputs},
-                    timeout=30,
-                )
-                unexpected = _unexpected_workflow_inputs(response)
-                if not unexpected:
-                    break
-                reduced_inputs = {
-                    key: value for key, value in workflow_inputs.items()
-                    if key not in set(unexpected)
-                }
-                if reduced_inputs == workflow_inputs:
-                    break
-                workflow_inputs = reduced_inputs
-            if response.status_code in {200, 201, 204}:
-                payload = response.json() if response.content else {}
-                return jsonify({
-                    'status': 'success',
-                    'message': f"{config['label']} activados en GitHub ({wf}).",
-                    'run_url': payload.get('html_url') or actions_url,
-                    'mode': 'github_api',
-                })
-            else:
-                last_error = response.text[:500] or f'HTTP {response.status_code}'
-                # If 404 (workflow file not yet pushed), try next candidate in list
-                if response.status_code == 404:
-                    continue
-                else:
-                    break
-
-        return jsonify({'error': f'GitHub rechazo el lanzamiento: {last_error}'}), 502
-
-    if not _is_local_trigger_request():
-        return jsonify({
-            'error': 'Falta GITHUB_ACTIONS_TOKEN en el servidor.',
-            'requires_configuration': True,
-        }), 503
-
-    gh_path = shutil.which('gh')
-    if not gh_path:
-        return jsonify({
-            'error': 'No se encontro GitHub CLI. Instala gh o configura GITHUB_ACTIONS_TOKEN.',
-            'requires_configuration': True,
-        }), 503
-
-    last_cli_error = None
-    for wf in workflows_to_try:
-        actions_url = f"https://github.com/{repository}/actions/workflows/{wf}"
-        command = [gh_path, 'workflow', 'run', wf, '--repo', repository, '--ref', ref]
-        workflow_inputs = _workflow_dispatch_inputs(kind, wf, inputs)
-        for key, value in workflow_inputs.items():
-            command.extend(['-f', f'{key}={value}'])
-        completed = subprocess.run(
-            command,
-            cwd=str(Path(__file__).resolve().parent.parent),
-            capture_output=True,
-            text=True,
-            timeout=45,
-            check=False,
-        )
-        if completed.returncode == 0:
-            return jsonify({
-                'status': 'success',
-                'message': f"{config['label']} activados desde el PC ({wf}).",
-                'run_url': actions_url,
-                'mode': 'gh_cli',
-            })
-        else:
-            last_cli_error = (completed.stderr or completed.stdout or 'gh fallo').strip()
-            if 'could not find' in last_cli_error.lower() or 'not found' in last_cli_error.lower():
-                continue
-            else:
-                break
-
-    return jsonify({'error': last_cli_error or 'No se pudo activar el workflow.'}), 502
 
 
 @app.route('/api/precacheo_upcoming_list')
@@ -6875,6 +6042,34 @@ def api_match_stats(match_id=None):
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/team_recent_history', methods=['POST'])
+def api_team_recent_history():
+    """Devuelve los partidos recientes de un equipo rival con sus lineas AH y estadisticas para el popup."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        team_name = str(payload.get('team_name') or '').strip()
+        match_id = ''.join(filter(str.isdigit, str(payload.get('match_id') or '')))
+        parent_match_id = ''.join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
+        league_id = str(payload.get('league_id') or '').strip()
+        force_refresh = bool(payload.get('force_refresh'))
+
+        if not team_name:
+            return jsonify({'status': 'error', 'error': 'Falta el nombre del equipo'}), 400
+
+        res = team_recent_history.get_team_recent_history(
+            team_name=team_name,
+            match_id=match_id,
+            parent_match_id=parent_match_id,
+            league_id=league_id,
+            force_refresh=force_refresh,
+        )
+        status_code = 200 if res.get('status') == 'success' else 500
+        return jsonify(res), status_code
+    except Exception as exc:
+        logging.exception('Error en /api/team_recent_history')
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/custom_rival_compare', methods=['POST'])
 def api_custom_rival_compare():
     """Compara dos rivales arbitrarios seleccionados por el usuario para obtener su H2H Col3 y Stats."""
@@ -6923,34 +6118,6 @@ def api_custom_rival_compare():
         })
     except Exception as exc:
         logger.error(f"Error in custom_rival_compare: {exc}")
-        return jsonify({'status': 'error', 'error': str(exc)}), 500
-
-
-@app.route('/api/team_recent_history', methods=['POST'])
-def api_team_recent_history():
-    """Devuelve los partidos recientes de un equipo rival con sus lineas AH y estadisticas para el popup."""
-    try:
-        payload = request.get_json(silent=True) or {}
-        team_name = str(payload.get('team_name') or '').strip()
-        match_id = "".join(filter(str.isdigit, str(payload.get('match_id') or '')))
-        parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
-        league_id = str(payload.get('league_id') or '').strip()
-        force_refresh = bool(payload.get('force_refresh'))
-
-        if not team_name:
-            return jsonify({'status': 'error', 'error': 'Falta el nombre del equipo'}), 400
-
-        res = team_recent_history.get_team_recent_history(
-            team_name=team_name,
-            match_id=match_id,
-            parent_match_id=parent_match_id,
-            league_id=league_id,
-            force_refresh=force_refresh,
-        )
-        status_code = 200 if res.get('status') == 'success' else 500
-        return jsonify(res), status_code
-    except Exception as exc:
-        logging.exception("Error en /api/team_recent_history")
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
@@ -7150,7 +6317,7 @@ def api_precacheo_h2h_col3():
             'status', 'goles_home', 'goles_away', 'handicap', 'match_id',
             'h2h_home_team_name', 'h2h_away_team_name', 'date', 'source',
             'is_different_league', 'resultado', 'home_red', 'away_red',
-            'stats_rows', 'condition', 'direct_match', 'inverse_match',
+            'stats_rows',
         )
         col3 = {key: raw_col3.get(key) for key in allowed_fields if key in raw_col3}
 
@@ -7445,9 +6612,9 @@ def _run_league_ah_job(job_id, extraction_id, matches, league_id, workers, force
 def api_league_handicap_preview():
     try:
         payload = request.get_json(silent=True) or {}
-        league_reference = str(payload.get('league_id') or payload.get('league_reference') or '').strip()
+        league_reference = str(payload.get('league_reference') or '').strip()
         if not league_reference:
-            return jsonify({'error': 'Introduce el ID de la liga (ej. 36)'}), 400
+            return jsonify({'error': 'Introduce la URL o el ID de la liga'}), 400
 
         raw_target_ah = payload.get('ah')
         try:
@@ -7475,144 +6642,6 @@ def api_league_handicap_preview():
     except Exception as exc:
         app.logger.exception('Error previsualizando liga por handicap')
         return jsonify({'error': str(exc)}), 500
-
-
-@app.route('/api/league_handicap/calendar-prefilter', methods=['POST'])
-def api_league_handicap_calendar_prefilter():
-    """Filtra por AH de ScheduleList; no consulta SofaScore ni escribe en SQLite."""
-    payload = request.get_json(silent=True) or {}
-    if not isinstance(payload, dict):
-        return jsonify({'error': 'El cuerpo de la solicitud debe ser un objeto JSON.'}), 400
-    raw_league_id = str(payload.get('nowgoal_league_id') or '').strip()
-    if not raw_league_id.isdigit() or int(raw_league_id) <= 0:
-        return jsonify({'error': 'Introduce un ID numérico positivo de liga NowGoal.'}), 400
-
-    def finite_number(key, default=None):
-        raw = payload.get(key, default)
-        if raw in (None, ''):
-            return default
-        if isinstance(raw, bool):
-            raise ValueError
-        value = float(raw)
-        if not math.isfinite(value):
-            raise ValueError
-        return value
-
-    try:
-        target_ah = finite_number('target_ah', 0.0)
-        tolerance = finite_number('tolerance', 0.0)
-        if target_ah is None or not -20 <= target_ah <= 20:
-            return jsonify({'error': 'AH objetivo fuera de rango; usa un valor entre -20 y 20.'}), 400
-        if tolerance is None or not 0 <= tolerance <= 5:
-            return jsonify({'error': 'La tolerancia debe estar entre 0 y 5.'}), 400
-    except (TypeError, ValueError, OverflowError):
-        return jsonify({'error': 'AH y tolerancia deben ser números finitos.'}), 400
-
-    season = str(payload.get('season') or '').strip()
-    if season and not re.fullmatch(r"(?:19|20|21)\d{2}(?:-(?:19|20|21)\d{2})?", season):
-        return jsonify({'error': 'Temporada no válida; usa AAAA o AAAA-AAAA.'}), 400
-    only_finished = payload.get('only_finished', True)
-    if not isinstance(only_finished, bool):
-        return jsonify({'error': 'only_finished debe ser booleano.'}), 400
-
-    try:
-        result = league_handicap_scraper.prefilter_matches_by_ah(
-            league_id=raw_league_id,
-            season=season or None,
-            target_ah=target_ah,
-            tolerance=tolerance,
-            only_finished=only_finished,
-        )
-        return jsonify({
-            'status': 'success',
-            'source': 'NowGoal ScheduleList row[10]',
-            'write_performed': False,
-            **result,
-        })
-    except requests.RequestException as exc:
-        return jsonify({'error': f'NowGoal no respondió correctamente: {exc}'}), 502
-    except (ValueError, RuntimeError) as exc:
-        return jsonify({'error': str(exc)}), 400
-    except Exception as exc:
-        app.logger.exception('Error en prefiltrado AH del calendario')
-        return jsonify({'error': 'No se pudo consultar el calendario AH de NowGoal.'}), 500
-
-
-@app.route('/api/sofascore/resolve-league', methods=['POST'])
-def api_sofascore_resolve_league():
-    """Resuelve y comprueba la entidad de competición en SofaScore sin mezclar IDs."""
-    payload = request.get_json(silent=True) or {}
-    if not isinstance(payload, dict):
-        return jsonify({'status': 'unresolved', 'reason': 'invalid_request_body'}), 400
-    league_name = str(payload.get('league_name') or '').strip()[:160]
-    if not league_name:
-        return jsonify({'status': 'unresolved', 'reason': 'missing_league_name'}), 400
-
-    try:
-        resolved = sofascore_context._resolve_tournament(league_name)
-        if not isinstance(resolved, dict) or resolved.get('status') != 'resolved':
-            return jsonify({
-                'status': (resolved or {}).get('status', 'unresolved'),
-                'reason': (resolved or {}).get('reason', 'competition_not_resolved'),
-                'candidates': (resolved or {}).get('candidates', []),
-                'provider': 'SofaScore',
-            })
-
-        entity_id = int(resolved.get('id') or 0)
-        is_unique = resolved.get('is_unique')
-        if entity_id <= 0 or not isinstance(is_unique, bool):
-            return jsonify({'status': 'unverified', 'reason': 'invalid_entity_identity', 'provider': 'SofaScore'})
-
-        # Verify the exact entity type and ID against the live provider response.
-        # A tournament ID and a uniqueTournament ID are different namespaces.
-        entity_kind = 'uniqueTournament' if is_unique else 'tournament'
-        path_kind = 'unique-tournament' if is_unique else 'tournament'
-        provider_payload = sofascore_context._api_get(f'/{path_kind}/{entity_id}')
-        live_entity = provider_payload.get(entity_kind) if isinstance(provider_payload, dict) else None
-        if not isinstance(live_entity, dict) or str(live_entity.get('id')) != str(entity_id):
-            return jsonify({
-                'status': 'unverified', 'reason': 'provider_entity_mismatch',
-                'league_name': league_name, 'provider': 'SofaScore',
-            })
-
-        resolved_name = str(live_entity.get('name') or resolved.get('name') or '')
-        # The resolver already compared search-derived matches with the requested
-        # name. Its canonical target must now match the live entity; explicit
-        # aliases may intentionally bridge two providers' different league names.
-        comparison_name = str(resolved.get('name') or league_name)
-        similarity = sofascore_context._similarity(comparison_name, resolved_name)
-        if similarity < 0.72:
-            return jsonify({
-                'status': 'unverified', 'reason': 'league_name_mismatch',
-                'league_name': league_name, 'candidate_name': resolved_name,
-                'provider': 'SofaScore',
-            })
-
-        category = live_entity.get('category') or {}
-        return jsonify({
-            'status': 'verified',
-            'provider': 'SofaScore',
-            'id': entity_id,
-            'entity_type': 'uniqueTournament' if is_unique else 'tournament',
-            'name': resolved_name,
-            'category': category.get('name') or '',
-            'source': resolved.get('source', 'alias'),
-            'match_score': round(similarity, 3),
-            'requested_name_score': round(sofascore_context._similarity(league_name, resolved_name), 3),
-        })
-    except Exception as exc:
-        app.logger.info('No se pudo verificar competición SofaScore %r: %s', league_name, exc)
-        status_code = getattr(getattr(exc, 'response', None), 'status_code', None)
-        reason = (
-            'provider_access_challenge' if status_code == 403 else
-            'provider_rate_limited' if status_code == 429 else
-            'provider_unavailable'
-        )
-        return jsonify({
-            'status': 'unavailable',
-            'reason': reason,
-            'provider': 'SofaScore',
-        }), 502
 
 
 @app.route('/api/league_handicap/start', methods=['POST'])
@@ -8654,8 +7683,8 @@ def api_precacheo_pattern_search():
     Busca patrones similares con lógica NORMALIZADA POR HANDICAP.
     
     REGLA CLAVE: Solo muestra partidos previos donde el equipo tuvo el MISMO ROL:
-    - AH del partido > 0 → favorito local
-    - AH del partido < 0 → favorito visitante
+    - Si hoy es favorito (AH negativo) → Buscar partidos donde fue favorito
+    - Si hoy es underdog (AH positivo) → Buscar partidos donde fue underdog
     
     Calcula MEJORA en H2H Col3 comparando AH histórico vs actual.
     """
@@ -8733,19 +7762,18 @@ def api_precacheo_pattern_search():
                     # Equipo jugó de local, su AH es el que está en el partido
                     odds = m.get('odds', {}) or m.get('main_match_odds', {})
                     raw_ah = odds.get('ah_linea') or odds.get('handicap_line')
-                    if raw_ah not in (None, ''): team_ah = float(raw_ah)
+                    if raw_ah: team_ah = float(raw_ah)
                 elif team_name.lower() == a_name.lower():
                     # Equipo jugó de visitante, su AH es el inverso
                     odds = m.get('odds', {}) or m.get('main_match_odds', {})
                     raw_ah = odds.get('ah_linea') or odds.get('handicap_line')
-                    if raw_ah not in (None, ''): team_ah = -float(raw_ah)
+                    if raw_ah: team_ah = -float(raw_ah)
                 
                 if team_ah is None:
                     continue
                 
                 # Verificar si tuvo el mismo rol
-                # Línea orientada al equipo: positiva = ese equipo era favorito.
-                was_favorite = team_ah > 0.01
+                was_favorite = team_ah < -0.01
                 
                 if was_favorite != should_be_favorite:
                     continue
@@ -8759,26 +7787,16 @@ def api_precacheo_pattern_search():
             
             return filtered
         
-        # Cargar histórico de partidos finalizados (desde Turso / SQL) para comparar patrones
-        history_matches = data_manager.load_matches_by_bucket(current_ah) or []
-        if not history_matches:
-            history_matches = data_manager.load_all_matches() or []
-        if not history_matches:
-            history_matches = snapshot.get('finished_matches', []) or []
-
         # Buscar partidos con MISMO ROL
         home_bucket = get_ah_bucket(current_ah if is_home_favorite else -current_ah)
         away_bucket = get_ah_bucket(-current_ah if is_away_favorite else current_ah)
         
-        # Priorizar last_home_match y last_away_match del análisis de precacheo
-        prev_home = target_match.get('last_home_match')
-        prev_away = target_match.get('last_away_match')
-        if not prev_home:
-            prev_home_matches = filter_by_role(current_home, history_matches, is_home_favorite, home_bucket)
-            prev_home = prev_home_matches[0] if prev_home_matches else None
-        if not prev_away:
-            prev_away_matches = filter_by_role(current_away, history_matches, is_away_favorite, away_bucket)
-            prev_away = prev_away_matches[0] if prev_away_matches else None
+        prev_home_matches = filter_by_role(current_home, matches, is_home_favorite, home_bucket)
+        prev_away_matches = filter_by_role(current_away, matches, is_away_favorite, away_bucket)
+        
+        # Tomar el más reciente
+        prev_home = prev_home_matches[0] if prev_home_matches else None
+        prev_away = prev_away_matches[0] if prev_away_matches else None
         
         # Preparar respuesta
         match_info = {
@@ -8789,26 +7807,19 @@ def api_precacheo_pattern_search():
         }
         
         # ===== BÚSQUEDA DE PATRONES SIMILARES =====
-        # Buscar todos los partidos históricos con AH similar al actual
+        # Buscar todos los partidos con AH similar al actual
         similar_matches = []
         target_bucket = get_ah_bucket(current_ah)
         
-        for m in history_matches:
-            if str(m.get('match_id') or m.get('id')) == str(match_id):
+        for m in matches:
+            if m.get('match_id') == match_id:
                 continue  # Skip current match
             
-            m_ah = None
-            if m.get('main_match_odds'):
-                m_ah = m['main_match_odds'].get('ah_linea')
-            if m_ah is None:
-                m_ah = m.get('handicap')
-            if m_ah is None:
+            m_ah = m.get('main_match_odds', {}).get('ah_linea')
+            if not m_ah:
                 continue
             
-            try:
-                m_bucket = get_ah_bucket(float(m_ah))
-            except Exception:
-                continue
+            m_bucket = get_ah_bucket(float(m_ah))
             
             # Solo incluir partidos con AH en mismo bucket (±0.5)
             if abs(abs(m_bucket) - abs(target_bucket)) > 0.5:
@@ -8821,7 +7832,7 @@ def api_precacheo_pattern_search():
             """Formatea un partido con TODOS los datos necesarios"""
             m_home = match.get('home_name') or match.get('home_team')
             m_away = match.get('away_name') or match.get('away_team')
-            m_odds = match.get('main_match_odds', {}) or match.get('odds', {})
+            m_odds = match.get('main_match_odds', {})
             m_ah = m_odds.get('ah_linea', 0)
             m_score = match.get('score') or match.get('final_score')
             m_date = match.get('date', '')
@@ -8834,11 +7845,10 @@ def api_precacheo_pattern_search():
                     if len(parts) == 2:
                         h_goals = int(parts[0])
                         a_goals = int(parts[1])
-                        ah_strength = abs(float(m_ah))
-                        favorite_margin = (h_goals - a_goals) if float(m_ah) > 0 else (a_goals - h_goals)
-                        if favorite_margin > ah_strength:
+                        diff = h_goals - a_goals + float(m_ah)
+                        if diff > 0.01:
                             covered = 'COVER'
-                        elif favorite_margin < ah_strength:
+                        elif diff < -0.01:
                             covered = 'NO_COVER'
                         else:
                             covered = 'PUSH'
@@ -8880,9 +7890,8 @@ def api_precacheo_pattern_search():
                         if len(parts) == 2:
                             h_g = int(parts[0])
                             a_g = int(parts[1])
-                            h2h_strength = abs(float(h2h_ah_raw))
-                            h2h_margin = (h_g - a_g) if float(h2h_ah_raw) > 0 else (a_g - h_g)
-                            h2h_covered = h2h_margin > h2h_strength
+                            diff = h_g - a_g + float(h2h_ah_raw)
+                            h2h_covered = diff > 0.01
                     except:
                         pass
                 
@@ -9091,148 +8100,6 @@ def api_freshness_report():
     except Exception as e:
         print(f"Error en api_freshness_report: {e}")
         return jsonify({'error': str(e)}), 500
-
-
-
-@app.route('/api/import_github_finished', methods=['GET', 'POST'])
-def api_import_github_finished():
-    """Descarga los ultimos datos consolidados de GitHub e importa los partidos a SQLite."""
-    try:
-        project_root = Path(__file__).resolve().parent.parent
-        data_dir = project_root / 'data'
-        lock_file = project_root / '.git' / 'index.lock'
-        if lock_file.exists():
-            try:
-                lock_file.unlink()
-            except Exception:
-                pass
-
-        # 1. Fetch y checkout de data desde GitHub
-        git_fetch_success = False
-        try:
-            fetch_env = os.environ.copy()
-            fetch_env['GIT_TERMINAL_PROMPT'] = '0'
-            res = subprocess.run(
-                ['git', 'fetch', 'origin', 'main', '--depth=1'],
-                cwd=str(project_root),
-                capture_output=True,
-                text=True,
-                timeout=20,
-                env=fetch_env,
-            )
-            if res.returncode == 0:
-                git_fetch_success = True
-        except Exception as fetch_err:
-            print(f"Aviso en importación: git fetch no completó ({fetch_err}). Activando fallback HTTP directo.")
-
-        if lock_file.exists():
-            try:
-                lock_file.unlink()
-            except Exception:
-                pass
-
-        if git_fetch_success:
-            try:
-                subprocess.run(
-                    ['git', 'checkout', 'origin/main', '--', 'data/'],
-                    cwd=str(project_root),
-                    capture_output=True,
-                    text=True,
-                    timeout=20,
-                )
-            except Exception as chk_err:
-                print(f"Aviso en checkout de data: {chk_err}")
-
-        # Fallback robusto: si git falló o se bloquearon descriptores de archivo en Windows,
-        # intentamos git show o descarga HTTP directa desde el repositorio de GitHub.
-        repo_slug = str(os.getenv('GITHUB_REPOSITORY') or 'dgb173/Version_Util_Render').strip()
-        raw_base = f"https://raw.githubusercontent.com/{repo_slug}/main/data"
-        files_to_sync = [
-            'data_precacheo.json',
-            'data_pending_results.json',
-            'data.json',
-            'data_ah_0.json',
-            'data_ah_0.5.json',
-            'data_minus_ah_0.5.json',
-            'data_ah_1.5.json',
-            'data_minus_ah_1.5.json',
-            'data_ah_2_plus.json',
-            'data_minus_ah_2_plus.json',
-            'data_unknown.json',
-            'league_extractions.json',
-            'data_cloud_league.json',
-        ]
-        for filename in files_to_sync:
-            target_path = data_dir / filename
-            downloaded = False
-            if git_fetch_success:
-                try:
-                    show_proc = subprocess.run(
-                        ['git', 'show', f'origin/main:data/{filename}'],
-                        cwd=str(project_root),
-                        capture_output=True,
-                        text=True,
-                        encoding='utf-8',
-                        timeout=10,
-                    )
-                    if show_proc.returncode == 0 and show_proc.stdout and show_proc.stdout.strip().startswith(('[', '{')):
-                        with open(target_path, 'w', encoding='utf-8') as fh:
-                            fh.write(show_proc.stdout)
-                        downloaded = True
-                except Exception:
-                    pass
-
-            if not downloaded:
-                try:
-                    r = requests.get(f"{raw_base}/{filename}", timeout=15)
-                    if r.status_code == 200 and r.text.strip().startswith(('[', '{')):
-                        with open(target_path, 'w', encoding='utf-8') as fh:
-                            fh.write(r.text)
-                        downloaded = True
-                except Exception as http_err:
-                    print(f"Aviso: no se pudo obtener {filename} por HTTP: {http_err}")
-
-        # 2. Importar JSONs hacia SQLite
-        from scripts import import_json_to_sql
-        files = sorted(import_json_to_sql._iter_input_files(data_dir))
-        imported_total = 0
-        skipped_total = 0
-        for fp in files:
-            try:
-                imp, sk = import_json_to_sql.import_file(fp, strict=False)
-                imported_total += imp
-                skipped_total += sk
-            except Exception:
-                pass
-
-        with sql_store._connect() as conn:
-            rows = conn.execute(
-                "SELECT match_id, payload_json FROM matches WHERE handicap IS NULL"
-            ).fetchall()
-            for row in rows:
-                try:
-                    mid = row["match_id"]
-                    d = json.loads(row["payload_json"] or "{}")
-                    raw = d.get("handicap")
-                    if raw in (None, "", "N/A", "-", "null", "None"):
-                        raw = (d.get("main_match_odds") or {}).get("ah_linea")
-                    if raw not in (None, "", "N/A", "-", "null", "None"):
-                        val = float(str(raw).replace(",", "."))
-                        conn.execute("UPDATE matches SET handicap = ? WHERE match_id = ?", (val, mid))
-                except Exception:
-                    pass
-            conn.commit()
-            total_sql = conn.execute('SELECT COUNT(*) FROM matches').fetchone()[0]
-        return jsonify({
-            'status': 'ok',
-            'message': f'Sincronizacion completada con exito. Se han integrado los partidos de GitHub. Total en base de datos: {total_sql}.',
-            'imported': imported_total,
-            'skipped': skipped_total,
-            'total_matches': total_sql
-        })
-    except Exception as e:
-        print(f"Error en api_import_github_finished: {e}")
-        return jsonify({'status': 'error', 'error': str(e)}), 500
 
 
 if __name__ == '__main__':

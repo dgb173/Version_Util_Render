@@ -1,11 +1,11 @@
 import json
 import logging
 import os
-import re
 import sqlite3
 import sys
 import threading
 import time
+import requests
 from datetime import datetime
 from contextlib import contextmanager
 from pathlib import Path
@@ -15,10 +15,21 @@ from .red_cards import normalize_red_card_stats_payload
 
 LOGGER = logging.getLogger(__name__)
 
-try:
-    import libsql as _libsql  # type: ignore
-except Exception:
+LIBSQL_LOCAL_ONLY = os.getenv("LIBSQL_LOCAL_ONLY", "0").strip().lower() in {
+    "1", "true", "yes", "on"
+}
+
+# The Pre-Cacheo Render service only needs the bot-generated files bundled in
+# each deploy.  Do not even load the native libSQL extension there: apart from
+# being unnecessary, the native client has terminated the small free worker
+# with status 139 under load.
+if LIBSQL_LOCAL_ONLY:
     _libsql = None
+else:
+    try:
+        import libsql as _libsql  # type: ignore
+    except Exception:
+        _libsql = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -35,8 +46,8 @@ BOOTSTRAP_LOCK_FILE = Path(
 SQL_BOOTSTRAP_MODE = os.getenv("SQL_BOOTSTRAP_MODE", "full").strip().lower()
 SQL_BOOTSTRAP_SKIP_LEGACY = SQL_BOOTSTRAP_MODE in {"none", "schema_only", "no_legacy"}
 SQL_BOOTSTRAP_HISTORY_ONLY = SQL_BOOTSTRAP_MODE == "history_only"
-LIBSQL_URL = os.getenv("LIBSQL_URL", "").strip()
-LIBSQL_AUTH_TOKEN = os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
+LIBSQL_URL = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_URL", "").strip()
+LIBSQL_AUTH_TOKEN = "" if LIBSQL_LOCAL_ONLY else os.getenv("LIBSQL_AUTH_TOKEN", "").strip()
 LIBSQL_SYNC_INTERVAL_SECONDS = max(0, int(os.getenv("LIBSQL_SYNC_INTERVAL_SECONDS", "60")))
 LIBSQL_REMOTE_ONLY = os.getenv("LIBSQL_REMOTE_ONLY", "0").strip().lower() in {
     "1", "true", "yes", "on"
@@ -60,7 +71,6 @@ MANAGED_BUCKETS = [
     "data_unknown.json",
     "data_others.json",
     "data_precacheo.json",
-    "data_precacheo_clean.json",
     "data_pending_results.json",
 ]
 
@@ -93,24 +103,10 @@ SQL_BOOTSTRAP_ONLY_BUCKETS = _parse_bootstrap_only_buckets(
 
 MATCH_STATE_BY_BUCKET = {
     "data_precacheo.json": "precacheo",
-    "data_precacheo_clean.json": "precacheo",
     "data_pending_results.json": "pending_results",
 }
 
 DEFAULT_MATCH_STATE = "historical"
-
-
-def get_match_state_for_bucket(bucket: str) -> str:
-    if not bucket:
-        return DEFAULT_MATCH_STATE
-    if bucket in MATCH_STATE_BY_BUCKET:
-        return MATCH_STATE_BY_BUCKET[bucket]
-    b_lower = str(bucket).lower()
-    if "precacheo" in b_lower:
-        return "precacheo"
-    if "pending" in b_lower:
-        return "pending_results"
-    return DEFAULT_MATCH_STATE
 
 _BOOTSTRAP_LOCK = threading.Lock()
 _BOOTSTRAPPED = False
@@ -118,8 +114,16 @@ _LIBSQL_SYNC_LOCK = threading.Lock()
 _LIBSQL_INITIAL_SYNC_DONE = False
 
 
+def _row_value(row: Any, key: str, index: int) -> Any:
+    """Read sqlite3.Row, mapping-style rows, or libSQL tuple rows."""
+    try:
+        return row[key]
+    except (TypeError, KeyError, IndexError):
+        return row[index]
+
+
 def now_iso() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.utcnow().replace(microsecond=0).isoformat()
 
 
 @contextmanager
@@ -157,43 +161,16 @@ def _process_bootstrap_lock():
         handle.close()
 
 
-class _ManagedConnection:
-    """Wrapper that supports both context-manager syntax (with auto commit/rollback/close)
-    and direct connection usage (conn = _connect())."""
-    def __init__(self, conn):
-        self._conn = conn
-
-    def __enter__(self):
-        return self._conn
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is not None:
-            try:
-                self._conn.rollback()
-            except Exception:
-                pass
-        else:
-            try:
-                self._conn.commit()
-            except Exception:
-                pass
-        try:
-            self._conn.close()
-        except Exception:
-            pass
-
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-
-    def __iter__(self):
-        return iter(self._conn)
-
-
-def _connect():
+def _connect() -> sqlite3.Connection:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = None
 
-    if LIBSQL_URL and _libsql is not None:
+    if LIBSQL_URL:
+        if _libsql is None:
+            raise RuntimeError(
+                "LIBSQL_URL está configurado, pero el paquete 'libsql' no está instalado."
+            )
+
         if LIBSQL_REMOTE_ONLY:
             # Render Free has an ephemeral filesystem. A local embedded replica in
             # /tmp has to bootstrap again after a cold start, transferring the full
@@ -214,8 +191,6 @@ def _connect():
 
             conn = _libsql.connect(str(DB_PATH), **connect_kwargs)
     else:
-        if LIBSQL_URL and _libsql is None:
-            LOGGER.debug("LIBSQL_URL configurado pero el paquete 'libsql' no está instalado en este entorno. Usando SQLite local.")
         conn = sqlite3.connect(DB_PATH, timeout=30)
 
     try:
@@ -227,7 +202,6 @@ def _connect():
         "PRAGMA journal_mode = WAL",
         "PRAGMA synchronous = NORMAL",
         "PRAGMA foreign_keys = ON",
-        "PRAGMA busy_timeout = 30000",
     ):
         try:
             conn.execute(pragma)
@@ -236,7 +210,7 @@ def _connect():
             pass
 
     # First sync on process boot ensures local replica has latest remote data.
-    if LIBSQL_URL and _libsql is not None and not LIBSQL_REMOTE_ONLY:
+    if LIBSQL_URL and not LIBSQL_REMOTE_ONLY:
         sync_fn = getattr(conn, "sync", None)
         if callable(sync_fn):
             with _LIBSQL_SYNC_LOCK:
@@ -248,7 +222,7 @@ def _connect():
                         LOGGER.warning("Initial libsql sync failed: %s", exc)
                     _LIBSQL_INITIAL_SYNC_DONE = True
 
-    return _ManagedConnection(conn)
+    return conn
 
 
 def _init_schema(conn: sqlite3.Connection) -> None:
@@ -269,7 +243,6 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             match_date TEXT,
             payload_json TEXT NOT NULL,
             explorer_json TEXT,
-            explorer_search_json TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
@@ -278,14 +251,6 @@ def _init_schema(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_matches_state ON matches(state);
         CREATE INDEX IF NOT EXISTS idx_matches_match_date ON matches(match_date);
         CREATE INDEX IF NOT EXISTS idx_matches_updated_at ON matches(updated_at);
-        CREATE INDEX IF NOT EXISTS idx_matches_state_updated ON matches(state, updated_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_matches_bucket_updated ON matches(bucket, updated_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_matches_bucket_state_updated ON matches(bucket, state, updated_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_matches_state_date ON matches(state, match_date DESC);
-        CREATE INDEX IF NOT EXISTS idx_matches_explorer_order
-            ON matches(state, match_date DESC, updated_at DESC, match_id DESC);
-        CREATE INDEX IF NOT EXISTS idx_matches_handicap ON matches(handicap);
-        CREATE INDEX IF NOT EXISTS idx_matches_state_handicap ON matches(state, handicap);
 
         CREATE TABLE IF NOT EXISTS history_pending (
             season TEXT NOT NULL,
@@ -351,11 +316,9 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 
 def _ensure_matches_explorer_column(conn: sqlite3.Connection) -> None:
     cols = conn.execute("PRAGMA table_info(matches)").fetchall()
-    names = {row["name"] for row in cols}
+    names = {_row_value(row, "name", 1) for row in cols}
     if "explorer_json" not in names:
         conn.execute("ALTER TABLE matches ADD COLUMN explorer_json TEXT")
-    if "explorer_search_json" not in names:
-        conn.execute("ALTER TABLE matches ADD COLUMN explorer_search_json TEXT")
 
 
 def _compact_main_match_odds(raw: Any) -> Dict[str, Any]:
@@ -516,23 +479,23 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "match_id": match_data.get("match_id"),
         "history_data_version": match_data.get("history_data_version"),
         "id": match_data.get("id"),
-        "home_name": match_data.get("home_name") or match_data.get("home_team"),
-        "away_name": match_data.get("away_name") or match_data.get("away_team"),
-        "home_team": match_data.get("home_team") or match_data.get("home_name"),
-        "away_team": match_data.get("away_team") or match_data.get("away_name"),
+        "home_name": match_data.get("home_name"),
+        "away_name": match_data.get("away_name"),
+        "home_team": match_data.get("home_team"),
+        "away_team": match_data.get("away_team"),
         "league_name": match_data.get("league_name"),
         "league_id": match_data.get("league_id"),
         "competition_type": match_data.get("competition_type"),
         "competition_stage": match_data.get("competition_stage"),
         "competition_stage_id": match_data.get("competition_stage_id"),
         "season": match_data.get("season"),
-        "match_date": _extract_match_date(match_data) or match_data.get("match_date") or match_data.get("date"),
-        "date": _extract_match_date(match_data) or match_data.get("date") or match_data.get("match_date"),
+        "match_date": match_data.get("match_date"),
+        "date": match_data.get("date"),
         "cached_at": match_data.get("cached_at"),
         "time_obj": match_data.get("time_obj"),
-        "handicap": _extract_handicap(match_data) if _extract_handicap(match_data) is not None else match_data.get("handicap"),
-        "score": match_data.get("score") or match_data.get("final_score"),
-        "final_score": match_data.get("final_score") or match_data.get("score"),
+        "handicap": match_data.get("handicap"),
+        "score": match_data.get("score"),
+        "final_score": match_data.get("final_score"),
         "stats_rows": match_data.get("stats_rows") if isinstance(match_data.get("stats_rows"), list) else [],
         "stats_status": match_data.get("stats_status"),
         "stats_updated_at": match_data.get("stats_updated_at"),
@@ -542,9 +505,6 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
         "market_analysis_data": _compact_market_analysis_data(match_data.get("market_analysis_data")),
         "market_analysis_html": match_data.get("market_analysis_html"),
         "h2h_col3": match_data.get("h2h_col3"),
-        "h2h_stadium": match_data.get("h2h_stadium"),
-        "h2h_general": match_data.get("h2h_general"),
-        "summary_stats_status": match_data.get("summary_stats_status"),
         "comparativas_indirectas": _compact_comparativas(match_data.get("comparativas_indirectas")),
         "home_standings": match_data.get("home_standings"),
         "away_standings": match_data.get("away_standings"),
@@ -577,20 +537,6 @@ def _build_explorer_payload(match_data: Dict[str, Any]) -> Dict[str, Any]:
     return payload
 
 
-EXPLORER_SEARCH_UNUSED_KEYS = (
-    "pre_match_context", "recent_home_matches_all", "recent_away_matches_all",
-    "recent_home_matches_same_league_specific", "recent_away_matches_same_league_specific",
-    "recent_home_matches_same_league_general", "recent_away_matches_same_league_general",
-    "stats_rows", "home_ou_stats", "away_ou_stats", "home_ou_stats_specific",
-    "away_ou_stats_specific", "home_ou_stats_general", "away_ou_stats_general",
-)
-
-
-def _build_explorer_search_payload(explorer_payload: Dict[str, Any]) -> Dict[str, Any]:
-    return {key: value for key, value in explorer_payload.items()
-            if key not in EXPLORER_SEARCH_UNUSED_KEYS}
-
-
 def _backfill_explorer_payload(
     conn: sqlite3.Connection,
     batch_size: int = 500,
@@ -620,7 +566,7 @@ def _backfill_explorer_payload(
             break
 
         for row in rows:
-            raw = row["payload_json"]
+            raw = _row_value(row, "payload_json", 1)
             try:
                 match_data = json.loads(raw)
             except json.JSONDecodeError:
@@ -630,35 +576,17 @@ def _backfill_explorer_payload(
 
             explorer_payload = _build_explorer_payload(match_data)
             conn.execute(
-                "UPDATE matches SET explorer_json = ?, explorer_search_json = ? WHERE match_id = ?",
-                (
-                    json.dumps(explorer_payload, ensure_ascii=False),
-                    json.dumps(_build_explorer_search_payload(explorer_payload),
-                               ensure_ascii=False, separators=(",", ":")),
-                    row["match_id"],
-                ),
+                "UPDATE matches SET explorer_json = ? WHERE match_id = ?",
+                (json.dumps(explorer_payload, ensure_ascii=False), _row_value(row, "match_id", 0)),
             )
             updated += 1
 
     return updated
 
 
-def backfill_explorer_search_payload() -> int:
-    """Materialize search-only rows in an existing local database once."""
-    ensure_bootstrap()
-    paths = ", ".join(repr(f"$.{key}") for key in EXPLORER_SEARCH_UNUSED_KEYS)
-    with _connect() as conn:
-        cursor = conn.execute(
-            "UPDATE matches SET explorer_search_json = "
-            f"json_remove(COALESCE(explorer_json, payload_json), {paths}) "
-            "WHERE explorer_search_json IS NULL AND state = 'historical'"
-        )
-        return cursor.rowcount
-
-
 def _get_kv(conn: sqlite3.Connection, key: str) -> Optional[str]:
     row = conn.execute("SELECT value FROM kv_store WHERE key = ?", (key,)).fetchone()
-    return row["value"] if row else None
+    return _row_value(row, "value", 0) if row else None
 
 
 def _set_kv(conn: sqlite3.Connection, key: str, value: str) -> None:
@@ -686,59 +614,21 @@ def _normalize_score(match_data: Dict) -> Optional[str]:
 
 def _extract_handicap(match_data: Dict) -> Optional[float]:
     raw = match_data.get("handicap")
-    if raw in (None, "", "N/A", "-", "null", "None"):
+    if raw is None:
         raw = (match_data.get("main_match_odds") or {}).get("ah_linea")
-    if raw in (None, "", "N/A", "-", "null", "None"):
+    if raw in (None, "", "N/A", "-"):
         return None
     try:
-        return float(str(raw).replace(",", "."))
+        return float(raw)
     except (TypeError, ValueError):
         return None
 
 
-def _normalize_iso_date(value: Any) -> Optional[str]:
-    if value in (None, "", "N/A", "-", "null", "None"):
-        return None
-    s = str(value).strip()
-    m = re.match(r"^(\d{4})[-/](\d{1,2})[-/](\d{1,2})", s)
-    if m:
-        year, month, day = m.groups()
-        return f"{int(year):04d}-{int(month):02d}-{int(day):02d}"
-    m = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{4})", s)
-    if m:
-        p1, p2, year = m.groups()
-        if int(p1) > 12:
-            day, month = int(p1), int(p2)
-        else:
-            month, day = int(p1), int(p2)
-        return f"{int(year):04d}-{month:02d}-{day:02d}"
-    m = re.match(r"^(\d{1,2})-(\d{1,2})-(\d{4})", s)
-    if m:
-        p1, p2, year = m.groups()
-        if int(p1) > 12:
-            day, month = int(p1), int(p2)
-        else:
-            month, day = int(p1), int(p2)
-        return f"{int(year):04d}-{month:02d}-{day:02d}"
-    return s[:10]
-
-
 def _extract_match_date(match_data: Dict) -> Optional[str]:
-    value = (
-        match_data.get("match_date")
-        or match_data.get("date")
-        or match_data.get("time_obj")
-        or match_data.get("start_time")
-        or match_data.get("cached_at")
-    )
-    if not value:
-        lam = match_data.get("last_away_match") or {}
-        lhm = match_data.get("last_home_match") or {}
-        if isinstance(lam, dict) and lam.get("date"):
-            value = lam.get("date")
-        elif isinstance(lhm, dict) and lhm.get("date"):
-            value = lhm.get("date")
-    return _normalize_iso_date(value)
+    value = match_data.get("match_date")
+    if value in (None, "", "N/A"):
+        return None
+    return str(value)
 
 
 def _upsert_match(
@@ -757,28 +647,17 @@ def _upsert_match(
         "SELECT bucket FROM matches WHERE match_id = ?",
         (match_id,),
     ).fetchone()
-    if previous_row is None:
-        previous_bucket = None
-    elif hasattr(previous_row, "keys"):
-        previous_bucket = previous_row["bucket"]
-    else:
-        previous_bucket = previous_row[0]
+    previous_bucket = _row_value(previous_row, "bucket", 0) if previous_row else None
 
     payload = json.dumps(match_data, ensure_ascii=False)
-    explorer_data = _build_explorer_payload(match_data)
-    explorer_payload = json.dumps(explorer_data, ensure_ascii=False)
-    explorer_search_payload = json.dumps(
-        _build_explorer_search_payload(explorer_data), ensure_ascii=False,
-        separators=(",", ":"),
-    )
+    explorer_payload = json.dumps(_build_explorer_payload(match_data), ensure_ascii=False)
     ts = now_iso()
 
     conn.execute(
         """
         INSERT INTO matches(
-            match_id, bucket, state, handicap, score, match_date, payload_json,
-            explorer_json, explorer_search_json, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            match_id, bucket, state, handicap, score, match_date, payload_json, explorer_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(match_id) DO UPDATE SET
             bucket = excluded.bucket,
             state = excluded.state,
@@ -787,7 +666,6 @@ def _upsert_match(
             match_date = excluded.match_date,
             payload_json = excluded.payload_json,
             explorer_json = excluded.explorer_json,
-            explorer_search_json = excluded.explorer_search_json,
             updated_at = excluded.updated_at
         """,
         (
@@ -799,7 +677,6 @@ def _upsert_match(
             _extract_match_date(match_data),
             payload,
             explorer_payload,
-            explorer_search_payload,
             ts,
             ts,
         ),
@@ -809,57 +686,138 @@ def _upsert_match(
 
 def _fetch_matches_rows(
     conn: sqlite3.Connection,
-    bucket: Optional[Any] = None,
+    bucket: Optional[str] = None,
     state: Optional[str] = None,
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
-    explorer_search_only: bool = False,
     offset: int = 0,
 ) -> List[sqlite3.Row]:
     payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
-    if explorer_search_only:
-        # New rows use the materialized compact payload. Existing rows remain
-        # readable until the one-time local backfill fills this column.
-        unused_paths = tuple(f"$.{key}" for key in EXPLORER_SEARCH_UNUSED_KEYS)
-        payload_expr = (
-            f"COALESCE(explorer_search_json, json_remove({payload_expr}, "
-            f"{', '.join(repr(path) for path in unused_paths)}))"
-        )
     query = f"SELECT {payload_expr} AS payload_json FROM matches"
-    params: List[Any] = []
+    params: List[str] = []
     clauses: List[str] = []
 
     if bucket:
-        if isinstance(bucket, (list, tuple, set)):
-            clean_buckets = [str(b).strip() for b in bucket if str(b).strip()]
-            if clean_buckets:
-                placeholders = ", ".join(["?"] * len(clean_buckets))
-                clauses.append(f"bucket IN ({placeholders})")
-                params.extend(clean_buckets)
-        else:
-            clauses.append("bucket = ?")
-            params.append(str(bucket).strip())
-
+        clauses.append("bucket = ?")
+        params.append(bucket)
     if state:
         clauses.append("state = ?")
         params.append(state)
+    if prefer_explorer_payload:
+        clauses.append("handicap IS NOT NULL")
 
     if clauses:
         query += " WHERE " + " AND ".join(clauses)
 
-    query += " ORDER BY match_date DESC NULLS LAST, updated_at DESC, match_id DESC"
+    query += " ORDER BY updated_at DESC"
     if isinstance(limit, int) and limit > 0:
         query += " LIMIT ?"
         params.append(limit)
-        if offset > 0:
+        if isinstance(offset, int) and offset > 0:
             query += " OFFSET ?"
             params.append(offset)
     return conn.execute(query, params).fetchall()
 
 
+def _libsql_http_value(cell: Any) -> Any:
+    """Decode one Hrana/HTTP result cell without loading the native client."""
+    if not isinstance(cell, dict) or cell.get("type") == "null":
+        return None
+    return cell.get("value")
+
+
+def _fetch_matches_http(
+    bucket: Optional[str] = None,
+    state: Optional[str] = None,
+    limit: Optional[int] = None,
+    prefer_explorer_payload: bool = False,
+    offset: int = 0,
+) -> List[Dict]:
+    """Read bounded Explorer rows through Turso's HTTP pipeline.
+
+    The native remote-only libSQL extension can terminate the small Render
+    worker while materializing query results. HTTP keeps that native code out
+    of the web process and only transfers the already bounded JSON projection.
+    """
+    payload_expr = "COALESCE(explorer_json, payload_json)" if prefer_explorer_payload else "payload_json"
+    query = f"SELECT {payload_expr} AS payload_json FROM matches"
+    clauses: List[str] = []
+    raw_params: List[Any] = []
+
+    if bucket:
+        clauses.append("bucket = ?")
+        raw_params.append(str(bucket))
+    if state:
+        clauses.append("state = ?")
+        raw_params.append(str(state))
+    if prefer_explorer_payload:
+        clauses.append("handicap IS NOT NULL")
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
+    query += " ORDER BY updated_at DESC"
+    if isinstance(limit, int) and limit > 0:
+        query += " LIMIT ?"
+        raw_params.append(int(limit))
+        if isinstance(offset, int) and offset > 0:
+            query += " OFFSET ?"
+            raw_params.append(int(offset))
+
+    args = []
+    for value in raw_params:
+        if isinstance(value, int):
+            args.append({"type": "integer", "value": str(value)})
+        else:
+            args.append({"type": "text", "value": str(value)})
+
+    endpoint = LIBSQL_URL.replace("libsql://", "https://", 1).rstrip("/") + "/v2/pipeline"
+    response = requests.post(
+        endpoint,
+        headers={
+            "Authorization": f"Bearer {LIBSQL_AUTH_TOKEN}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "requests": [
+                {
+                    "type": "execute",
+                    "stmt": {
+                        "sql": query,
+                        "args": args,
+                        "named_args": [],
+                        "want_rows": True,
+                    },
+                },
+                {"type": "close"},
+            ]
+        },
+        timeout=45,
+    )
+    response.raise_for_status()
+    body = response.json()
+    results = body.get("results") or []
+    if not results or results[0].get("type") != "ok":
+        raise RuntimeError(f"Turso HTTP query failed: {results[:1]}")
+
+    result = ((results[0].get("response") or {}).get("result") or {})
+    output: List[Dict] = []
+    for row in result.get("rows") or []:
+        if not row:
+            continue
+        raw_json = _libsql_http_value(row[0])
+        if not isinstance(raw_json, str):
+            continue
+        try:
+            decoded = json.loads(raw_json)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(decoded, dict):
+            output.append(decoded)
+    return output
+
+
 def _fetch_distinct_buckets(conn: sqlite3.Connection) -> List[str]:
     rows = conn.execute("SELECT DISTINCT bucket FROM matches").fetchall()
-    return [row["bucket"] for row in rows]
+    return [_row_value(row, "bucket", 0) for row in rows]
 
 
 def _load_json_file(path: Path):
@@ -891,15 +849,12 @@ def _import_legacy_matches(
             "data_cloud_league.json",
             "data_pending_results.json",
             "data_precacheo.json",
-            "data_precacheo_clean.json",
         ):
             ordered_files.append(bucket)
     if "data_pending_results.json" in requested_buckets:
         ordered_files.append("data_pending_results.json")
     if "data_precacheo.json" in requested_buckets:
         ordered_files.append("data_precacheo.json")
-    if "data_precacheo_clean.json" in requested_buckets:
-        ordered_files.append("data_precacheo_clean.json")
     if "data_cloud_league.json" in requested_buckets:
         ordered_files.append("data_cloud_league.json")
 
@@ -909,7 +864,7 @@ def _import_legacy_matches(
         if not isinstance(payload, list):
             continue
 
-        state = get_match_state_for_bucket(bucket)
+        state = MATCH_STATE_BY_BUCKET.get(bucket, DEFAULT_MATCH_STATE)
         for item in payload:
             if not isinstance(item, dict):
                 continue
@@ -997,7 +952,8 @@ def ensure_bootstrap(force_import: bool = False) -> None:
         with _process_bootstrap_lock():
             with _connect() as conn:
                 try:
-                    conn.execute("PRAGMA synchronous = NORMAL")
+                    conn.execute("PRAGMA synchronous = OFF")
+                    conn.execute("PRAGMA journal_mode = MEMORY")
                     conn.execute("PRAGMA cache_size = 10000")
                 except Exception:
                     pass
@@ -1022,7 +978,7 @@ def ensure_bootstrap(force_import: bool = False) -> None:
                     # `force_import=True` conserva la herramienta de migración
                     # explícita para tareas de mantenimiento.
                     skip_legacy_import = SQL_BOOTSTRAP_SKIP_LEGACY or (
-                        bool(LIBSQL_URL and _libsql is not None) and not force_import
+                        bool(LIBSQL_URL) and not force_import
                     )
 
                     if skip_legacy_import:
@@ -1091,6 +1047,76 @@ def upsert_match(match_data: Dict, bucket: str, state: str) -> Tuple[Optional[st
         return _upsert_match(conn, match_data, bucket, state)
 
 
+def upsert_matches(
+    entries: Iterable[Tuple[Dict, str, str]],
+    *,
+    compact_payload: bool = False,
+) -> List[Tuple[Optional[str], str]]:
+    """Upsert a validated batch using a single database connection.
+
+    Cloud cache jobs can finish dozens of matches at once. Reusing one libSQL
+    connection keeps the GitHub runner fast and avoids one remote handshake per
+    match while preserving the same compact Explorer payload as ``upsert_match``.
+    """
+    normalized = list(entries or [])
+    if not normalized:
+        return []
+
+    ensure_bootstrap()
+    params: List[Tuple[Any, ...]] = []
+    results: List[Tuple[Optional[str], str]] = []
+    ts = now_iso()
+    for match_data, bucket, state in normalized:
+        normalize_red_card_stats_payload(match_data)
+        match_id_raw = match_data.get("match_id")
+        if match_id_raw in (None, ""):
+            raise ValueError("match_data requires 'match_id'")
+        match_id = str(match_id_raw)
+        explorer_data = _build_explorer_payload(match_data)
+        source_data = explorer_data if compact_payload else match_data
+        params.append(
+            (
+                match_id,
+                bucket,
+                state,
+                _extract_handicap(match_data),
+                _normalize_score(match_data),
+                _extract_match_date(match_data),
+                json.dumps(source_data, ensure_ascii=False),
+                json.dumps(explorer_data, ensure_ascii=False),
+                ts,
+                ts,
+            )
+        )
+        results.append((None, match_id))
+
+    with _connect() as conn:
+        # Keep a single authenticated connection but send each historical row
+        # separately. Full cached matches can be large enough that combining 25
+        # JSON payloads in one remote request exceeds libSQL transport limits.
+        # This still removes the old SELECT-before-UPDATE round-trip per row.
+        for row_params in params:
+            conn.execute(
+                """
+                INSERT INTO matches(
+                    match_id, bucket, state, handicap, score, match_date,
+                    payload_json, explorer_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(match_id) DO UPDATE SET
+                    bucket = excluded.bucket,
+                    state = excluded.state,
+                    handicap = excluded.handicap,
+                    score = excluded.score,
+                    match_date = excluded.match_date,
+                    payload_json = excluded.payload_json,
+                    explorer_json = excluded.explorer_json,
+                    updated_at = excluded.updated_at
+                """,
+                row_params,
+            )
+    return results
+
+
 def delete_match(match_id: str, bucket: Optional[str] = None, state: Optional[str] = None) -> bool:
     ensure_bootstrap()
     clauses = ["match_id = ?"]
@@ -1128,11 +1154,6 @@ def fetch_match_headers(buckets: Sequence[str]) -> List[Dict[str, Any]]:
         SELECT
             match_id,
             bucket,
-            COALESCE(
-                handicap,
-                CASE WHEN json_extract(payload_json, '$.handicap') NOT IN ('', 'N/A', '-', 'null', 'None') THEN json_extract(payload_json, '$.handicap') ELSE NULL END,
-                json_extract(payload_json, '$.main_match_odds.ah_linea')
-            ) AS handicap,
             COALESCE(score, json_extract(payload_json, '$.final_score')) AS score,
             COALESCE(
                 match_date,
@@ -1152,13 +1173,12 @@ def fetch_match_headers(buckets: Sequence[str]) -> List[Dict[str, Any]]:
 
     return [
         {
-            "match_id": row["match_id"],
-            "bucket": row["bucket"],
-            "handicap": row["handicap"],
-            "score": row["score"],
-            "match_date": row["match_date"],
-            "start_time": row["start_time"],
-            "time": row["match_time"],
+            "match_id": _row_value(row, "match_id", 0),
+            "bucket": _row_value(row, "bucket", 1),
+            "score": _row_value(row, "score", 2),
+            "match_date": _row_value(row, "match_date", 3),
+            "start_time": _row_value(row, "start_time", 4),
+            "time": _row_value(row, "match_time", 5),
         }
         for row in rows
     ]
@@ -1220,7 +1240,7 @@ def get_match(match_id: str, bucket: Optional[str] = None, state: Optional[str] 
         return None
 
     try:
-        return json.loads(row["payload_json"])
+        return json.loads(_row_value(row, "payload_json", 0))
     except json.JSONDecodeError:
         return None
 
@@ -1232,17 +1252,25 @@ def get_match_bucket(match_id: str) -> Optional[str]:
             "SELECT bucket FROM matches WHERE match_id = ?",
             (str(match_id),),
         ).fetchone()
-    return row["bucket"] if row else None
+    return _row_value(row, "bucket", 0) if row else None
 
 
 def fetch_matches(
-    bucket: Optional[Any] = None,
+    bucket: Optional[str] = None,
     state: Optional[str] = None,
     limit: Optional[int] = None,
     prefer_explorer_payload: bool = False,
-    explorer_search_only: bool = False,
     offset: int = 0,
 ) -> List[Dict]:
+    if LIBSQL_URL and LIBSQL_REMOTE_ONLY:
+        return _fetch_matches_http(
+            bucket=bucket,
+            state=state,
+            limit=limit,
+            prefer_explorer_payload=prefer_explorer_payload,
+            offset=offset,
+        )
+
     ensure_bootstrap()
     with _connect() as conn:
         rows = _fetch_matches_rows(
@@ -1251,29 +1279,18 @@ def fetch_matches(
             state=state,
             limit=limit,
             prefer_explorer_payload=prefer_explorer_payload,
-            explorer_search_only=explorer_search_only,
             offset=offset,
         )
 
     output: List[Dict] = []
     for row in rows:
         try:
-            payload = json.loads(row["payload_json"])
+            payload = json.loads(_row_value(row, "payload_json", 0))
         except json.JSONDecodeError:
             continue
         if isinstance(payload, dict):
             output.append(payload)
     return output
-
-
-def get_explorer_data_version() -> tuple:
-    """Cheap change token for cached Explorer rows, including external SQL writes."""
-    ensure_bootstrap()
-    with _connect() as conn:
-        row = conn.execute(
-            "SELECT COUNT(*) AS row_count, MAX(updated_at) AS latest_update FROM matches"
-        ).fetchone()
-    return (row["row_count"], row["latest_update"])
 
 
 def fetch_matches_by_ids(
@@ -1328,11 +1345,11 @@ def fetch_matches_by_ids(
             rows = conn.execute(query, params).fetchall()
             for row in rows:
                 try:
-                    payload = json.loads(row["payload_json"])
+                    payload = json.loads(_row_value(row, "payload_json", 1))
                 except json.JSONDecodeError:
                     continue
                 if isinstance(payload, dict):
-                    rows_by_id[str(row["match_id"])] = payload
+                    rows_by_id[str(_row_value(row, "match_id", 0))] = payload
 
     output: List[Dict] = []
     for mid in ordered_ids:
@@ -1353,8 +1370,8 @@ def fetch_distinct_buckets() -> List[str]:
         return _fetch_distinct_buckets(conn)
 
 
-def _current_upcoming_match_ids(bucket: str, limit: int = 400) -> List[str]:
-    """Return chronological upcoming/recent rows from SQL, independent of update order."""
+def _current_upcoming_match_ids(bucket: str, limit: int = 200) -> List[str]:
+    """Return chronological future rows from SQL, independent of update order."""
     # Import lazily because pending_results_query itself uses sql_store.
     from .pending_results_query import fetch_upcoming_ids_from_sql
 
@@ -1366,30 +1383,19 @@ def export_bucket_to_json(bucket: str) -> Path:
     path = DATA_DIR / bucket
     
     # Limitar buckets históricos acumulativos a un máximo de 2500 partidos para evitar superar el límite de 100MB de GitHub.
-    # Precacheo se limita a 400 partidos próximos y pendientes a 200 partidos.
     limit_val = None
-    if bucket == "data_precacheo.json":
-        limit_val = 400
-    elif bucket == "data_pending_results.json":
+    if bucket in ("data_precacheo.json", "data_pending_results.json"):
         limit_val = 200
     elif bucket.startswith("data_"):
         limit_val = 2500
         
     # Pre-Cacheo is a deploy snapshot, not a historical bucket. Exporting the
-    # 400 most recently updated SQL rows can omit future matches and keep stale
+    # 200 most recently updated SQL rows can omit future matches and keep stale
     # ones instead. Export the next chronological analyses so Render receives
     # the same current set as local.
     if bucket == "data_precacheo.json":
-        current_ids = _current_upcoming_match_ids(bucket, limit=limit_val or 400)
-        rows = fetch_matches_by_ids(current_ids, limit=limit_val)
-        if not rows:
-            try:
-                from .pending_results_query import _fetch_payloads_by_ids
-                rows = list(_fetch_payloads_by_ids(current_ids).values())
-            except Exception:
-                rows = []
-        if not rows:
-            rows = fetch_matches(bucket=bucket, limit=limit_val)
+        current_ids = _current_upcoming_match_ids(bucket, limit=limit_val or 200)
+        rows = fetch_matches_by_ids(current_ids, bucket=bucket, limit=limit_val)
     else:
         rows = fetch_matches(bucket=bucket, limit=limit_val)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1442,13 +1448,13 @@ def import_legacy_json_to_db(reset_first: bool = False) -> None:
 def _history_rows_to_structure(rows: Sequence[sqlite3.Row]) -> Dict[str, Dict[str, List[Dict]]]:
     data: Dict[str, Dict[str, List[Dict]]] = {}
     for row in rows:
-        season = row["season"]
-        league_id = row["league_id"]
-        raw_item = row["item_json"]
+        season = _row_value(row, "season", 0)
+        league_id = _row_value(row, "league_id", 1)
+        raw_item = _row_value(row, "item_json", 3)
         try:
             item = json.loads(raw_item)
         except json.JSONDecodeError:
-            item = {"id": row["match_id"], "ah": "N/A"}
+            item = {"id": _row_value(row, "match_id", 2), "ah": "N/A"}
 
         data.setdefault(season, {}).setdefault(league_id, []).append(item)
     return data
@@ -1468,7 +1474,9 @@ def history_get_full() -> Dict:
 
     cached: Dict[str, Dict[str, List[str]]] = {}
     for row in cached_rows:
-        cached.setdefault(row["season"], {}).setdefault(row["league_id"], []).append(row["match_id"])
+        cached.setdefault(_row_value(row, "season", 0), {}).setdefault(
+            _row_value(row, "league_id", 1), []
+        ).append(_row_value(row, "match_id", 2))
 
     return {"pending": pending, "cached": cached}
 
@@ -1773,11 +1781,11 @@ def fetch_uefa_qualifying_matches(
     output: List[Dict[str, Any]] = []
     for row in rows:
         try:
-            payload = json.loads(row["source_json"])
+            payload = json.loads(_row_value(row, "source_json", 0))
         except (TypeError, json.JSONDecodeError):
             continue
         if isinstance(payload, dict):
-            payload["deep_status"] = row["deep_status"]
+            payload["deep_status"] = _row_value(row, "deep_status", 1)
             output.append(payload)
     return output
 
@@ -1807,7 +1815,7 @@ def update_uefa_qualifying_stats(
         if not row:
             return False
         try:
-            payload = json.loads(row["source_json"])
+            payload = json.loads(_row_value(row, "source_json", 0))
         except (TypeError, json.JSONDecodeError):
             payload = {}
         if not isinstance(payload, dict):
@@ -1841,7 +1849,7 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
             ).fetchone()
             if match_row:
                 try:
-                    match_payload = json.loads(match_row["payload_json"])
+                    match_payload = json.loads(_row_value(match_row, "payload_json", 0))
                 except (TypeError, json.JSONDecodeError):
                     match_payload = {"match_id": match_id}
                 if not isinstance(match_payload, dict):
@@ -1852,8 +1860,8 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
                 _upsert_match(
                     conn,
                     match_payload,
-                    bucket=str(match_row["bucket"] or "data_uefa_qualifying.json"),
-                    state=str(match_row["state"] or "historical"),
+                    bucket=str(_row_value(match_row, "bucket", 1) or "data_uefa_qualifying.json"),
+                    state=str(_row_value(match_row, "state", 2) or "historical"),
                 )
 
             catalogue_row = conn.execute(
@@ -1862,7 +1870,7 @@ def bulk_update_uefa_qualifying_stats(items: Sequence[Dict[str, Any]]) -> int:
             ).fetchone()
             if catalogue_row:
                 try:
-                    catalogue_payload = json.loads(catalogue_row["source_json"])
+                    catalogue_payload = json.loads(_row_value(catalogue_row, "source_json", 0))
                 except (TypeError, json.JSONDecodeError):
                     catalogue_payload = {}
                 if not isinstance(catalogue_payload, dict):
