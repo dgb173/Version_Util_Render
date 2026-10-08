@@ -30,10 +30,24 @@ except ImportError:
 
 
 # --- CONFIGURACIÓN GLOBAL ---
-BASE_URL_OF = os.getenv("NOWGOAL_BASE_URL", "https://www.nowgoal26.com").rstrip("/")
+NOWGOAL_BASE_HOSTS = [
+    "https://live11.nowgoal26.com",
+    "https://live10.nowgoal26.com",
+    "https://live20.nowgoal25.com",
+    "https://www.nowgoal26.com",
+    "https://www.nowgoal25.com",
+]
+_env_host = os.getenv("NOWGOAL_BASE_URL")
+if _env_host and _env_host.strip():
+    _env_clean = _env_host.strip().rstrip("/")
+    if _env_clean in NOWGOAL_BASE_HOSTS:
+        NOWGOAL_BASE_HOSTS.remove(_env_clean)
+    NOWGOAL_BASE_HOSTS.insert(0, _env_clean)
+
+BASE_URL_OF = NOWGOAL_BASE_HOSTS[0]
 SELENIUM_TIMEOUT_SECONDS_OF = 10
 PLACEHOLDER_NODATA = "*(No disponible)*"
-REQUEST_TIMEOUT_SECONDS = 10
+REQUEST_TIMEOUT_SECONDS = 8
 REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
@@ -1200,7 +1214,8 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
             'score_raw': score_raw, 'ahLine': ah_line_fmt, 'ahLine_raw': ah_line_raw or '-',
             'ouLine': ou_line_raw, 'ou_result': ou_result,
             'matchIndex': match_index, 'vs': row_element.get('vs'),
-            'league_id_hist': row_element.get('title') or row_element.get('name'), # Usar title como nombre de liga si existe
+            'league_id_hist': row_element.get('name') or row_element.get('title'),
+            'league_name_hist': row_element.get('title') or row_element.get('name'),
             'home_id': home_id, 'away_id': away_id,
             'home_red': home_red, 'away_red': away_red
         }
@@ -1212,13 +1227,30 @@ def get_requests_session_of():
     with _requests_session_lock:
         if _requests_session is None:
             session = requests.Session()
-            retries = Retry(total=3, backoff_factor=0.4, status_forcelist=[500, 502, 503, 504])
+            retries = Retry(total=3, backoff_factor=0.4, status_forcelist=[429, 500, 502, 503, 504])
             adapter = HTTPAdapter(max_retries=retries, pool_connections=32, pool_maxsize=32)
             session.mount("https://", adapter)
             session.mount("http://", adapter)
             session.headers.update(REQUEST_HEADERS)
             _requests_session = session
         return _requests_session
+
+def _fetch_from_hosts(path_or_suffix: str, timeout: int = REQUEST_TIMEOUT_SECONDS):
+    """Realiza una petición GET probando los hosts de NOWGOAL_BASE_HOSTS con fallback."""
+    session = get_requests_session_of()
+    last_exc = None
+    for host in NOWGOAL_BASE_HOSTS:
+        url = f"{host}{path_or_suffix}"
+        try:
+            resp = session.get(url, timeout=timeout, verify=False)
+            if resp.status_code == 200 and resp.text:
+                return resp
+        except Exception as exc:
+            last_exc = exc
+            continue
+    if last_exc:
+        raise last_exc
+    return None
 
 def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
     if not match_id or not str(match_id).isdigit():
@@ -1230,11 +1262,11 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
             return None
         return cached_value.copy(deep=True)
 
-    url = f"{BASE_URL_OF}/match/live-{match_id}"
     try:
-        session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-        response.raise_for_status()
+        response = _fetch_from_hosts(f"/match/live-{match_id}", timeout=min(5, REQUEST_TIMEOUT_SECONDS))
+        if not response or not response.text:
+            _write_cache(_stats_cache, match_id, _STATS_NOT_FOUND, _stats_cache_lock)
+            return None
         soup = BeautifulSoup(response.text, 'lxml')
         wanted_order = [
             "Shots",
@@ -1264,7 +1296,7 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
         cache_value = df.copy(deep=True) if df is not None else _STATS_NOT_FOUND
         _write_cache(_stats_cache, match_id, cache_value, _stats_cache_lock)
         return df
-    except requests.RequestException:
+    except Exception:
         _write_cache(_stats_cache, match_id, _STATS_NOT_FOUND, _stats_cache_lock)
         return None
 
@@ -1316,11 +1348,10 @@ def get_h2h_details_for_original_logic_of(key_match_id, rival_a_id, rival_b_id, 
     if not all([key_match_id, rival_a_id, rival_b_id]):
         return {"status": "error", "resultado": "N/A (Datos incompletos para H2H)"}
     
-    url = f"{BASE_URL_OF}/match/h2h-{key_match_id}"
     try:
-        session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-        response.raise_for_status()
+        response = _fetch_from_hosts(f"/match/h2h-{key_match_id}", timeout=REQUEST_TIMEOUT_SECONDS)
+        if not response or not response.text:
+            return {"status": "error", "resultado": "N/A (No se pudo conectar a los servidores H2H Col3)"}
         soup = BeautifulSoup(response.text, "lxml")
         
         # Extraer odds del script Vs_hOdds
@@ -1431,11 +1462,25 @@ def extract_recent_matches(soup, table_id, team_name, league_id, is_home_game, o
         if not (details := get_match_details_from_row_of(row, score_class_selector=score_selector, source_table_type='hist', odds_map=odds_map)):
             continue
             
-        if league_id and details.get('league_id_hist') != str(league_id):
-            continue
+        if league_id:
+            target_lid = str(league_id).strip().lower()
+            row_lid = str(details.get('league_id_hist') or '').strip().lower()
+            row_lname = str(details.get('league_name_hist') or '').strip().lower()
+            if target_lid and row_lid != target_lid and row_lname != target_lid:
+                continue
         
-        is_team_home = team_name.lower() in details.get('home', '').lower()
-        is_team_away = team_name.lower() in details.get('away', '').lower()
+        h_text = details.get('home', '').lower()
+        a_text = details.get('away', '').lower()
+        t_text = team_name.lower()
+        is_team_home = (t_text in h_text) or (h_text in t_text)
+        is_team_away = (t_text in a_text) or (a_text in t_text)
+        if not (is_team_home or is_team_away):
+            tn_norm = _normalize_team_name(team_name)
+            if tn_norm and len(tn_norm) >= 3:
+                h_norm = _normalize_team_name(details.get('home', ''))
+                a_norm = _normalize_team_name(details.get('away', ''))
+                is_team_home = (tn_norm in h_norm) or (h_norm in tn_norm)
+                is_team_away = (tn_norm in a_norm) or (a_norm in tn_norm)
         
         # Condición: El equipo analizado debe jugar en la condición especificada (Local o Visitante)
         should_include = False
@@ -1787,8 +1832,12 @@ def calculate_over_under_stats(matches, source):
     }
 
 
-def _public_last_match(last_match, *, general_fallback, team_name):
+def _public_last_match(last_match, *, general_fallback, team_name, is_different_league=False):
     team_is_home = team_name.lower() in str(last_match.get('home') or '').lower()
+    if is_different_league:
+        scope = "diff_league_general_fallback" if general_fallback else "diff_league_specific"
+    else:
+        scope = "same_league_general_fallback" if general_fallback else "same_league_specific"
     return {
         "date": last_match.get('date', 'N/A'),
         "home_team": last_match.get('home'),
@@ -1800,13 +1849,9 @@ def _public_last_match(last_match, *, general_fallback, team_name):
         "match_id": last_match.get('matchIndex'),
         "league_id_hist": last_match.get('league_id_hist'),
         "subject_is_home": team_is_home,
-        "history_scope": (
-            "same_league_general_fallback"
-            if general_fallback
-            else "same_league_specific"
-        ),
+        "history_scope": scope,
         "is_general_fallback": general_fallback,
-        "is_different_league": False,
+        "is_different_league": is_different_league,
     }
 
 
@@ -1821,9 +1866,10 @@ def extract_last_match_in_league_of(soup, table_id, team_name, league_id, is_hom
             specific[0],
             general_fallback=False,
             team_name=team_name,
+            is_different_league=False,
         )
 
-    # 2) Si no existe, ampliar a cualquier localía, pero nunca salir de la liga.
+    # 2) Misma liga, cualquier localía
     general = extract_recent_matches(
         soup, table_id, team_name, league_id, is_home_game, odds_map,
         limit=20, is_neutral_venue=True,
@@ -1833,7 +1879,35 @@ def extract_last_match_in_league_of(soup, table_id, team_name, league_id, is_hom
             general[0],
             general_fallback=True,
             team_name=team_name,
+            is_different_league=False,
         )
+
+    # 3) Fallback liga diferente: misma localía (o neutral)
+    diff_specific = extract_recent_matches(
+        soup, table_id, team_name, None, is_home_game, odds_map,
+        limit=20, is_neutral_venue=is_neutral_venue,
+    )
+    if diff_specific:
+        return _public_last_match(
+            diff_specific[0],
+            general_fallback=False,
+            team_name=team_name,
+            is_different_league=True,
+        )
+
+    # 4) Fallback liga diferente: cualquier localía
+    diff_general = extract_recent_matches(
+        soup, table_id, team_name, None, is_home_game, odds_map,
+        limit=20, is_neutral_venue=True,
+    )
+    if diff_general:
+        return _public_last_match(
+            diff_general[0],
+            general_fallback=True,
+            team_name=team_name,
+            is_different_league=True,
+        )
+
     return None
 
 def fetch_odds_from_bf_data(match_id):
@@ -1841,11 +1915,10 @@ def fetch_odds_from_bf_data(match_id):
     Fallback para obtener líneas de hándicap y goles desde bf_en-idn.js
     cuando no están disponibles en el HTML principal.
     """
-    url = f"{BASE_URL_OF}/gf/data/bf_en-idn.js"
     try:
-        session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-        response.raise_for_status()
+        response = _fetch_from_hosts("/gf/data/bf_en-idn.js", timeout=REQUEST_TIMEOUT_SECONDS)
+        if not response or not response.text:
+            return None
         content = response.text
         
         # Buscar la entrada correspondiente al match_id
@@ -1902,11 +1975,9 @@ def fetch_odds_from_ajax(match_id):
     Fallback para obtener cuotas desde la API AJAX (especialmente para partidos finalizados).
     Intenta obtener datos de Bet365 (ID 8 o 281) o Sbobet (ID 31).
     """
-    url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
     try:
-        session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-        if response.status_code != 200:
+        response = _fetch_from_hosts(f"/Ajax/SoccerAjax/?type=1&id={match_id}", timeout=REQUEST_TIMEOUT_SECONDS)
+        if not response or response.status_code != 200:
             return None
             
         data_json = response.json()
@@ -2093,6 +2164,22 @@ def extract_bet365_initial_odds_of(soup, match_id=None):
                             odds_info["goals_over_cuota"] = tds_18[8].get("data-o", tds_18[8].get_text(strip=True)) or "N/A"
                             odds_info["goals_linea_raw"] = tds_18[9].get("data-o", tds_18[9].get_text(strip=True)) or "N/A"
                             odds_info["goals_under_cuota"] = tds_18[10].get("data-o", tds_18[10].get_text(strip=True)) or "N/A"
+
+    # Fallback 0: Cache/snapshot local de partidos próximos (goal8/goal3 xml)
+    if (odds_info["ah_linea_raw"] in ["N/A", "-", "", None] or odds_info["goals_linea_raw"] in ["N/A", "-", "", None]) and match_id:
+        try:
+            snapshot = sql_store.get_json_state('app_main_page_cache_v1', default={}) or {}
+            for sm in snapshot.get('upcoming_matches', []):
+                if str(sm.get('id') or sm.get('match_id')) == str(match_id):
+                    ah = sm.get('handicap') or (sm.get('main_match_odds') or {}).get('ah_linea')
+                    gl = sm.get('goal_line') or (sm.get('main_match_odds') or {}).get('goals_linea')
+                    if ah and ah not in ['N/A', '-', '?', '']:
+                        odds_info['ah_linea_raw'] = str(ah)
+                    if gl and gl not in ['N/A', '-', '?', '']:
+                        odds_info['goals_linea_raw'] = str(gl)
+                    break
+        except Exception:
+            pass
 
     # Fallback 1: AJAX (para partidos finalizados donde HTML está vacío)
     if (odds_info["ah_linea_raw"] in ["N/A", "-", ""] or odds_info["goals_linea_raw"] in ["N/A", "-", ""]) and match_id:
@@ -2355,6 +2442,19 @@ def _normalize_team_name(name):
     n = n.replace("-", " ").replace(".", "")
     return n.strip()
 
+def _is_same_team(name1, name2):
+    if not name1 or not name2:
+        return False
+    n1 = _normalize_team_name(name1)
+    n2 = _normalize_team_name(name2)
+    if not n1 or not n2:
+        return False
+    if n1 == n2:
+        return True
+    if len(n1) >= 4 and len(n2) >= 4 and (n1 in n2 or n2 in n1):
+        return True
+    return False
+
 def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=None):
     results = {
         'ah1': '-', 'res1': '?:?', 'res1_raw': '?-?', 'match1_id': None, 'date1': 'N/A',
@@ -2434,16 +2534,25 @@ def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id,
         h, a = details.get('home','').lower(), details.get('away','').lower()
         main, opp = main_team.lower(), opponent.lower()
         
-        if (main == h and opp == a) or (main == a and opp == h):
+        is_h_main = (main == h) or (main in h) or (h in main) or _is_same_team(main_team, details.get('home', ''))
+        is_a_opp = (opp == a) or (opp in a) or (a in opp) or _is_same_team(opponent, details.get('away', ''))
+        is_a_main = (main == a) or (main in a) or (a in main) or _is_same_team(main_team, details.get('away', ''))
+        is_h_opp = (opp == h) or (opp in h) or (h in opp) or _is_same_team(opponent, details.get('home', ''))
+        
+        if (is_h_main and is_a_opp) or (is_a_main and is_h_opp):
             res = {
-                "score": details.get('score', '?:?'), "ah_line": details.get('ahLine', '-'), "localia": 'H' if main == h else 'A',
+                "score": details.get('score', '?:?'), "ah_line": details.get('ahLine', '-'), "localia": 'H' if is_h_main else 'A',
                 "home_team": details.get('home'), "away_team": details.get('away'), "match_id": details.get('matchIndex'),
                 "date": details.get('date', 'N/A'), "home_red": details.get('home_red'), "away_red": details.get('away_red'),
                 "is_different_league": False
             }
             
+            target_lid = str(league_id).strip().lower() if league_id else None
+            row_lid = str(details.get('league_id_hist') or '').strip().lower()
+            row_lname = str(details.get('league_name_hist') or '').strip().lower()
+            
             # Si es la misma liga, retornamos de inmediato
-            if not league_id or details.get('league_id_hist') == str(league_id):
+            if not target_lid or row_lid == target_lid or row_lname == target_lid:
                 return res
             else:
                 # Si es diferente liga, lo guardamos por si no encontramos nada mejor
@@ -2455,10 +2564,9 @@ def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id,
 
 
 def _load_main_match_soup(main_match_id: str):
-    main_page_url = f"{BASE_URL_OF}/match/h2h-{main_match_id}"
-    session = get_requests_session_of()
-    response = session.get(main_page_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-    response.raise_for_status()
+    response = _fetch_from_hosts(f"/match/h2h-{main_match_id}", timeout=REQUEST_TIMEOUT_SECONDS)
+    if response is None or not response.text:
+        raise RuntimeError(f"No se pudo cargar la página H2H para el partido {main_match_id}")
     return BeautifulSoup(response.text, "lxml")
 
 from pathlib import Path
@@ -2488,7 +2596,7 @@ def load_cached_finished_matches():
         print(f"Error loading data.json: {e}")
         return []
 
-def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True):
+def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True, **kwargs):
     main_match_id = "".join(filter(str.isdigit, str(match_id)))
     if not main_match_id:
         return {"error": "ID de partido inválido."}
@@ -2496,8 +2604,7 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     if not force_refresh:
         cached_payload = _get_cached_analysis(main_match_id)
         if cached_payload and int(cached_payload.get("history_data_version") or 0) >= 3:
-            if not include_summary_stats or cached_payload.get('summary_stats_status') == 'complete':
-                return cached_payload
+            return cached_payload
 
     start_time = time.time()
     try:
@@ -2554,9 +2661,9 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
             soup_completo, "table_v2", away_name, None, False, odds_map,
             limit=100, is_neutral_venue=True,
         )
-        recent_home_matches = recent_home_specific or recent_home_general
-        recent_away_matches = recent_away_specific or recent_away_general
-        recent_away_matches_all = recent_away_general
+        recent_home_matches = recent_home_specific or recent_home_general or recent_home_all[:10]
+        recent_away_matches = recent_away_specific or recent_away_general or recent_away_all[:10]
+        recent_away_matches_all = recent_away_general or recent_away_all[:10]
 
         # El contexto previo usa todas las competiciones. En liga normal mantiene
         # la localía; en liga neutral incluye casa y fuera para cada equipo.
@@ -2594,8 +2701,52 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
         
         h2h_data = extract_h2h_data_of(soup_completo, home_name, away_name, None, odds_map)
         previous_h2h_context = extract_previous_h2h_context(h2h_data)
-        comp_L_vs_UV_A = extract_comparative_match_of(soup_completo, "table_v1", home_name, (last_away_match or {}).get('home_team'), league_id, True, odds_map)
-        comp_V_vs_UL_H = extract_comparative_match_of(soup_completo, "table_v2", away_name, (last_home_match or {}).get('away_team'), league_id, False, odds_map)
+
+        # --- Determinar Rivales Intencionados (para CSV y comparativas) ---
+        away_rival_candidates = []
+        if last_away_match:
+            lat_home = last_away_match.get('home_team', '')
+            lat_away = last_away_match.get('away_team', '')
+            r = lat_away if away_name.lower() in lat_home.lower() else lat_home
+            if r and r != "N/A": away_rival_candidates.append(r)
+        for m_item in (recent_away_specific or recent_away_matches or []):
+            h_t, a_t = m_item.get('home', ''), m_item.get('away', '')
+            r = a_t if away_name.lower() in h_t.lower() else h_t
+            if r and r != "N/A" and r not in away_rival_candidates:
+                away_rival_candidates.append(r)
+
+        home_rival_candidates = []
+        if last_home_match:
+            lhm_home = last_home_match.get('home_team', '')
+            lhm_away = last_home_match.get('away_team', '')
+            r = lhm_away if home_name.lower() in lhm_home.lower() else lhm_home
+            if r and r != "N/A": home_rival_candidates.append(r)
+        for m_item in (recent_home_specific or recent_home_matches or []):
+            h_t, a_t = m_item.get('home', ''), m_item.get('away', '')
+            r = a_t if home_name.lower() in h_t.lower() else h_t
+            if r and r != "N/A" and r not in home_rival_candidates:
+                home_rival_candidates.append(r)
+
+        rival_name_for_home_to_find = away_rival_candidates[0] if away_rival_candidates else "N/A"
+        rival_name_for_away_to_find = home_rival_candidates[0] if home_rival_candidates else "N/A"
+
+        comp_L_vs_UV_A = None
+        for rival_cand in away_rival_candidates:
+            comp_L_vs_UV_A = extract_comparative_match_of(soup_completo, "table_v1", home_name, rival_cand, league_id, True, odds_map)
+            if not comp_L_vs_UV_A and is_neutral_venue:
+                comp_L_vs_UV_A = extract_comparative_match_of(soup_completo, "table_v2", home_name, rival_cand, league_id, False, odds_map)
+            if comp_L_vs_UV_A:
+                rival_name_for_home_to_find = rival_cand
+                break
+
+        comp_V_vs_UL_H = None
+        for rival_cand in home_rival_candidates:
+            comp_V_vs_UL_H = extract_comparative_match_of(soup_completo, "table_v2", away_name, rival_cand, league_id, False, odds_map)
+            if not comp_V_vs_UL_H and is_neutral_venue:
+                comp_V_vs_UL_H = extract_comparative_match_of(soup_completo, "table_v1", away_name, rival_cand, league_id, True, odds_map)
+            if comp_V_vs_UL_H:
+                rival_name_for_away_to_find = rival_cand
+                break
         main_match_odds_data = extract_bet365_initial_odds_of(soup_completo, main_match_id)
         final_score, _ = extract_final_score_of(soup_completo)
         match_time = extract_match_time_of(soup_completo)
@@ -2608,23 +2759,6 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
         
         # Agregar datos del H2H Col3 al diccionario h2h_data
         h2h_data['col3_data'] = details_h2h_col3 if details_h2h_col3 else {}
-        # --- Determinar Rivales Intencionados (para CSV aunque no haya match) ---
-        rival_name_for_home_to_find = "N/A"
-        if last_away_match:
-            # El rival del Home Team para la comparativa es el equipo contra el que jugó el Away Team recientemente
-            lat_home = last_away_match.get('home_team', '')
-            lat_away = last_away_match.get('away_team', '')
-            # Asumimos que away_name jugó ahí. Si away_name es home, rival es away.
-            if away_name.lower() in lat_home.lower(): rival_name_for_home_to_find = lat_away
-            else: rival_name_for_home_to_find = lat_home
-
-        rival_name_for_away_to_find = "N/A"
-        if last_home_match:
-            lhm_home = last_home_match.get('home_team', '')
-            lhm_away = last_home_match.get('away_team', '')
-            if home_name.lower() in lhm_home.lower(): rival_name_for_away_to_find = lhm_away
-            else: rival_name_for_away_to_find = lhm_home
-        # ---------------------------------------------------------------------
 
         # --- Determinar Rivales para Comparativas Indirectas (si existen) ---
         if comp_L_vs_UV_A:
@@ -2673,24 +2807,39 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     historical_matches_html = _build_historical_matches_list_html(recent_home_matches, recent_away_matches, home_name, away_name)
 
     def get_stats_rows(match_id_value):
-        if not include_summary_stats or not match_id_value:
+        if not match_id_value:
             return []
-        df = get_match_progression_stats_data(str(match_id_value))
-        return _df_to_rows(df)
+        try:
+            df = get_match_progression_stats_data(str(match_id_value))
+            return _df_to_rows(df)
+        except Exception:
+            return []
 
-    main_match_stats = get_stats_rows(main_match_id)
-    last_home_match_stats = get_stats_rows((last_home_match or {}).get('match_id'))
-    last_away_match_stats = get_stats_rows((last_away_match or {}).get('match_id'))
-    h2h_col3_stats = get_stats_rows((details_h2h_col3 or {}).get('match_id'))
-    comp_L_vs_UV_A_stats = get_stats_rows((comp_L_vs_UV_A or {}).get('match_id'))
-    comp_V_vs_UL_H_stats = get_stats_rows((comp_V_vs_UL_H or {}).get('match_id'))
-    h2h_stadium_stats = get_stats_rows(h2h_data.get('match1_id'))
-    h2h_general_stats = get_stats_rows(h2h_data.get('match6_id'))
+    if include_summary_stats:
+        main_match_stats = get_stats_rows(main_match_id)
+        last_home_match_stats = get_stats_rows((last_home_match or {}).get('match_id'))
+        last_away_match_stats = get_stats_rows((last_away_match or {}).get('match_id'))
+        h2h_col3_stats = get_stats_rows((details_h2h_col3 or {}).get('match_id'))
+        comp_L_vs_UV_A_stats = get_stats_rows((comp_L_vs_UV_A or {}).get('match_id'))
+        comp_V_vs_UL_H_stats = get_stats_rows((comp_V_vs_UL_H or {}).get('match_id'))
+        h2h_stadium_stats = get_stats_rows(h2h_data.get('match1_id'))
+        h2h_general_stats = get_stats_rows(h2h_data.get('match6_id'))
+        summary_stats_status = "complete"
+    else:
+        main_match_stats = []
+        last_home_match_stats = []
+        last_away_match_stats = []
+        h2h_col3_stats = []
+        comp_L_vs_UV_A_stats = []
+        comp_V_vs_UL_H_stats = []
+        h2h_stadium_stats = []
+        h2h_general_stats = []
+        summary_stats_status = "deferred"
 
     results = {
         "match_id": main_match_id,
         "history_data_version": 3,
-        "summary_stats_status": "complete" if include_summary_stats else "deferred",
+        "summary_stats_status": summary_stats_status,
         "home_name": home_name,
         "away_name": away_name,
         "league_name": league_name,
@@ -2775,7 +2924,7 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
     return copy.deepcopy(results)
 
 
-def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True):
+def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_odds_early: bool = False, include_summary_stats: bool = True, **kwargs):
     """Run a complete analysis under the process-wide memory guard."""
     with _analysis_semaphore:
         return _analizar_partido_completo_unlocked(
@@ -2783,4 +2932,64 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
             force_refresh=force_refresh,
             check_odds_early=check_odds_early,
             include_summary_stats=include_summary_stats,
+            **kwargs
         )
+
+
+def hydrate_summary_stats(match_payload: dict) -> dict:
+    """Hidrata bajo demanda los stats_rows de las fichas secundarias."""
+    if not isinstance(match_payload, dict):
+        return {"error": "Payload inválido"}
+
+    def get_stats_rows(match_id_value):
+        if not match_id_value:
+            return []
+        try:
+            df = get_match_progression_stats_data(str(match_id_value))
+            return _df_to_rows(df)
+        except Exception:
+            return []
+
+    # Main match stats
+    mid = match_payload.get('id') or match_payload.get('match_id')
+    if mid and not match_payload.get('stats_rows'):
+        match_payload['stats_rows'] = get_stats_rows(mid)
+
+    # Last home match
+    lhm = match_payload.get('last_home_match')
+    if isinstance(lhm, dict) and not lhm.get('stats_rows') and lhm.get('match_id'):
+        lhm['stats_rows'] = get_stats_rows(lhm.get('match_id'))
+
+    # Last away match
+    lam = match_payload.get('last_away_match')
+    if isinstance(lam, dict) and not lam.get('stats_rows') and lam.get('match_id'):
+        lam['stats_rows'] = get_stats_rows(lam.get('match_id'))
+
+    # H2H Col3
+    col3 = match_payload.get('h2h_col3')
+    if isinstance(col3, dict) and not col3.get('stats_rows') and col3.get('match_id'):
+        col3['stats_rows'] = get_stats_rows(col3.get('match_id'))
+
+    # Comparativas indirectas
+    comps = match_payload.get('comparativas_indirectas') or {}
+    if isinstance(comps, dict):
+        left = comps.get('left')
+        if isinstance(left, dict) and not left.get('stats_rows') and left.get('match_id'):
+            left['stats_rows'] = get_stats_rows(left.get('match_id'))
+        right = comps.get('right')
+        if isinstance(right, dict) and not right.get('stats_rows') and right.get('match_id'):
+            right['stats_rows'] = get_stats_rows(right.get('match_id'))
+
+    # H2H Stadium
+    stadium = match_payload.get('h2h_stadium')
+    if isinstance(stadium, dict) and not stadium.get('stats_rows') and stadium.get('match1_id'):
+        stadium['stats_rows'] = get_stats_rows(stadium.get('match1_id'))
+
+    # H2H General
+    general = match_payload.get('h2h_general')
+    if isinstance(general, dict) and not general.get('stats_rows') and general.get('match6_id'):
+        general['stats_rows'] = get_stats_rows(general.get('match6_id'))
+
+    match_payload['summary_stats_status'] = 'complete'
+    normalize_red_card_stats_payload(match_payload)
+    return match_payload

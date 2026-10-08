@@ -2350,8 +2350,24 @@
                 return String(bucket);
             };
 
+            const getH2HGeneralMovementDirection = (movementStr) => {
+                const mov = parseMovement(movementStr);
+                if (mov.start === null || mov.end === null) return null;
+                const startBucket = normalizeBucket(mov.start);
+                const endBucket = normalizeBucket(mov.end);
+                if (startBucket === null || endBucket === null) return null;
+                if (Math.sign(mov.start) !== Math.sign(mov.end)) {
+                    return mov.end > mov.start ? 'UP' : 'DOWN';
+                }
+                const absStart = Math.abs(startBucket);
+                const absEnd = Math.abs(endBucket);
+                if (Math.abs(absStart - absEnd) < 0.01) return 'SAME';
+                return absEnd > absStart ? 'UP' : 'DOWN';
+            };
+
             const pc = precacheoData ? precacheoData[matchId] : null;
             if (!pc) return;
+
 
             let currentAh = NaN;
             const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
@@ -2364,16 +2380,40 @@
             params.set('source_match_id', String(matchId));
 
             if (!isNaN(currentAh)) {
-                params.set('fav_ah_exact', String(currentAh));
-                const favIsHome = currentAh > 0;
-                params.set('fav_side', favIsHome ? 'HOME' : 'AWAY');
+                // 1. Handicap del partido actual
+                const currentAhBucket = toExplorerBucketValue(currentAh);
+                if (currentAhBucket) {
+                    params.set('handicap', currentAhBucket);
+                }
 
-                // Resultado (Win / Draw / Loss) del equipo favorito en su partido previo
+                // 2. Cubierto o no del favorito
+                const favIsHome = currentAh > 0;
+
+                // Contexto real del último partido del favorito: AH, liquidación y movimiento.
                 const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
                 const favTeamName = (favIsHome
                     ? ((pc || {}).home_team || (pc || {}).home_name || '')
                     : ((pc || {}).away_team || (pc || {}).away_name || '')
                 ).toLowerCase().trim();
+
+                const favPrevAhRaw = favPrev.handicap_line_raw ?? favPrev.ah ?? favPrev.handicap;
+                const favPrevAh = parseFloat(String(favPrevAhRaw ?? '').replace(',', '.'));
+                let favPlayedHomeInPrev = favPrev.subject_is_home;
+                if (typeof favPlayedHomeInPrev !== 'boolean') favPlayedHomeInPrev = favIsHome;
+
+                const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
+                const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
+                if (prevHomeTeam && favTeamName) {
+                    if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
+                        favPlayedHomeInPrev = true;
+                    } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
+                        favPlayedHomeInPrev = false;
+                    }
+                }
+
+                const prevFavoriteMarketLine = !isNaN(favPrevAh)
+                    ? (favPlayedHomeInPrev ? favPrevAh : -favPrevAh)
+                    : NaN;
 
                 if (favPrev && favPrev.score && favPrev.score !== '?:?' && favPrev.score !== '??') {
                     const scoreParts = String(favPrev.score).replace('-', ':').split(':');
@@ -2381,28 +2421,15 @@
                         const gh = parseInt(scoreParts[0], 10);
                         const ga = parseInt(scoreParts[1], 10);
                         if (!isNaN(gh) && !isNaN(ga)) {
-                            const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
-                            const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
-                            let favPlayedHomeInPrev = favIsHome;
-                            if (prevHomeTeam && favTeamName) {
-                                if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
-                                    favPlayedHomeInPrev = true;
-                                } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
-                                    favPlayedHomeInPrev = false;
-                                }
-                            }
+                            const subjectBettingAh = -prevFavoriteMarketLine;
+                            const coverResult = calculateWDL(favPrev.score, subjectBettingAh, favPlayedHomeInPrev);
+                            let coverWdl = 'PUSH';
+                            if (coverResult === 'HOME_WIN') coverWdl = 'COVER';
+                            else if (coverResult === 'AWAY_WIN') coverWdl = 'NO_COVER';
+                            else coverWdl = 'PUSH';
 
-                            const favGoals = favPlayedHomeInPrev ? gh : ga;
-                            const oppGoals = favPlayedHomeInPrev ? ga : gh;
-
-                            let realWdl = 'DRAW';
-                            if (favGoals > oppGoals) realWdl = 'WIN';
-                            else if (favGoals < oppGoals) realWdl = 'LOSS';
-
-                            if (favIsHome) {
-                                params.set('prev_home_res', realWdl);
-                            } else {
-                                params.set('prev_away_res', realWdl);
+                            if (!isNaN(subjectBettingAh)) {
+                                params.set(favIsHome ? 'prev_home_res' : 'prev_away_res', coverWdl);
                             }
                         }
                     }
@@ -2411,9 +2438,7 @@
 
             const marketData = ((pc || {}).market_analysis_data || {});
             const stadiumData = marketData.stadium || {};
-            const generalData = marketData.general || {};
 
-            // H2H Estadio: Cover status
             if (stadiumData && stadiumData.movement && stadiumData.movement !== 'N/A') {
                 const score = stadiumData.result || stadiumData.score;
                 if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
@@ -2422,37 +2447,21 @@
                         params.set('h2h_stadium_res', stadiumCov);
                     }
                 }
-            }
-
-            // H2H General: Cover status + Fin AH
-            if (generalData && generalData.movement && generalData.movement !== 'N/A') {
-                const isSameAsStadium = stadiumData &&
-                    stadiumData.date === generalData.date &&
-                    (stadiumData.result || stadiumData.score) === (generalData.result || generalData.score);
-
-                if (!isSameAsStadium) {
-                    const score = generalData.result || generalData.score;
-                    if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
-                        const generalCov = calculateH2HResult(score, currentAh, true);
-                        if (generalCov) {
-                            params.set('h2h_general_res', generalCov);
-                        }
-                    }
-
-                    const mov = parseMovement(generalData.movement);
-                    if (mov.end !== null && !isNaN(mov.end)) {
-                        const endBucket = toExplorerBucketValue(mov.end);
-                        if (endBucket) {
-                            params.set('h2h_general_end', endBucket);
-                        }
-                    }
+                const movStad = parseMovement(stadiumData.movement);
+                if (movStad.start !== null && movStad.end !== null) {
+                    let stadDir = 'SAME';
+                    if (movStad.end > movStad.start) stadDir = 'UP';
+                    else if (movStad.end < movStad.start) stadDir = 'DOWN';
+                    params.set('h2h_stadium_mov', stadDir);
                 }
             }
 
             window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
             return;
+        }
 
-            // Toggle: si ya existe la fila expandible, ocultarla
+        // Toggle: si ya existe la fila expandible, ocultarla
+        async function searchPatterns_legacy(matchId, btnElement) {
             const existingRow = document.getElementById(`patterns-row-${matchId}`);
             if (existingRow) {
                 existingRow.remove();

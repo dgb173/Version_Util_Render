@@ -2,55 +2,324 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extraer Liga Completa - Explorador por Jornadas y Copas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=5.0, user-scalable=yes">
+    <title>Extraer Liga - Antigravity Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        :root { --navy:#092c40; --navy2:#0d435b; --mint:#32c7a5; --ink:#18313f; --muted:#6c7d86; --line:#dbe5ea; --bg:#f3f7f9; }
-        body { margin:0; color:var(--ink); background:var(--bg); font-family:Inter,Segoe UI,Arial,sans-serif; }
-        .sidebar { position:fixed; inset:0 auto 0 0; width:244px; padding:22px 16px; color:#d9e8ef; background:linear-gradient(180deg,var(--navy),var(--navy2)); z-index:20; }
-        .brand { display:flex; gap:.65rem; align-items:center; margin-bottom:1.5rem; color:#fff; font-size:1.08rem; font-weight:900; }
-        .brand i { color:var(--mint); }
-        .sidebar .nav-link { display:flex; align-items:center; gap:.65rem; margin:.15rem 0; padding:.65rem .75rem; color:#bfd0da; border-radius:10px; font-size:.86rem; font-weight:700; }
-        .sidebar .nav-link:hover,.sidebar .nav-link.active { color:#fff; background:rgba(50,199,165,.16); }
-        .sidebar .nav-link.active { box-shadow:inset 3px 0 var(--mint); }
-        main { min-height:100vh; margin-left:244px; }
-        .hero { padding:34px 34px 70px; color:#fff; background:linear-gradient(125deg,#0a3045,#126383); }
-        .hero h1 { margin:.3rem 0 .55rem; font-size:clamp(1.7rem,3vw,2.55rem); font-weight:900; }
-        .hero p { max-width:840px; margin:0; color:#d7e8ef; }
-        .eyebrow { color:#8fe7d3; font-size:.72rem; font-weight:900; letter-spacing:.12em; }
-        .workspace { padding:0 34px 45px; transform:translateY(-40px); }
-        .panel { margin-bottom:18px; border:1px solid rgba(9,44,64,.08); border-radius:18px; background:#fff; box-shadow:0 15px 38px rgba(24,49,63,.09); }
-        .panel-body { padding:24px; }
-        .form-label { font-size:.78rem; font-weight:800; color:#465f6c; }
-        .form-control,.form-select { border-color:#cfdee5; border-radius:10px; }
-        .btn-primary { border-color:var(--navy2); background:var(--navy2); }
-        .btn-success { border-color:#159574; background:#159574; }
-        .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
-        .metric { padding:15px 17px; border:1px solid var(--line); border-radius:13px; background:#f9fbfc; }
-        .metric small { display:block; color:var(--muted); font-weight:700; }
-        .metric strong { font-size:1.45rem; }
-        .table-wrap { max-height:55vh; overflow:auto; border:1px solid var(--line); border-radius:12px; }
-        table { font-size:.82rem; }
-        thead th { position:sticky; top:0; z-index:2; white-space:nowrap; background:#edf4f7!important; }
-        td { vertical-align:middle; }
-        .team { min-width:220px; }
-        .result-list { max-height:220px; overflow:auto; }
-        .hint { padding:12px 14px; color:#49606d; border-left:4px solid var(--mint); border-radius:8px; background:#effaf7; font-size:.88rem; }
-        .archive-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
-        .archive-item { display:block; padding:14px 16px; color:inherit; text-align:left; text-decoration:none; border:1px solid var(--line); border-radius:14px; background:#f9fbfc; transition:.15s ease; }
-        .archive-item:hover { border-color:var(--mint); transform:translateY(-2px); box-shadow: 0 6px 18px rgba(9,44,64,.08); }
-        .archive-item .name { font-weight:900; color:var(--navy); font-size: .95rem; }
+        :root {
+            --navy: #092c40;
+            --navy2: #0d435b;
+            --mint: #32c7a5;
+            --mint-dark: #159574;
+            --ink: #18313f;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --bg: #f8fafc;
+        }
+        body {
+            margin: 0;
+            color: var(--ink);
+            background-color: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
         
-        /* --- ESTILOS 100% IDENTICOS AL EXPLORADOR --- */
-        .stage-card { margin-bottom: 22px; border: 1px solid #cbd5e1; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(9,44,64,.06); overflow: hidden; }
-        .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: linear-gradient(135deg, #f8fafc, #edf4fb); border-bottom: 2px solid #cbd5e1; flex-wrap: wrap; }
-        .stage-title { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; font-weight: 900; color: #0f2d4a; }
-        .stage-badge { font-size: .75rem; padding: 4px 10px; border-radius: 999px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+        /* Barra lateral responsiva estilo Pre-cacheo / Explorador */
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            background-color: #fff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+            padding: 20px 16px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .brand {
+            display: flex;
+            gap: .65rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-left: 8px;
+            color: var(--navy);
+            font-size: 1.15rem;
+            font-weight: 900;
+        }
+        .brand i { color: var(--mint-dark); }
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin: .2rem 0;
+            padding: .65rem .85rem;
+            color: #475569;
+            border-radius: 8px;
+            font-size: .88rem;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--navy);
+            background-color: #f1f5f9;
+        }
+        .sidebar .nav-link.active {
+            color: #0d6efd;
+            background-color: #e8f0fe;
+            box-shadow: inset 3px 0 #0d6efd;
+        }
+        .sidebar .nav-link i { width: 20px; text-align: center; }
+
+        .main-content {
+            margin-left: 240px;
+            min-height: 100vh;
+            padding: 24px 28px 60px;
+            transition: margin-left 0.3s ease;
+        }
+        @media (max-width: 850px) {
+            .sidebar { position: static; width: 100%; height: auto; }
+            .main-content { margin-left: 0; padding: 16px; }
+        }
+
+        /* Banner Hero moderno */
+        .hero-card {
+            background: linear-gradient(135deg, #092c40 0%, #0d435b 60%, #115777 100%);
+            border-radius: 16px;
+            padding: 28px 32px;
+            color: #fff;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(9, 44, 64, 0.12);
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(50, 199, 165, 0.2);
+            color: #8fe7d3;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .hero-card h1 {
+            font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+            font-weight: 900;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+        }
+        .hero-card p {
+            color: #cbd5e1;
+            font-size: 0.92rem;
+            margin: 0;
+            max-width: 800px;
+        }
+
+        /* Tarjetas y Paneles */
+        .card-custom {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .card-custom-head {
+            padding: 16px 20px;
+            background: #fff;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-custom-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f2d4a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+        .card-custom-body {
+            padding: 20px;
+        }
+
+        /* Input principal estilizado */
+        .input-league-id {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            padding: 12px 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-league-id:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.12);
+        }
+        .btn-load-league {
+            padding: 12px 24px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-load-league:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
+        }
+
+        /* Botones de sugerencias de ligas comunes */
+        .quick-league-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 11px;
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .quick-league-badge:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        /* Barra de Filtros de Pre-Cacheo */
+        .filter-bar {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+        .filter-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: .05em;
+            margin-bottom: 4px;
+        }
+
+        /* Métricas de liga */
+        .metric-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            text-align: center;
+        }
+        .metric-card .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .metric-card .val {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: var(--navy);
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+
+        /* Tabla de Previsualización */
+        .table-wrap-preview {
+            max-height: 520px;
+            overflow: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .table-preview {
+            font-size: 0.82rem;
+            margin: 0;
+            vertical-align: middle;
+        }
+        .table-preview thead th {
+            position: sticky;
+            top: 0;
+            background: #f1f5f9 !important;
+            color: #334155;
+            font-weight: 800;
+            padding: 10px 12px;
+            white-space: nowrap;
+            z-index: 2;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .table-preview tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .table-preview tbody tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Grid de Ligas Guardadas */
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+        }
+        .archive-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            padding: 16px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .archive-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            border-color: #cbd5e1;
+        }
+        .archive-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .archive-card-title {
+            font-size: 0.98rem;
+            font-weight: 900;
+            color: var(--navy);
+            margin: 0;
+        }
+        
+        /* Componentes del explorador de jornadas */
+        .stage-card { margin-bottom: 20px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; box-shadow: 0 4px 14px rgba(9,44,64,.04); overflow: hidden; }
+        .stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; background: linear-gradient(135deg, #f8fafc, #edf4fb); border-bottom: 2px solid #cbd5e1; flex-wrap: wrap; }
+        .stage-title { display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 900; color: #0f2d4a; }
+        .stage-badge { font-size: .72rem; padding: 3px 9px; border-radius: 999px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
         .stage-badge.league-round { background: #0d435b; color: #fff; }
         .stage-badge.cup-stage { background: #6f42c1; color: #fff; }
-        
+
         .explorer-table-wrap { overflow-x: auto; border-top: 1px solid #dbe5ea; }
         .explorer-table { min-width: 1480px; margin: 0; table-layout: fixed; font-size: .75rem; border-collapse: collapse; }
         .explorer-table th { padding: 9px 6px; text-align: center; vertical-align: bottom; background: #edf4f7 !important; border-bottom: 2px solid #cbd5e1; font-weight: 900; color: #1e3a5f; }
@@ -65,54 +334,41 @@
         .explorer-case .mini-score { display: inline-block; margin: 2px 0; padding: 2px 5px; border-radius: 4px; background: #eef3f5; font-size: .78rem; font-weight: 900; }
         .explorer-case .mini-meta { color: var(--muted); font-size: .61rem; }
         
-        /* Celdas con color característico de explorador */
         .col-h2h-col3 { background-color: #ffe4ec !important; }
         .cell-no-data { background-color: #ffcdd2 !important; }
-        .cell-diff-league { background-color: #fff9c4 !important; }
         
-        /* Pre-Context Panel */
         .pre-context-panel { margin: 8px 10px 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 9px; background: #f8fafc; color: #334155; text-align: left; }
         .pre-context-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; padding-bottom: 7px; border-bottom: 2px solid #dbe5ef; }
-        .pre-context-title { font-size: .95rem; font-weight: 900; color: #1e3a5f; }
+        .pre-context-title { font-size: .92rem; font-weight: 900; color: #1e3a5f; }
         .pre-context-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
-        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 9px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .75rem; font-weight: 900; cursor: pointer; white-space: nowrap; user-select: none; }
-        .pre-context-league-filter input { width: 15px; height: 15px; margin: 0; accent-color: #0d6efd; cursor: pointer; }
-        .pre-context-copy { padding: 5px 10px; border: 1px solid #0d6efd; border-radius: 5px; background: #fff; color: #0d6efd; font-size: .75rem; font-weight: 900; white-space: nowrap; cursor: pointer; }
-        .pre-context-copy:hover { background: #0d6efd; color: #fff; }
+        .pre-context-league-filter { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 4px 8px; border: 1px solid #94a3b8; border-radius: 5px; background: #fff; color: #334155; font-size: .74rem; font-weight: 800; cursor: pointer; white-space: nowrap; user-select: none; }
         .pre-context-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .pre-context-moments.hide-previous { grid-template-columns: minmax(0, 1fr); }
         .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
         .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
-        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
-        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
-        .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
+        .pre-context-moment-head { padding: 7px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; font-size: .82rem; font-weight: 900; color: #245a91; }
         .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .pre-context-team { min-width: 0; }
         .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
-        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 7px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
-        .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
-        .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
-        .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
-        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
-        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
+        .pre-context-team-head { display: flex; justify-content: space-between; gap: 5px; padding: 6px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
+        .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .70rem; }
+        .pre-context-table th, .pre-context-table td { padding: 3px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .66rem; font-weight: 900; }
+        .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 5px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .72rem; font-weight: 900; }
         .pre-context-summary .is-win { color: #16834b; }
         .pre-context-summary .is-draw { color: #9a6700; }
         .pre-context-summary .is-loss { color: #c92a3a; }
-        
+
         .stat-grid { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); gap: 8px; padding: 10px; overflow-x: auto; }
         .stat-box { min-height: 140px; padding: 8px; border: 1px solid rgba(0,0,0,.12); border-radius: 8px; font-size: .72rem; }
         .stat-box.prev-home{background:#e8f5e9}.stat-box.prev-away{background:#ffebee}.stat-box.h2h{background:#e3f2fd}.stat-box.col3{background:#fff8e1}.stat-box.indirect{background:#e3f2fd}
         .stat-title { padding-bottom: 4px; margin-bottom: 6px; text-align: center; text-transform: uppercase; border-bottom: 1px solid rgba(0,0,0,.1); font-size: .7rem; font-weight: 900; }
-
-        @media(max-width:800px) { .sidebar{position:static;width:auto}.sidebar nav{display:flex;overflow-x:auto}.sidebar .nav-link{flex:0 0 auto}main{margin-left:0}.hero,.workspace{padding-inline:15px}.workspace{transform:translateY(-25px)}.metric-grid{grid-template-columns:repeat(2,1fr)} }
+        .stat-table { width: 100%; font-size: .68rem; }
     </style>
 </head>
 <body>
+
 <aside class="sidebar">
-    <div class="brand"><i class="fa-solid fa-database"></i> Antigravity Data</div>
+    <div class="brand"><i class="fa-solid fa-chart-pie"></i> Antigravity Data</div>
     <nav class="nav flex-column">
         <a class="nav-link" href="/"><i class="fa-solid fa-house"></i> Inicio</a>
         <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
@@ -123,133 +379,329 @@
         <a class="nav-link" href="/ganadores"><i class="fa-solid fa-trophy"></i> Ganadores</a>
     </nav>
 </aside>
-<main>
-    <section class="hero">
-        <span class="eyebrow">FUENTE DE DATOS DEL MODELO</span>
-        <h1>Extracción y Explorador por Jornadas / Copas</h1>
-        <p>Navega por el calendario completo organizado por jornadas o fases de copa. Al aplicar un filtro de Hándicap Asiático, la vista conmuta automáticamente a una tabla continua sin cabeceras vacías.</p>
+
+<main class="main-content">
+    <!-- BANNER HERO -->
+    <section class="hero-card">
+        <span class="hero-badge"><i class="fa-solid fa-bolt"></i> Extracción Inteligente</span>
+        <h1>Extractor y Explorador de Ligas</h1>
+        <p>Carga calendarios completos ingresando únicamente el ID de la liga. Aplica filtros avanzados estilo Pre-Cacheo (AH, cobertura del favorito, estado) para extraer solo los partidos que necesitas.</p>
     </section>
-    <section class="workspace">
-        <div class="panel border border-success"><div class="panel-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div>
-                    <h5 class="mb-1"><i class="fa-brands fa-github me-2"></i>Extracción cloud desde el móvil</h5>
-                    <div class="small text-muted">GitHub hace el análisis pesado, publica los datos y Render solo los consulta. Los datos aparecerán abajo y en Explorador automáticamente.</div>
+
+    <!-- FORMULARIO PRINCIPAL SIMPLIFICADO -->
+    <section class="card-custom">
+        <div class="card-custom-head">
+            <h5 class="card-custom-title"><i class="fa-solid fa-magnifying-glass text-primary"></i> Consulta de Liga NowGoal</h5>
+            <a class="btn btn-outline-success btn-sm fw-bold" href="https://github.com/dgb173/Version_Util_Render/actions/workflows/extraer-liga-cloud.yml" target="_blank" rel="noopener">
+                <i class="fa-solid fa-cloud-arrow-down me-1"></i> Extracción Cloud (GitHub Actions)
+            </a>
+        </div>
+        <div class="card-custom-body">
+            <form id="extractForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-7 col-lg-8">
+                        <label for="leagueIdInput" class="form-label fw-bold text-navy small mb-1">
+                            <i class="fa-solid fa-hashtag me-1 text-primary"></i> ID de la Liga NowGoal
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-2 border-end-0"><i class="fa-solid fa-futbol text-muted"></i></span>
+                            <input id="leagueIdInput" class="form-control input-league-id border-start-0" placeholder="Ej: 36 (Premier), 273 (A-League), 26 (Suecia)..." required autofocus>
+                        </div>
+                        <div class="form-text small mt-1 text-muted">
+                            Introduce solo el número de ID (o pega la URL completa de NowGoal). La temporada activa se detecta automáticamente.
+                        </div>
+                    </div>
+                    <div class="col-md-5 col-lg-4">
+                        <button id="previewButton" class="btn btn-primary btn-load-league w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Cargar Liga / Partidos
+                        </button>
+                    </div>
                 </div>
-                <a class="btn btn-success" href="https://github.com/dgb173/Version_Util_Render/actions/workflows/extraer-liga-cloud.yml" target="_blank" rel="noopener">
-                    <i class="fa-solid fa-cloud-arrow-down me-1"></i> Abrir extracción cloud
+
+                <!-- ATAJOS RÁPIDOS DE LIGAS POPULARES -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top">
+                    <span class="small fw-bold text-muted me-1">Ligas comunes:</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('36')">Premier League (36)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('8')">LaLiga (8)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('11')">Serie A (11)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('9')">Bundesliga (9)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('273')">A-League (273)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('26')">Allsvenskan (26)</span>
+                    <span class="quick-league-badge" onclick="setLeagueId('2187')">Conference League (2187)</span>
+                </div>
+
+                <!-- OPCIONES AVANZADAS COLAPSABLES -->
+                <div class="mt-3">
+                    <button class="btn btn-link btn-sm p-0 text-decoration-none text-muted fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
+                        <i class="fa-solid fa-sliders me-1"></i> Opciones avanzadas (temporada histórica, casa, hilos)...
+                    </button>
+                    <div class="collapse mt-3" id="advancedOptions">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-md-3">
+                                    <label for="season" class="form-label small fw-bold">Temporada específica</label>
+                                    <input id="season" class="form-control form-control-sm" placeholder="Auto (ej. 2024-2025)">
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <label for="company" class="form-label small fw-bold">Casa de apuestas</label>
+                                    <input id="company" type="number" min="1" value="8" class="form-control form-control-sm" title="8 = Bet365">
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <label for="workers" class="form-label small fw-bold">Hilos de extracción</label>
+                                    <select id="workers" class="form-select form-select-sm">
+                                        <option value="1">1 — conservador</option>
+                                        <option value="3" selected>3 — recomendado</option>
+                                        <option value="5">5 — rápido</option>
+                                        <option value="8">8 — máximo</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 col-md-3 d-flex align-items-end">
+                                    <div class="form-check mb-1">
+                                        <input id="force" class="form-check-input" type="checkbox">
+                                        <label for="force" class="form-check-label small fw-bold">Re-analizar existentes</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="leagueLabel" class="form-label small fw-bold">Etiqueta personalizada (opcional)</label>
+                                    <input id="leagueLabel" class="form-control form-control-sm" placeholder="Ej: Premier League 2024-2025">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div id="message" class="alert mt-3 d-none" role="alert"></div>
+        </div>
+    </section>
+
+    <!-- PANEL DE PREVISUALIZACIÓN Y FILTROS TIPO PRE-CACHEO -->
+    <section id="previewPanel" class="card-custom d-none">
+        <div class="card-custom-head">
+            <div>
+                <h5 id="summary" class="card-custom-title"><i class="fa-solid fa-list-check text-success"></i> Calendario de la Liga</h5>
+                <div id="source" class="text-muted small mt-1"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <button id="registerLeague" type="button" class="btn btn-outline-secondary btn-sm fw-bold">
+                    <i class="fa-solid fa-tag me-1"></i> Registrar Etiqueta
+                </button>
+                <button id="startButton" type="button" class="btn btn-success fw-bold shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-down me-1"></i> Analizar y Guardar Seleccionados
+                </button>
+            </div>
+        </div>
+        <div class="card-custom-body">
+            <!-- MÉTRICAS EN VIVO DE LA LIGA -->
+            <div class="metric-card-grid">
+                <div class="metric-card">
+                    <div class="label">Total Partidos</div>
+                    <div class="val" id="metricTotal">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Terminados</div>
+                    <div class="val text-success" id="metricFinished">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Pendientes</div>
+                    <div class="val text-muted" id="metricPending">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Ya en SQL</div>
+                    <div class="val text-primary" id="metricSql">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="label">Seleccionados</div>
+                    <div class="val text-danger" id="metricSelected">0</div>
+                </div>
+            </div>
+
+            <!-- BARRA DE FILTROS DE PRE-CACHEO -->
+            <div class="filter-bar">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-3">
+                        <div class="filter-label">Buscar Equipo / ID</div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input id="previewSearchInput" type="text" class="form-control" placeholder="Nombre de equipo..." oninput="onPreviewFilterChanged()">
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="filter-label">Hándicap (AH)</div>
+                        <select id="previewAhSelect" class="form-select form-select-sm fw-bold" onchange="onPreviewFilterChanged()">
+                            <option value="all">Cualquier AH</option>
+                            <option value="0">0 (DNB)</option>
+                            <option value="-0.25">-0.25</option>
+                            <option value="0.25">+0.25</option>
+                            <option value="-0.5">-0.5</option>
+                            <option value="0.5">+0.5</option>
+                            <option value="-0.75">-0.75</option>
+                            <option value="0.75">+0.75</option>
+                            <option value="-1">-1.0</option>
+                            <option value="1">+1.0</option>
+                            <option value="-1.25">-1.25</option>
+                            <option value="1.25">+1.25</option>
+                            <option value="-1.5">-1.5</option>
+                            <option value="1.5">+1.5</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="filter-label">Favorito</div>
+                        <select id="previewFavSelect" class="form-select form-select-sm fw-bold" onchange="onPreviewFilterChanged()">
+                            <option value="all">Todos los roles</option>
+                            <option value="home_fav">Local favorito (AH &lt; 0)</option>
+                            <option value="away_fav">Visitante fav (AH &gt; 0)</option>
+                            <option value="even">Línea 0 (Igualados)</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="filter-label">Cobertura Favorito</div>
+                        <select id="previewCoverageSelect" class="form-select form-select-sm fw-bold" onchange="onPreviewFilterChanged()">
+                            <option value="all">Cualquier cobertura</option>
+                            <option value="covered">✅ Fav CUBRIÓ línea</option>
+                            <option value="no_covered">❌ Fav NO cubrió línea</option>
+                            <option value="push">➖ Push / Nulo</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="filter-label">Estado / Base de Datos</div>
+                        <div class="d-flex gap-1">
+                            <select id="previewStatusSelect" class="form-select form-select-sm" onchange="onPreviewFilterChanged()">
+                                <option value="all">Todos los estados</option>
+                                <option value="finished">Solo Terminados</option>
+                                <option value="upcoming">Solo Pendientes</option>
+                            </select>
+                            <select id="previewSqlSelect" class="form-select form-select-sm" onchange="onPreviewFilterChanged()">
+                                <option value="all">Todo</option>
+                                <option value="new">Solo Nuevos</option>
+                                <option value="sql">Ya en SQL</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACCIONES RÁPIDAS DE MARCADO -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
+                    <div class="small text-muted fw-bold" id="previewFilterCount">
+                        Mostrando todos los partidos
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm fw-bold" onclick="selectFiltered(true)">
+                            <i class="fa-solid fa-check-double me-1"></i> Marcar filtrados
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" onclick="selectFiltered(false)">
+                            <i class="fa-solid fa-xmark me-1"></i> Desmarcar filtrados
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm fw-bold" onclick="selectOnlyNewFiltered()">
+                            <i class="fa-solid fa-plus me-1"></i> Solo nuevos filtrados
+                        </button>
+                        <button type="button" class="btn btn-light btn-sm fw-bold border" onclick="clearAllSelection()">
+                            Deseleccionar todos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE PARTIDOS PREVISUALIZADOS -->
+            <div class="table-wrap-preview">
+                <table class="table table-preview align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;" class="text-center">
+                                <input type="checkbox" class="form-check-input" id="masterCheckbox" onchange="toggleMasterCheck(this.checked)" checked>
+                            </th>
+                            <th style="width: 100px;">Jornada / Fase</th>
+                            <th style="width: 110px;">Fecha</th>
+                            <th>Partido</th>
+                            <th style="width: 90px;" class="text-center">Marcador</th>
+                            <th style="width: 170px;" class="text-center">Hándicap (AH)</th>
+                            <th style="width: 130px;" class="text-center">Cubierto Fav</th>
+                            <th style="width: 100px;" class="text-center">Estado SQL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewRows"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANEL DE PROGRESO DE EXTRACCIÓN -->
+    <section id="progressPanel" class="card-custom d-none">
+        <div class="card-custom-head">
+            <h5 class="card-custom-title"><i class="fa-solid fa-spinner fa-spin text-primary"></i> Progreso de Extracción</h5>
+            <span id="progressCount" class="badge bg-primary fs-6">0/0</span>
+        </div>
+        <div class="card-custom-body">
+            <div class="d-flex justify-content-between mb-2">
+                <strong id="progressText">Analizando partidos y guardando en SQL…</strong>
+            </div>
+            <div class="progress" style="height: 14px;">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width:0%"></div>
+            </div>
+            <div id="results" class="result-list mt-3 p-2 bg-light border rounded-3" style="max-height: 220px; overflow-y: auto;"></div>
+        </div>
+    </section>
+
+    <!-- LIGAS Y COPAS REGISTRADAS -->
+    <section class="card-custom">
+        <div class="card-custom-head">
+            <div>
+                <h5 class="card-custom-title"><i class="fa-solid fa-box-archive text-warning"></i> Ligas y Copas Registradas</h5>
+                <div class="small text-muted">Ligas guardadas en la base de datos organizadas por jornadas y copas.</div>
+            </div>
+            <button id="refreshArchives" type="button" class="btn btn-outline-secondary btn-sm" title="Refrescar lista">
+                <i class="fa-solid fa-rotate"></i>
+            </button>
+        </div>
+        <div class="card-custom-body">
+            <div id="archiveList" class="archive-grid">
+                <span class="text-muted">Cargando registro…</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- PANEL PRINCIPAL EXPLORADOR POR JORNADAS Y COPAS (DETALLE DE LIGA SELECCIONADA) -->
+    <section id="analysisPanel" class="card-custom d-none">
+        <div class="card-custom-head">
+            <div>
+                <h4 id="analysisTitle" class="card-custom-title fs-5"><i class="fa-solid fa-trophy text-warning"></i> Partidos analizados</h4>
+                <div id="analysisSubtitle" class="small text-muted mt-1"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <a id="openInExplorerBtn" class="btn btn-primary btn-sm fw-bold" href="#" target="_blank">
+                    <i class="fa-solid fa-compass me-1"></i> Abrir en Explorador
+                </a>
+                <button id="scrapeMissing" type="button" class="btn btn-outline-primary btn-sm fw-bold d-none">
+                    <i class="fa-solid fa-rotate me-1"></i> Completar pendientes
+                </button>
+                <a id="downloadLeague" class="btn btn-success btn-sm fw-bold" href="#">
+                    <i class="fa-solid fa-download me-1"></i> Descargar liga entera (TXT)
                 </a>
             </div>
-        </div></div>
-        
-        <div class="panel"><div class="panel-body">
-            <form id="extractForm" class="row g-3">
-                <div class="col-lg-5">
-                    <label for="leagueReference" class="form-label">URL o ID de liga NowGoal</label>
-                    <input id="leagueReference" class="form-control" placeholder="Ej.: https://football.nowgoal26.com/league/2024-2025/2187" required>
-                </div>
-                <div class="col-sm-6 col-lg-2">
-                    <label for="season" class="form-label">Temporada</label>
-                    <input id="season" class="form-control" placeholder="Automática">
-                </div>
-                <div class="col-sm-6 col-lg-2">
-                    <label for="targetAh" class="form-label">AH visible (opcional)</label>
-                    <input id="targetAh" type="number" step="0.25" class="form-control" placeholder="Todos">
-                </div>
-                <div class="col-sm-6 col-lg-1">
-                    <label for="company" class="form-label">Casa</label>
-                    <input id="company" type="number" min="1" value="8" class="form-control" required>
-                </div>
-                <div class="col-sm-6 col-lg-2 d-flex align-items-end">
-                    <button id="previewButton" class="btn btn-primary w-100" type="submit"><i class="fa-solid fa-magnifying-glass me-1"></i> Previsualizar</button>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                    <label for="matchStatus" class="form-label">Estado de los partidos</label>
-                    <select id="matchStatus" class="form-select"><option value="all">Toda la temporada</option><option value="finished">Solo terminados</option><option value="upcoming">Próximos o pendientes</option></select>
-                </div>
-                <div class="col-sm-6 col-lg-2">
-                    <label for="workers" class="form-label">Procesos simultáneos</label>
-                    <select id="workers" class="form-select"><option value="1">1 — conservador</option><option value="3" selected>3 — recomendado</option><option value="5">5 — rápido</option><option value="10">10 — máximo</option></select>
-                </div>
-                <div class="col-sm-6 col-lg-4">
-                    <label for="leagueLabel" class="form-label">Etiqueta para guardar la liga</label>
-                    <input id="leagueLabel" class="form-control" placeholder="Ej.: UEFA Conference League 2024-2025">
-                </div>
-                <div class="col-lg-3 d-flex align-items-end"><div class="form-check mb-2"><input id="force" class="form-check-input" type="checkbox"><label for="force" class="form-check-label">Volver a analizar partidos que ya estén en SQL</label></div></div>
-            </form>
-            <div class="hint mt-3"><strong>Para una liga completa o copa:</strong> deja “AH visible” vacío. El filtro AH sirve para consultar únicamente esa línea.</div>
-            <div id="message" class="alert mt-3 d-none" role="alert"></div>
-        </div></div>
-
-        <div class="panel"><div class="panel-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div><h5 class="mb-1"><i class="fa-solid fa-box-archive me-2"></i>Ligas y Copas registradas</h5><div class="small text-muted">Organizado por jornadas y fases de copa. Haz clic en una liga para explorar.</div></div>
-                <button id="refreshArchives" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-rotate"></i></button>
-            </div>
-            <div id="archiveList" class="archive-list"><span class="text-muted">Cargando registro…</span></div>
-        </div></div>
-
-        <div id="previewPanel" class="panel d-none"><div class="panel-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-                <div><h5 id="summary" class="mb-1"></h5><div id="source" class="text-muted small"></div></div>
-                <div class="d-flex flex-wrap gap-2">
-                    <button id="selectNew" type="button" class="btn btn-outline-secondary btn-sm">Solo nuevos</button>
-                    <button id="selectAll" type="button" class="btn btn-outline-secondary btn-sm">Seleccionar todos</button>
-                    <button id="registerLeague" type="button" class="btn btn-outline-primary"><i class="fa-solid fa-tag me-1"></i> Registrar etiqueta</button>
-                    <button id="startButton" type="button" class="btn btn-success"><i class="fa-solid fa-database me-1"></i> Analizar y guardar</button>
-                </div>
-            </div>
-            <div class="metric-grid">
-                <div class="metric"><small>Partidos</small><strong id="metricTotal">0</strong></div>
-                <div class="metric"><small>Terminados</small><strong id="metricFinished">0</strong></div>
-                <div class="metric"><small>Ya en SQL</small><strong id="metricSql">0</strong></div>
-                <div class="metric"><small>Seleccionados</small><strong id="metricSelected">0</strong></div>
-            </div>
-            <div class="table-wrap"><table class="table table-hover mb-0"><thead><tr><th></th><th>Jornada/Fase</th><th>Fecha</th><th>Partido</th><th>Resultado</th><th>AH visible</th><th>AH inicial SQL</th><th>Estado SQL</th></tr></thead><tbody id="rows"></tbody></table></div>
-        </div></div>
-
-        <div id="progressPanel" class="panel d-none"><div class="panel-body">
-            <div class="d-flex justify-content-between mb-2"><strong id="progressText">Preparando…</strong><span id="progressCount">0/0</span></div>
-            <div class="progress"><div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div></div>
-            <div id="results" class="result-list mt-3"></div>
-        </div></div>
-
-        <!-- PANEL PRINCIPAL EXPLORADOR POR JORNADAS Y COPAS -->
-        <div id="analysisPanel" class="panel d-none"><div class="panel-body">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <div><h4 id="analysisTitle" class="mb-1 fw-bold text-navy"><i class="fa-solid fa-trophy text-warning me-2"></i>Partidos analizados</h4><div id="analysisSubtitle" class="small text-muted"></div></div>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <a id="openInExplorerBtn" class="btn btn-primary btn-sm" href="#" target="_blank"><i class="fa-solid fa-compass me-1"></i> Abrir en Explorador de Datos</a>
-                    <button id="scrapeMissing" type="button" class="btn btn-outline-primary btn-sm d-none"><i class="fa-solid fa-rotate me-1"></i> Completar partidos pendientes</button>
-                    <a id="downloadLeague" class="btn btn-success btn-sm" href="#"><i class="fa-solid fa-download me-1"></i> Descargar liga entera</a>
-                </div>
-            </div>
-
+        </div>
+        <div class="card-custom-body">
             <!-- BARRA DE FILTROS AL ESTILO EXPLORADOR -->
-            <div class="card bg-light border-0 mb-3 p-2">
+            <div class="filter-bar">
                 <div class="row g-2 align-items-center">
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
                             <input id="explorerSearchInput" type="text" class="form-control" placeholder="Buscar por equipo o ID..." oninput="onFilterChanged()">
                         </div>
                     </div>
                     <div class="col-md-2">
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text fw-bold">AH</span>
+                            <span class="input-group-text fw-bold bg-white">AH</span>
                             <input id="explorerAhFilter" type="text" class="form-control" placeholder="Ej: -0.25, 0.5..." oninput="onAhFilterInputChanged()">
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="d-flex gap-2">
-                            <div class="form-check form-check-inline mb-0">
-                                <input class="form-check-input" type="checkbox" id="filterOnlyHistory" onchange="onFilterChanged()">
-                                <label class="form-check-label small fw-bold" for="filterOnlyHistory">Con Historial</label>
-                            </div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="checkbox" id="filterOnlyHistory" onchange="onFilterChanged()">
+                            <label class="form-check-label small fw-bold" for="filterOnlyHistory">Solo con Historial</label>
                         </div>
                     </div>
                     <div class="col-md-4 text-end">
-                        <button id="viewModeToggleBtn" type="button" class="btn btn-outline-navy btn-sm fw-bold" onclick="toggleViewMode()">
+                        <button id="viewModeToggleBtn" type="button" class="btn btn-outline-secondary btn-sm fw-bold" onclick="toggleViewMode()">
                             <i class="fa-solid fa-table-list me-1"></i> <span id="viewModeToggleLabel">Modo Tabla Continua</span>
                         </button>
                     </div>
@@ -257,7 +709,7 @@
             </div>
 
             <!-- NAVEGACIÓN Y FILTRO DE JORNADAS -->
-            <div id="roundNavigation" class="round-navigation d-flex flex-wrap align-items-center gap-2 p-2 mb-3 border rounded bg-light">
+            <div id="roundNavigation" class="d-flex flex-wrap align-items-center gap-2 p-2 mb-3 border rounded-3 bg-light">
                 <button id="roundPrev" type="button" class="btn btn-outline-secondary btn-sm"><i class="fa-solid fa-chevron-left"></i> Anterior</button>
                 <select id="roundSelect" class="form-select form-select-sm fw-bold" style="width:auto; min-width:280px;" onchange="onRoundSelectChanged(this.value)"></select>
                 <button id="roundNext" type="button" class="btn btn-outline-secondary btn-sm">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
@@ -266,10 +718,11 @@
 
             <!-- CONTENEDOR DE JORNADAS Y FASES DE COPA -->
             <div id="stagesContainer"></div>
-        </div></div>
+        </div>
     </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const $ = id => document.getElementById(id);
     let preview = null;
@@ -284,8 +737,327 @@
 
     const escapeHtml = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
     const esc = escapeHtml;
-    const message = (kind,text) => { $('message').className=`alert alert-${kind} mt-3`; $('message').textContent=text; };
-    const selected = () => preview ? Array.from(document.querySelectorAll('.match-check:checked')).map(el => preview.matches[Number(el.dataset.index)]).filter(Boolean) : [];
+    const message = (kind, text) => {
+        const el = $('message');
+        if (!el) return;
+        el.className = `alert alert-${kind} mt-3 shadow-sm`;
+        el.innerHTML = text;
+        el.classList.remove('d-none');
+    };
+
+    function setLeagueId(lid) {
+        const input = $('leagueIdInput');
+        input.value = lid;
+        input.focus();
+    }
+
+    function selected() {
+        if (!preview || !preview.matches) return [];
+        return Array.from(document.querySelectorAll('.match-check:checked'))
+            .map(el => preview.matches[Number(el.dataset.index)])
+            .filter(Boolean);
+    }
+
+    function updateSelection() {
+        const sel = selected();
+        const count = sel.length;
+        if ($('metricSelected')) $('metricSelected').textContent = count;
+        if ($('startButton')) {
+            $('startButton').disabled = !count;
+            $('startButton').innerHTML = `<i class="fa-solid fa-database me-1"></i> Analizar y guardar (${count})`;
+        }
+    }
+
+    function oddsCell(match) {
+        if (match.visible_ah === null || match.visible_ah === undefined) {
+            return '<span class="text-muted small">Sin AH</span>';
+        }
+        const home = match.home_odds_decimal == null ? '—' : Number(match.home_odds_decimal).toFixed(2);
+        const away = match.away_odds_decimal == null ? '—' : Number(match.away_odds_decimal).toFixed(2);
+        const ahFormatted = Number(match.visible_ah) > 0 ? `+${match.visible_ah}` : String(match.visible_ah);
+        return `<span class="small text-muted">${home}</span> <span class="badge bg-danger-subtle text-danger border border-danger-subtle mx-1 fw-bold">${esc(ahFormatted)}</span> <span class="small text-muted">${away}</span>`;
+    }
+
+    function coverageBadge(match) {
+        if (!match.finished) {
+            return '<span class="badge bg-light text-muted border">Pendiente</span>';
+        }
+        const cov = match.favorite_coverage;
+        if (cov === 'covered') {
+            return '<span class="badge bg-success-subtle text-success border border-success-subtle fw-bold"><i class="fa-solid fa-check me-1"></i>Cubrió</span>';
+        } else if (cov === 'no_covered') {
+            return '<span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold"><i class="fa-solid fa-xmark me-1"></i>No cubrió</span>';
+        } else if (cov === 'push') {
+            return '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-bold"><i class="fa-solid fa-minus me-1"></i>Push</span>';
+        }
+        return '<span class="badge bg-light text-muted border">—</span>';
+    }
+
+    /* --- FILTRADO DE LA TABLA DE PREVISUALIZACIÓN --- */
+    function filterPreviewMatches() {
+        if (!preview || !preview.matches) return [];
+        const search = ($('previewSearchInput')?.value || '').trim().toLowerCase();
+        const ah = $('previewAhSelect')?.value || 'all';
+        const fav = $('previewFavSelect')?.value || 'all';
+        const cov = $('previewCoverageSelect')?.value || 'all';
+        const status = $('previewStatusSelect')?.value || 'all';
+        const sql = $('previewSqlSelect')?.value || 'all';
+
+        return preview.matches.map((m, idx) => ({ match: m, origIndex: idx })).filter(({ match }) => {
+            const home = (match.home || '').toLowerCase();
+            const away = (match.away || '').toLowerCase();
+            const idStr = String(match.id || '');
+
+            if (search && !home.includes(search) && !away.includes(search) && !idStr.includes(search)) return false;
+
+            if (ah !== 'all') {
+                if (match.visible_ah === null || match.visible_ah === undefined) return false;
+                if (Math.abs(Number(match.visible_ah) - Number(ah)) > 1e-6) return false;
+            }
+
+            if (fav !== 'all' && match.favorite_role !== fav) return false;
+
+            if (cov !== 'all') {
+                if (match.favorite_coverage !== cov) return false;
+            }
+
+            if (status === 'finished' && !match.finished) return false;
+            if (status === 'upcoming' && match.finished) return false;
+
+            if (sql === 'new' && match.already_in_sql) return false;
+            if (sql === 'sql' && !match.already_in_sql) return false;
+
+            return true;
+        });
+    }
+
+    function renderPreviewRows() {
+        const tbody = $('previewRows');
+        if (!tbody || !preview) return;
+
+        const filtered = filterPreviewMatches();
+        const total = preview.matches.length;
+        if ($('previewFilterCount')) {
+            $('previewFilterCount').textContent = `Mostrando ${filtered.length} de ${total} partidos según filtros activos`;
+        }
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay partidos que cumplan con los filtros seleccionados.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(({ match, origIndex }) => {
+            const scoreText = match.score && match.score !== '-' ? match.score : 'Pendiente';
+            const ftBadge = match.finished ? '<span class="badge bg-success-subtle text-success border border-success-subtle ms-1">FT</span>' : '';
+            const sqlBadge = match.already_in_sql
+                ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold"><i class="fa-solid fa-database me-1"></i>${esc(match.sql_bucket || 'SQL')}</span>`
+                : '<span class="badge bg-light text-muted border">Nuevo</span>';
+
+            return `<tr data-match-id="${esc(match.id)}">
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input match-check" data-index="${origIndex}" checked>
+                </td>
+                <td><span class="badge bg-light text-dark border">${esc(match.round || '—')}</span></td>
+                <td class="text-muted small">${esc(match.date || '—')}</td>
+                <td>
+                    <a href="/estudio/${esc(match.id)}" target="_blank" class="fw-bold text-decoration-none text-navy">
+                        ${esc(match.home || '—')} <span class="text-muted fw-normal">vs</span> ${esc(match.away || '—')}
+                    </a>
+                </td>
+                <td class="text-center fw-bold">${esc(scoreText)} ${ftBadge}</td>
+                <td class="text-center">${oddsCell(match)}</td>
+                <td class="text-center">${coverageBadge(match)}</td>
+                <td class="text-center sql-state">${sqlBadge}</td>
+            </tr>`;
+        }).join('');
+
+        document.querySelectorAll('.match-check').forEach(el => el.addEventListener('change', updateSelection));
+        updateSelection();
+    }
+
+    function onPreviewFilterChanged() {
+        renderPreviewRows();
+    }
+
+    function selectFiltered(check) {
+        document.querySelectorAll('.table-wrap-preview .match-check').forEach(el => {
+            el.checked = check;
+        });
+        updateSelection();
+    }
+
+    function selectOnlyNewFiltered() {
+        document.querySelectorAll('.table-wrap-preview .match-check').forEach(el => {
+            const idx = Number(el.dataset.index);
+            const m = preview.matches[idx];
+            el.checked = m && !m.already_in_sql;
+        });
+        updateSelection();
+    }
+
+    function clearAllSelection() {
+        document.querySelectorAll('.match-check').forEach(el => el.checked = false);
+        updateSelection();
+    }
+
+    function toggleMasterCheck(checked) {
+        document.querySelectorAll('.table-wrap-preview .match-check').forEach(el => el.checked = checked);
+        updateSelection();
+    }
+
+    function render(data) {
+        preview = data;
+        if (!$('leagueLabel').value.trim()) {
+            $('leagueLabel').value = `${data.league_name} · ${data.season}`;
+        }
+        $('summary').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${esc(data.league_name)} · ${esc(data.season)}`;
+        $('source').textContent = `Liga ID ${data.league_id} · Temporada ${data.season} · Casa ${data.company_id} · ${data.matches.length} partidos en total`;
+
+        const s = data.stats || {};
+        $('metricTotal').textContent = s.total ?? data.matches.length;
+        $('metricFinished').textContent = s.finished ?? data.matches.filter(m => m.finished).length;
+        $('metricPending').textContent = s.pending ?? data.matches.filter(m => !m.finished).length;
+        $('metricSql').textContent = s.in_sql ?? data.matches.filter(m => m.already_in_sql).length;
+
+        renderPreviewRows();
+
+        $('previewPanel').classList.remove('d-none');
+        $('progressPanel').classList.add('d-none');
+        $('previewPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* --- LIGAS REGISTRADAS (ARCHIVOS) --- */
+    function statusText(extraction) {
+        const counts = extraction.counts || {};
+        const ready = (counts.saved || 0) + (counts.exists || 0);
+        const labels = { queued: 'En cola', running: 'En curso', registered: 'Registrada', completed: 'Completada', failed: 'Fallida' };
+        return `${labels[extraction.status] || extraction.status} · ${ready}/${extraction.total} disponibles`;
+    }
+
+    async function loadArchives() {
+        try {
+            const response = await fetch('/api/league-extractions');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo leer el registro');
+            const extractions = data.extractions || [];
+            
+            $('archiveList').innerHTML = extractions.length ? extractions.map(extraction => {
+                const counts = extraction.counts || {};
+                const ready = (counts.saved || 0) + (counts.exists || 0);
+                const pct = extraction.total ? Math.round((ready / extraction.total) * 100) : 0;
+                const isComplete = ready >= extraction.total && extraction.total > 0;
+
+                return `<div class="archive-card">
+                    <div class="archive-card-head">
+                        <h6 class="archive-card-title">${esc(extraction.label || extraction.league_name)}</h6>
+                        <span class="badge bg-light text-dark border">${esc(extraction.season || '—')}</span>
+                    </div>
+                    <div class="small text-muted mb-2">
+                        ${esc(extraction.league_name)} · Liga ${esc(extraction.league_id)} · ${extraction.target_ah == null ? 'Todos los AH' : `AH ${esc(extraction.target_ah)}`}
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Progreso:</span>
+                        <span class="fw-bold ${isComplete ? 'text-success' : 'text-primary'}">${ready}/${extraction.total} (${pct}%)</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 6px;">
+                        <div class="progress-bar ${isComplete ? 'bg-success' : 'bg-primary'}" style="width: ${pct}%;"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary btn-sm flex-grow-1 fw-bold" href="/extraer-liga?extraction_id=${encodeURIComponent(extraction.extraction_id)}">
+                            <i class="fa-solid fa-list-ol me-1"></i> Ver Jornadas
+                        </a>
+                        <a class="btn btn-primary btn-sm" href="/explorador?league_id=${encodeURIComponent(extraction.league_id)}" target="_blank" title="Abrir en Explorador de Datos">
+                            <i class="fa-solid fa-compass"></i>
+                        </a>
+                    </div>
+                </div>`;
+            }).join('') : '<span class="text-muted">Todavía no hay ligas analizadas.</span>';
+        } catch (error) {
+            $('archiveList').innerHTML = `<span class="text-danger">${esc(error.message)}</span>`;
+        }
+    }
+
+    /* --- EXPLORADOR DE JORNADAS Y COPAS (DETALLE DE LIGA) --- */
+    const normalizedStats = stats => Array.isArray(stats) ? stats.filter(Boolean).slice(0, 8) : [];
+
+    function movement(raw, fallback = '') {
+        if (raw && raw.movement) return raw.movement;
+        const start = raw && raw.ah1;
+        const end = raw && raw.ah6;
+        if (start !== undefined && start !== null && end !== undefined && end !== null) return `${start} → ${end}`;
+        return fallback || '';
+    }
+
+    function statBox(title, data, className) {
+        const stats = normalizedStats(data && data.stats_rows);
+        const hasData = !!(data && (data.score || data.home || data.away || data.ah || stats.length));
+        if (!hasData) return `<div class="stat-box ${className}"><div class="stat-title">${esc(title)}</div><div class="empty-stat">—</div></div>`;
+        const statsHtml = stats.length ? `<table class="stat-table"><tbody>${stats.map(row => `<tr><td class="text-start ${Number(row.home) > Number(row.away) ? 'text-success fw-bold' : 'text-danger'}">${esc(row.home ?? '')}</td><td class="text-center text-muted">${esc(row.label ?? '')}</td><td class="text-end ${Number(row.away) > Number(row.home) ? 'text-success fw-bold' : 'text-danger'}">${esc(row.away ?? '')}</td></tr>`).join('')}</tbody></table>` : '';
+        return `<div class="stat-box ${className}">
+            <div class="stat-title">${esc(title)}</div>
+            <div class="stat-match"><span class="text-success fw-bold">${esc(data.home || '')}</span> <span class="stat-score">${esc(data.score || '—')}</span> <span class="text-danger fw-bold">${esc(data.away || '')}</span></div>
+            <div class="stat-meta">${esc(data.date || '')}${data.ah ? `<br>AH: <strong>${esc(data.ah)}</strong>` : ''}</div>${statsHtml}
+        </div>`;
+    }
+
+    function analysisCases(match) {
+        const market = match.market_analysis_data || {};
+        const prevHome = match.last_home_match || {};
+        const prevAway = match.last_away_match || {};
+        const stadiumRaw = match.h2h_stadium || {};
+        const generalRaw = match.h2h_general || {};
+        const stadium = market.stadium || {};
+        const general = market.general || {};
+        const col3 = match.h2h_col3 || {};
+        const indirect = match.comparativas_indirectas || {};
+        const simple = raw => ({ home: raw.home_team, away: raw.away_team, score: raw.score, date: raw.date, ah: raw.handicap_line_raw || raw.ah_line, stats_rows: raw.stats_rows });
+        const stadiumData = { home: match.home_name || match.home_team, away: match.away_name || match.away_team, score: stadium.result || stadiumRaw.res1, date: stadium.date || stadiumRaw.date1, ah: movement(stadium, stadiumRaw.ah1), stats_rows: stadiumRaw.stats_rows || stadium.stats_rows };
+        const generalData = { home: generalRaw.h2h_gen_home || match.home_name, away: generalRaw.h2h_gen_away || match.away_name, score: general.result || generalRaw.res6, date: general.date || generalRaw.date6, ah: movement(general, generalRaw.ah6), stats_rows: generalRaw.stats_rows || general.stats_rows };
+        const col3Data = col3.status === 'found' ? { home: col3.h2h_home_team_name, away: col3.h2h_away_team_name, score: (col3.goles_home != null && col3.goles_away != null) ? `${col3.goles_home}:${col3.goles_away}` : '', date: col3.date, ah: col3.handicap, stats_rows: col3.stats_rows } : null;
+        const indirectData = raw => raw ? { home: raw.home_team, away: raw.away_team, score: raw.score, date: raw.date, ah: raw.ah_line, stats_rows: raw.stats_rows } : null;
+        return [
+            { title: 'Prev Home', data: simple(prevHome), className: 'prev-home' },
+            { title: 'Prev Away', data: simple(prevAway), className: 'prev-away' },
+            { title: 'H2H Estadio', data: stadiumData, className: 'h2h' },
+            { title: 'H2H General', data: generalData, className: 'h2h' },
+            { title: 'H2H Col3', data: col3Data, className: 'col3' },
+            { title: 'Ind. Local', data: indirectData(indirect.left), className: 'indirect' },
+            { title: 'Ind. Visitante', data: indirectData(indirect.right), className: 'indirect' }
+        ];
+    }
+
+    function analysisBoxes(match) {
+        return analysisCases(match).map(item => statBox(item.title, item.data, item.className)).join('');
+    }
+
+    function explorerCaseCell(item) {
+        const data = item.data;
+        const stats = normalizedStats(data && data.stats_rows);
+        const hasData = !!(data && (data.score || data.home || data.away || data.ah || stats.length));
+        if (!hasData) return '<td class="case-col cell-no-data text-muted">—</td>';
+        const isCol3 = item.title === 'H2H Col3';
+        const bgClass = isCol3 ? 'col-h2h-col3' : '';
+        return `<td class="case-col ${bgClass}"><div class="explorer-case" title="${esc(item.title)}">
+            <div class="teams"><span class="text-success fw-bold">${esc(data.home || '—')}</span></div>
+            <div class="mini-score">${esc(data.score || '—')}</div>
+            <div class="teams text-danger fw-bold">${esc(data.away || '—')}</div>
+            <div class="mini-meta">${esc(data.date || '')}${data.ah ? ` · AH ${esc(data.ah)}` : ''}</div>
+        </div></td>`;
+    }
+
+    function toggleAnalysisDetail(matchId) {
+        const row = $(`analysis-detail-${matchId}`);
+        const icon = document.querySelector(`[data-detail-button="${CSS.escape(String(matchId))}"] i`);
+        if (!row) return;
+        const willHide = !row.classList.contains('d-none');
+        row.classList.toggle('d-none', willHide);
+        if (icon) icon.className = willHide ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+    }
+
+    function normLeagueId(val) {
+        if (val === undefined || val === null) return '';
+        return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
+    }
 
     function sameTeamName(a, b) {
         if (!a || !b) return false;
@@ -299,167 +1071,10 @@
         const norm = String(scoreStr).replace('-', ':');
         const parts = norm.split(':');
         if (parts.length !== 2) return null;
-        const h = intValue(parts[0]);
-        const a = intValue(parts[1]);
-        if (h === null || a === null) return null;
+        const h = parseInt(parts[0].trim(), 10);
+        const a = parseInt(parts[1].trim(), 10);
+        if (isNaN(h) || isNaN(a)) return null;
         return { home: h, away: a };
-    }
-
-    function intValue(val) {
-        if (val === undefined || val === null) return null;
-        const parsed = parseInt(String(val).trim(), 10);
-        return isNaN(parsed) ? null : parsed;
-    }
-
-    function formatAhNumber(val) {
-        if (val === undefined || val === null || val === '') return 'N/D';
-        const num = parseFloat(val);
-        if (isNaN(num)) return String(val);
-        return num > 0 ? `+${num}` : (num === 0 ? '0' : `${num}`);
-    }
-
-    function updateSelection() {
-        const count=selected().length;
-        $('metricSelected').textContent=count;
-        $('startButton').disabled=!count;
-        $('startButton').innerHTML=`<i class="fa-solid fa-database me-1"></i> Analizar y guardar (${count})`;
-    }
-
-    function oddsCell(match) {
-        if (match.visible_ah === null || match.visible_ah === undefined) return '<span class="text-muted">Sin AH visible</span>';
-        const home=match.home_odds_decimal == null ? '—' : Number(match.home_odds_decimal).toFixed(2);
-        const away=match.away_odds_decimal == null ? '—' : Number(match.away_odds_decimal).toFixed(2);
-        return `${home} <span class="badge bg-danger mx-1">${escapeHtml(match.visible_ah)}</span> ${away}`;
-    }
-
-    function render(data) {
-        preview=data;
-        if(!$('leagueLabel').value.trim()) $('leagueLabel').value=`${data.league_name} · ${data.season}`;
-        const scope=data.target_ah == null ? 'todos los AH' : `AH ${data.target_ah}`;
-        $('summary').textContent=`${data.league_name} · ${data.matches.length} partidos`;
-        $('source').textContent=`Liga ${data.league_id} · Temporada ${data.season} · Casa ${data.company_id} · ${scope}`;
-        $('metricTotal').textContent=data.matches.length;
-        $('metricFinished').textContent=data.matches.filter(m=>m.finished).length;
-        $('metricSql').textContent=data.matches.filter(m=>m.already_in_sql).length;
-        $('rows').innerHTML=data.matches.map((m,i)=>`<tr data-match-id="${escapeHtml(m.id)}"><td><input type="checkbox" class="form-check-input match-check" data-index="${i}" checked></td><td>${escapeHtml(m.round||'—')}</td><td>${escapeHtml(m.date||'—')}</td><td class="team"><a href="/estudio/${escapeHtml(m.id)}" target="_blank">${escapeHtml(m.home||'—')} vs ${escapeHtml(m.away||'—')}</a></td><td>${escapeHtml(m.score&&m.score!=='-'?m.score:'Pendiente')} ${m.finished?'<span class="badge bg-success">FT</span>':''}</td><td>${oddsCell(m)}</td><td class="stored-ah">${escapeHtml(m.stored_initial_ah??'—')}</td><td class="sql-state">${m.already_in_sql?`<span class="badge bg-secondary">${escapeHtml(m.sql_bucket||'SQL')}</span>`:'<span class="badge bg-light text-dark border">Nuevo</span>'}</td></tr>`).join('');
-        document.querySelectorAll('.match-check').forEach(el=>el.addEventListener('change',updateSelection));
-        $('previewPanel').classList.remove('d-none'); $('progressPanel').classList.add('d-none'); updateSelection();
-    }
-
-    function statusText(extraction) {
-        const counts=extraction.counts||{};
-        const ready=(counts.saved||0)+(counts.exists||0);
-        const labels={queued:'En cola',running:'En curso',registered:'Registrada',completed:'Completada',failed:'Fallida'};
-        return `${labels[extraction.status]||extraction.status} · ${ready}/${extraction.total} disponibles`;
-    }
-
-    async function loadArchives() {
-        try {
-            const response=await fetch('/api/league-extractions');
-            const data=await response.json();
-            if(!response.ok) throw new Error(data.error||'No se pudo leer el registro');
-            const extractions=data.extractions||[];
-            $('archiveList').innerHTML=extractions.length ? extractions.map(extraction=>`
-                <div class="archive-item">
-                    <div class="d-flex justify-content-between gap-2 align-items-start">
-                        <span class="name">${escapeHtml(extraction.label||extraction.league_name)}</span>
-                        <span class="badge bg-light text-dark border">${escapeHtml(extraction.season||'—')}</span>
-                    </div>
-                    <div class="small text-muted mt-1">${escapeHtml(extraction.league_name)} · Liga ${escapeHtml(extraction.league_id)} · ${extraction.target_ah==null?'Todos los AH':`AH ${escapeHtml(extraction.target_ah)}`}</div>
-                    <div class="small mt-2 text-muted">${escapeHtml(statusText(extraction))}</div>
-                    <div class="d-flex gap-2 mt-2">
-                        <a class="btn btn-outline-primary btn-sm flex-grow-1" href="/extraer-liga?extraction_id=${encodeURIComponent(extraction.extraction_id)}">
-                            <i class="fa-solid fa-list-ol me-1"></i> Ver Jornadas / Copas
-                        </a>
-                        <a class="btn btn-primary btn-sm" href="/explorador?league_id=${encodeURIComponent(extraction.league_id)}" target="_blank" title="Abrir en Explorador de Datos">
-                            <i class="fa-solid fa-compass"></i>
-                        </a>
-                    </div>
-                </div>`).join('') : '<span class="text-muted">Todavía no hay ligas analizadas.</span>';
-        } catch(error) {
-            $('archiveList').innerHTML=`<span class="text-danger">${escapeHtml(error.message)}</span>`;
-        }
-    }
-
-    const normalizedStats = stats => Array.isArray(stats) ? stats.filter(Boolean).slice(0,8) : [];
-
-    function movement(raw, fallback='') {
-        if(raw && raw.movement) return raw.movement;
-        const start=raw && raw.ah1;
-        const end=raw && raw.ah6;
-        if(start!==undefined && start!==null && end!==undefined && end!==null) return `${start} → ${end}`;
-        return fallback||'';
-    }
-
-    function statBox(title, data, className) {
-        const stats=normalizedStats(data && data.stats_rows);
-        const hasData=!!(data && (data.score || data.home || data.away || data.ah || stats.length));
-        if(!hasData) return `<div class="stat-box ${className}"><div class="stat-title">${escapeHtml(title)}</div><div class="empty-stat">—</div></div>`;
-        const statsHtml=stats.length ? `<table class="stat-table"><tbody>${stats.map(row=>`<tr><td class="text-start ${Number(row.home)>Number(row.away)?'text-success fw-bold':'text-danger'}">${escapeHtml(row.home??'')}</td><td class="text-center text-muted">${escapeHtml(row.label??'')}</td><td class="text-end ${Number(row.away)>Number(row.home)?'text-success fw-bold':'text-danger'}">${escapeHtml(row.away??'')}</td></tr>`).join('')}</tbody></table>` : '';
-        return `<div class="stat-box ${className}">
-            <div class="stat-title">${escapeHtml(title)}</div>
-            <div class="stat-match"><span class="text-success fw-bold">${escapeHtml(data.home||'')}</span><span class="stat-score">${escapeHtml(data.score||'—')}</span><span class="text-danger fw-bold">${escapeHtml(data.away||'')}</span></div>
-            <div class="stat-meta">${escapeHtml(data.date||'')}${data.ah?`<br>AH: <strong>${escapeHtml(data.ah)}</strong>`:''}</div>${statsHtml}
-        </div>`;
-    }
-
-    function analysisCases(match) {
-        const market=match.market_analysis_data||{};
-        const prevHome=match.last_home_match||{};
-        const prevAway=match.last_away_match||{};
-        const stadiumRaw=match.h2h_stadium||{};
-        const generalRaw=match.h2h_general||{};
-        const stadium=market.stadium||{};
-        const general=market.general||{};
-        const col3=match.h2h_col3||{};
-        const indirect=match.comparativas_indirectas||{};
-        const simple = raw => ({home:raw.home_team,away:raw.away_team,score:raw.score,date:raw.date,ah:raw.handicap_line_raw||raw.ah_line,stats_rows:raw.stats_rows});
-        const stadiumData={home:match.home_name||match.home_team,away:match.away_name||match.away_team,score:stadium.result||stadiumRaw.res1,date:stadium.date||stadiumRaw.date1,ah:movement(stadium,stadiumRaw.ah1),stats_rows:stadiumRaw.stats_rows||stadium.stats_rows};
-        const generalData={home:generalRaw.h2h_gen_home||match.home_name,away:generalRaw.h2h_gen_away||match.away_name,score:general.result||generalRaw.res6,date:general.date||generalRaw.date6,ah:movement(general,generalRaw.ah6),stats_rows:generalRaw.stats_rows||general.stats_rows};
-        const col3Data=col3.status==='found'?{home:col3.h2h_home_team_name,away:col3.h2h_away_team_name,score:(col3.goles_home!=null&&col3.goles_away!=null)?`${col3.goles_home}:${col3.goles_away}`:'',date:col3.date,ah:col3.handicap,stats_rows:col3.stats_rows}:null;
-        const indirectData = raw => raw?{home:raw.home_team,away:raw.away_team,score:raw.score,date:raw.date,ah:raw.ah_line,stats_rows:raw.stats_rows}:null;
-        return [
-            {title:'Prev Home',data:simple(prevHome),className:'prev-home'},
-            {title:'Prev Away',data:simple(prevAway),className:'prev-away'},
-            {title:'H2H Estadio',data:stadiumData,className:'h2h'},
-            {title:'H2H General',data:generalData,className:'h2h'},
-            {title:'H2H Col3',data:col3Data,className:'col3'},
-            {title:'Ind. Local',data:indirectData(indirect.left),className:'indirect'},
-            {title:'Ind. Visitante',data:indirectData(indirect.right),className:'indirect'}
-        ];
-    }
-
-    function analysisBoxes(match) {
-        return analysisCases(match).map(item=>statBox(item.title,item.data,item.className)).join('');
-    }
-
-    function explorerCaseCell(item) {
-        const data=item.data;
-        const stats=normalizedStats(data&&data.stats_rows);
-        const hasData=!!(data&&(data.score||data.home||data.away||data.ah||stats.length));
-        if(!hasData) return '<td class="case-col cell-no-data text-muted">—</td>';
-        const isCol3 = item.title === 'H2H Col3';
-        const bgClass = isCol3 ? 'col-h2h-col3' : '';
-        return `<td class="case-col ${bgClass}"><div class="explorer-case" title="${escapeHtml(item.title)}">
-            <div class="teams"><span class="text-success fw-bold">${escapeHtml(data.home||'—')}</span></div>
-            <div class="mini-score">${escapeHtml(data.score||'—')}</div>
-            <div class="teams text-danger fw-bold">${escapeHtml(data.away||'—')}</div>
-            <div class="mini-meta">${escapeHtml(data.date||'')}${data.ah?` · AH ${escapeHtml(data.ah)}`:''}</div>
-        </div></td>`;
-    }
-
-    function toggleAnalysisDetail(matchId) {
-        const row=$(`analysis-detail-${matchId}`);
-        const icon=document.querySelector(`[data-detail-button="${CSS.escape(String(matchId))}"] i`);
-        if(!row)return;
-        const willHide=!row.classList.contains('d-none');
-        row.classList.toggle('d-none',willHide);
-        if(icon)icon.className=willHide?'fa-solid fa-chevron-down':'fa-solid fa-chevron-up';
-    }
-
-    function normLeagueId(val) {
-        if (val === undefined || val === null) return '';
-        return String(val).toLowerCase().replace(/[^a-z0-9]/g, '').replace(/^c/, '');
     }
 
     function renderPreMatchContextCard(pc) {
@@ -503,12 +1118,11 @@
                     const rowLeagueId = String(item?.league_id_hist ?? item?.league_id ?? '').trim();
                     const normRowLg = normLeagueId(rowLeagueId);
                     const isSameLg = !!normCurrentLg && normRowLg === normCurrentLg;
-                    const resBadgeClass = `pre-context-result-${result}`;
 
                     return `<tr data-context-league="${esc(rowLeagueId)}" data-context-result="${result}" data-same-league="${isSameLg ? '1' : '0'}">
                         <td class="ctx-date">${esc(item?.date || '-')}</td>
                         <td class="ctx-league">${isSameLg ? `<span class="badge bg-primary" style="font-size:0.6rem;">${esc(rowLeagueId)}</span>` : `<span class="badge bg-secondary" style="font-size:0.6rem;">${esc(rowLeagueId)}</span>`}</td>
-                        <td class="ctx-score ${resBadgeClass}">${esc(item?.score || item?.score_raw || '-')}</td>
+                        <td class="ctx-score fw-bold">${esc(item?.score || item?.score_raw || '-')}</td>
                         <td class="ctx-ah">${esc(item?.ahLine || item?.ahLine_raw || item?.ah_line || '-')}</td>
                     </tr>`;
                 }).join('');
@@ -519,21 +1133,20 @@
                         <span class="pre-context-role ${roleClass}">${roleLabel}</span>
                     </div>
                     <table class="pre-context-table">
-                        <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Liga</th><th>Res</th><th>AH</th></tr></thead>
                         <tbody>${trs || '<tr><td colspan="4" class="text-center text-muted">Sin partidos</td></tr>'}</tbody>
                     </table>
                     <div class="pre-context-summary">
-                        <span class="is-win" data-summary-result="W">V ${wins}</span>
-                        <span class="is-draw" data-summary-result="D">E ${draws}</span>
-                        <span class="is-loss" data-summary-result="L">D ${losses}</span>
+                        <span class="is-win">V ${wins}</span>
+                        <span class="is-draw">E ${draws}</span>
+                        <span class="is-loss">D ${losses}</span>
                     </div>
                 </div>`;
             };
 
             return `<div class="pre-context-moment">
                 <div class="pre-context-moment-head">
-                    <div class="pre-context-moment-title">${esc(title)}</div>
-                    <div class="pre-context-moment-meta">${esc(hName)} vs ${esc(aName)}${invertNote}</div>
+                    ${esc(title)}: ${esc(hName)} vs ${esc(aName)}${invertNote}
                 </div>
                 <div class="pre-context-team-grid">
                     ${renderTeamTable(hName, 'home', moment.home_matches)}
@@ -552,12 +1165,12 @@
                     <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}">
                         <input type="checkbox" onchange="filterPreMatchContextLeague(this)" ${filterDisabled ? 'disabled' : ''}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}
                     </label>
-                    ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
+                    ${hasPrevious ? `<label class="pre-context-league-filter"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                 </div>
             </div>
             <div class="pre-context-moments hide-previous">
                 ${renderMoment('Partido actual', current)}
-                ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
+                ${hasPrevious ? renderMoment('Último enfrentamiento', previous, true) : ''}
             </div>
         </div>`;
     }
@@ -567,11 +1180,7 @@
         if (!panel) return;
         const momentsContainer = panel.querySelector('.pre-context-moments');
         if (!momentsContainer) return;
-        if (checkbox.checked) {
-            momentsContainer.classList.remove('hide-previous');
-        } else {
-            momentsContainer.classList.add('hide-previous');
-        }
+        momentsContainer.classList.toggle('hide-previous', !checkbox.checked);
     }
 
     function filterPreMatchContextLeague(checkbox) {
@@ -583,40 +1192,16 @@
         const onlyCurrentLeague = !!checkbox.checked;
 
         panel.querySelectorAll('.pre-context-team').forEach(team => {
-            const rows = [...team.querySelectorAll('tr[data-context-league], tr[data-league-id], tr[data-context-history-row], tbody tr')];
-            const counts = { W: 0, D: 0, L: 0 };
-            let visibleRows = 0;
-
+            const rows = [...team.querySelectorAll('tr[data-context-league]')];
             rows.forEach(row => {
                 let visible = true;
                 if (onlyCurrentLeague) {
-                    const rawRowLeague = String(row.dataset.contextLeague || row.dataset.leagueId || '').trim();
-                    const normRow = normLeagueId(rawRowLeague);
-                    visible = !!normCurrent && normRow === normCurrent;
+                    const rawRowLeague = String(row.dataset.contextLeague || '').trim();
+                    visible = !!normCurrent && normLeagueId(rawRowLeague) === normCurrent;
                 }
                 row.style.display = visible ? '' : 'none';
-                row.hidden = !visible;
-                if (visible) {
-                    visibleRows += 1;
-                    const result = row.dataset.contextResult || row.dataset.result;
-                    if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result] += 1;
-                }
-            });
-
-            const table = team.querySelector('.pre-context-table');
-            if (table) table.style.display = rows.length && !visibleRows ? 'none' : '';
-
-            team.querySelectorAll('[data-summary-result]').forEach(summary => {
-                const result = summary.dataset.summaryResult;
-                const prefix = result === 'W' ? 'V' : (result === 'D' ? 'E' : 'D');
-                summary.textContent = `${prefix} ${counts[result] || 0}`;
             });
         });
-    }
-
-    async function searchPatterns(matchId) {
-        if (!matchId) return;
-        window.open(`/explorador?match_id=${encodeURIComponent(matchId)}`, '_blank');
     }
 
     function buildMatchRowHtml(payload) {
@@ -627,14 +1212,14 @@
 
         if (!match) {
             return `<tr class="explorer-main-row missing-analysis" id="${rowId}">
-                <td>${escapeHtml(source.date||'—')}</td>
-                <td class="team-col text-primary">${escapeHtml(source.home||'—')}</td>
-                <td class="team-col text-danger">${escapeHtml(source.away||'—')}</td>
-                <td class="market-col">${escapeHtml(source.visible_ah??'—')}</td>
+                <td>${esc(source.date || '—')}</td>
+                <td class="team-col text-primary">${esc(source.home || '—')}</td>
+                <td class="team-col text-danger">${esc(source.away || '—')}</td>
+                <td class="market-col">${esc(source.visible_ah ?? '—')}</td>
                 <td>—</td>
                 <td>?:?</td>
                 ${'<td class="case-col cell-no-data text-muted">—</td>'.repeat(7)}
-                <td><span class="badge bg-secondary">${escapeHtml(source.status||'Sin SQL')}</span></td>
+                <td><span class="badge bg-secondary">${esc(source.status || 'Sin SQL')}</span></td>
             </tr>`;
         }
 
@@ -645,22 +1230,21 @@
         const ah = odds.ah_linea ?? match.handicap ?? source.visible_ah ?? '—';
         const goals = odds.goals_linea ?? match.goal_line ?? '—';
         const caseCells = analysisCases(match).map(explorerCaseCell).join('');
-
         const contextCardHtml = renderPreMatchContextCard(match);
 
         return `<tr class="explorer-main-row" id="${rowId}">
-            <td class="date-col text-muted">${escapeHtml(source.date||match.match_date||'—')}</td>
-            <td class="team-col"><a class="text-primary text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(home)}</a></td>
-            <td class="team-col"><a class="text-danger text-decoration-none" target="_blank" href="/estudio/${escapeHtml(source.id)}">${escapeHtml(away)}</a></td>
-            <td class="market-col"><span class="badge bg-secondary">${escapeHtml(ah)}</span></td>
-            <td class="market-col"><span class="badge bg-light text-dark border">${escapeHtml(goals)}</span></td>
-            <td class="market-col fw-bold text-success">${escapeHtml(score)}</td>
+            <td class="date-col text-muted">${esc(source.date || match.match_date || '—')}</td>
+            <td class="team-col"><a class="text-primary text-decoration-none" target="_blank" href="/estudio/${esc(source.id)}">${esc(home)}</a></td>
+            <td class="team-col"><a class="text-danger text-decoration-none" target="_blank" href="/estudio/${esc(source.id)}">${esc(away)}</a></td>
+            <td class="market-col"><span class="badge bg-secondary">${esc(ah)}</span></td>
+            <td class="market-col"><span class="badge bg-light text-dark border">${esc(goals)}</span></td>
+            <td class="market-col fw-bold text-success">${esc(score)}</td>
             ${caseCells}
             <td>
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" data-detail-button="${escapeHtml(source.id)}" onclick="toggleAnalysisDetail('${escapeHtml(source.id)}')" title="Mostrar/ocultar contexto y estadísticas"><i class="fa-solid fa-chevron-up"></i></button>
-                    <button type="button" class="btn btn-outline-warning btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" onclick="searchPatterns('${escapeHtml(source.id)}')" title="Buscar patrones similares"><i class="fa-solid fa-compass" style="font-size:11px;"></i></button>
-                    <a href="/estudio/${escapeHtml(source.id)}" target="_blank" class="btn btn-outline-secondary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" title="Ver estudio"><i class="fas fa-eye" style="font-size:10px;"></i></a>
+                    <button type="button" class="btn btn-outline-primary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" data-detail-button="${esc(source.id)}" onclick="toggleAnalysisDetail('${esc(source.id)}')" title="Contexto y estadísticas"><i class="fa-solid fa-chevron-up"></i></button>
+                    <a href="/explorador?match_id=${encodeURIComponent(source.id)}" target="_blank" class="btn btn-outline-warning btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" title="Buscar patrones"><i class="fa-solid fa-compass" style="font-size:11px;"></i></a>
+                    <a href="/estudio/${esc(source.id)}" target="_blank" class="btn btn-outline-secondary btn-sm p-0 d-inline-flex align-items-center justify-content-center" style="width:24px;height:24px;border-radius:50%;" title="Ver estudio"><i class="fas fa-eye" style="font-size:10px;"></i></a>
                 </div>
             </td>
         </tr>
@@ -672,7 +1256,6 @@
         </tr>`;
     }
 
-    /* --- LÓGICA DE FILTRADO Y RENDERIZADO DINÁMICO --- */
     function filterMatches(matches) {
         const search = $('explorerSearchInput').value.trim().toLowerCase();
         const ah = $('explorerAhFilter').value.trim();
@@ -716,7 +1299,7 @@
     function updateViewModeToggleButton() {
         const label = $('viewModeToggleLabel');
         if (!label) return;
-        label.textContent = currentViewMode === 'stages' ? 'Ver Tabla Continua de Explorador' : 'Ver por Jornadas / Copas';
+        label.textContent = currentViewMode === 'stages' ? 'Modo Tabla Continua' : 'Ver por Jornadas / Copas';
     }
 
     function renderCurrentView() {
@@ -724,11 +1307,8 @@
         if (!container) return;
 
         if (currentViewMode === 'continuous') {
-            // MODO TABLA CONTINUA (SIN CABECERAS DE JORNADA)
             let allPayloads = [];
-            activeGroupedRounds.forEach(g => {
-                allPayloads.push(...g.matches);
-            });
+            activeGroupedRounds.forEach(g => allPayloads.push(...g.matches));
             const filtered = filterMatches(allPayloads);
 
             if (!filtered.length) {
@@ -771,7 +1351,6 @@
                     </div>
                 </div>`;
         } else {
-            // MODO AGRUPADO POR JORNADAS Y COPAS
             renderGroupedStages(activeGroupedRounds);
         }
     }
@@ -779,7 +1358,6 @@
     function renderGroupedStages(groupedRounds) {
         const container = $('stagesContainer');
         if (!container) return;
-        
         if (!groupedRounds || !groupedRounds.length) {
             container.innerHTML = '<div class="alert alert-warning text-center py-4">No hay jornadas o fases registradas en esta liga.</div>';
             return;
@@ -797,24 +1375,24 @@
             const rowsHtml = filteredMatches.map(buildMatchRowHtml).join('');
             const pct = group.count ? Math.round((group.available / group.count) * 100) : 0;
             const isComplete = group.available >= group.count && group.count > 0;
-            
-            return `<div class="stage-card" id="stage-block-${escapeHtml(group.key)}">
+
+            return `<div class="stage-card" id="stage-block-${esc(group.key)}">
                 <div class="stage-head">
                     <div class="stage-title">
                         <i class="${icon}"></i>
-                        <span>${escapeHtml(group.label)}</span>
+                        <span>${esc(group.label)}</span>
                         <span class="stage-badge ${badgeClass}">${isCup ? 'Copa / Fase' : 'Liga'}</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge ${isComplete ? 'bg-success' : 'bg-secondary'}" style="font-size:0.75rem;">
                             ${group.available}/${group.count} Analizados (${pct}%)
                         </span>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleStageBlock('${escapeHtml(group.key)}')">
-                            <i class="fa-solid fa-chevron-up" id="stage-icon-${escapeHtml(group.key)}"></i>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleStageBlock('${esc(group.key)}')">
+                            <i class="fa-solid fa-chevron-up" id="stage-icon-${esc(group.key)}"></i>
                         </button>
                     </div>
                 </div>
-                <div class="explorer-table-wrap" id="stage-body-${escapeHtml(group.key)}">
+                <div class="explorer-table-wrap" id="stage-body-${esc(group.key)}">
                     <table class="table explorer-table align-middle">
                         <thead><tr>
                             <th class="date-col">Fecha</th>
@@ -838,11 +1416,7 @@
             </div>`;
         }).join('');
 
-        if (!renderedCount) {
-            container.innerHTML = '<div class="alert alert-warning text-center py-4">No hay partidos que coincidan con los filtros en ninguna jornada.</div>';
-        } else {
-            container.innerHTML = stagesHtml;
-        }
+        container.innerHTML = renderedCount ? stagesHtml : '<div class="alert alert-warning text-center py-4">No hay partidos que coincidan con los filtros en ninguna jornada.</div>';
     }
 
     function toggleStageBlock(stageKey) {
@@ -855,9 +1429,9 @@
     }
 
     function updateRoundButtons() {
-        const index=activeRounds.findIndex(round=>round.key===activeRoundKey);
-        $('roundPrev').disabled=index<=0;
-        $('roundNext').disabled=index<0||index>=activeRounds.length-1;
+        const index = activeRounds.findIndex(round => round.key === activeRoundKey);
+        $('roundPrev').disabled = index <= 0;
+        $('roundNext').disabled = index < 0 || index >= activeRounds.length - 1;
     }
 
     function onRoundSelectChanged(val) {
@@ -873,38 +1447,38 @@
         }
     }
 
-    async function openExtraction(extractionId, roundKey='', scroll=false) {
+    async function openExtraction(extractionId, roundKey = '', scroll = false) {
         try {
             activeExtractionId = extractionId;
             const query = roundKey ? `?round=${encodeURIComponent(roundKey)}` : '';
             const response = await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}${query}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'No se pudo abrir la extracción');
-            
+
             const extraction = data.extraction;
             currentExtractionData = data;
             activeRounds = data.rounds || [];
             activeRoundKey = data.current_round || 'all';
             activeGroupedRounds = data.grouped_rounds || [];
-            
-            $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${escapeHtml(extraction.league_name)} · ${escapeHtml(extraction.season || 'Temporada')}`;
-            $('analysisSubtitle').textContent = `${data.total} partidos registrados · Organizador por Jornadas y Copas`;
+
+            $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${esc(extraction.league_name)} · ${esc(extraction.season || 'Temporada')}`;
+            $('analysisSubtitle').textContent = `${data.total} partidos registrados en base de datos · Organizado por Jornadas y Copas`;
             $('downloadLeague').href = `/api/league-extractions/${encodeURIComponent(extractionId)}/export-all-seasons`;
             if ($('openInExplorerBtn')) {
                 $('openInExplorerBtn').href = `/explorador?league_id=${encodeURIComponent(extraction.league_id)}`;
             }
-            
+
             const missingCount = activeRounds.reduce((total, round) => total + Math.max(0, Number(round.count || 0) - Number(round.available || 0)), 0);
             $('scrapeMissing').classList.toggle('d-none', missingCount <= 0);
             $('scrapeMissing').disabled = false;
             $('scrapeMissing').innerHTML = `<i class="fa-solid fa-rotate me-1"></i> Completar pendientes (${missingCount})`;
-            
+
             const options = [
                 '<option value="">✨ Todas las Jornadas / Fases de Copa</option>',
-                ...activeRounds.map(round => `<option value="${escapeHtml(round.key)}" ${round.key === activeRoundKey ? 'selected' : ''}>${escapeHtml(round.label)} (${round.available}/${round.count})</option>`)
+                ...activeRounds.map(round => `<option value="${esc(round.key)}" ${round.key === activeRoundKey ? 'selected' : ''}>${esc(round.label)} (${round.available}/${round.count})</option>`)
             ];
             $('roundSelect').innerHTML = options.join('');
-            
+
             const currentRoundObj = activeRounds.find(r => r.key === activeRoundKey);
             $('roundSummary').textContent = currentRoundObj ? `${currentRoundObj.available}/${currentRoundObj.count} análisis listos` : `${data.total} partidos en total`;
             $('roundNavigation').classList.toggle('d-none', !activeRounds.length);
@@ -928,7 +1502,7 @@
             const response = await fetch(`/api/league-extractions/${encodeURIComponent(extractionId)}/match/${encodeURIComponent(result.id)}`);
             const payload = await response.json();
             if (!response.ok) throw new Error(payload.error || 'No se pudo cargar el partido');
-            
+
             const row = document.querySelector(`tr[id="analysis-match-${result.id}"]`);
             if (row) {
                 const updatedHtml = buildMatchRowHtml(payload);
@@ -944,27 +1518,73 @@
         }
     }
 
+    /* --- ENVÍO DEL FORMULARIO PRINCIPAL DE CONSULTA --- */
     $('extractForm').addEventListener('submit', async event => {
-        event.preventDefault(); $('previewButton').disabled = true; message('info', 'Leyendo todas las jornadas y cuotas disponibles…'); $('previewPanel').classList.add('d-none');
-        try { const response = await fetch('/api/league_handicap/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_reference: $('leagueReference').value, season: $('season').value, ah: $('targetAh').value, company_id: $('company').value, match_status: $('matchStatus').value }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'No se pudo consultar la liga'); render(data); message(data.matches.length ? 'success' : 'warning', data.matches.length ? `Calendario recuperado: ${data.matches.length} partidos. Revisa la selección antes de guardar.` : 'No hay partidos con esos filtros.'); }
-        catch (error) { message('danger', error.message); }
-        finally { $('previewButton').disabled = false; }
+        event.preventDefault();
+        const lidVal = ($('leagueIdInput').value || '').trim();
+        if (!lidVal) {
+            message('warning', 'Introduce el ID de la liga (ej. 36)');
+            return;
+        }
+
+        $('previewButton').disabled = true;
+        $('previewButton').innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Cargando…';
+        message('info', 'Obteniendo calendario y cuotas de NowGoal en paralelo…');
+        $('previewPanel').classList.add('d-none');
+
+        try {
+            const response = await fetch('/api/league_handicap/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    league_id: lidVal,
+                    season: ($('season')?.value || '').trim(),
+                    company_id: $('company')?.value || 8
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'No se pudo consultar la liga');
+
+            render(data);
+            message(data.matches.length ? 'success' : 'warning',
+                data.matches.length
+                    ? `¡Liga cargada con éxito! Se encontraron <strong>${data.matches.length}</strong> partidos para <strong>${esc(data.league_name)}</strong> (${esc(data.season)}). Filtra o selecciona los que quieras extraer y presiona “Analizar y Guardar”.`
+                    : 'No se encontraron partidos para esta liga.');
+        } catch (error) {
+            message('danger', error.message);
+        } finally {
+            $('previewButton').disabled = false;
+            $('previewButton').innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Cargar Liga / Partidos';
+        }
     });
 
-    $('selectAll').addEventListener('click', () => { document.querySelectorAll('.match-check').forEach(el => el.checked = true); updateSelection(); });
-    $('selectNew').addEventListener('click', () => { document.querySelectorAll('.match-check').forEach(el => el.checked = !preview.matches[Number(el.dataset.index)].already_in_sql); updateSelection(); });
     $('registerLeague').addEventListener('click', async () => {
         if (!preview || !preview.matches.length) return;
         $('registerLeague').disabled = true;
         try {
-            const response = await fetch('/api/league-extractions/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_id: preview.league_id, league_name: preview.league_name, season: preview.season, label: $('leagueLabel').value.trim(), company_id: preview.company_id, target_ah: preview.target_ah, matches: preview.matches }) });
+            const response = await fetch('/api/league-extractions/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    league_id: preview.league_id,
+                    league_name: preview.league_name,
+                    season: preview.season,
+                    label: $('leagueLabel').value.trim(),
+                    company_id: preview.company_id,
+                    target_ah: preview.target_ah,
+                    matches: preview.matches
+                })
+            });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'No se pudo registrar la liga');
-            message('success', `Liga guardada con la etiqueta “${data.extraction.label}”.`);
+            message('success', `Liga registrada correctamente con la etiqueta “${data.extraction.label}”.`);
             await loadArchives();
             await openExtraction(data.extraction.extraction_id, '', true);
-        } catch (error) { message('danger', error.message); }
-        finally { $('registerLeague').disabled = false; }
+        } catch (error) {
+            message('danger', error.message);
+        } finally {
+            $('registerLeague').disabled = false;
+        }
     });
 
     async function poll(jobId) {
@@ -977,12 +1597,11 @@
             $('progressCount').textContent = `${job.processed}/${job.total}`;
             $('progressText').textContent = job.status === 'completed' ? 'Extracción completada' : 'Analizando partidos y guardando en SQL…';
             const colors = { saved: 'success', exists: 'secondary', filtered: 'warning', error: 'danger' };
-            $('results').innerHTML = job.results.map(r => `<div class="small border-bottom py-1"><span class="badge bg-${colors[r.status] || 'secondary'}">${escapeHtml(r.status)}</span> <strong>${escapeHtml(r.id)}</strong> Jornada ${escapeHtml(r.round || '—')} · ${escapeHtml(r.error || r.bucket || '')}</div>`).join('');
+            $('results').innerHTML = job.results.map(r => `<div class="small border-bottom py-1"><span class="badge bg-${colors[r.status] || 'secondary'}">${esc(r.status)}</span> <strong>${esc(r.id)}</strong> Jornada ${esc(r.round || '—')} · ${esc(r.error || r.bucket || '')}</div>`).join('');
             job.results.forEach(r => {
                 const row = document.querySelector(`tr[data-match-id="${r.id}"]`);
                 if (row) {
-                    row.querySelector('.sql-state').innerHTML = (r.status === 'saved' || r.status === 'exists') ? `<span class="badge bg-success">${escapeHtml(r.bucket || 'SQL')}</span>` : `<span class="badge bg-danger">${escapeHtml(r.status)}</span>`;
-                    if (r.stored_initial_ah != null) row.querySelector('.stored-ah').textContent = r.stored_initial_ah;
+                    row.querySelector('.sql-state').innerHTML = (r.status === 'saved' || r.status === 'exists') ? `<span class="badge bg-success">${esc(r.bucket || 'SQL')}</span>` : `<span class="badge bg-danger">${esc(r.status)}</span>`;
                 }
                 loadLiveMatch(job.extraction_id, r);
             });
@@ -1006,29 +1625,61 @@
     $('startButton').addEventListener('click', async () => {
         const matches = selected();
         if (!matches.length || !preview) return;
-        if (!confirm(`¿Analizar ${matches.length} partidos con el sistema completo y guardarlos en SQL?`)) return;
-        clearTimeout(pollTimer); liveLoaded.clear(); $('startButton').disabled = true;
-        $('progressPanel').classList.remove('d-none'); $('progressBar').classList.add('progress-bar-animated'); $('progressBar').style.width = '0%'; $('results').innerHTML = '';
+        if (!confirm(`¿Analizar ${matches.length} partidos seleccionados con el sistema completo y guardarlos en SQL?`)) return;
+
+        clearTimeout(pollTimer);
+        liveLoaded.clear();
+        $('startButton').disabled = true;
+        $('progressPanel').classList.remove('d-none');
+        $('progressBar').classList.add('progress-bar-animated');
+        $('progressBar').style.width = '0%';
+        $('results').innerHTML = '';
+
         $('analysisTitle').innerHTML = `<i class="fa-solid fa-trophy text-warning me-2"></i>${preview.league_name} · análisis en curso`;
         $('analysisSubtitle').textContent = 'Los partidos aparecerán aquí según termine cada análisis.';
         $('roundNavigation').classList.add('d-none');
         $('analysisPanel').classList.remove('d-none');
-        message('info', 'Creando el trabajo de extracción profunda…');
+        message('info', `Iniciando análisis de ${matches.length} partidos…`);
+
         try {
-            const response = await fetch('/api/league_handicap/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ league_id: preview.league_id, league_name: preview.league_name, season: preview.season, label: $('leagueLabel').value.trim(), company_id: preview.company_id, target_ah: preview.target_ah, workers: $('workers').value, force: $('force').checked, matches }) });
+            const response = await fetch('/api/league_handicap/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    league_id: preview.league_id,
+                    league_name: preview.league_name,
+                    season: preview.season,
+                    label: $('leagueLabel').value.trim(),
+                    company_id: preview.company_id,
+                    target_ah: preview.target_ah,
+                    workers: $('workers').value,
+                    force: $('force').checked,
+                    matches
+                })
+            });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'No se pudo iniciar');
-            activeExtractionId = data.extraction_id; loadArchives(); poll(data.job_id);
-        } catch (error) { message('danger', error.message); $('startButton').disabled = false; }
+            if (!response.ok) throw new Error(data.error || 'No se pudo iniciar la extracción');
+            activeExtractionId = data.extraction_id;
+            loadArchives();
+            poll(data.job_id);
+        } catch (error) {
+            message('danger', error.message);
+            $('startButton').disabled = false;
+        }
     });
 
     $('refreshArchives').addEventListener('click', loadArchives);
+
     $('scrapeMissing').addEventListener('click', async () => {
         if (!activeExtractionId) return;
         $('scrapeMissing').disabled = true;
         message('info', 'Preparando los partidos que faltan en la liga…');
         try {
-            const response = await fetch(`/api/league-extractions/${encodeURIComponent(activeExtractionId)}/scrape-missing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit: 500, workers: $('workers').value }) });
+            const response = await fetch(`/api/league-extractions/${encodeURIComponent(activeExtractionId)}/scrape-missing`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ limit: 500, workers: $('workers').value })
+            });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'No se pudo reanudar la liga');
             if (data.status === 'completed') {
@@ -1040,17 +1691,29 @@
             $('progressBar').classList.add('progress-bar-animated');
             $('progressBar').style.width = '0%';
             $('results').innerHTML = '';
-            message('info', `Analizando ${data.total} partidos. Después de este lote quedarán ${data.remaining_after_batch}.`);
+            message('info', `Analizando ${data.total} partidos pendientes…`);
             poll(data.job_id);
-        } catch (error) { message('danger', error.message); $('scrapeMissing').disabled = false; }
+        } catch (error) {
+            message('danger', error.message);
+            $('scrapeMissing').disabled = false;
+        }
     });
 
-    $('roundPrev').addEventListener('click', () => { const index = activeRounds.findIndex(round => round.key === activeRoundKey); if (activeExtractionId && index > 0) openExtraction(activeExtractionId, activeRounds[index - 1].key); });
-    $('roundNext').addEventListener('click', () => { const index = activeRounds.findIndex(round => round.key === activeRoundKey); if (activeExtractionId && index >= 0 && index < activeRounds.length - 1) openExtraction(activeExtractionId, activeRounds[index + 1].key); });
+    $('roundPrev').addEventListener('click', () => {
+        const index = activeRounds.findIndex(round => round.key === activeRoundKey);
+        if (activeExtractionId && index > 0) openExtraction(activeExtractionId, activeRounds[index - 1].key);
+    });
+    $('roundNext').addEventListener('click', () => {
+        const index = activeRounds.findIndex(round => round.key === activeRoundKey);
+        if (activeExtractionId && index >= 0 && index < activeRounds.length - 1) openExtraction(activeExtractionId, activeRounds[index + 1].key);
+    });
 
+    // Carga inicial
     loadArchives();
     const initialExtractionId = new URLSearchParams(window.location.search).get('extraction_id');
-    if (initialExtractionId) openExtraction(initialExtractionId, '', true);
+    if (initialExtractionId) {
+        openExtraction(initialExtractionId, '', true);
+    }
 </script>
 </body>
 </html>

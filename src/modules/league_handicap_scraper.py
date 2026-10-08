@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import re
 from datetime import datetime
@@ -13,6 +14,7 @@ import urllib3
 
 from . import data_manager, sql_store
 from .estudio_scraper import analizar_partido_completo
+from .nowgoal_fetcher import parse_goal_line_numeric, parse_handicap_numeric
 
 
 BASE_URL = "https://football.nowgoal26.com"
@@ -43,31 +45,138 @@ def parse_league_reference(raw_value: str, explicit_season: str = "") -> Tuple[s
     if raw.isdigit():
         return raw, season
 
-    match = re.search(r"/league(?:/([^/?#]+))?/(\d+)(?:[/?#]|$)", raw)
-    if not match:
-        raise ValueError("Introduce un ID de liga o una URL de NowGoal valida")
-    url_season, league_id = match.groups()
-    if not season and url_season and url_season != league_id:
-        season = url_season
-    return league_id, season
+    match = re.search(r"/(?:sub)?league(?:/([^/?#]+))?/(\d+)(?:[/?#]|$)", raw, re.IGNORECASE)
+    if match:
+        url_season, league_id = match.groups()
+        if not season and url_season and url_season != league_id:
+            season = url_season
+        return league_id, season
+
+    # Si contiene dígitos, extraer el ID numérico
+    digits = "".join(filter(str.isdigit, raw))
+    if digits:
+        return digits, season
+
+    raise ValueError("Introduce un ID de liga válido (ej. 36) o una URL de NowGoal")
+
+
+def _parse_schedule_payload(text: str) -> Dict[str, Any]:
+    text = text.lstrip("\ufeff").strip()
+    if text.startswith("{") and text.endswith("}"):
+        return json.loads(text)
+    match = re.search(r'(?:var\s+\w+\s*=\s*|^\s*)({.*?});?$', text, re.DOTALL)
+    if match:
+        return json.loads(match.group(1))
+    return json.loads(text)
 
 
 def _discover_league(
     session: requests.Session,
     league_id: str,
     requested_season: str,
-) -> Tuple[str, str]:
-    suffix = f"/{requested_season}/{league_id}" if requested_season else f"/{league_id}"
-    html = _get_text(session, f"{BASE_URL}/league{suffix}")
-    season_match = re.search(r'const\s+_season\s*=\s*"([^"]+)"', html)
-    path_match = re.search(r'const\s+_dataPath\s*=\s*"([^"]+)"', html)
-    if not season_match or not path_match:
-        raise RuntimeError("NowGoal no expuso la temporada o el calendario de la liga")
+) -> Tuple[str, Dict[str, Any]]:
+    """Obtiene la temporada y los datos de calendario de la liga probando HTML y endpoints directos."""
+    now_year = datetime.utcnow().year
+    candidate_seasons: List[str] = []
+    if requested_season:
+        candidate_seasons.append(requested_season)
+    else:
+        candidate_seasons.extend([
+            f"{now_year-1}-{now_year}",
+            f"{now_year}-{now_year+1}",
+            str(now_year),
+            str(now_year-1),
+            f"{now_year-2}-{now_year-1}",
+            str(now_year+1),
+        ])
 
-    season = season_match.group(1)
-    if requested_season and requested_season != season:
-        raise ValueError(f"La pagina devolvio la temporada {season}, no {requested_season}")
-    return season, urljoin(BASE_URL, path_match.group(1))
+    # 1. Intentar descubrir temporada oficial en la página HTML
+    if not requested_season:
+        for prefix in ("/league/", "/subleague/"):
+            try:
+                html = _get_text(session, f"{BASE_URL}{prefix}{league_id}")
+                season_match = re.search(r'const\s+_season\s*=\s*"([^"]+)"', html)
+                path_match = re.search(r'const\s+_dataPath\s*=\s*"([^"]+)"', html)
+                if season_match and path_match:
+                    season = season_match.group(1)
+                    raw_data = _get_text(session, urljoin(BASE_URL, path_match.group(1)))
+                    parsed = _parse_schedule_payload(raw_data)
+                    if parsed and (parsed.get("ScheduleList") or parsed.get("TeamInfo")):
+                        return season, parsed
+            except Exception:
+                pass
+
+    # 2. Fallback / Intentos directos a los endpoints JSON y JS
+    for season in candidate_seasons:
+        for url in (
+            f"{BASE_URL}/jsData/matchResult/json/{season}/s{league_id}_en.json",
+            f"{BASE_URL}/jsData/matchResult/{season}/s{league_id}_en.js",
+            f"{BASE_URL}/jsData/matchResult/json/{season}/s{league_id}.json",
+            f"{BASE_URL}/jsData/matchResult/{season}/s{league_id}.js",
+        ):
+            try:
+                resp = session.get(url, headers=HEADERS, timeout=10, verify=False)
+                if resp.status_code == 200 and resp.text:
+                    parsed = _parse_schedule_payload(resp.text)
+                    if parsed and (parsed.get("ScheduleList") or parsed.get("TeamInfo")):
+                        return season, parsed
+            except Exception:
+                continue
+
+    # 3. Si se pidió una temporada específica, intentar HTML con esa temporada
+    if requested_season:
+        for prefix in ("/league/", "/subleague/"):
+            try:
+                html = _get_text(session, f"{BASE_URL}{prefix}{requested_season}/{league_id}")
+                path_match = re.search(r'const\s+_dataPath\s*=\s*"([^"]+)"', html)
+                if path_match:
+                    raw_data = _get_text(session, urljoin(BASE_URL, path_match.group(1)))
+                    parsed = _parse_schedule_payload(raw_data)
+                    if parsed:
+                        return requested_season, parsed
+            except Exception:
+                pass
+
+    raise RuntimeError(
+        f"No se pudo cargar el calendario para la liga {league_id}. "
+        "Verifica que el ID sea correcto en NowGoal (ej. 36 para Premier League, 273 para A-League)."
+    )
+
+
+def _calculate_favorite_coverage(score_str: str, ah_val: Optional[float]) -> str:
+    """Calcula si el favorito cubrió la línea de AH."""
+    if ah_val is None:
+        return "unknown"
+    score_clean = str(score_str or "").strip()
+    parts = re.split(r"[-:]", score_clean)
+    if len(parts) != 2:
+        return "unknown"
+    try:
+        h_goals = int(parts[0].strip())
+        a_goals = int(parts[1].strip())
+    except ValueError:
+        return "unknown"
+
+    h_diff = h_goals - a_goals
+    abs_ah = abs(ah_val)
+
+    if abs_ah < 1e-6:
+        # Partido nivelado (AH 0: sin favorito de mercado)
+        # Se describe el resultado respecto al equipo local:
+        if h_diff > 0:
+            return "home_win"
+        elif h_diff < 0:
+            return "away_win"
+        return "push"
+
+    # En NowGoal: AH > 0 = Local Favorito; AH < 0 = Visitante Favorito
+    fav_is_local = ah_val > 0
+    diff_from_fav = h_diff if fav_is_local else -h_diff
+    final_diff = diff_from_fav - abs_ah
+
+    if abs(final_diff) < 1e-6:
+        return "push"
+    return "covered" if final_diff > 0 else "no_covered"
 
 
 def _round_sort_key(value: Tuple[str, str]) -> Tuple[str, int, str]:
@@ -119,11 +228,12 @@ def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], 
         match_id = str(row[0])
 
         row_ah = None
-        if len(row) > 8 and row[8] is not None and str(row[8]).strip() not in ("", "-"):
-            try:
-                row_ah = float(str(row[8]).strip())
-            except ValueError:
-                pass
+        row_ou = None
+        # En NowGoal ScheduleList: row[8]=Puesto Local, row[9]=Puesto Visitante, row[10]=Hándicap Asiático, row[12]=Over/Under
+        if len(row) > 10 and row[10] is not None and str(row[10]).strip() not in ("", "-"):
+            row_ah = parse_handicap_numeric(row[10])
+        if len(row) > 12 and row[12] is not None and str(row[12]).strip() not in ("", "-"):
+            row_ou = parse_goal_line_numeric(row[12])
 
         if round_value:
             rounds.append((sub_id, round_value))
@@ -145,6 +255,7 @@ def _flatten_schedule(data: Dict[str, Any]) -> Tuple[Dict[str, Dict[str, Any]], 
             "score": row[6] or "-" if len(row) > 6 else "-",
             "source_state": row[2] if len(row) > 2 else 0,
             "row_ah": row_ah,
+            "row_ou": row_ou,
         }
     return matches, sorted(set(rounds), key=_round_sort_key)
 
@@ -184,33 +295,42 @@ def preview_league_handicap(
 ) -> Dict[str, Any]:
     league_id, requested_season = parse_league_reference(league_reference, season)
     session = requests.Session()
-    discovered_season, data_url = _discover_league(session, league_id, requested_season)
-    league_data = json.loads(_get_text(session, data_url))
+    discovered_season, league_data = _discover_league(session, league_id, requested_season)
     match_map, rounds = _flatten_schedule(league_data)
 
     all_odds: Dict[str, Dict[str, float]] = {}
-    for sub_id, round_value in rounds:
-        if round_value and not round_value.startswith("G"):
-            odds_url = (
-                f"{BASE_URL}/ajax/LeagueOddsAjax?sclassId={league_id}"
-                f"&subSclassId={sub_id}&matchSeason={discovered_season}&round={round_value}"
-            )
-            try:
-                for match_id, odds in parse_round_odds(_get_text(session, odds_url), company_id).items():
-                    all_odds[match_id] = odds
-            except Exception:
-                pass
+    valid_rounds = [
+        (sub_id, round_value)
+        for sub_id, round_value in rounds
+        if round_value and not str(round_value).startswith("G")
+    ]
 
-    if len(all_odds) < len(match_map):
-        fallback_odds_url = (
+    def fetch_round_odds(sub_id: str, round_val: str) -> Dict[str, Dict[str, float]]:
+        url = (
             f"{BASE_URL}/ajax/LeagueOddsAjax?sclassId={league_id}"
-            f"&subSclassId=0&matchSeason={discovered_season}&round=1"
+            f"&subSclassId={sub_id}&matchSeason={discovered_season}&round={round_val}"
         )
         try:
-            for match_id, odds in parse_round_odds(_get_text(session, fallback_odds_url), company_id).items():
-                all_odds.setdefault(match_id, odds)
+            resp = session.get(url, headers=HEADERS, timeout=4, verify=False)
+            if resp.status_code == 200 and resp.text:
+                return parse_round_odds(resp.text.lstrip("\ufeff"), company_id)
         except Exception:
             pass
+        return {}
+
+    if valid_rounds:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_to_round = {
+                executor.submit(fetch_round_odds, sub_id, round_val): (sub_id, round_val)
+                for sub_id, round_val in valid_rounds
+            }
+            for future in concurrent.futures.as_completed(future_to_round):
+                try:
+                    res = future.result()
+                    if res:
+                        all_odds.update(res)
+                except Exception:
+                    pass
 
     for match_id, m in match_map.items():
         if match_id not in all_odds and m.get("row_ah") is not None:
@@ -226,7 +346,7 @@ def preview_league_handicap(
         selected_ids = [
             match_id
             for match_id, odds in all_odds.items()
-            if abs(odds["visible_ah"] - float(target_ah)) < 1e-9
+            if odds.get("visible_ah") is not None and abs(odds["visible_ah"] - float(target_ah)) < 1e-9
         ]
 
     matches: List[Dict[str, Any]] = []
@@ -239,10 +359,23 @@ def preview_league_handicap(
         if match_status == "upcoming" and finished:
             continue
 
+        vis_ah = odds.get("visible_ah")
+        score_str = str(match.get("score") or "-").strip()
+        fav_role = (
+            "home_fav" if vis_ah is not None and vis_ah > 0 else
+            "away_fav" if vis_ah is not None and vis_ah < 0 else
+            "even" if vis_ah is not None and vis_ah == 0 else
+            "none"
+        )
+        fav_coverage = (
+            _calculate_favorite_coverage(score_str, vis_ah)
+            if finished else "pending"
+        )
+
         existing = sql_store.get_match(match_id)
         match.update(
             {
-                "visible_ah": odds.get("visible_ah"),
+                "visible_ah": vis_ah,
                 "company_id": int(company_id),
                 "home_odds_decimal": (
                     odds["home_odds_hk"] + 1 if odds.get("home_odds_hk") is not None else None
@@ -251,6 +384,8 @@ def preview_league_handicap(
                     odds["away_odds_hk"] + 1 if odds.get("away_odds_hk") is not None else None
                 ),
                 "finished": finished,
+                "favorite_role": fav_role,
+                "favorite_coverage": fav_coverage,
                 "already_in_sql": existing is not None,
                 "sql_bucket": sql_store.get_match_bucket(match_id) if existing else None,
                 "stored_initial_ah": (
@@ -264,6 +399,16 @@ def preview_league_handicap(
 
     matches.sort(key=lambda row: (str(row.get("date", "")), str(row["id"])))
     league_info = league_data.get("LeagueInfo") or []
+
+    total_matches = len(matches)
+    total_finished = sum(1 for m in matches if m.get("finished"))
+    total_pending = total_matches - total_finished
+    total_in_sql = sum(1 for m in matches if m.get("already_in_sql"))
+    total_new = total_matches - total_in_sql
+    covered_count = sum(1 for m in matches if m.get("favorite_coverage") == "covered")
+    no_covered_count = sum(1 for m in matches if m.get("favorite_coverage") == "no_covered")
+    push_count = sum(1 for m in matches if m.get("favorite_coverage") == "push")
+
     return {
         "league_id": league_id,
         "league_name": league_info[1] if len(league_info) > 1 else f"Liga {league_id}",
@@ -271,6 +416,16 @@ def preview_league_handicap(
         "target_ah": float(target_ah) if target_ah is not None else None,
         "company_id": int(company_id),
         "match_status": match_status,
+        "stats": {
+            "total": total_matches,
+            "finished": total_finished,
+            "pending": total_pending,
+            "in_sql": total_in_sql,
+            "new": total_new,
+            "covered": covered_count,
+            "no_covered": no_covered_count,
+            "push": push_count,
+        },
         "matches": matches,
     }
 
@@ -350,3 +505,86 @@ def sanitize_selected_matches(matches: Iterable[Dict[str, Any]], company_id: int
             }
         )
     return output
+
+
+def prefilter_matches_by_ah(
+    league_id: Union[int, str],
+    season: Optional[str] = None,
+    target_ah: float = 0.0,
+    tolerance: float = 0.0,
+    only_finished: bool = True,
+) -> Dict[str, Any]:
+    """
+    Prefiltrado liviano de partidos candidatos exclusivamente por línea AH del calendario liviano NowGoal (ScheduleList row[10]).
+
+    Alcance formal autorizado por Dirección Técnica:
+    - Consulta exclusivamente el calendario liviano en memoria (ScheduleList row[10]).
+    - Cero scraping profundo HTTP de análisis / H2H.
+    - Cero escritura o alteración de base de datos SQLite.
+    """
+    normalized_league_id = str(league_id or "").strip()
+    if not re.fullmatch(r"[1-9]\d{0,11}", normalized_league_id):
+        raise ValueError("El ID debe ser un sclassId NowGoal numérico y positivo.")
+
+    session = requests.Session()
+    actual_season, schedule_data = _discover_league(session, normalized_league_id, str(season or "").strip())
+    # Fail closed if NowGoal does not echo the requested league identity. A valid
+    # numeric ID alone cannot prove that the caller supplied the correct provider's
+    # ID, so never return a calendar whose LeagueInfo disagrees with that ID.
+    league_info = schedule_data.get("LeagueInfo")
+    if not isinstance(league_info, list) or len(league_info) < 2:
+        raise RuntimeError("NowGoal no devolvió LeagueInfo; no se puede verificar la identidad de la liga.")
+    returned_league_id = str(league_info[0] or "").strip()
+    if returned_league_id != normalized_league_id:
+        raise RuntimeError(
+            f"NowGoal devolvió la liga {returned_league_id or 'sin ID'}, no la solicitada {normalized_league_id}."
+        )
+    canonical_league_name = str(league_info[1] or "").strip()
+    if not canonical_league_name:
+        raise RuntimeError("NowGoal no devolvió el nombre canónico de la liga.")
+    canonical_season = str(league_info[2] or "").strip() if len(league_info) > 2 else ""
+    if canonical_season:
+        actual_season = canonical_season
+
+    matches_dict, _ = _flatten_schedule(schedule_data)
+    finished_with_score = sum(1 for match in matches_dict.values() if _is_finished(match))
+    matches_with_calendar_ah = sum(1 for match in matches_dict.values() if match.get("row_ah") is not None)
+
+    candidates: List[Dict[str, Any]] = []
+    for match_id, m in matches_dict.items():
+        if only_finished and not _is_finished(m):
+            continue
+        row_ah = m.get("row_ah")
+        if row_ah is None:
+            continue
+
+        diff = abs(row_ah - target_ah)
+        if diff <= tolerance + 1e-6:
+            candidates.append(
+                {
+                    "match_id": match_id,
+                    "league_id": str(league_id),
+                    "season": actual_season,
+                    "home": m.get("home"),
+                    "away": m.get("away"),
+                    "score": m.get("score"),
+                    "calendar_ah": row_ah,
+                    "date": m.get("date"),
+                    "round": m.get("round"),
+                    "exact_match": diff < 1e-6,
+                }
+            )
+
+    return {
+        "league_id": normalized_league_id,
+        "league_name": canonical_league_name,
+        "league_identity_verified": True,
+        "season": actual_season,
+        "target_ah": target_ah,
+        "tolerance": tolerance,
+        "total_calendar_matches": len(matches_dict),
+        "finished_with_score": finished_with_score,
+        "matches_with_calendar_ah": matches_with_calendar_ah,
+        "total_candidates": len(candidates),
+        "candidates": candidates,
+    }
