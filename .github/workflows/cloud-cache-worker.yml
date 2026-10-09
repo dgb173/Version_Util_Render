@@ -127,6 +127,7 @@ jobs:
           path: results
       - name: Sincronizar terminados con el Explorador
         if: inputs.kind == 'finished'
+        continue-on-error: true
         env:
           LIBSQL_URL: ${{ secrets.LIBSQL_URL }}
           LIBSQL_AUTH_TOKEN: ${{ secrets.LIBSQL_AUTH_TOKEN }}

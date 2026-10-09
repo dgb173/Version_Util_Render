@@ -731,26 +731,97 @@
         .team-history-floating-modal {
             pointer-events: none !important;
             background: transparent !important;
+            position: fixed !important;
+            inset: auto !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: visible !important;
+            z-index: 1085 !important;
         }
         .team-history-dialog {
             pointer-events: auto !important;
-            width: 440px;
-            min-width: 320px;
-            max-width: 96vw;
+            width: 500px;
+            min-width: 340px;
+            max-width: 98vw;
             margin: 0 !important;
             position: fixed !important;
             top: 75px;
             right: 20px;
             z-index: 1090 !important;
+            transition: width 0.15s ease-out;
         }
         .team-history-dialog.size-compact {
-            width: 370px !important;
+            width: 410px !important;
         }
         .team-history-dialog.size-medium {
-            width: 470px !important;
+            width: 500px !important;
         }
         .team-history-dialog.size-large {
-            width: 680px !important;
+            width: 720px !important;
+        }
+        .team-history-dialog.size-compare {
+            width: min(1040px, 98vw) !important;
+        }
+        body.has-team-history-floating {
+            overflow: auto !important;
+            padding-right: 0 !important;
+        }
+        body.has-team-history-floating .modal-backdrop {
+            display: none !important;
+        }
+        /* Tabla específica de historial de equipo con fecha siempre visible y sin cortes */
+        .team-history-table {
+            width: 100% !important;
+            table-layout: auto !important;
+            border-collapse: collapse !important;
+            font-size: .67rem !important;
+        }
+        .team-history-table th, .team-history-table td {
+            padding: 3px 4px !important;
+            border-bottom: 1px solid #edf0f3 !important;
+            vertical-align: middle !important;
+        }
+        .team-history-table .ctx-date {
+            min-width: 95px !important;
+            width: auto !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            font-size: .66rem !important;
+        }
+        .team-history-table .ctx-league {
+            width: 32px !important;
+            min-width: 28px !important;
+            text-align: center !important;
+        }
+        .team-history-table .ctx-rival {
+            min-width: 95px !important;
+            max-width: 140px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            font-weight: 700 !important;
+        }
+        .team-history-table .ctx-score {
+            width: 38px !important;
+            text-align: center !important;
+            font-weight: 900 !important;
+        }
+        .team-history-table .ctx-ah {
+            width: 38px !important;
+            text-align: center !important;
+            font-weight: 800 !important;
+        }
+        .team-history-table .ctx-eval {
+            width: 48px !important;
+            text-align: center !important;
+        }
+        .team-history-table .ctx-stats {
+            width: 44px !important;
+            text-align: center !important;
+            overflow: visible !important;
         }
         .team-history-dialog .modal-content {
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.1) !important;
@@ -17788,10 +17859,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-1 flex-shrink-0 ms-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" id="teamHistoryCompareBtn" onclick="toggleTeamHistoryComparison()" title="Abrir comparativa lado a lado con el rival visitante" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
+                            <i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival
+                        </button>
                         <button type="button" class="btn btn-sm btn-outline-success py-0 px-2" id="teamHistoryLiveBtn" onclick="refreshTeamHistoryLive()" title="Consultar NowGoal en directo para traer los partidos más recientes al día de hoy" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
                             <i class="fa-solid fa-arrows-rotate me-1"></i>Al día
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="teamHistoryResizeBtn" onclick="toggleTeamHistorySize()" title="Alternar tamaño (Mini 370px / Medio 480px / Grande 680px)" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="teamHistoryResizeBtn" onclick="toggleTeamHistorySize()" title="Alternar tamaño (Mini 370px / Medio 500px / Grande 720px / Comparar 1080px)" style="font-size:.63rem; font-weight:800; border-radius:4px; height: 22px;">
                             <i class="fa-solid fa-compress me-1"></i>Mini
                         </button>
                         <button type="button" class="btn-close p-1 ms-1" data-bs-dismiss="modal" aria-label="Cerrar" style="font-size:.65rem;"></button>
@@ -17810,6 +17884,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
     <script>
         window._teamHistoryCache = window._teamHistoryCache || {};
         window._currentTeamHistoryData = null;
+        window._currentOpponentHistoryData = null;
+        window._teamHistoryComparisonMode = false;
+        window._opponentTeamHistoryLoading = false;
         window._currentTeamHistoryTeamName = '';
         window._currentTeamHistoryMatchId = '';
         window._currentTeamHistoryParentMatchId = '';
@@ -17819,7 +17896,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         window._currentTeamHistoryCommonFilter = false;
         window._currentTeamHistoryLeagueFilter = false;
         window._currentTeamHistorySearchQuery = '';
-        window._teamHistoryLimit = 10; // Por defecto mostrar últimos 10 partidos
+        window._teamHistoryLimit = 10;
+
+        // Filtros para el panel del rival visitante
+        window._currentOpponentVenueFilter = 'all';
+        window._currentOpponentLeagueFilter = false;
+        window._currentOpponentSearchQuery = '';
+        window._opponentHistoryLimit = 10;
+
         window._teamHistoryModalState = null;
 
         function escapeTeamHistoryHtml(str) {
@@ -17869,7 +17953,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     let newLeft = initialLeft + dx;
                     let newTop = initialTop + dy;
 
-                    // Mover libremente por la pantalla manteniendo visible un margen mínimo
                     const minLeft = 10 - dialog.offsetWidth + 100;
                     const maxLeft = window.innerWidth - 60;
                     const minTop = 10;
@@ -17903,7 +17986,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const btn = document.getElementById('teamHistoryResizeBtn');
             if (!dialog) return;
 
-            // Ciclo de tamaños: Compacto (370px) -> Normal/Medio (470px) -> Amplio (680px)
+            if (window._teamHistoryComparisonMode) {
+                // En modo comparativa: alternar entre 1040px y pantalla completa (98vw)
+                const isFull = dialog.style.width === '98vw';
+                if (isFull) {
+                    dialog.style.width = 'min(1040px, 98vw)';
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-expand me-1"></i>Expandir';
+                } else {
+                    dialog.style.width = '98vw';
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-compress me-1"></i>Ajustar';
+                }
+                return;
+            }
+
+            // Modo individual: Compacto (370px) -> Normal (500px) -> Amplio (720px)
             const currentSize = dialog.dataset.sizeMode || 'normal';
             let nextSize = 'compact';
 
@@ -17917,13 +18013,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 nextSize = 'large';
                 dialog.classList.remove('size-compact', 'size-medium');
                 dialog.classList.add('size-large');
-                dialog.style.width = '680px';
+                dialog.style.width = '720px';
                 if (btn) btn.innerHTML = '<i class="fa-solid fa-down-left-and-up-right-to-center me-1"></i>Normal';
             } else {
                 nextSize = 'normal';
                 dialog.classList.remove('size-compact', 'size-large');
                 dialog.classList.add('size-medium');
-                dialog.style.width = '470px';
+                dialog.style.width = '500px';
                 if (btn) btn.innerHTML = '<i class="fa-solid fa-compress me-1"></i>Mini';
             }
             dialog.dataset.sizeMode = nextSize;
@@ -17932,18 +18028,137 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             window._teamHistoryModalState.sizeMode = nextSize;
         }
 
+        async function toggleTeamHistoryComparison() {
+            const data = window._currentTeamHistoryData;
+            if (!data) return;
+
+            window._teamHistoryComparisonMode = !window._teamHistoryComparisonMode;
+            const dialog = document.getElementById('teamHistoryModalDialog');
+            const compBtn = document.getElementById('teamHistoryCompareBtn');
+
+            if (!window._teamHistoryComparisonMode) {
+                // Volver a vista individual
+                if (dialog) {
+                    dialog.classList.remove('size-compare');
+                    dialog.style.width = window._teamHistoryModalState?.width || '500px';
+                }
+                if (compBtn) {
+                    compBtn.classList.remove('btn-primary', 'text-white');
+                    compBtn.classList.add('btn-outline-primary');
+                    compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+                }
+                renderTeamHistoryModalContent();
+                return;
+            }
+
+            // Expandir a vista lado a lado
+            if (dialog) {
+                dialog.classList.remove('size-compact', 'size-medium', 'size-large');
+                dialog.classList.add('size-compare');
+                dialog.style.width = 'min(1040px, 98vw)';
+            }
+            if (compBtn) {
+                compBtn.classList.remove('btn-outline-primary');
+                compBtn.classList.add('btn-primary', 'text-white');
+                compBtn.innerHTML = `<i class="fa-solid fa-table-columns me-1"></i>Vista Simple`;
+            }
+
+            const oppName = data.opponent_name;
+            if (!oppName) {
+                renderTeamHistoryModalContent();
+                return;
+            }
+
+            if (!window._currentOpponentHistoryData || String(window._currentOpponentHistoryData.team_name || '').toLowerCase() !== String(oppName).toLowerCase()) {
+                window._opponentTeamHistoryLoading = true;
+                renderTeamHistoryModalContent();
+                await loadOpponentHistoryData(oppName);
+            } else {
+                renderTeamHistoryModalContent();
+            }
+        }
+
+        async function loadOpponentHistoryData(oppName) {
+            window._opponentTeamHistoryLoading = true;
+            try {
+                const response = await fetch('/api/team_recent_history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        team_name: oppName,
+                        match_id: window._currentTeamHistoryMatchId || '',
+                        parent_match_id: window._currentTeamHistoryParentMatchId || '',
+                        league_id: window._currentTeamHistoryLeagueId || '',
+                        team_id: window._currentTeamHistoryData?.opponent_team_id || '',
+                    })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    window._currentOpponentHistoryData = data;
+                } else {
+                    window._currentOpponentHistoryData = { error: data.error || 'No se pudo cargar el historial del rival' };
+                }
+            } catch (err) {
+                window._currentOpponentHistoryData = { error: err.message };
+            } finally {
+                window._opponentTeamHistoryLoading = false;
+                renderTeamHistoryModalContent();
+            }
+        }
+
         function setTeamHistoryLimit(limit) {
             window._teamHistoryLimit = limit;
             renderTeamHistoryModalContent();
         }
 
-        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx) {
-            const m = (window._currentTeamHistoryData?.matches && typeof idx === 'number') ? window._currentTeamHistoryData.matches[idx] : null;
+        function setOpponentLimit(limit) {
+            window._opponentHistoryLimit = limit;
+            renderTeamHistoryModalContent();
+        }
+
+        function setTeamHistoryVenueFilter(venue) {
+            window._currentTeamHistoryVenueFilter = venue;
+            renderTeamHistoryModalContent();
+        }
+
+        function setOpponentVenueFilter(venue) {
+            window._currentOpponentVenueFilter = venue;
+            renderTeamHistoryModalContent();
+        }
+
+        function toggleTeamHistoryCommonFilter() {
+            window._currentTeamHistoryCommonFilter = !window._currentTeamHistoryCommonFilter;
+            renderTeamHistoryModalContent();
+        }
+
+        function toggleTeamHistoryLeagueFilter(cb) {
+            window._currentTeamHistoryLeagueFilter = !!(cb && cb.checked);
+            renderTeamHistoryModalContent();
+        }
+
+        function toggleOpponentLeagueFilter(cb) {
+            window._currentOpponentLeagueFilter = !!(cb && cb.checked);
+            renderTeamHistoryModalContent();
+        }
+
+        function handleTeamHistorySearch(query) {
+            window._currentTeamHistorySearchQuery = String(query || '').trim().toLowerCase();
+            renderTeamHistoryModalContent();
+        }
+
+        function handleOpponentSearch(query) {
+            window._currentOpponentSearchQuery = String(query || '').trim().toLowerCase();
+            renderTeamHistoryModalContent();
+        }
+
+        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
+            const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
+            const m = (activeData?.matches && typeof idx === 'number') ? activeData.matches[idx] : null;
             const effectiveDate = date || (m && m.date) || '';
             const effectiveScore = score || (m && m.score) || '';
             const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((m && m.ah) || '-');
             const effectiveLeague = leagueId || (m && m.league_id) || '';
-            const targetTeam = String(window._currentTeamHistoryData?.team_name || '').toLowerCase().trim();
+            const targetTeam = String(activeData?.team_name || '').toLowerCase().trim();
             const isTargetHome = String(homeTeam || '').toLowerCase().trim() === targetTeam;
             const isTargetAway = String(awayTeam || '').toLowerCase().trim() === targetTeam;
 
@@ -17956,7 +18171,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
                                 ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                             </div>
-                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem;" onclick="toggleTeamHistoryRowStats(${idx})">✕ ocultar</button>` : ''}
+                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
                         </div>
                         <div class="text-muted small py-2" style="font-size:.65rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal para este partido</div>
                     </div>
@@ -18067,7 +18282,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px; white-space:nowrap;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
                             ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                         </div>
-                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem; cursor:pointer; white-space:nowrap;" onclick="toggleTeamHistoryRowStats(${idx})">✕ ocultar</button>` : ''}
+                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem; cursor:pointer; white-space:nowrap;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
                     </div>
 
                     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:5px 7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
@@ -18103,11 +18318,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             `;
         }
 
-        async function toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event, leagueId) {
+        async function toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event, leagueId, panelPrefix = 'main') {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            const subrow = document.getElementById(`th-stats-row-${idx}`);
-            const cell = document.getElementById(`th-stats-cell-${idx}`);
-            const btn = document.getElementById(`th-stats-btn-${idx}`);
+            const subrow = document.getElementById(`th-stats-row-${panelPrefix}-${idx}`);
+            const cell = document.getElementById(`th-stats-cell-${panelPrefix}-${idx}`);
+            const btn = document.getElementById(`th-stats-btn-${panelPrefix}-${idx}`);
             if (!subrow || !cell) return;
 
             if (subrow.style.display !== 'none') {
@@ -18125,8 +18340,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 btn.classList.add('btn-success', 'text-white');
             }
 
-            // Construir bloque comparativo de rival en común si existe para esta fila
-            const matchObj = window._currentTeamHistoryData?.matches?.[idx] || null;
+            const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
+            const matchObj = activeData?.matches?.[idx] || null;
+
             let compCardHtml = '';
             if (matchObj && matchObj.has_common_rival && matchObj.comparative_match) {
                 const cm = matchObj.comparative_match;
@@ -18144,7 +18360,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <div class="row g-1 text-center" style="font-size:.66rem;">
                             <div class="col-6">
                                 <div class="p-1 rounded bg-white border">
-                                    <div class="fw-bold text-truncate text-primary" style="font-size:.68rem;">${escapeTeamHistoryHtml(window._currentTeamHistoryData?.team_name || homeTeam)}</div>
+                                    <div class="fw-bold text-truncate text-primary" style="font-size:.68rem;">${escapeTeamHistoryHtml(activeData?.team_name || homeTeam)}</div>
                                     <div class="fw-bold ${matchObj.wdl === 'W' ? 'text-success' : (matchObj.wdl === 'L' ? 'text-danger' : 'text-warning')}" style="font-size:.78rem;">${matchObj.score}</div>
                                     <div>AH: <strong>${matchObj.ah}</strong> · <span class="badge ${myBadgeClass}" style="font-size:.55rem; padding:1px 3px;">${matchObj.ah_eval?.label || '-'}</span></div>
                                     <div class="text-muted" style="font-size:.55rem;">${matchObj.date || '-'}</div>
@@ -18201,13 +18417,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const stats = data.stats || [];
                 cell.dataset.loaded = '1';
-                cell.innerHTML = compCardHtml + formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx);
+                cell.innerHTML = compCardHtml + formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
             } catch (err) {
                 cell.innerHTML = `
                     ${compCardHtml}
                     <div class="alert alert-warning py-1 px-2 my-1 small d-flex justify-content-between align-items-center" style="font-size:.65rem;">
                         <span><i class="fa-solid fa-triangle-exclamation me-1"></i>${err.message || 'Sin estadísticas disponibles'}</span>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event, '${escapeTeamHistoryHtml(leagueId)}')">Reintentar</button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event, '${escapeTeamHistoryHtml(leagueId)}', '${panelPrefix}')">Reintentar</button>
                     </div>
                 `;
             }
@@ -18224,6 +18440,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
             const modalBody = document.getElementById('teamHistoryModalBody');
             const liveBtn = document.getElementById('teamHistoryLiveBtn');
+            const compBtn = document.getElementById('teamHistoryCompareBtn');
+
+            // Asegurar que al abrir o interactuar con el modal flotante NO se bloquee la página de abajo
+            if (!modalEl.__floatingEventsInit) {
+                modalEl.__floatingEventsInit = true;
+                modalEl.addEventListener('show.bs.modal', () => {
+                    document.body.classList.add('has-team-history-floating');
+                });
+                modalEl.addEventListener('shown.bs.modal', () => {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = 'auto';
+                    document.body.style.paddingRight = '';
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                });
+                modalEl.addEventListener('hidden.bs.modal', () => {
+                    document.body.classList.remove('has-team-history-floating');
+                    document.body.style.overflow = '';
+                });
+            }
 
             const cleanTeam = String(teamName).trim();
             window._currentTeamHistoryTeamName = cleanTeam;
@@ -18232,6 +18467,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             window._currentTeamHistoryLeagueId = String(leagueId || '').trim();
             window._currentTeamHistoryTeamId = String(teamId || '').trim();
 
+            // Resetear estado comparativa
+            window._teamHistoryComparisonMode = false;
+            window._currentOpponentHistoryData = null;
+            window._opponentTeamHistoryLoading = false;
+            if (compBtn) {
+                compBtn.classList.remove('btn-primary', 'text-white');
+                compBtn.classList.add('btn-outline-primary');
+                compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+            }
+
             if (liveBtn) {
                 liveBtn.disabled = false;
                 liveBtn.classList.remove('btn-success', 'text-white');
@@ -18239,20 +18484,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 liveBtn.innerHTML = `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
             }
 
-            if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${cleanTeam}`;
+            if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${escapeTeamHistoryHtml(cleanTeam)}`;
             if (modalSubtitle) modalSubtitle.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
             if (modalBody) {
                 modalBody.innerHTML = `
                     <div class="text-center py-4">
                         <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
-                        <p class="mt-2 text-muted fw-bold small mb-0">Cargando partidos de ${cleanTeam}...</p>
+                        <p class="mt-2 text-muted fw-bold small mb-0">Cargando partidos de ${escapeTeamHistoryHtml(cleanTeam)}...</p>
                     </div>
                 `;
             }
 
-            // Posicionar o restaurar posición previa del usuario para que no salte
+            // Posicionar o restaurar posición previa del usuario
             if (dialog) {
                 dialog.style.position = 'fixed';
+                dialog.classList.remove('size-compare');
                 if (window._teamHistoryModalState && window._teamHistoryModalState.left !== undefined) {
                     dialog.style.left = `${window._teamHistoryModalState.left}px`;
                     dialog.style.top = `${window._teamHistoryModalState.top}px`;
@@ -18261,7 +18507,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     }
                 } else {
                     dialog.style.top = '75px';
-                    const initialW = 420;
+                    const initialW = 500;
                     dialog.style.width = `${initialW}px`;
                     dialog.style.left = `${Math.max(15, window.innerWidth - initialW - 25)}px`;
                 }
@@ -18272,13 +18518,27 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
             modalInstance.show();
+
+            // Desbloquear de inmediato el scroll y eventos del fondo
+            setTimeout(() => {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = 'auto';
+                document.body.style.paddingRight = '';
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            }, 30);
+
             initTeamHistoryDraggable();
 
             window._currentTeamHistoryVenueFilter = 'all';
             window._currentTeamHistoryCommonFilter = false;
             window._currentTeamHistoryLeagueFilter = false;
             window._currentTeamHistorySearchQuery = '';
-            window._teamHistoryLimit = 10; // Siempre inicia mostrando los últimos 10 partidos por defecto
+            window._teamHistoryLimit = 10;
+
+            window._currentOpponentVenueFilter = 'all';
+            window._currentOpponentLeagueFilter = false;
+            window._currentOpponentSearchQuery = '';
+            window._opponentHistoryLimit = 10;
 
             const cacheKey = `${cleanTeam.toLowerCase()}:${matchId || ''}:${parentMatchId || ''}`;
             if (window._teamHistoryCache[cacheKey]) {
@@ -18318,7 +18578,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (modalBody) {
                     modalBody.innerHTML = `
                         <div class="alert alert-danger my-2 py-2 px-3 small">
-                            <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${err.message}
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${escapeTeamHistoryHtml(err.message)}
                         </div>
                     `;
                 }
@@ -18394,45 +18654,30 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
         }
 
-        function setTeamHistoryVenueFilter(venue) {
-            window._currentTeamHistoryVenueFilter = venue;
-            renderTeamHistoryModalContent();
-        }
+        function renderTeamHistorySinglePanel(data, isOpponent = false) {
+            if (!data) return '';
+            if (data.error) {
+                return `
+                    <div class="p-3 bg-white rounded border shadow-sm text-center">
+                        <div class="alert alert-warning py-2 px-3 small mb-0">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>${escapeTeamHistoryHtml(data.error)}
+                        </div>
+                    </div>
+                `;
+            }
 
-        function toggleTeamHistoryCommonFilter() {
-            window._currentTeamHistoryCommonFilter = !window._currentTeamHistoryCommonFilter;
-            renderTeamHistoryModalContent();
-        }
-
-        function toggleTeamHistoryLeagueFilter(cb) {
-            window._currentTeamHistoryLeagueFilter = !!(cb && cb.checked);
-            renderTeamHistoryModalContent();
-        }
-
-        function handleTeamHistorySearch(query) {
-            window._currentTeamHistorySearchQuery = String(query || '').trim().toLowerCase();
-            renderTeamHistoryModalContent();
-        }
-
-        function renderTeamHistoryModalContent() {
-            const data = window._currentTeamHistoryData;
-            if (!data) return;
-
-            const modalBody = document.getElementById('teamHistoryModalBody');
-            const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
-            if (!modalBody) return;
-
+            const prefix = isOpponent ? 'opp' : 'main';
             const allMatches = data.matches || [];
             const teamName = data.team_name || 'Equipo';
             const opponentName = data.opponent_name || '';
-            const hasCommonRivals = !!(data.has_common_rivals && opponentName);
+            const hasCommonRivals = !!(data.has_common_rivals && opponentName && !isOpponent);
 
-            // Filtrar
-            const venueFilter = window._currentTeamHistoryVenueFilter || 'all';
-            const isCommonFilter = !!window._currentTeamHistoryCommonFilter;
-            const isLeagueFilter = window._currentTeamHistoryLeagueFilter;
+            const venueFilter = isOpponent ? (window._currentOpponentVenueFilter || 'all') : (window._currentTeamHistoryVenueFilter || 'all');
+            const isCommonFilter = !isOpponent && !!window._currentTeamHistoryCommonFilter;
+            const isLeagueFilter = isOpponent ? window._currentOpponentLeagueFilter : window._currentTeamHistoryLeagueFilter;
             const targetLid = window._currentTeamHistoryLeagueId;
-            const searchQuery = window._currentTeamHistorySearchQuery || '';
+            const searchQuery = isOpponent ? (window._currentOpponentSearchQuery || '') : (window._currentTeamHistorySearchQuery || '');
+            const currentLimit = isOpponent ? (window._opponentHistoryLimit ?? 10) : (window._teamHistoryLimit ?? 10);
 
             const filtered = allMatches.filter(m => {
                 if (isCommonFilter && !m.has_common_rival) return false;
@@ -18443,12 +18688,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return true;
             });
 
-            // Muestra según límite (10 por defecto o todos si es 0)
-            const currentLimit = window._teamHistoryLimit ?? 10;
             const isLimited = currentLimit > 0 && filtered.length > currentLimit;
             const visibleMatches = isLimited ? filtered.slice(0, currentLimit) : filtered;
 
-            // KPIs sobre la muestra visible
             let wins = 0, draws = 0, losses = 0;
             let coverWins = 0, coverLosses = 0, coverPush = 0;
             visibleMatches.forEach(m => {
@@ -18466,20 +18708,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const winPct = totalVis > 0 ? Math.round((wins / totalVis) * 100) : 0;
             const coverPct = totalVis > 0 ? Math.round((coverWins / totalVis) * 100) : 0;
 
-            if (modalSubtitle) {
-                const commonTag = isCommonFilter ? ` · <span class="text-warning fw-bold"><i class="fa-solid fa-bolt me-1"></i>Solo Rivales vs ${escapeTeamHistoryHtml(opponentName)}</span>` : '';
-                const liveTag = data.is_live ? ` · <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:.56rem; padding:1px 4px;"><i class="fa-solid fa-bolt me-1"></i>NowGoal al día</span>` : '';
-                if (isLimited) {
-                    modalSubtitle.innerHTML = `Últimos 10 de ${filtered.length} partidos · Cobertura AH: ${coverPct}%${commonTag}${liveTag}`;
-                } else {
-                    modalSubtitle.innerHTML = `${totalVis} partidos · Cobertura AH: ${coverPct}%${commonTag}${liveTag}`;
-                }
-            }
-
             const homeCount = allMatches.filter(m => m.venue === 'home').length;
             const awayCount = allMatches.filter(m => m.venue === 'away').length;
 
-            // Tabla con colores idénticos a pre-context-table
+            let roleBadge = '';
+            if (isOpponent) {
+                const isOppHome = window._currentTeamHistoryData?.opponent_is_home === true;
+                roleBadge = isOppHome
+                    ? `<span class="badge bg-primary" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-house me-1"></i>LOCAL</span>`
+                    : `<span class="badge bg-warning text-dark fw-bold" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-plane me-1"></i>VISITANTE</span>`;
+            } else {
+                const isMainHome = window._currentTeamHistoryData?.opponent_is_home === false;
+                roleBadge = isMainHome
+                    ? `<span class="badge bg-primary" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-house me-1"></i>LOCAL</span>`
+                    : `<span class="badge bg-warning text-dark fw-bold" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-plane me-1"></i>VISITANTE</span>`;
+            }
+
             let tableRowsHtml = '';
             if (totalVis === 0) {
                 tableRowsHtml = `
@@ -18493,8 +18737,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 tableRowsHtml = visibleMatches.map((m, idx) => {
                     const isHome = m.venue === 'home';
                     const venueBadge = isHome
-                        ? `<span style="display:inline-block; font-size:.56rem; font-weight:900; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó en Casa (Local)">H</span>`
-                        : `<span style="display:inline-block; font-size:.56rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>`;
+                        ? `<span style="display:inline-block; font-size:.56rem; font-weight:900; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; border-radius:3px; padding:0 3px; margin-right:4px; line-height:1.2;" title="Jugó en Casa (Local)">H</span>`
+                        : `<span style="display:inline-block; font-size:.56rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:4px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>`;
 
                     let rowClass = 'pre-context-result-W';
                     let rowStyle = 'background: #eef9f2 !important; color: #16834b;';
@@ -18521,7 +18765,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     }
 
                     const statsBtn = m.match_id
-                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${idx}" style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2;" onclick="toggleTeamHistoryRowStats(${idx}, '${m.match_id}', '${escapeTeamHistoryHtml(m.home_team)}', '${escapeTeamHistoryHtml(m.away_team)}', '${escapeTeamHistoryHtml(m.date)}', '${escapeTeamHistoryHtml(m.score)}', '${escapeTeamHistoryHtml(m.ah)}', event, '${escapeTeamHistoryHtml(m.league_id || '')}')" title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
+                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${prefix}-${idx}" style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2;" onclick="toggleTeamHistoryRowStats(${idx}, '${m.match_id}', '${escapeTeamHistoryHtml(m.home_team)}', '${escapeTeamHistoryHtml(m.away_team)}', '${escapeTeamHistoryHtml(m.date)}', '${escapeTeamHistoryHtml(m.score)}', '${escapeTeamHistoryHtml(m.ah)}', event, '${escapeTeamHistoryHtml(m.league_id || '')}', '${prefix}')" title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
                         : `<span class="text-muted small">-</span>`;
 
                     const commonRivalBadge = (m.has_common_rival && m.comparative_match) ? `
@@ -18539,10 +18783,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     ` : '';
 
                     return `
-                        <tr class="pre-context-row ${rowClass}" style="vertical-align:middle; font-size:.67rem; ${rowStyle} border-bottom:1px solid #edf0f3;" id="th-match-row-${idx}">
-                            <td class="fw-bold text-nowrap py-1 px-1 ctx-date" style="font-size:.66rem;">${venueBadge}${m.date || '-'}</td>
+                        <tr class="pre-context-row ${rowClass}" style="vertical-align:middle; font-size:.67rem; ${rowStyle} border-bottom:1px solid #edf0f3;" id="th-match-row-${prefix}-${idx}">
+                            <td class="fw-bold text-nowrap py-1 px-1 ctx-date" style="font-size:.66rem; min-width:95px !important; white-space:nowrap !important;">${venueBadge}${m.date || '-'}</td>
                             <td class="py-1 px-1 text-center ctx-league"><span class="badge bg-light text-dark border" style="font-size:.56rem; padding:1px 3px;">${m.league_id || '-'}</span></td>
-                            <td class="fw-bold py-1 px-1 ctx-rival" style="color:#1e293b; max-width:130px;">
+                            <td class="fw-bold py-1 px-1 ctx-rival" style="color:#1e293b;">
                                 <div class="text-truncate" title="${escapeTeamHistoryHtml(m.rival)}">${escapeTeamHistoryHtml(m.rival || '-')}</div>
                                 ${commonRivalBadge}
                             </td>
@@ -18550,13 +18794,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 <span class="fw-bold" style="font-size:.75rem; color:${scoreColor};">${m.score || '-'}</span>
                             </td>
                             <td class="text-center fw-bold py-1 px-1 ctx-ah" style="color:#2563eb; font-size:.70rem;">${m.ah || '-'}</td>
-                            <td class="text-center py-1 px-1">
+                            <td class="text-center py-1 px-1 ctx-eval">
                                 <span class="badge" style="${ahBadgeStyle} font-size:.56rem; font-weight:800; padding:1px 4px;">${ahLabel}</span>
                             </td>
                             <td class="text-center py-1 px-1 ctx-stats">${statsBtn}</td>
                         </tr>
-                        <tr id="th-stats-row-${idx}" class="th-stats-subrow" style="display:none; background:#f8fafc;">
-                            <td colspan="7" class="p-2 border-bottom" id="th-stats-cell-${idx}">
+                        <tr id="th-stats-row-${prefix}-${idx}" class="th-stats-subrow" style="display:none; background:#f8fafc;">
+                            <td colspan="7" class="p-2 border-bottom" id="th-stats-cell-${prefix}-${idx}">
                                 <div class="text-center py-2 text-muted small"><i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...</div>
                             </td>
                         </tr>
@@ -18564,111 +18808,195 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }).join('');
             }
 
-            modalBody.innerHTML = `
-                <!-- Toolbar Compacto de Filtros -->
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 p-1 px-2 mb-2 bg-white rounded border shadow-sm">
-                    <div class="d-flex align-items-center gap-1 flex-wrap">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn ${venueFilter === 'all' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="setTeamHistoryVenueFilter('all')" style="font-size:.64rem; font-weight:800;">
-                                Todos (${allMatches.length})
-                            </button>
-                            <button type="button" class="btn ${venueFilter === 'home' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="setTeamHistoryVenueFilter('home')" style="font-size:.64rem; font-weight:800;">
-                                Casa (${homeCount})
-                            </button>
-                            <button type="button" class="btn ${venueFilter === 'away' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="setTeamHistoryVenueFilter('away')" style="font-size:.64rem; font-weight:800;">
-                                Fuera (${awayCount})
-                            </button>
+            const venueChangeHandler = isOpponent ? 'setOpponentVenueFilter' : 'setTeamHistoryVenueFilter';
+            const limitChangeHandler = isOpponent ? 'setOpponentLimit' : 'setTeamHistoryLimit';
+            const searchHandler = isOpponent ? 'handleOpponentSearch' : 'handleTeamHistorySearch';
+            const leagueFilterHandler = isOpponent ? 'toggleOpponentLeagueFilter' : 'toggleTeamHistoryLeagueFilter';
+
+            return `
+                <div class="team-history-single-panel bg-white rounded border shadow-sm p-2 mb-2 d-flex flex-column" style="min-width:0;">
+                    <!-- Cabecera de Equipo con Rol (Local/Visitante) -->
+                    <div class="d-flex align-items-center justify-content-between pb-1 mb-1 border-bottom">
+                        <div class="d-flex align-items-center gap-1 text-truncate" style="min-width:0;">
+                            ${roleBadge}
+                            <h6 class="fw-bold mb-0 text-truncate" style="font-size:.82rem; color:#1e3a5f;" title="${escapeTeamHistoryHtml(teamName)}">${escapeTeamHistoryHtml(teamName)}</h6>
+                        </div>
+                        <div class="text-muted small text-nowrap" style="font-size:.62rem; font-weight:700;">
+                            ${totalVis} partidos
+                        </div>
+                    </div>
+
+                    <!-- Toolbar de Filtros -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 p-1 mb-1 bg-light rounded border">
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn ${venueFilter === 'all' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('all')" style="font-size:.63rem; font-weight:800;">
+                                    Todos (${allMatches.length})
+                                </button>
+                                <button type="button" class="btn ${venueFilter === 'home' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('home')" style="font-size:.63rem; font-weight:800;">
+                                    Casa (${homeCount})
+                                </button>
+                                <button type="button" class="btn ${venueFilter === 'away' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('away')" style="font-size:.63rem; font-weight:800;">
+                                    Fuera (${awayCount})
+                                </button>
+                            </div>
+
+                            ${hasCommonRivals ? `
+                                <button type="button" class="btn ${isCommonFilter ? 'btn-warning active text-dark fw-bold' : 'btn-outline-warning text-dark fw-bold'} py-0 px-2" onclick="toggleTeamHistoryCommonFilter()" style="font-size:.62rem; border-width:1.5px;" title="Ver solo partidos con rivales comunes que también ha enfrentado ${escapeTeamHistoryHtml(opponentName)}">
+                                    <i class="fa-solid fa-bolt me-1 ${isCommonFilter ? 'text-dark' : 'text-warning'}"></i>vs ${escapeTeamHistoryHtml(opponentName)} (${data.common_rivals_count})
+                                </button>
+                            ` : ''}
+
+                            <div class="btn-group btn-group-sm ms-1" role="group">
+                                <button type="button" class="btn ${currentLimit === 10 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="${limitChangeHandler}(10)" style="font-size:.61rem; font-weight:800;" title="Ver solo últimos 10 partidos">
+                                    Últimos 10
+                                </button>
+                                <button type="button" class="btn ${currentLimit === 0 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="${limitChangeHandler}(0)" style="font-size:.61rem; font-weight:800;" title="Ver todos los partidos disponibles">
+                                    Todos (${filtered.length})
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Botón de Rivales en Común vs Oponente -->
-                        ${hasCommonRivals ? `
-                            <button type="button" class="btn ${isCommonFilter ? 'btn-warning active text-dark fw-bold' : 'btn-outline-warning text-dark fw-bold'} py-0 px-2" onclick="toggleTeamHistoryCommonFilter()" style="font-size:.63rem; border-width:1.5px;" title="Ver solo partidos con rivales comunes que también ha enfrentado ${escapeTeamHistoryHtml(opponentName)}">
-                                <i class="fa-solid fa-bolt me-1 ${isCommonFilter ? 'text-dark' : 'text-warning'}"></i>Rivales vs ${escapeTeamHistoryHtml(opponentName)} (${data.common_rivals_count})
-                            </button>
-                        ` : ''}
+                        <div class="d-flex align-items-center gap-1">
+                            ${targetLid ? `
+                                <label class="form-check form-check-inline mb-0 small" style="font-size:.62rem; font-weight:700; cursor:pointer;">
+                                    <input class="form-check-input" type="checkbox" ${isLeagueFilter ? 'checked' : ''} onchange="${leagueFilterHandler}(this)" style="width:11px; height:11px;">
+                                    L.${targetLid}
+                                </label>
+                            ` : ''}
+                            <input type="text" class="form-control form-control-sm py-0 px-1 border" placeholder="Buscar rival..." value="${searchQuery}" oninput="${searchHandler}(this.value)" style="font-size:.63rem; width:75px; height:20px;">
+                        </div>
+                    </div>
 
-                        <!-- Selector de Muestra: Últimos 10 vs Todos -->
-                        <div class="btn-group btn-group-sm ms-1" role="group">
-                            <button type="button" class="btn ${currentLimit === 10 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="setTeamHistoryLimit(10)" style="font-size:.62rem; font-weight:800;" title="Ver solo últimos 10 partidos">
-                                Últimos 10
-                            </button>
-                            <button type="button" class="btn ${currentLimit === 0 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="setTeamHistoryLimit(0)" style="font-size:.62rem; font-weight:800;" title="Ver todos los partidos disponibles">
-                                Todos (${filtered.length})
+                    <!-- KPI Bar -->
+                    <div class="d-flex align-items-center justify-content-between p-1 px-2 mb-1 bg-light rounded border small" style="font-size:.65rem;">
+                        <div>
+                            <span class="text-muted">${isLimited ? 'Últimos' : 'Total'}:</span>
+                            <strong>${totalVis}</strong>
+                            ${isLimited ? `<span class="text-muted" style="font-size:.58rem;">(de ${filtered.length})</span>` : ''}
+                        </div>
+                        <div>
+                            <span class="badge bg-success" style="font-size:.57rem; padding:1px 3px;">V ${wins}</span>
+                            <span class="badge bg-warning text-dark" style="font-size:.57rem; padding:1px 3px;">E ${draws}</span>
+                            <span class="badge bg-danger" style="font-size:.57rem; padding:1px 3px;">D ${losses}</span>
+                            <span class="text-muted fw-bold ms-1" style="font-size:.58rem;">(${winPct}%)</span>
+                        </div>
+                        <div>
+                            <span class="badge bg-success" style="font-size:.57rem; padding:1px 3px;">Cubre: ${coverWins} (${coverPct}%)</span>
+                            <span class="badge bg-danger" style="font-size:.57rem; padding:1px 3px;">Falla: ${coverLosses}</span>
+                            ${coverPush ? `<span class="badge bg-secondary" style="font-size:.57rem; padding:1px 3px;">Nulo: ${coverPush}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Partidos con Fecha Completa -->
+                    <div class="table-responsive bg-white rounded border" style="max-height: 400px; overflow-y:auto;">
+                        <table class="table table-sm mb-0 team-history-table">
+                            <thead class="sticky-top" style="z-index:1; font-size:.65rem; background:#f8fafc; color:#64748b; font-weight:900; border-bottom:1px solid #edf0f3;">
+                                <tr>
+                                    <th class="ctx-date" style="padding:4px 4px;">Fecha</th>
+                                    <th class="text-center ctx-league" style="padding:4px 2px;">Liga</th>
+                                    <th class="ctx-rival" style="padding:4px 4px;">Rival</th>
+                                    <th class="text-center ctx-score" style="padding:4px 2px;">Res</th>
+                                    <th class="text-center ctx-ah" style="padding:4px 2px;">AH</th>
+                                    <th class="text-center ctx-eval" style="padding:4px 2px;">Lectura</th>
+                                    <th class="text-center ctx-stats" style="padding:4px 2px;">Stats</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tableRowsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Botón inferior 10 vs Todos -->
+                    ${isLimited ? `
+                        <div class="p-1 text-center bg-white rounded border mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(0)" style="font-size:.65rem;">
+                                <i class="fa-solid fa-angles-down me-1"></i>Ver los ${filtered.length - totalVis} restantes (Mostrar todos los ${filtered.length})
                             </button>
                         </div>
-
-                        <!-- Botón Actualizar al Día (NowGoal) -->
-                        <button type="button" class="btn ${data.is_live ? 'btn-success text-white' : 'btn-outline-success'} py-0 px-2 ms-1" onclick="refreshTeamHistoryLive()" style="font-size:.62rem; font-weight:800;" title="Consultar NowGoal en directo para traer los partidos más recientes al día de hoy">
-                            <i class="fa-solid fa-arrows-rotate me-1"></i>${data.is_live ? 'Al día' : 'Actualizar'}
-                        </button>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-1">
-                        ${targetLid ? `
-                            <label class="form-check form-check-inline mb-0 small" style="font-size:.63rem; font-weight:700; cursor:pointer;">
-                                <input class="form-check-input" type="checkbox" ${isLeagueFilter ? 'checked' : ''} onchange="toggleTeamHistoryLeagueFilter(this)" style="width:12px; height:12px;">
-                                Liga ${targetLid}
-                            </label>
-                        ` : ''}
-                        <input type="text" class="form-control form-control-sm py-0 px-1 border" placeholder="Buscar rival..." value="${searchQuery}" oninput="handleTeamHistorySearch(this.value)" style="font-size:.64rem; width:80px; height:22px;">
-                    </div>
+                    ` : (filtered.length > 10 ? `
+                        <div class="p-1 text-center bg-white rounded border mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(10)" style="font-size:.65rem;">
+                                <i class="fa-solid fa-angles-up me-1"></i>Volver a mostrar solo los últimos 10
+                            </button>
+                        </div>
+                    ` : '')}
                 </div>
-
-                <!-- KPI Bar en 1 sola fila compacta -->
-                <div class="d-flex align-items-center justify-content-between p-1 px-2 mb-2 bg-white rounded border shadow-sm small" style="font-size:.66rem;">
-                    <div>
-                        <span class="text-muted">${isLimited ? 'Últimos' : 'Total'}:</span>
-                        <strong>${totalVis}</strong>
-                        ${isLimited ? `<span class="text-muted" style="font-size:.60rem;">(de ${filtered.length})</span>` : ''}
-                    </div>
-                    <div>
-                        <span class="badge bg-success" style="font-size:.58rem; padding:1px 3px;">V ${wins}</span>
-                        <span class="badge bg-warning text-dark" style="font-size:.58rem; padding:1px 3px;">E ${draws}</span>
-                        <span class="badge bg-danger" style="font-size:.58rem; padding:1px 3px;">D ${losses}</span>
-                        <span class="text-muted fw-bold ms-1" style="font-size:.60rem;">(${winPct}%)</span>
-                    </div>
-                    <div>
-                        <span class="badge bg-success" style="font-size:.58rem; padding:1px 4px;">Cubre: ${coverWins} (${coverPct}%)</span>
-                        <span class="badge bg-danger" style="font-size:.58rem; padding:1px 3px;">Falla: ${coverLosses}</span>
-                        ${coverPush ? `<span class="badge bg-secondary" style="font-size:.58rem; padding:1px 3px;">Nulo: ${coverPush}</span>` : ''}
-                    </div>
-                </div>
-
-                <!-- Tabla de Partidos Compacta (Idéntica a pre-context-table) -->
-                <div class="table-responsive bg-white rounded border shadow-sm" style="max-height: 380px; overflow-y:auto;">
-                    <table class="table table-sm mb-0 pre-context-table" style="font-size:.67rem; border-collapse:collapse;">
-                        <thead class="sticky-top" style="z-index:1; font-size:.66rem; background:#fbfcfd; color:#64748b; font-weight:900; border-bottom:1px solid #edf0f3;">
-                            <tr>
-                                <th style="width:19%; padding:4px 4px;">Fecha</th>
-                                <th class="text-center" style="width:10%; padding:4px 2px;">Liga</th>
-                                <th style="width:31%; padding:4px 4px;">Rival</th>
-                                <th class="text-center" style="width:12%; padding:4px 2px;">Res</th>
-                                <th class="text-center" style="width:11%; padding:4px 2px;">AH</th>
-                                <th class="text-center" style="width:13%; padding:4px 2px;">Lectura</th>
-                                <th class="text-center" style="width:14%; padding:4px 2px;">Stats</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Botón inferior para alternar entre 10 y Todos los partidos -->
-                ${isLimited ? `
-                    <div class="p-1 px-2 text-center bg-white rounded border mt-2 shadow-sm">
-                        <button type="button" class="btn btn-sm btn-outline-primary py-1 px-3 fw-bold w-100" onclick="setTeamHistoryLimit(0)" style="font-size:.68rem;">
-                            <i class="fa-solid fa-angles-down me-1"></i>Ver los ${filtered.length - totalVis} partidos restantes (Mostrar todos los ${filtered.length})
-                        </button>
-                    </div>
-                ` : (filtered.length > 10 ? `
-                    <div class="p-1 px-2 text-center bg-white rounded border mt-2 shadow-sm">
-                        <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-3 fw-bold w-100" onclick="setTeamHistoryLimit(10)" style="font-size:.68rem;">
-                            <i class="fa-solid fa-angles-up me-1"></i>Volver a mostrar solo los últimos 10 partidos
-                        </button>
-                    </div>
-                ` : '')}
             `;
+        }
+
+        function renderTeamHistoryModalContent() {
+            const data = window._currentTeamHistoryData;
+            if (!data) return;
+
+            const modalBody = document.getElementById('teamHistoryModalBody');
+            const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
+            const modalTitle = document.getElementById('teamHistoryModalLabel');
+            if (!modalBody) return;
+
+            const oppName = data.opponent_name || '';
+
+            if (window._teamHistoryComparisonMode) {
+                if (modalTitle) {
+                    modalTitle.innerHTML = `<i class="fa-solid fa-code-compare me-1 text-primary"></i>${escapeTeamHistoryHtml(data.team_name)} <span class="text-muted fw-normal" style="font-size:.76rem;">vs</span> ${escapeTeamHistoryHtml(oppName || 'Rival Visitante')}`;
+                }
+                if (modalSubtitle) {
+                    modalSubtitle.innerHTML = `Comparativa frente a frente: Historial de Local y Visitante en paralelo`;
+                }
+
+                if (window._opponentTeamHistoryLoading) {
+                    modalBody.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(data, false)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="p-5 text-center bg-white rounded border shadow-sm">
+                                    <div class="spinner-border text-primary mb-2" role="status" style="width: 1.8rem; height: 1.8rem;"></div>
+                                    <div class="fw-bold text-dark small">Cargando partidos de ${escapeTeamHistoryHtml(oppName)}...</div>
+                                    <div class="text-muted small" style="font-size:.65rem;">Consultando historial y cuotas AH del visitante</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (window._currentOpponentHistoryData) {
+                    modalBody.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(data, false)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(window._currentOpponentHistoryData, true)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalBody.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(data, false)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="p-4 text-center bg-white rounded border shadow-sm">
+                                    <div class="alert alert-info py-2 px-3 small mb-0">
+                                        <i class="fa-solid fa-circle-info me-1"></i>No se encontró información del rival visitante en este partido.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (modalTitle) {
+                    modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${escapeTeamHistoryHtml(data.team_name)}`;
+                }
+                if (modalSubtitle) {
+                    const allMatches = data.matches || [];
+                    modalSubtitle.innerHTML = `${allMatches.length} partidos cargados · Cuotas AH y Estadísticas`;
+                }
+                modalBody.innerHTML = renderTeamHistorySinglePanel(data, false);
+            }
         }
     </script>
 

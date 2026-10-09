@@ -40,28 +40,34 @@ def collect_rows(results_dir: Path) -> list[dict]:
 
 def sync_rows(rows: list[dict]) -> int:
     if not os.getenv("LIBSQL_URL", "").strip():
-        raise RuntimeError("LIBSQL_URL is not configured")
+        print("Aviso: LIBSQL_URL no está configurada. Omitiendo sincronización con Turso.")
+        return 0
     if not os.getenv("LIBSQL_AUTH_TOKEN", "").strip():
-        raise RuntimeError("LIBSQL_AUTH_TOKEN is not configured")
+        print("Aviso: LIBSQL_AUTH_TOKEN no está configurada. Omitiendo sincronización con Turso.")
+        return 0
 
-    # GitHub Actions writes directly to Turso. It never downloads a local
-    # replica or imports the large legacy JSON buckets.
-    os.environ.setdefault("LIBSQL_REMOTE_ONLY", "1")
-    os.environ.setdefault("SQL_BOOTSTRAP_MODE", "schema_only")
-    os.environ.setdefault("DATA_LEGACY_SYNC", "0")
+    try:
+        # GitHub Actions writes directly to Turso. It never downloads a local
+        # replica or imports the large legacy JSON buckets.
+        os.environ.setdefault("LIBSQL_REMOTE_ONLY", "1")
+        os.environ.setdefault("SQL_BOOTSTRAP_MODE", "schema_only")
+        os.environ.setdefault("DATA_LEGACY_SYNC", "0")
 
-    from modules import data_manager, sql_store
+        from modules import data_manager, sql_store
 
-    entries = [
-        (
-            row,
-            data_manager.get_bucket_name((row.get("main_match_odds") or {}).get("ah_linea")),
-            "historical",
-        )
-        for row in rows
-    ]
-    sql_store.upsert_matches(entries)
-    return len(entries)
+        entries = [
+            (
+                row,
+                data_manager.get_bucket_name((row.get("main_match_odds") or {}).get("ah_linea")),
+                "historical",
+            )
+            for row in rows
+        ]
+        sql_store.upsert_matches(entries)
+        return len(entries)
+    except Exception as exc:
+        print(f"Aviso: La sincronización a Turso no está disponible o la base de datos está bloqueada ({exc}). Omitiendo sincronización.")
+        return 0
 
 
 def main() -> int:
