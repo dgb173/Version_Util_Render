@@ -4,15 +4,6 @@ import sqlite3
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SRC_DIR = PROJECT_ROOT / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
-try:
-    from modules.youth_filter import is_unbettable_youth_match
-except Exception:
-    is_unbettable_youth_match = lambda m: False
 
 PRECACHE_BUCKET = "data_precacheo.json"
 
@@ -33,19 +24,8 @@ def _normalize_line(value):
     text = _normalize_text(value)
     if text is None:
         return None
-    if "/" in text:
-        parts = text.split("/")
-        if len(parts) == 2:
-            try:
-                p1 = float(parts[0].strip().replace("−", "-").replace(",", "."))
-                p2 = float(parts[1].strip().replace("−", "-").replace(",", "."))
-                parsed = (p1 + p2) / 2.0
-                normalized = f"{parsed:.2f}".rstrip("0").rstrip(".")
-                return normalized or "0"
-            except Exception:
-                pass
     try:
-        parsed = float(text.replace("−", "-").replace(",", "."))
+        parsed = float(text.replace(",", "."))
     except Exception:
         return text
     normalized = f"{parsed:.2f}".rstrip("0").rstrip(".")
@@ -57,34 +37,6 @@ def _match_snapshot_handicap(match):
         match.get("handicap")
         or (match.get("main_match_odds") or {}).get("ah_linea")
     )
-
-
-def _has_valid_handicap(match):
-    """Verifica si el partido tiene una línea de hándicap asiático numérica válida."""
-    if not isinstance(match, dict):
-        return False
-    raw = match.get("handicap")
-    if raw in (None, "", "-", "N/A", "null", "None", "?", "--", "undefined"):
-        odds = match.get("main_match_odds") or {}
-        raw = odds.get("ah_linea")
-    if raw in (None, "", "-", "N/A", "null", "None", "?", "--", "undefined"):
-        return False
-    raw_str = str(raw).strip()
-    if "/" in raw_str:
-        parts = raw_str.split("/")
-        if len(parts) == 2:
-            try:
-                float(parts[0].strip().replace("−", "-").replace(",", "."))
-                float(parts[1].strip().replace("−", "-").replace(",", "."))
-                return True
-            except (TypeError, ValueError):
-                return False
-    try:
-        val = raw_str.replace("−", "-").replace(",", ".")
-        float(val)
-        return True
-    except (TypeError, ValueError):
-        return False
 
 
 def _match_snapshot_goal_line(match):
@@ -210,7 +162,6 @@ def build_jobs(
     cache_key: str,
     out_path: Path,
     include_existing: bool = False,
-    max_jobs: int = 0,
 ) -> int:
     if not db_path.exists():
         print(f"ERROR: No existe base SQL: {db_path}")
@@ -231,19 +182,16 @@ def build_jobs(
         if isinstance(payload, str):
             payload = json.loads(payload)
 
-        # Filtrar estrictamente solo partidos con handicap asiatico valido y no juveniles
-        upcoming = [
-            m for m in (raw_upcoming or [])
-            if isinstance(m, dict) and _has_valid_handicap(m) and not is_unbettable_youth_match(m)
-        ]
-        if max_jobs and int(max_jobs) > 0:
-            upcoming = upcoming[:int(max_jobs)]
-
+        upcoming = payload.get("upcoming_matches", []) if isinstance(payload, dict) else []
         candidate_ids = []
+        upcoming = upcoming or []
         for match in upcoming:
+            if not isinstance(match, dict):
+                continue
             mid = match.get("id") or match.get("match_id")
-            if mid is not None:
-                candidate_ids.append(str(mid).strip())
+            if mid is None:
+                continue
+            candidate_ids.append(str(mid).strip())
 
         existing_precache = {}
         if not include_existing:
@@ -255,6 +203,9 @@ def build_jobs(
         forced_refresh = 0
 
         for match in upcoming:
+            if not isinstance(match, dict):
+                continue
+
             mid = match.get("id") or match.get("match_id")
             if mid is None:
                 continue
@@ -273,13 +224,10 @@ def build_jobs(
                         continue
                     forced_refresh += 1
 
-            ah_val = match.get("handicap") or (match.get("main_match_odds") or {}).get("ah_linea")
-            ou_val = match.get("goal_line") or (match.get("main_match_odds") or {}).get("goals_linea")
             jobs.append(
                 {
                     "id": mid,
-                    "ah": str(ah_val) if ah_val is not None else "N/A",
-                    "ou": str(ou_val) if ou_val is not None else "N/A",
+                    "ah": str(match.get("handicap", "N/A")),
                     "season": "json_snapshot",
                     "league_id": "json_snapshot",
                 }
@@ -314,12 +262,6 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Incluye tambien partidos ya analizados en precacheo (fuerza reproceso).",
     )
-    parser.add_argument(
-        "--max-jobs",
-        type=int,
-        default=0,
-        help="Límite de partidos a procesar (0 o negativo para todos los disponibles)",
-    )
     return parser.parse_args()
 
 
@@ -330,7 +272,6 @@ def main() -> int:
         cache_key=args.cache_key,
         out_path=Path(args.out),
         include_existing=bool(args.include_existing),
-        max_jobs=args.max_jobs,
     )
 
 

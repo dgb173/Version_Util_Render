@@ -8,7 +8,6 @@ from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from . import precache_fast_store, sql_store
 from .red_cards import normalize_red_card_stats_payload
-from .youth_filter import is_unbettable_youth_match
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,8 +26,8 @@ _write_lock = threading.Lock()
 _precacheo_lock = threading.Lock()
 
 _explorer_cache_lock = threading.Lock()
-_explorer_cache: Dict[tuple, Tuple[float, tuple, List[Dict]]] = {}
-_explorer_cache_ttl = max(0, int(os.getenv('EXPLORER_CACHE_TTL_SECONDS', '600')))
+_explorer_cache: Dict[Tuple[Optional[str], Optional[int]], Tuple[float, List[Dict]]] = {}
+_explorer_cache_ttl = max(0, int(os.getenv('EXPLORER_CACHE_TTL_SECONDS', '30')))
 _EXPLORER_CACHE_MAX_ENTRIES = max(
     1,
     int(os.getenv('EXPLORER_CACHE_MAX_ENTRIES', '1')),
@@ -79,47 +78,6 @@ def get_bucket_name(ah_val):
         return f'data_{sign}ah_2_plus.json'
 
     return 'data_others.json'
-
-
-def resolve_explorer_buckets(ah_filter):
-    """
-    Resolves an ah_filter (scalar float/int/str, or sequence of values)
-    into a list of matching SQL bucket names.
-    Returns a list of bucket names, or None if all buckets should be included.
-    """
-    if not ah_filter or ah_filter == 'all':
-        return None
-
-    if not isinstance(ah_filter, (list, tuple, set)):
-        items = [ah_filter]
-    else:
-        items = list(ah_filter)
-
-    buckets = set()
-    for item in items:
-        if item in (None, '', 'all'):
-            continue
-        try:
-            num = float(item)
-            if abs(abs(num) - 1.0) < 0.01:
-                sign = 'minus_' if num < 0 else ''
-                buckets.add(f'data_{sign}ah_0.5.json')
-                buckets.add(f'data_{sign}ah_1.5.json')
-            else:
-                b = get_bucket_name(num)
-                if b and b != 'data_unknown.json':
-                    buckets.add(b)
-        except (ValueError, TypeError):
-            s_item = str(item).strip()
-            if s_item.endswith('.json'):
-                buckets.add(s_item)
-
-    if not buckets:
-        return None
-
-    # Always include data_cloud_league.json as it contains all handicap ranges from extracted leagues
-    buckets.add("data_cloud_league.json")
-    return list(buckets)
 
 
 def get_file_lock(filename):
@@ -216,59 +174,64 @@ def load_matches_by_bucket(ah_filter):
     if not ah_filter or ah_filter == 'all':
         return load_all_matches()
 
-    buckets = resolve_explorer_buckets(ah_filter)
-    if not buckets:
-        return load_all_matches()
-    return sql_store.fetch_matches(bucket=buckets)
+    bucket = get_bucket_name(ah_filter)
+    return sql_store.fetch_matches(bucket=bucket)
 
 
-def load_explorer_matches(ah_filter=None, scan_limit=None, compact=False, offset=0,
-                          with_scan_count=False):
+def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
     """
     Explorer should run on finalized historical data only.
     Excludes precacheo/pending states to reduce noise and latency.
     """
-    cache_buckets = resolve_explorer_buckets(ah_filter)
+    if ah_filter and ah_filter != 'all':
+        cache_bucket = get_bucket_name(ah_filter)
+    else:
+        cache_bucket = None
+
     cache_limit = int(scan_limit) if isinstance(scan_limit, int) and scan_limit > 0 else None
-    cache_key = (tuple(sorted(cache_buckets)) if cache_buckets else None, cache_limit, compact, offset)
-    data_version = sql_store.get_explorer_data_version() if _explorer_cache_ttl > 0 else None
+    safe_offset = max(0, int(offset or 0))
+    cache_key = (cache_bucket, cache_limit, safe_offset)
 
     if _explorer_cache_ttl > 0:
         with _explorer_cache_lock:
             cached = _explorer_cache.get(cache_key)
-            if cached and cached[1] == data_version and (time.time() - cached[0]) <= _explorer_cache_ttl:
-                return (cached[2], cached[3]) if with_scan_count else cached[2]
+            if cached and (time.time() - cached[0]) <= _explorer_cache_ttl:
+                return cached[1]
 
-    rows = sql_store.fetch_matches(
-        bucket=cache_buckets,
-        state='historical',
-        limit=scan_limit,
-        prefer_explorer_payload=True,
-        explorer_search_only=compact,
-        offset=offset,
-    )
-
-    # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
-    if not rows and offset == 0:
+    if ah_filter and ah_filter != 'all':
         rows = sql_store.fetch_matches(
-            bucket=cache_buckets,
+            bucket=cache_bucket,
+            state='historical',
             limit=scan_limit,
             prefer_explorer_payload=True,
-            explorer_search_only=compact,
-            offset=offset,
+            offset=safe_offset,
+        )
+    else:
+        rows = sql_store.fetch_matches(
+            state='historical',
+            limit=scan_limit,
+            prefer_explorer_payload=True,
+            offset=safe_offset,
         )
 
-    # Filtrar estrictamente solo partidos con análisis H2H completo para el Explorador
-    valid_rows = [m for m in rows if validate_explorer_match(m)]
+    # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
+    if not rows and safe_offset == 0:
+        rows = sql_store.fetch_matches(
+            bucket=cache_bucket if (ah_filter and ah_filter != 'all') else None,
+            limit=scan_limit,
+            prefer_explorer_payload=True,
+            offset=safe_offset,
+        )
 
-    if _explorer_cache_ttl > 0 and data_version == sql_store.get_explorer_data_version():
+
+    if _explorer_cache_ttl > 0:
         with _explorer_cache_lock:
             # Evictar la entrada más antigua si se excede el límite
             while len(_explorer_cache) >= _EXPLORER_CACHE_MAX_ENTRIES:
                 oldest_key = min(_explorer_cache, key=lambda k: _explorer_cache[k][0])
                 del _explorer_cache[oldest_key]
-            _explorer_cache[cache_key] = (time.time(), data_version, valid_rows, len(rows))
-    return (valid_rows, len(rows)) if with_scan_count else valid_rows
+            _explorer_cache[cache_key] = (time.time(), rows)
+    return rows
 
 
 # --- Pre-Cacheo Functions ---
@@ -399,14 +362,6 @@ def clean_old_precacheo_matches(days_threshold=3, pending_days_threshold=7):
         to_remove: Set[Tuple[str, str]] = set()
         for match in headers:
             source_bucket = str(match.get('bucket') or '')
-            match_id = match.get('match_id') or match.get('id')
-            if match_id in (None, ''):
-                continue
-
-            if is_unbettable_youth_match(match):
-                to_remove.add((source_bucket, str(match_id)))
-                continue
-
             m_date = parse_match_date(match.get('match_date'))
 
             if m_date is None:
@@ -416,6 +371,9 @@ def clean_old_precacheo_matches(days_threshold=3, pending_days_threshold=7):
             has_result = bool(score) and not _is_pending_score(str(score)) and (
                 ':' in str(score) or '-' in str(score)
             )
+            match_id = match.get('match_id') or match.get('id')
+            if match_id in (None, ''):
+                continue
 
             max_date = threshold_date if has_result else pending_threshold_date
             if m_date < max_date:

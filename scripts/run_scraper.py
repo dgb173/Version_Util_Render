@@ -12,7 +12,17 @@ from scraping_logic import get_main_page_matches_async, get_main_page_finished_m
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / 'src'))
 from modules import data_manager, sql_store  # noqa: E402
-from modules.youth_filter import is_unbettable_youth_match, filter_youth_matches
+
+# Patrones de equipos juveniles a excluir
+EXCLUDE_PATTERNS = [
+    r'\bu19\b', r'sub-19', r'sub 19', r'under 19',
+]
+
+# Ligas juveniles que SÍ queremos ver (excepciones)
+ALLOWED_YOUTH_LEAGUES = [
+    'algeria u20 league',
+    # Agregar más ligas aquí si es necesario
+]
 
 
 def cleanup_precacheo_stale(tag):
@@ -35,8 +45,32 @@ def cleanup_precacheo_stale(tag):
 
 
 def is_youth_match(match):
-    """Verifica si el partido corresponde a una liga o equipo juvenil no apostable."""
-    return is_unbettable_youth_match(match)
+    """Verifica si el partido es de equipos juveniles (excepto ligas permitidas)"""
+    home = (match.get('home_team') or match.get('home') or match.get('home_name') or '').lower()
+    away = (match.get('away_team') or match.get('away') or match.get('away_name') or '').lower()
+    league = (match.get('league') or match.get('liga') or '').lower()
+    
+    # Si la liga está en las permitidas, NO filtrar
+    for allowed in ALLOWED_YOUTH_LEAGUES:
+        if allowed in league:
+            return False
+    
+    text_to_check = f"{home} {away} {league}"
+    
+    for pattern in EXCLUDE_PATTERNS:
+        if re.search(pattern, text_to_check, re.IGNORECASE):
+            return True
+    return False
+
+
+def filter_youth_matches(matches):
+    """Filtra partidos de equipos juveniles de una lista"""
+    original = len(matches)
+    filtered = [m for m in matches if not is_youth_match(m)]
+    removed = original - len(filtered)
+    if removed > 0:
+        print(f"  -> Filtrados {removed} partidos U19/U21")
+    return filtered
 
 
 def sync_cloud_precacheo_to_local():
@@ -64,7 +98,6 @@ def sync_cloud_precacheo_to_local():
             row for row in rows
             if isinstance(row, dict)
             and (row.get('match_id') or row.get('id')) not in (None, '')
-            and not is_unbettable_youth_match(row)
         ]
 
         conn = sql_store._connect()
@@ -77,11 +110,6 @@ def sync_cloud_precacheo_to_local():
                     state='precacheo',
                 )
             conn.commit()
-            try:
-                with open(PROJECT_ROOT / 'data' / 'data_precacheo.json', 'w', encoding='utf-8') as fh:
-                    fh.write(raw)
-            except Exception:
-                pass
         finally:
             conn.close()
         print(
@@ -152,7 +180,7 @@ async def main():
     try:
         # Obtenemos un universo amplio de partidos próximos (500) y finalizados
         proximos, finalizados = await asyncio.gather(
-            get_main_page_matches_async(limit=500),
+            get_main_page_matches_async(limit=None),
             get_main_page_finished_matches_async(limit=1500)
         )
         
@@ -160,7 +188,7 @@ async def main():
         
         # Filtrar y seleccionar 250 base + TODOS los de hándicap >= 1.0 / <= -1.0
         print("Filtrando partidos de equipos juveniles y seleccionando cuotas AH objetivo...")
-        proximos = select_upcoming_with_high_ah(proximos, base_limit=250)
+        proximos = proximos  # No extraction cap; Render window is applied separately.
         finalizados = filter_youth_matches(finalizados)
         print(f"Después de filtrar: {len(proximos)} próximos y {len(finalizados)} finalizados.")
 
