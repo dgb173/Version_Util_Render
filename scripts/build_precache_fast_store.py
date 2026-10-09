@@ -15,10 +15,17 @@ except ImportError:
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
+SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
 
 from modules.sql_store import _build_explorer_payload  # noqa: E402
+try:
+    from modules.youth_filter import is_youth_league
+except Exception:
+    is_youth_league = None
 
 DATA_DIR = PROJECT_ROOT / "data"
 FAST_DIR = DATA_DIR / ".precacheo_fast"
@@ -68,10 +75,6 @@ def compact_row(row: dict) -> dict:
 
 
 def main() -> None:
-    # Rebuild the bounded window from the lossless cloud archive at deploy time.
-    if (DATA_DIR / "cache_archive/upcoming").exists():
-        from cloud_cache_pipeline import build_windows
-        build_windows(PROJECT_ROOT)
     existing_sources = [source for source in SOURCE_FILES if source.exists()]
     if INDEX_FILE.exists() and existing_sources:
         newest_source = max(source.stat().st_mtime_ns for source in existing_sources)
@@ -94,6 +97,8 @@ def main() -> None:
                         continue
                     match_id = str(row.get("match_id") or row.get("id") or "").strip()
                     if not match_id:
+                        continue
+                    if is_youth_league and is_youth_league(row.get("league_name") or row.get("league") or ""):
                         continue
                     compact = compact_row(row)
                     compact["match_id"] = match_id
@@ -128,6 +133,8 @@ def main() -> None:
                         continue
                     match_id = str(row.get("match_id") or row.get("id") or "").strip()
                     if not match_id:
+                        continue
+                    if is_youth_league and is_youth_league(row.get("league_name") or row.get("league") or ""):
                         continue
                     compact = compact_row(row)
                     compact["match_id"] = match_id
