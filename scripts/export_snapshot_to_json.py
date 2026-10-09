@@ -71,6 +71,16 @@ def main() -> int:
     upcoming = snapshot.get("upcoming_matches", [])
     finished = snapshot.get("finished_matches", [])
 
+    try:
+        sys.path.insert(0, str(PROJECT_ROOT / "src"))
+        from modules.youth_filter import filter_youth_matches
+        upcoming = filter_youth_matches(upcoming)
+        finished = filter_youth_matches(finished)
+        snapshot["upcoming_matches"] = upcoming
+        snapshot["finished_matches"] = finished
+    except Exception:
+        pass
+
     for out in outputs:
         out.parent.mkdir(parents=True, exist_ok=True)
         with out.open("w", encoding="utf-8") as fh:

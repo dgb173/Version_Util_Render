@@ -11,7 +11,16 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import threading
+from zoneinfo import ZoneInfo
 from app_utils import normalize_handicap_to_half_bucket_str, _parse_handicap_to_float
+
+SPAIN_TZ = ZoneInfo("Europe/Madrid")
+UTC_TZ = datetime.timezone.utc
+
+def _utc_to_spain_datetime(dt_val: datetime.datetime) -> datetime.datetime:
+    if dt_val.tzinfo is None:
+        dt_val = dt_val.replace(tzinfo=UTC_TZ)
+    return dt_val.astimezone(SPAIN_TZ)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / 'src'))
@@ -19,6 +28,12 @@ try:
     from modules import nowgoal_fetcher
 except Exception:
     nowgoal_fetcher = None
+
+try:
+    from modules.youth_filter import is_unbettable_youth_match, filter_youth_matches
+except Exception:
+    is_unbettable_youth_match = lambda m: False
+    filter_youth_matches = lambda ms: ms
 
 URL_NOWGOAL = "https://live20.nowgoal25.com/"
 REQUEST_TIMEOUT_SECONDS = 12
@@ -177,8 +192,8 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
         handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
         goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
 
-        if handicap == "N/A":
-            continue
+        # No descartar aquí si handicap == "N/A": la cuota puede estar en el XML
+        # o en la página H2H individual. run_scraper.py filtrará más adelante.
 
         upcoming_matches.append({
             "id": match_id,
@@ -205,12 +220,15 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
                 filtered.append(m)
         upcoming_matches = filtered
 
+    upcoming_matches = filter_youth_matches(upcoming_matches)
     upcoming_matches.sort(key=lambda x: x['time_obj'])
     
     paginated_matches = upcoming_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=1)).strftime('%H:%M')
+        dt_spain = _utc_to_spain_datetime(match['time_obj'])
+        match['time'] = dt_spain.strftime('%H:%M')
+        match['start_time'] = dt_spain.isoformat()
         # Keep time_obj for sorting but convert to string for JSON compatibility
         match['time_obj'] = match['time_obj'].isoformat()
 
@@ -250,8 +268,7 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
         handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
         goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
 
-        if handicap == "N/A":
-            continue
+        # No descartar aquí: la cuota puede estar en el XML o en otras fuentes
 
         time_cell = row.find('td', {'name': 'timeData'})
         match_time = datetime.datetime.now()
@@ -287,12 +304,15 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
                 filtered.append(m)
         finished_matches = filtered
 
+    finished_matches = filter_youth_matches(finished_matches)
     finished_matches.sort(key=lambda x: x['time_obj'], reverse=True)
     
     paginated_matches = finished_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=1)).strftime('%d/%m %H:%M')
+        dt_spain = _utc_to_spain_datetime(match['time_obj'])
+        match['time'] = dt_spain.strftime('%d/%m %H:%M')
+        match['start_time'] = dt_spain.isoformat()
         match['time_obj'] = match['time_obj'].isoformat()
 
     return paginated_matches
@@ -306,6 +326,8 @@ async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None,
             offset=offset,
             handicap_filter=handicap_filter,
             goal_line_filter=goal_line_filter,
+            require_handicap=True,
+            require_goal_line=True,
         )
         if matches:
             return matches
@@ -329,6 +351,8 @@ async def get_main_page_finished_matches_async(limit=1500, offset=0, handicap_fi
             offset=offset,
             handicap_filter=handicap_filter,
             goal_line_filter=goal_line_filter,
+            require_handicap=True,
+            require_goal_line=True,
         )
         if matches:
             return matches

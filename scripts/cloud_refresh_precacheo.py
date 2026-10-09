@@ -15,6 +15,15 @@ from zoneinfo import ZoneInfo
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+try:
+    from modules.youth_filter import is_unbettable_youth_match
+except Exception:
+    is_unbettable_youth_match = lambda m: False
+
 DEFAULT_JOB_FILE = PROJECT_ROOT / "temp_matches_job_cloud.json"
 SNAPSHOT_FILES = (
     PROJECT_ROOT / "data.json",
@@ -93,7 +102,7 @@ def _stale_history_jobs(path: Path, days: int) -> list[dict]:
 
         match_date = _parse_precache_date(match.get("match_date"))
         match_id = str(match.get("match_id") or match.get("id") or "").strip()
-        if not match_id or match_id in seen or not match_date or match_date < minimum_date:
+        if not match_id or match_id in seen or not match_date or match_date < minimum_date or is_unbettable_youth_match(match):
             continue
 
         main_odds = match.get("main_match_odds") or {}
@@ -225,7 +234,7 @@ def main() -> int:
             raise RefreshError("El archivo temporal de trabajos no es una lista JSON")
 
         stale_jobs = _stale_history_jobs(PRECACHE_FILE, args.upgrade_stale_days)
-        jobs = _merge_jobs(jobs, stale_jobs)[:400]
+        jobs = _merge_jobs(jobs, stale_jobs)[:300]
         if stale_jobs:
             print(
                 f"\nAñadidos para actualizar historial antiguo del día: {len(stale_jobs)}; "
@@ -248,6 +257,7 @@ def main() -> int:
                     str(workers),
                     "--flush_every",
                     "5",
+                    "--defer-summary-stats",
                 ),
                 allowed_codes=(0, 1),
             )

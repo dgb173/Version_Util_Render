@@ -13,6 +13,7 @@ sys.path.insert(0, str(SRC_DIR))
 
 from modules import data_manager  # noqa: E402
 from modules import sql_store  # noqa: E402
+from modules.youth_filter import is_unbettable_youth_match  # noqa: E402
 
 
 def _iter_input_files(path: Path) -> Iterable[Path]:
@@ -84,6 +85,9 @@ def _import_list(items: List[Any], bucket: Optional[str], strict: bool) -> Tuple
     skipped = 0
     for item in items:
         if not isinstance(item, dict):
+            skipped += 1
+            continue
+        if is_unbettable_youth_match(item):
             skipped += 1
             continue
         if strict and bucket and bucket not in {"data_precacheo.json", "data_pending_results.json"}:
