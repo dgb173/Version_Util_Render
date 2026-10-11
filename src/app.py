@@ -1,5 +1,6 @@
 # app.py - Servidor web principal (Flask)
 import sys
+import subprocess
 from pathlib import Path
 _src_dir = Path(__file__).resolve().parent
 _root_dir = _src_dir.parent
@@ -3337,20 +3338,42 @@ def add_precache_processed_id(match_id):
         state['processed_ids'].append(str(match_id))
         save_precache_state(state)
 
-def process_single_match_worker(match_id):
+def process_single_match_worker(match_id, source_match=None):
     """Worker function for single match processing."""
     try:
         # Check if already processed in this session/state
         # (Though we check before submitting, keeping it robust)
         
         # Analyze
-        match_data = analizar_partido_completo(str(match_id))
+        match_data = analizar_partido_completo(
+            str(match_id), force_refresh=True, include_summary_stats=True,
+        )
         if match_data and not match_data.get('error'):
+            match_data['match_id'] = str(match_id)
+            if source_match:
+                # The results feed is authoritative for the final score and
+                # market lines; an analysis page can still show stale odds.
+                for key in ('start_time', 'match_date', 'time', 'handicap', 'goal_line'):
+                    if source_match.get(key) is not None:
+                        match_data[key] = source_match[key]
+                score = source_match.get('final_score') or source_match.get('score')
+                if score:
+                    match_data['score'] = match_data['final_score'] = score
+                odds = match_data.setdefault('main_match_odds', {})
+                if source_match.get('handicap') is not None:
+                    odds['ah_linea'] = source_match['handicap']
+                if source_match.get('goal_line') is not None:
+                    odds['goals_linea'] = source_match['goal_line']
+            from scripts.cloud_cache_pipeline import quality_error
+            issue = quality_error(match_data, 'finished')
+            if issue:
+                return False, match_id, None, issue
             saved = save_match_to_json(match_data)
-            add_processed_id(match_id)
+            if saved:
+                add_processed_id(match_id)
             bucket = sql_store.get_match_bucket(str(match_id)) if saved else None
             status = 'saved' if saved else 'filtered'
-            return True, match_id, bucket, status
+            return bool(saved), match_id, bucket, status
         else:
             return False, match_id, None, 'scrape_error'
             
@@ -3690,21 +3713,15 @@ def process_all_finished_matches_background(
     try:
         # 1. Obtener partidos (usando filtros si existen)
         # Traemos MUCHOS para filtrar luego si es necesario, o confiamos en el endpoint
-        matches = asyncio.run(get_main_page_finished_matches_async(
-            limit=2000, 
-            offset=0, 
-            handicap_filter=handicap_filter, 
-            goal_line_filter=goal_line_filter
-        ))
-        
+        from modules.nowgoal_fetcher import fetch_main_page_matches_direct
+        matches = fetch_main_page_matches_direct(
+            status_filter='finished', limit=None,
+            handicap_filter=handicap_filter,
+            goal_line_filter=goal_line_filter,
+            require_handicap=True, require_goal_line=True,
+        )
         if not matches:
-            print("⚠️ [BACKGROUND] No hay partidos terminados en caché local. Intentando scraping directo...")
-            matches = asyncio.run(scrape_main_page_finished_matches_async_direct(
-                limit=2000, 
-                offset=0, 
-                handicap_filter=handicap_filter, 
-                goal_line_filter=goal_line_filter
-            ))
+            raise RuntimeError('La fuente de resultados no devolvió partidos terminados; se conserva la caché anterior')
         
         print(f"Se encontraron {len(matches)} partidos candidatos.")
         
@@ -3713,10 +3730,14 @@ def process_all_finished_matches_background(
         processed_ids = set(state.get('processed_ids', []))
         
         # 3. Filtrar los que ya están hechos
+        from scripts.cloud_cache_pipeline import quality_error
         to_process = []
+        source_by_id = {}
         for m in matches:
             mid = str(m.get('id'))
-            if mid not in processed_ids:
+            source_by_id[mid] = m
+            cached = sql_store.get_match(mid) if mid in processed_ids else None
+            if mid not in processed_ids or not cached or quality_error(cached, 'finished'):
                 to_process.append(mid)
                 
         print(f"De los cuales {len(to_process)} son nuevos y se procesarán.")
@@ -3749,7 +3770,9 @@ def process_all_finished_matches_background(
                     break
 
                 try:
-                    success, _, bucket_name, status = process_single_match_worker(mid)
+                    success, _, bucket_name, status = process_single_match_worker(
+                        mid, source_match=source_by_id[mid],
+                    )
                 except Exception as worker_err:
                     print(f"Excepción en worker fijo {worker_idx} para {mid}: {worker_err}")
                     success, bucket_name = False, None
@@ -3802,6 +3825,7 @@ def process_all_finished_matches_background(
         
     except Exception as e:
         print(f"Error fatal en proceso de background: {e}")
+        raise
 
 
 
@@ -3810,6 +3834,75 @@ process_all_finished_matches_background_with_workers = process_all_finished_matc
 
 # --- BACKGROUND CONTROL ---
 STOP_CACHE_EVENT = threading.Event()
+
+
+@app.route('/api/precacheo_trigger_bots', methods=['POST'])
+def api_precacheo_trigger_bots():
+    """Dispatch the validated GitHub cache workflow from the Pre-Cacheo page."""
+    trigger_key = os.getenv('ACTIONS_TRIGGER_KEY', '').strip()
+    if trigger_key and request.headers.get('X-Trigger-Key', '') != trigger_key:
+        return jsonify({'error': 'Clave de activación incorrecta', 'requires_key': True}), 401
+    token = (os.getenv('GITHUB_ACTIONS_TOKEN') or os.getenv('GH_TOKEN') or '').strip()
+    if not token:
+        return jsonify({'error': 'Falta GITHUB_ACTIONS_TOKEN en el servidor'}), 503
+    payload = request.get_json(silent=True) or {}
+    kind = payload.get('kind')
+    if kind not in {'finished', 'upcoming'}:
+        return jsonify({'error': 'Tipo de cacheo no válido'}), 400
+    try:
+        workers = min(6, max(1, int(payload.get('workers') or 3)))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Número de workers no válido'}), 400
+    repo = os.getenv('GITHUB_ACTIONS_REPO') or os.getenv('GITHUB_REPOSITORY') or 'dgb173/Version_Util_Render'
+    if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo):
+        return jsonify({'error': 'Repositorio GitHub no válido'}), 500
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'}
+    candidates = (
+        [('cachear-terminados-10x.yml', 'workers_per_bot'),
+         ('cachear-terminados-5x.yml', 'workers_per_bot'),
+         ('cachear-terminados.yml', 'workers')]
+        if kind == 'finished' else [('actualizar-lista-proximos.yml', 'workers')]
+    )
+    incompatible_inputs = False
+    for workflow, worker_field in candidates:
+        if incompatible_inputs and worker_field == 'workers_per_bot':
+            continue
+        inputs = {'handicap': str(payload.get('handicap') or 'all'),
+                  'ou': str(payload.get('ou') or 'all'), worker_field: str(workers)}
+        if workflow == 'cachear-terminados.yml':
+            inputs['flush_every'] = '100'
+        url = f'https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches'
+        try:
+            response = requests.post(url, headers=headers,
+                                     json={'ref': 'main', 'inputs': inputs}, timeout=15)
+        except requests.RequestException as exc:
+            return jsonify({'error': f'GitHub no responde: {exc}'}), 502
+        if response.status_code == 204:
+            return jsonify({'status': 'ok', 'message': 'Bots activados en GitHub Actions',
+                            'run_url': f'https://github.com/{repo}/actions/workflows/{workflow}'})
+        if response.status_code not in {404, 422}:
+            return jsonify({'error': f'GitHub rechazó el disparo (HTTP {response.status_code})'}), 502
+        if response.status_code == 422:
+            incompatible_inputs = True
+    return jsonify({'error': 'No se encontró un workflow compatible en GitHub'}), 502
+
+
+@app.route('/api/import_github_finished', methods=['POST'])
+def api_import_github_finished():
+    """Import finished artifacts into the local SQLite used by Explorer."""
+    if os.getenv('RENDER') or request.remote_addr not in {'127.0.0.1', '::1'}:
+        return jsonify({'error': 'La importación solo está disponible en el servidor local'}), 403
+    script = Path(__file__).resolve().parent.parent / 'scripts' / 'sync_finished_artifacts_local.py'
+    try:
+        result = subprocess.run(
+            [sys.executable, str(script)], cwd=str(script.parent.parent),
+            capture_output=True, text=True, timeout=900, check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return jsonify({'error': 'La importación superó los 15 minutos'}), 504
+    if result.returncode:
+        return jsonify({'error': (result.stderr or result.stdout).strip()[-1000:]}), 500
+    return jsonify({'status': 'ok', 'message': (result.stdout or 'Importación completada').strip()[-1000:]})
 
 @app.route('/api/stop_background_cache', methods=['POST'])
 def api_stop_background_cache():
@@ -6052,6 +6145,9 @@ def api_team_recent_history():
         parent_match_id = ''.join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
         league_id = str(payload.get('league_id') or '').strip()
         force_refresh = bool(payload.get('force_refresh'))
+        force_live = bool(payload.get('force_live'))
+        team_id = str(payload.get('team_id') or '').strip()
+        opponent_name = str(payload.get('opponent_name') or '').strip()
 
         if not team_name:
             return jsonify({'status': 'error', 'error': 'Falta el nombre del equipo'}), 400
@@ -6062,6 +6158,9 @@ def api_team_recent_history():
             parent_match_id=parent_match_id,
             league_id=league_id,
             force_refresh=force_refresh,
+            force_live=force_live,
+            team_id=team_id,
+            opponent_name=opponent_name,
         )
         status_code = 200 if res.get('status') == 'success' else 500
         return jsonify(res), status_code

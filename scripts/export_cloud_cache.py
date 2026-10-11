@@ -1,6 +1,7 @@
 """Stream complete cache exports without loading all fixtures into memory."""
 import argparse
 import datetime as dt
+import gzip
 import json
 from pathlib import Path
 import sys
@@ -11,9 +12,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def records(root, kind):
     seen = set()
-    for path in sorted((root / 'data/cache_archive' / kind).glob('*.json')):
-        row = json.loads(path.read_text(encoding='utf-8'))
-        seen.add(str(row.get('match_id') or row.get('id')))
+    archive = root / 'data/cache_archive' / kind
+    for path in sorted([*archive.glob('*.json'), *archive.glob('*.json.gz')]):
+        if path.suffix == '.gz':
+            with gzip.open(path, 'rt', encoding='utf-8') as handle:
+                row = json.load(handle)
+        else:
+            row = json.loads(path.read_text(encoding='utf-8'))
+        match_id = str(row.get('match_id') or row.get('id'))
+        if match_id in seen:
+            continue
+        seen.add(match_id)
         yield row
     import ijson
     files = [root / 'data/data_precacheo.json', root / 'data/data_pending_results.json'] if kind == 'upcoming' else [*sorted((root / 'data').glob('data_ah_*.json')), *sorted((root / 'data').glob('data_minus_ah_*.json'))]

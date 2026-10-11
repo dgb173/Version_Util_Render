@@ -137,7 +137,7 @@ def _process_bootstrap_lock():
         if handle.tell() == 0:
             handle.write("0")
             handle.flush()
-        handle.seek(0)
+        start_time = time.time()
         while True:
             try:
                 if sys.platform == "win32":
@@ -146,6 +146,9 @@ def _process_bootstrap_lock():
                     fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
             except (OSError, IOError):
+                if time.time() - start_time > 5.0:
+                    LOGGER.warning("Timeout esperando bootstrap lock (%s). Continuando.", BOOTSTRAP_LOCK_FILE)
+                    break
                 time.sleep(0.1)
         yield
     finally:

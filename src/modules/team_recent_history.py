@@ -380,6 +380,7 @@ def get_team_recent_history(
     team_id: Optional[str] = None,
     force_refresh: bool = False,
     force_live: bool = False,
+    opponent_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     clean_team = str(team_name or "").strip()
     if not clean_team:
@@ -387,7 +388,8 @@ def get_team_recent_history(
 
     clean_mid = "".join(filter(str.isdigit, str(match_id or "")))
     clean_parent = "".join(filter(str.isdigit, str(parent_match_id or "")))
-    cache_key = f"v4:{clean_team.lower()}:{clean_mid}:{clean_parent}"
+    clean_opp = str(opponent_name or "").strip()
+    cache_key = f"v5:{clean_team.lower()}:{clean_mid}:{clean_parent}:{clean_opp.lower()}"
 
     cache = _read_cache()
     if not force_refresh and not force_live and cache_key in cache:
@@ -399,13 +401,12 @@ def get_team_recent_history(
 
     # Recuperar datos del partido padre para inferir contexto de oponente y estadios neutrales
     parent_data: Dict[str, Any] = {}
-    opponent_name = ""
     opponent_is_home = False
     is_neutral = False
     opp_matches_primary: List[Dict[str, Any]] = []
     opp_matches_secondary: List[Dict[str, Any]] = []
 
-    lookup_parent_id = clean_parent or clean_mid
+    lookup_parent_id = clean_parent
     if lookup_parent_id:
         try:
             parent_data = data_manager.get_precacheo_match(lookup_parent_id) or sql_store.get_match(lookup_parent_id) or {}
@@ -414,18 +415,34 @@ def get_team_recent_history(
                 p_away = str(parent_data.get("away_name") or parent_data.get("away") or "").strip()
                 is_neutral = bool(parent_data.get("is_neutral_venue") or parent_data.get("neutral") or False)
 
-                if _same_team(clean_team, p_away):
-                    opponent_name = p_home
-                    opponent_is_home = True
-                    opp_matches_primary = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
-                    opp_matches_secondary = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
-                elif _same_team(clean_team, p_home):
-                    opponent_name = p_away
-                    opponent_is_home = False
-                    opp_matches_primary = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
-                    opp_matches_secondary = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
+                has_explicit_custom_opp = bool(clean_opp and not _same_team(clean_opp, p_home) and not _same_team(clean_opp, p_away))
+
+                if not has_explicit_custom_opp:
+                    if _same_team(clean_team, p_away):
+                        clean_opp = p_home
+                        opponent_is_home = True
+                    elif _same_team(clean_team, p_home):
+                        clean_opp = p_away
+                        opponent_is_home = False
+                    elif not clean_opp:
+                        clean_opp = p_home
+                        opponent_is_home = True
+                    else:
+                        opponent_is_home = _same_team(clean_opp, p_home)
+                else:
+                    opponent_is_home = _same_team(clean_opp, p_home)
+
+                if clean_opp:
+                    if opponent_is_home:
+                        opp_matches_primary = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
+                        opp_matches_secondary = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
+                    else:
+                        opp_matches_primary = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
+                        opp_matches_secondary = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
         except Exception as exc:
             LOGGER.warning("Error resolviendo oponente desde parent %s: %s", lookup_parent_id, exc)
+
+    opponent_name = clean_opp
 
     # 0. Si se solicita en vivo (force_live) o se dispone de team_id, consultar NowGoal directamente
     resolved_team_id = team_id or resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)

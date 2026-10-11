@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Limpia los JSONs temporales de GitHub tras volcarlos a la base de datos local para ahorrar espacio.",
     )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Importa la carpeta data/ completa en lugar de solo precacheo y pendientes.",
+    )
     return parser.parse_args()
 
 
@@ -53,18 +58,28 @@ def run_git_pull() -> bool:
         return False
 
 
-def sync_jsons_to_sql() -> None:
+def sync_jsons_to_sql(full: bool = False) -> None:
     print("\n=== 2. Importando datos a tu base SQLite local (data/app_data.db) ===")
     data_dir = PROJECT_ROOT / "data"
     if not data_dir.exists():
         print(f"Carpeta de datos no encontrada: {data_dir}")
         return
 
-    # Guardar sys.argv original
+    targets = []
+    if full:
+        targets = [data_dir]
+    else:
+        for fname in ["data_precacheo.json", "data_pending_results.json"]:
+            fp = data_dir / fname
+            if fp.exists():
+                targets.append(fp)
+
     orig_argv = list(sys.argv)
     try:
-        sys.argv = [str(PROJECT_ROOT / "scripts" / "import_json_to_sql.py"), str(data_dir)]
-        import_json_to_sql.main()
+        for target in targets:
+            print(f"  -> Importando {target.name}...")
+            sys.argv = [str(PROJECT_ROOT / "scripts" / "import_json_to_sql.py"), str(target)]
+            import_json_to_sql.main()
     finally:
         sys.argv = orig_argv
 
@@ -83,7 +98,7 @@ def main() -> int:
     args = parse_args()
     print("=== SINCRONIZADOR CLOUD -> LOCAL SQLITE ===")
     run_git_pull()
-    sync_jsons_to_sql()
+    sync_jsons_to_sql(full=args.full)
     
     if args.clean_remote:
         clean_and_push_repo()

@@ -20,12 +20,31 @@ def collect_rows(results_dir: Path) -> list[dict]:
     if not paths:
         raise RuntimeError("No finished-cache result artifacts were found")
 
+    manifest_path = ROOT / "prepared" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else None
+    if manifest and manifest.get("kind") == "finished":
+        expected_shards = set(range(int(manifest["shards"])))
+        found_shards = {int(path.stem.split("_")[-1]) for path in paths}
+        if found_shards != expected_shards or len(paths) != len(expected_shards):
+            raise RuntimeError("Incomplete or duplicate finished-cache artifacts")
+
     rows: list[dict] = []
     seen: set[str] = set()
     for path in paths:
         payload = json.loads(path.read_text(encoding="utf-8"))
         if payload.get("kind") != "finished":
             raise ValueError(f"Unexpected cache kind in {path}")
+        if manifest:
+            shard = int(payload.get("shard", -1))
+            expected = {
+                mid(row) for row in json.loads(
+                    (ROOT / "prepared" / f"jobs_{shard}.json").read_text(encoding="utf-8")
+                )
+            }
+            actual = [mid(row) for row in payload.get("rows") or []]
+            actual += [mid(item["source"]) for item in payload.get("failures") or []]
+            if shard not in expected_shards or set(actual) != expected or len(actual) != len(expected):
+                raise RuntimeError(f"Incomplete finished-cache artifact: {path}")
         for row in payload.get("rows") or []:
             match_id = mid(row)
             error = quality_error(row, "finished")
@@ -40,11 +59,9 @@ def collect_rows(results_dir: Path) -> list[dict]:
 
 def sync_rows(rows: list[dict]) -> int:
     if not os.getenv("LIBSQL_URL", "").strip():
-        print("Aviso: LIBSQL_URL no está configurada. Omitiendo sincronización con Turso.")
-        return 0
+        raise RuntimeError("LIBSQL_URL no está configurada; los artefactos siguen disponibles para importar en local")
     if not os.getenv("LIBSQL_AUTH_TOKEN", "").strip():
-        print("Aviso: LIBSQL_AUTH_TOKEN no está configurada. Omitiendo sincronización con Turso.")
-        return 0
+        raise RuntimeError("LIBSQL_AUTH_TOKEN no está configurado; los artefactos siguen disponibles para importar en local")
 
     try:
         # GitHub Actions writes directly to Turso. It never downloads a local
@@ -66,8 +83,7 @@ def sync_rows(rows: list[dict]) -> int:
         sql_store.upsert_matches(entries)
         return len(entries)
     except Exception as exc:
-        print(f"Aviso: La sincronización a Turso no está disponible o la base de datos está bloqueada ({exc}). Omitiendo sincronización.")
-        return 0
+        raise RuntimeError(f"No se pudieron sincronizar los terminados con Turso: {exc}") from exc
 
 
 def main() -> int:

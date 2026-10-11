@@ -12,12 +12,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FAST_DIR = PROJECT_ROOT / "data" / ".precacheo_fast"
 INDEX_FILE = FAST_DIR / "index.json"
 
+import os
+
 _INDEX_LOCK = threading.Lock()
 _INDEX_MTIME_NS = -1
 _INDEX_ROWS: List[Dict[str, Any]] = []
 
 
 def available() -> bool:
+    # El fast store es exclusivo para Render (servidor efímero en la nube sin base de datos local persistente).
+    # En local (Windows o entornos con app_data.db completa), se utiliza siempre SQLite nativo para tener los datos en tiempo real.
+    if not os.getenv("RENDER"):
+        return False
     return INDEX_FILE.is_file()
 
 

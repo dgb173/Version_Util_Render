@@ -126,6 +126,7 @@ jobs:
           pattern: cache-result-*
           path: results
       - name: Sincronizar terminados con el Explorador
+        id: turso_sync
         if: inputs.kind == 'finished'
         continue-on-error: true
         env:
@@ -139,3 +140,8 @@ jobs:
           KIND: ${{ inputs.kind }}
           GH_TOKEN: ${{ github.token }}
         run: python scripts/publish_cloud_cache.py --kind "$KIND"
+      - name: Informar bloqueo de Turso sin perder los artefactos
+        if: inputs.kind == 'finished' && steps.turso_sync.outcome == 'failure'
+        run: |
+          echo 'Los análisis completos están en los artefactos cache-result-* de este run; Turso no recibió los datos.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
