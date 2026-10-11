@@ -20,7 +20,7 @@ try:
 except Exception:
     nowgoal_fetcher = None
 
-URL_NOWGOAL = "https://live20.nowgoal25.com/"
+URL_NOWGOAL = "https://live.nowgoal50.com/"
 REQUEST_TIMEOUT_SECONDS = 12
 _REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",

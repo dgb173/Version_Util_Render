@@ -21,6 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from zoneinfo import ZoneInfo
 import requests
 from requests.adapters import HTTPAdapter
+from urllib.parse import urlparse
 import urllib3
 from urllib3.util.retry import Retry
 
@@ -31,6 +32,9 @@ SPAIN_TZ = ZoneInfo("Europe/Madrid")
 UTC_TZ = dt.timezone.utc
 
 NOWGOAL_BASE_HOSTS = [
+    "https://live.nowgoal50.com",
+    "https://live1.nowgoal50.com",
+    "https://www.nowgoal50.com",
     "https://live11.nowgoal26.com",
     "https://live10.nowgoal26.com",
     "https://live20.nowgoal25.com",
@@ -180,12 +184,11 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
     endpoints = [
         "/gf/data/bf_en-idn.js",
         "/gf/data/bf_en-idn1.js",
-        "/gf/data/bf_en-idn2.js",
         "/gf/data/bf_en.js",
-        "/gf/data/bf_en1.js",
-        "/gf/data/bf_en2.js",
         "/gf/data/bf_change_en.js",
     ]
+
+    from urllib.parse import urlparse
 
     for host in NOWGOAL_BASE_HOSTS:
         try:
@@ -193,9 +196,12 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
             if home_resp.status_code != 200:
                 continue
 
+            parsed_home = urlparse(home_resp.url)
+            effective_host = f"{parsed_home.scheme}://{parsed_home.netloc}" if parsed_home.netloc else host.rstrip("/")
+
             session.headers.update({
                 "Accept": "*/*",
-                "Referer": f"{host}/",
+                "Referer": f"{effective_host}/",
                 "Sec-Fetch-Dest": "script",
                 "Sec-Fetch-Mode": "no-cors",
                 "Sec-Fetch-Site": "same-origin",
@@ -203,7 +209,7 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
 
             combined = []
             for ep in endpoints:
-                url = f"{host}{ep}"
+                url = f"{effective_host}{ep}"
                 try:
                     resp = session.get(
                         url,
@@ -219,13 +225,13 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
 
             if combined:
                 odds: Dict[str, Dict[str, str]] = {}
-                xml_headers = {"Accept": "*/*", "Referer": f"{host}/"}
+                xml_headers = {"Accept": "*/*", "Referer": f"{effective_host}/"}
                 # Cobertura de All: SBOBet, Crown y Bet365. Una casa puede no
                 # cotizar una liga que sí aparece en otra.
                 for cid in ("31", "3", "8"):
                     try:
                         odds_resp = session.get(
-                            f"{host}/gf/data/odds/en/goal{cid}.xml",
+                            f"{effective_host}/gf/data/odds/en/goal{cid}.xml",
                             params={"_": int(time.time() * 1000)},
                             timeout=6,
                             verify=False,
@@ -240,14 +246,14 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
                             if market.get("goal_line") not in (None, ""):
                                 current["goal_line"] = market["goal_line"]
                     except Exception as exc:
-                        LOGGER.debug("Error fetching goal%s.xml on %s: %s", cid, host, exc)
+                        LOGGER.debug("Error fetching goal%s.xml on %s: %s", cid, effective_host, exc)
 
                 text_result = "\n".join(combined)
                 return (text_result, odds) if return_odds else text_result
 
             # Fallback a bf_en.js si los anteriores fallaron
             for ep in ["/gf/data/bf_en.js", "/gf/data/bf_change_en.js"]:
-                url = f"{host}{ep}"
+                url = f"{effective_host}{ep}"
                 try:
                     resp = session.get(
                         url,
@@ -290,10 +296,6 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
     bf_endpoints = (
         "/gf/data/finish/bf_en-idn.js",
         "/gf/data/finish/bf_en-idn1.js",
-        "/gf/data/finish/bf_en-idn2.js",
-        "/gf/data/finish/bf_en.js",
-        "/gf/data/finish/bf_en1.js",
-        "/gf/data/finish/bf_en2.js",
     )
     for host in NOWGOAL_BASE_HOSTS:
         results_url = f"{host}{NOWGOAL_RESULTS_PATH}"
@@ -301,9 +303,13 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
             page_resp = session.get(results_url, timeout=8, verify=False)
             if page_resp.status_code != 200:
                 continue
+
+            parsed_results = urlparse(page_resp.url)
+            effective_host = f"{parsed_results.scheme}://{parsed_results.netloc}" if parsed_results.netloc else host.rstrip("/")
+
             headers = {
                 "Accept": "*/*",
-                "Referer": results_url,
+                "Referer": page_resp.url,
                 "Sec-Fetch-Dest": "script",
                 "Sec-Fetch-Mode": "no-cors",
                 "Sec-Fetch-Site": "same-origin",
@@ -312,25 +318,25 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
             for endpoint in bf_endpoints:
                 try:
                     bf_resp = session.get(
-                        f"{host}{endpoint}",
+                        f"{effective_host}{endpoint}",
                         params={"_": int(time.time() * 1000)},
-                        timeout=10,
+                        timeout=5,
                         verify=False,
                         headers=headers,
                     )
                     if bf_resp.status_code == 200 and "A[" in bf_resp.text:
                         combined_texts.append(bf_resp.text)
                 except Exception as exc:
-                    LOGGER.debug("Error fetching finished endpoint %s on %s: %s", endpoint, host, exc)
+                    LOGGER.debug("Error fetching finished endpoint %s on %s: %s", endpoint, effective_host, exc)
 
             if combined_texts:
                 odds: Dict[str, Dict[str, str]] = {}
                 for cid in ("31", "3", "8"):
                     try:
                         odds_resp = session.get(
-                            f"{host}/gf/data/finish/goal{cid}.xml",
+                            f"{effective_host}/gf/data/finish/goal{cid}.xml",
                             params={"_": int(time.time() * 1000)},
-                            timeout=8,
+                            timeout=5,
                             verify=False,
                             headers=headers,
                         )
@@ -343,7 +349,7 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
                             if market.get("goal_line") not in (None, ""):
                                 current["goal_line"] = market["goal_line"]
                     except Exception as exc:
-                        LOGGER.debug("Error fetching finish goal%s.xml on %s: %s", cid, host, exc)
+                        LOGGER.debug("Error fetching finish goal%s.xml on %s: %s", cid, effective_host, exc)
                 return "\n".join(combined_texts), odds
         except Exception as exc:
             LOGGER.debug("Error during results handshake on %s: %s", host, exc)
@@ -527,7 +533,7 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             try:
-                page.goto("https://live11.nowgoal26.com/", wait_until="domcontentloaded", timeout=25000)
+                page.goto(f"{NOWGOAL_BASE_HOSTS[0]}/", wait_until="domcontentloaded", timeout=25000)
                 page.wait_for_timeout(4000)
 
                 raw_data = page.evaluate("""() => {
@@ -670,7 +676,7 @@ def fetch_finished_matches_with_playwright() -> List[Dict[str, Any]]:
             page = browser.new_page()
             try:
                 page.goto(
-                    f"https://live11.nowgoal26.com{NOWGOAL_RESULTS_PATH}",
+                    f"{NOWGOAL_BASE_HOSTS[0]}{NOWGOAL_RESULTS_PATH}",
                     wait_until="domcontentloaded",
                     timeout=25000,
                 )

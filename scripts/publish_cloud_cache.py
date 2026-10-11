@@ -29,11 +29,11 @@ def main():
             git('sparse-checkout', 'set', 'data', cwd=target)
             merge(SimpleNamespace(root=target, kind=args.kind, prepared=ROOT / 'prepared', results=ROOT / 'results'))
             git('config', 'user.name', 'github-actions[bot]', cwd=target)
-            git('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com', cwd=target)
-            paths = ['data.json', 'data/data.json', 'data/data_precacheo.json',
-                'data/data_pending_results.json', 'data/cache_control']
-            if args.kind != 'finished':
-                paths.append('data/cache_archive')
+            if args.kind == 'finished':
+                paths = ['data/cache_control']
+            else:
+                paths = ['data.json', 'data/data.json', 'data/data_precacheo.json',
+                    'data/data_pending_results.json', 'data/cache_control', 'data/cache_archive']
             git('add', '--', *paths, cwd=target)
             diff = git('diff', '--cached', '--quiet', cwd=target, check=False)
             if diff.returncode == 0:

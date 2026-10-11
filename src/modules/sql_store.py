@@ -1103,6 +1103,15 @@ def upsert_match(match_data: Dict, bucket: str, state: str) -> Tuple[Optional[st
         return _upsert_match(conn, match_data, bucket, state)
 
 
+def upsert_matches(entries: Iterable[Tuple[Dict, str, str]]) -> List[Tuple[Optional[str], str]]:
+    ensure_bootstrap()
+    results = []
+    with _connect() as conn:
+        for match_data, bucket, state in entries:
+            results.append(_upsert_match(conn, match_data, bucket, state))
+    return results
+
+
 def delete_match(match_id: str, bucket: Optional[str] = None, state: Optional[str] = None) -> bool:
     ensure_bootstrap()
     clauses = ["match_id = ?"]

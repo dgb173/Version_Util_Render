@@ -19,6 +19,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 from modules import sql_store  # noqa: E402
 from scripts.cloud_cache_pipeline import quality_error  # noqa: E402
 

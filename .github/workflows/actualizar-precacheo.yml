@@ -12,7 +12,7 @@ on:
         default: false
         type: boolean
   schedule:
-    - cron: "0 */3 * * *" # Cada 3 horas (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC)
+    - cron: "10 */3 * * *" # Cada 3 horas (00:10, 03:10, 06:10, 09:10, 12:10, 15:10, 18:10, 21:10 UTC)
 
 permissions:
   contents: write

@@ -355,7 +355,10 @@ def merge(args):
     if args.kind in ('list', 'upcoming'):
         write_json(root / 'data/cache_control/upcoming_snapshot.json', snapshot)
     write_json(root / f'data/cache_control/{args.kind}_retry.json', [f['source'] for f in failures])
-    counts = build_windows(root)
+    if args.kind != 'finished':
+        counts = build_windows(root)
+    else:
+        counts = {'upcoming': 0, 'pending': 0, 'archived_available': 0}
     status = dict(counts, kind=args.kind, saved=len(all_rows), failed=len(failures),
         available=manifest['available'], attempted=manifest['jobs'],
         status='partial' if failures else 'complete', completed_at=dt.datetime.now(UTC).isoformat(),

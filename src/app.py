@@ -176,7 +176,7 @@ def save_match_to_json_thread_safe(match_data):
 
 
 # --- Mantén tu lógica para la página principal ---
-URL_NOWGOAL = "https://live20.nowgoal25.com/"
+URL_NOWGOAL = "https://live.nowgoal50.com/"
 
 REQUEST_TIMEOUT_SECONDS = 12
 _REQUEST_HEADERS = {
