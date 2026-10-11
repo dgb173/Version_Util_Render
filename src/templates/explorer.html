@@ -3656,7 +3656,13 @@
                 // Volver a vista individual
                 if (dialog) {
                     dialog.classList.remove('size-compare');
-                    dialog.style.width = window._teamHistoryModalState?.width || '500px';
+                    const singleW = window._teamHistoryModalState?.width ? parseInt(window._teamHistoryModalState.width) : 500;
+                    dialog.style.width = `${singleW}px`;
+                    if (window._teamHistoryModalState && window._teamHistoryModalState.left !== undefined) {
+                        dialog.style.left = `${window._teamHistoryModalState.left}px`;
+                    } else {
+                        dialog.style.left = `${Math.max(15, window.innerWidth - singleW - 25)}px`;
+                    }
                 }
                 if (compBtn) {
                     compBtn.classList.remove('btn-primary', 'text-white');
@@ -3671,7 +3677,9 @@
             if (dialog) {
                 dialog.classList.remove('size-compact', 'size-medium', 'size-large');
                 dialog.classList.add('size-compare');
-                dialog.style.width = 'min(1040px, 98vw)';
+                const targetW = Math.min(1040, Math.floor(window.innerWidth * 0.98));
+                dialog.style.width = `${targetW}px`;
+                dialog.style.left = `${Math.max(10, Math.floor((window.innerWidth - targetW) / 2))}px`;
             }
             if (compBtn) {
                 compBtn.classList.remove('btn-outline-primary');
