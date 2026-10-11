@@ -3670,6 +3670,7 @@
                     compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
                 }
                 renderTeamHistoryModalContent();
+                if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
                 return;
             }
 
@@ -3687,8 +3688,8 @@
                 compBtn.innerHTML = `<i class="fa-solid fa-table-columns me-1"></i>Vista Simple`;
             }
 
-            let oppName = '';
-            if (window._currentTeamHistoryParentMatchId) {
+            let oppName = window._currentTeamHistoryOpponentName || (data && data.opponent_name) || '';
+            if (!oppName && window._currentTeamHistoryParentMatchId) {
                 const pMid = String(window._currentTeamHistoryParentMatchId);
                 const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
                     || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
@@ -3700,12 +3701,10 @@
                     else if (cur.toLowerCase() === a.toLowerCase()) oppName = h;
                 }
             }
-            if (!oppName) {
-                oppName = window._currentTeamHistoryOpponentName || (data && data.opponent_name) || '';
-            }
 
             if (!oppName) {
                 renderTeamHistoryModalContent();
+                if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
                 return;
             }
 
@@ -3726,9 +3725,11 @@
             if (!window._currentOpponentHistoryData || String(window._currentOpponentHistoryData.team_name || '').toLowerCase() !== String(oppName).toLowerCase()) {
                 window._opponentTeamHistoryLoading = true;
                 renderTeamHistoryModalContent();
+                if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
                 await loadOpponentHistoryData(oppName);
             } else {
                 renderTeamHistoryModalContent();
+                if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
             }
         }
 
@@ -3758,52 +3759,62 @@
             } finally {
                 window._opponentTeamHistoryLoading = false;
                 renderTeamHistoryModalContent();
+                if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
             }
         }
 
         function setTeamHistoryLimit(limit) {
             window._teamHistoryLimit = limit;
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function setOpponentLimit(limit) {
             window._opponentHistoryLimit = limit;
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function setTeamHistoryVenueFilter(venue) {
             window._currentTeamHistoryVenueFilter = venue;
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function setOpponentVenueFilter(venue) {
             window._currentOpponentVenueFilter = venue;
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function toggleTeamHistoryCommonFilter() {
             window._currentTeamHistoryCommonFilter = !window._currentTeamHistoryCommonFilter;
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function toggleTeamHistoryLeagueFilter(cb) {
             window._currentTeamHistoryLeagueFilter = !!(cb && cb.checked);
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function toggleOpponentLeagueFilter(cb) {
             window._currentOpponentLeagueFilter = !!(cb && cb.checked);
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function handleTeamHistorySearch(query) {
             window._currentTeamHistorySearchQuery = String(query || '').trim().toLowerCase();
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function handleOpponentSearch(query) {
             window._currentOpponentSearchQuery = String(query || '').trim().toLowerCase();
             renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
         function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
@@ -4084,41 +4095,247 @@
             }
         }
 
+        function closeInlineTeamHistory(pMid) {
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            const inlineContainer = document.getElementById('team-history-inline-' + parentId);
+            if (inlineContainer) {
+                inlineContainer.style.display = 'none';
+            }
+        }
+
+        async function toggleInlineTeamHistoryComparison(pMid) {
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            window._activeInlineParentMatchId = parentId;
+            const data = window._currentTeamHistoryData;
+            if (!data) return;
+
+            window._teamHistoryComparisonMode = !window._teamHistoryComparisonMode;
+
+            if (!window._teamHistoryComparisonMode) {
+                renderTeamHistoryInlineContent(parentId);
+                renderTeamHistoryModalContent();
+                return;
+            }
+
+            let oppName = window._currentTeamHistoryOpponentName || (data && data.opponent_name) || '';
+            if (!oppName && window._currentTeamHistoryParentMatchId) {
+                const pMidStr = String(window._currentTeamHistoryParentMatchId);
+                const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null)
+                    || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null);
+                if (pm) {
+                    const h = String(pm.home_name || pm.home || '').trim();
+                    const a = String(pm.away_name || pm.away || '').trim();
+                    const cur = String(data.team_name || window._currentTeamHistoryTeamName || '').trim();
+                    if (cur.toLowerCase() === h.toLowerCase()) oppName = a;
+                    else if (cur.toLowerCase() === a.toLowerCase()) oppName = h;
+                }
+            }
+
+            if (!oppName) {
+                renderTeamHistoryInlineContent(parentId);
+                renderTeamHistoryModalContent();
+                return;
+            }
+
+            data.opponent_name = oppName;
+            window._currentTeamHistoryOpponentName = oppName;
+
+            if (!window._currentOpponentVenueFilter || window._currentOpponentVenueFilter === 'all') {
+                if (window._currentOpponentDefaultVenue) {
+                    window._currentOpponentVenueFilter = window._currentOpponentDefaultVenue;
+                } else if (window._currentTeamHistoryVenueFilter === 'away') {
+                    window._currentOpponentVenueFilter = 'away';
+                } else if (window._currentTeamHistoryVenueFilter === 'home') {
+                    window._currentOpponentVenueFilter = 'home';
+                }
+            }
+
+            if (!window._currentOpponentHistoryData || String(window._currentOpponentHistoryData.team_name || '').toLowerCase() !== String(oppName).toLowerCase()) {
+                window._opponentTeamHistoryLoading = true;
+                renderTeamHistoryInlineContent(parentId);
+                renderTeamHistoryModalContent();
+                await loadOpponentHistoryData(oppName);
+            } else {
+                renderTeamHistoryInlineContent(parentId);
+                renderTeamHistoryModalContent();
+            }
+        }
+
+        async function refreshInlineTeamHistoryLive(pMid) {
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            const inlineContainer = document.getElementById('team-history-inline-' + parentId);
+            const btn = inlineContainer ? inlineContainer.querySelector('.team-history-inline-live-btn') : null;
+            const teamName = window._currentTeamHistoryTeamName;
+            if (!teamName) return;
+
+            const originalBtnHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i>Actualizando...`;
+            }
+
+            try {
+                const response = await fetch('/api/team_recent_history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        team_name: teamName,
+                        match_id: window._currentTeamHistoryMatchId || '',
+                        parent_match_id: window._currentTeamHistoryParentMatchId || '',
+                        league_id: window._currentTeamHistoryLeagueId || '',
+                        team_id: window._currentTeamHistoryTeamId || '',
+                        opponent_name: window._currentTeamHistoryOpponentName || '',
+                        force_live: true,
+                        force_refresh: true,
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudo actualizar en directo');
+                }
+
+                if (data.team_id) {
+                    window._currentTeamHistoryTeamId = String(data.team_id);
+                }
+                if (data.opponent_name) {
+                    window._currentTeamHistoryOpponentName = String(data.opponent_name).trim();
+                }
+
+                const cacheKey = `${teamName.toLowerCase()}:${window._currentTeamHistoryMatchId || ''}:${window._currentTeamHistoryParentMatchId || ''}:${window._currentTeamHistoryOpponentName.toLowerCase()}`;
+                window._teamHistoryCache[cacheKey] = data;
+                window._currentTeamHistoryData = data;
+                renderTeamHistoryInlineContent(parentId);
+                renderTeamHistoryModalContent();
+            } catch (err) {
+                alert(`Error al sincronizar con NowGoal: ${err.message}`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml || `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
+                }
+            }
+        }
+
+        function renderTeamHistoryInlineContent(pMid) {
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            const inlineContainer = document.getElementById('team-history-inline-' + parentId);
+            if (!inlineContainer) return;
+
+            const data = window._currentTeamHistoryData;
+            if (!data) return;
+
+            const headTitle = inlineContainer.querySelector('.team-history-inline-title');
+            const headSub = inlineContainer.querySelector('.team-history-inline-subtitle');
+            const compBtn = inlineContainer.querySelector('.team-history-inline-compare-btn');
+            const bodyEl = inlineContainer.querySelector('.team-history-inline-body');
+            if (!bodyEl) return;
+
+            const oppName = data.opponent_name || window._currentTeamHistoryOpponentName || '';
+
+            if (window._teamHistoryComparisonMode) {
+                if (compBtn) {
+                    compBtn.classList.remove('btn-outline-primary');
+                    compBtn.classList.add('btn-primary', 'text-white');
+                    compBtn.innerHTML = `<i class="fa-solid fa-table-columns me-1"></i>Vista Simple`;
+                }
+                if (headTitle) {
+                    headTitle.innerHTML = `<span class="text-primary">${escapeTeamHistoryHtml(data.team_name)}</span> <span class="text-muted fw-normal" style="font-size:.76rem;">vs</span> <span class="text-warning text-dark">${escapeTeamHistoryHtml(oppName || 'Rival')}</span>`;
+                }
+                if (headSub) {
+                    headSub.innerHTML = `(Comparativa en paralelo)`;
+                }
+
+                if (window._opponentTeamHistoryLoading) {
+                    bodyEl.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(data, false)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="p-5 text-center bg-white rounded border shadow-sm">
+                                    <div class="spinner-border text-primary mb-2" role="status" style="width: 1.8rem; height: 1.8rem;"></div>
+                                    <div class="fw-bold text-dark small">Cargando partidos de ${escapeTeamHistoryHtml(oppName)}...</div>
+                                    <div class="text-muted small" style="font-size:.65rem;">Consultando historial y cuotas AH del visitante</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (window._currentOpponentHistoryData) {
+                    const oppData = window._currentOpponentHistoryData;
+                    const teamVenue = window._currentTeamHistoryDefaultVenue || (data.opponent_is_home === true ? 'away' : (data.opponent_is_home === false ? 'home' : ''));
+                    const oppVenue = window._currentOpponentDefaultVenue || (data.opponent_is_home === true ? 'home' : (data.opponent_is_home === false ? 'away' : ''));
+
+                    let leftData = data;
+                    let rightData = oppData;
+                    let leftIsOpp = false;
+                    let rightIsOpp = true;
+
+                    if (teamVenue === 'away' && oppVenue === 'home') {
+                        leftData = oppData;
+                        rightData = data;
+                        leftIsOpp = true;
+                        rightIsOpp = false;
+                    }
+
+                    if (headTitle) {
+                        headTitle.innerHTML = `<span class="text-primary">${escapeTeamHistoryHtml(leftData.team_name)}</span> <span class="text-muted fw-normal" style="font-size:.76rem;">vs</span> <span class="text-primary">${escapeTeamHistoryHtml(rightData.team_name)}</span>`;
+                    }
+
+                    bodyEl.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(leftData, leftIsOpp)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(rightData, rightIsOpp)}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6">
+                                ${renderTeamHistorySinglePanel(data, false)}
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="p-4 text-center bg-white rounded border shadow-sm">
+                                    <div class="alert alert-info py-2 px-3 small mb-0">
+                                        <i class="fa-solid fa-circle-info me-1"></i>No se encontró información del rival en este partido.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (compBtn) {
+                    compBtn.classList.remove('btn-primary', 'text-white');
+                    compBtn.classList.add('btn-outline-primary');
+                    compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+                }
+                if (headTitle) {
+                    headTitle.innerHTML = `${escapeTeamHistoryHtml(data.team_name)}`;
+                }
+                if (headSub) {
+                    const allMatches = data.matches || [];
+                    headSub.innerHTML = `(${allMatches.length} partidos · AH y Stats)`;
+                }
+                bodyEl.innerHTML = renderTeamHistorySinglePanel(data, false);
+            }
+        }
+
         async function openTeamHistoryPopup(teamName, matchId, parentMatchId, leagueId, event, teamId, opponentName, defaultVenue, opponentDefaultVenue) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             if (!teamName) return;
 
-            const modalEl = document.getElementById('teamHistoryModal');
-            if (!modalEl) return;
-            const dialog = document.getElementById('teamHistoryModalDialog');
-            const modalTitle = document.getElementById('teamHistoryModalLabel');
-            const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
-            const modalBody = document.getElementById('teamHistoryModalBody');
-            const liveBtn = document.getElementById('teamHistoryLiveBtn');
-            const compBtn = document.getElementById('teamHistoryCompareBtn');
-
-            // Asegurar que al abrir o interactuar con el modal flotante NO se bloquee la página de abajo
-            if (!modalEl.__floatingEventsInit) {
-                modalEl.__floatingEventsInit = true;
-                modalEl.addEventListener('show.bs.modal', () => {
-                    document.body.classList.add('has-team-history-floating');
-                });
-                modalEl.addEventListener('shown.bs.modal', () => {
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = 'auto';
-                    document.body.style.paddingRight = '';
-                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-                });
-                modalEl.addEventListener('hidden.bs.modal', () => {
-                    document.body.classList.remove('has-team-history-floating');
-                    document.body.style.overflow = '';
-                });
-            }
-
             const cleanTeam = String(teamName).trim();
+            const pMid = String(parentMatchId || matchId || '').replace(/\D/g, '');
+            const inlineContainer = document.getElementById('team-history-inline-' + pMid);
+
+            window._activeInlineParentMatchId = pMid;
             window._currentTeamHistoryTeamName = cleanTeam;
             window._currentTeamHistoryMatchId = String(matchId || '').trim();
-            window._currentTeamHistoryParentMatchId = String(parentMatchId || matchId || '').replace(/\D/g, '');
+            window._currentTeamHistoryParentMatchId = pMid;
             window._currentTeamHistoryLeagueId = String(leagueId || '').trim();
             window._currentTeamHistoryTeamId = String(teamId || '').trim();
             window._currentTeamHistoryOpponentName = String(opponentName || '').trim();
@@ -4129,70 +4346,12 @@
             window._teamHistoryComparisonMode = false;
             window._currentOpponentHistoryData = null;
             window._opponentTeamHistoryLoading = false;
-            if (compBtn) {
-                compBtn.classList.remove('btn-primary', 'text-white');
-                compBtn.classList.add('btn-outline-primary');
-                compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
-            }
-
-            if (liveBtn) {
-                liveBtn.disabled = false;
-                liveBtn.classList.remove('btn-success', 'text-white');
-                liveBtn.classList.add('btn-outline-success');
-                liveBtn.innerHTML = `<i class="fa-solid fa-arrows-rotate me-1"></i>Al día`;
-            }
-
-            if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${escapeTeamHistoryHtml(cleanTeam)}`;
-            if (modalSubtitle) modalSubtitle.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
-            if (modalBody) {
-                modalBody.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
-                        <p class="mt-2 text-muted fw-bold small mb-0">Cargando partidos de ${escapeTeamHistoryHtml(cleanTeam)}...</p>
-                    </div>
-                `;
-            }
-
-            // Posicionar o restaurar posición previa del usuario
-            if (dialog) {
-                dialog.style.position = 'fixed';
-                dialog.classList.remove('size-compare');
-                if (window._teamHistoryModalState && window._teamHistoryModalState.left !== undefined) {
-                    dialog.style.left = `${window._teamHistoryModalState.left}px`;
-                    dialog.style.top = `${window._teamHistoryModalState.top}px`;
-                    if (window._teamHistoryModalState.width) {
-                        dialog.style.width = window._teamHistoryModalState.width;
-                    }
-                } else {
-                    dialog.style.top = '75px';
-                    const initialW = 500;
-                    dialog.style.width = `${initialW}px`;
-                    dialog.style.left = `${Math.max(15, window.innerWidth - initialW - 25)}px`;
-                }
-                dialog.style.right = 'auto';
-                dialog.style.bottom = 'auto';
-                dialog.style.margin = '0';
-            }
-
-            const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modalInstance.show();
-
-            // Desbloquear de inmediato el scroll y eventos del fondo
-            setTimeout(() => {
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = 'auto';
-                document.body.style.paddingRight = '';
-                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-            }, 30);
-
-            initTeamHistoryDraggable();
 
             // Configurar filtros por defecto (Visitante por defecto en Fuera, Local por defecto en Casa)
             let initialTeamVenue = defaultVenue || '';
             let initialOppVenue = opponentDefaultVenue || '';
 
             if (!initialTeamVenue && window._currentTeamHistoryParentMatchId) {
-                const pMid = String(window._currentTeamHistoryParentMatchId);
                 const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
                     || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
                 if (pm) {
@@ -4226,6 +4385,53 @@
             window._currentOpponentSearchQuery = '';
             window._opponentHistoryLimit = 10;
 
+            // Preferir SIEMPRE el contenedor inline en la fila debajo de la tabla
+            if (inlineContainer) {
+                inlineContainer.style.display = 'block';
+                const bodyEl = inlineContainer.querySelector('.team-history-inline-body');
+                if (bodyEl) {
+                    bodyEl.innerHTML = `
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+                            <p class="mt-2 text-muted fw-bold small mb-0">Cargando partidos de ${escapeTeamHistoryHtml(cleanTeam)}...</p>
+                        </div>
+                    `;
+                }
+                const headTitle = inlineContainer.querySelector('.team-history-inline-title');
+                const headSub = inlineContainer.querySelector('.team-history-inline-subtitle');
+                const compBtn = inlineContainer.querySelector('.team-history-inline-compare-btn');
+                if (headTitle) headTitle.innerHTML = `${escapeTeamHistoryHtml(cleanTeam)}`;
+                if (headSub) headSub.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
+                if (compBtn) {
+                    compBtn.classList.remove('btn-primary', 'text-white');
+                    compBtn.classList.add('btn-outline-primary');
+                    compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+                }
+
+                // Scroll suave hasta la fila inline
+                inlineContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                // Fallback modal solo si no existe el contenedor inline en la plantilla
+                const modalEl = document.getElementById('teamHistoryModal');
+                if (modalEl) {
+                    const modalTitle = document.getElementById('teamHistoryModalLabel');
+                    const modalSubtitle = document.getElementById('teamHistoryModalSubtitle');
+                    const modalBody = document.getElementById('teamHistoryModalBody');
+                    if (modalTitle) modalTitle.innerHTML = `<i class="fa-solid fa-shield-halved me-1 text-primary"></i>${escapeTeamHistoryHtml(cleanTeam)}`;
+                    if (modalSubtitle) modalSubtitle.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
+                    if (modalBody) {
+                        modalBody.innerHTML = `
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+                                <p class="mt-2 text-muted fw-bold small mb-0">Cargando partidos de ${escapeTeamHistoryHtml(cleanTeam)}...</p>
+                            </div>
+                        `;
+                    }
+                    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modalInstance.show();
+                }
+            }
+
             const applyVenueDefaults = (d) => {
                 if (!initialTeamVenue && d) {
                     if (d.opponent_is_home === true) {
@@ -4239,6 +4445,7 @@
                         window._currentTeamHistoryDefaultVenue = 'home';
                         window._currentOpponentDefaultVenue = 'home';
                     }
+                }
             };
 
             const cacheKey = `${cleanTeam.toLowerCase()}:${matchId || ''}:${parentMatchId || ''}:${window._currentTeamHistoryOpponentName.toLowerCase()}`;
@@ -4251,6 +4458,7 @@
                     window._currentTeamHistoryOpponentName = String(window._currentTeamHistoryData.opponent_name).trim();
                 }
                 applyVenueDefaults(window._currentTeamHistoryData);
+                renderTeamHistoryInlineContent(pMid);
                 renderTeamHistoryModalContent();
                 return;
             }
@@ -4283,14 +4491,27 @@
                 applyVenueDefaults(data);
                 window._teamHistoryCache[cacheKey] = data;
                 window._currentTeamHistoryData = data;
+                renderTeamHistoryInlineContent(pMid);
                 renderTeamHistoryModalContent();
             } catch (err) {
-                if (modalBody) {
-                    modalBody.innerHTML = `
-                        <div class="alert alert-danger my-2 py-2 px-3 small">
-                            <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${escapeTeamHistoryHtml(err.message)}
-                        </div>
-                    `;
+                if (inlineContainer) {
+                    const bodyEl = inlineContainer.querySelector('.team-history-inline-body');
+                    if (bodyEl) {
+                        bodyEl.innerHTML = `
+                            <div class="alert alert-danger my-2 py-2 px-3 small">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${escapeTeamHistoryHtml(err.message)}
+                            </div>
+                        `;
+                    }
+                } else {
+                    const modalBody = document.getElementById('teamHistoryModalBody');
+                    if (modalBody) {
+                        modalBody.innerHTML = `
+                            <div class="alert alert-danger my-2 py-2 px-3 small">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>Error: ${escapeTeamHistoryHtml(err.message)}
+                            </div>
+                        `;
+                    }
                 }
             }
         }
@@ -4726,6 +4947,10 @@
                     modalSubtitle.innerHTML = `${allMatches.length} partidos cargados · Cuotas AH y Estadísticas`;
                 }
                 modalBody.innerHTML = renderTeamHistorySinglePanel(data, false);
+            }
+
+            if (window._activeInlineParentMatchId) {
+                renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
             }
         }
     </script>
@@ -7543,13 +7768,17 @@
                             ? '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó en Casa (Local)">H</span>'
                             : '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>';
 
+                        const rivalVenue = isSubjectHome ? 'away' : 'home';
+                        const counterpartTeam = isSubjectHome ? (role === 'home' ? opponentTeam : teamName) : (role === 'home' ? teamName : opponentTeam);
+                        const counterpartVenue = rivalVenue;
+
                         // 1. Fila de Escritorio (PC - 100% Idéntica)
                         tableRows.push(`<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date" title="${esc(rowDate)}">${venueBadge}${esc(shortRowDate)}</td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:3px;">
-                                    <span class="pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(rival)}', '${esc(rowMatchId)}', '${esc(parentMatchId)}', '${esc(leagueId)}', event, '', '${esc(teamName)}', '${role === 'home' ? 'home' : 'away'}', '${role === 'home' ? 'home' : 'away'}')" title="Ver historial de ${esc(rival)} (Casa, Fuera, AH)">${esc(rival || '-')}</span>
+                                    <span class="pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(rival)}', '${esc(rowMatchId)}', '${esc(parentMatchId)}', '${esc(leagueId)}', event, '', '${esc(counterpartTeam)}', '${rivalVenue}', '${counterpartVenue}')" title="Ver historial de ${esc(rival)} (Casa, Fuera, AH)">${esc(rival || '-')}</span>
                                     <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
                                         <button type="button" class="pre-context-vs-btn" onclick="quickCompareVsOpponent(this, event, '${esc(role)}', '${esc(rival)}')" title="Comparar '${esc(rival)}' vs ${esc(opponentTeam)} (${esc(opponentRoleLabel)}) en la tabla de abajo">
                                             <i class="fa-solid fa-code-compare"></i>${esc(vsBtnLabel)}
@@ -7647,7 +7876,7 @@
                 return `<div class="pre-context-team" data-default-role="${esc(role)}">
                     <div class="pre-context-team-head">
                         <div class="pre-context-team-title-wrap">
-                            <span class="pre-context-team-name pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(teamName)}', '', '${esc(parentMatchId)}', '${esc(currentLeagueId)}', event, '', '${esc(opponentTeam)}', '${role === 'home' ? 'home' : 'away'}', '${role === 'home' ? 'home' : 'away'}')" title="Ver historial completo de ${esc(teamName)} (Casa, Fuera, AH)">${esc(teamName)}</span>
+                            <span class="pre-context-team-name pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(teamName)}', '', '${esc(parentMatchId)}', '${esc(currentLeagueId)}', event, '', '${esc(opponentTeam)}', '${role === 'home' ? 'home' : 'away'}', '${role === 'home' ? 'away' : 'home'}')" title="Ver historial completo de ${esc(teamName)} (Casa, Fuera, AH)">${esc(teamName)}</span>
                             <button type="button" class="pre-context-pick-btn ms-1" style="padding:1px 5px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.58rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(teamName)}')" title="Seleccionar '${esc(teamName)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot me-1"></i>Comparar</button>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
@@ -7836,6 +8065,30 @@
                     </div>
                 `;
 
+                const inlineTeamHistoryHtml = `
+                    <div class="pre-context-team-history-inline" id="team-history-inline-${esc(parentMatchId)}" style="display:none; margin:10px 10px 14px; padding:12px; background:#f8fafc; border:1.5px solid #3b82f6; border-radius:10px; box-shadow:0 4px 14px rgba(37,99,235,0.08);">
+                        <div class="team-history-inline-head d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2 mb-2 border-bottom" style="border-color:#e2e8f0 !important;">
+                            <div class="d-flex align-items-center gap-2 flex-wrap" style="min-width:0;">
+                                <span class="badge bg-primary" style="font-size:.65rem; padding:3px 7px;"><i class="fa-solid fa-clock-rotate-left me-1"></i>HISTORIAL RIVAL</span>
+                                <span class="team-history-inline-title fw-bold text-dark" style="font-size:.84rem;"></span>
+                                <span class="team-history-inline-subtitle text-muted small" style="font-size:.70rem;"></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 team-history-inline-live-btn" style="font-size:.65rem; font-weight:800; height:26px;" onclick="refreshInlineTeamHistoryLive('${esc(parentMatchId)}')">
+                                    <i class="fa-solid fa-arrows-rotate me-1"></i>Al día
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 team-history-inline-compare-btn" style="font-size:.65rem; font-weight:800; height:26px;" onclick="toggleInlineTeamHistoryComparison('${esc(parentMatchId)}')">
+                                    <i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.65rem; font-weight:800; height:26px;" onclick="closeInlineTeamHistory('${esc(parentMatchId)}')" title="Cerrar esta fila">
+                                    <i class="fa-solid fa-xmark me-1"></i>Cerrar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="team-history-inline-body"></div>
+                    </div>
+                `;
+
                 return `<section class="pre-context-moment">
                     <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
                     ${mobileTabsHtml}
@@ -7844,6 +8097,7 @@
                         ${renderTeam(momentAway, 'away', moment.away_matches, (moment.away_matches_all && moment.away_matches_all.length) ? moment.away_matches_all : ((pc?.recent_away_matches_all && pc.recent_away_matches_all.length) ? pc.recent_away_matches_all : ((pc?.recent_away_matches_same_league_general && pc.recent_away_matches_same_league_general.length) ? pc.recent_away_matches_same_league_general : moment.away_matches)), awayAllVenues)}
                     </div>
                     ${customCompareHtml}
+                    ${inlineTeamHistoryHtml}
                 </section>`;
             };
 
