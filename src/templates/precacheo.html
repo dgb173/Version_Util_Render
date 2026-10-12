@@ -18405,48 +18405,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
             const matchObj = activeData?.matches?.[idx] || null;
 
-            let compCardHtml = '';
-            if (matchObj && matchObj.has_common_rival && matchObj.comparative_match) {
-                const cm = matchObj.comparative_match;
-                const myEvalCode = matchObj.ah_eval?.code;
-                const myBadgeClass = (myEvalCode === 'COVER' || myEvalCode === 'HALF_WIN') ? 'bg-success' : ((myEvalCode === 'NO_COVER' || myEvalCode === 'HALF_LOSS') ? 'bg-danger' : 'bg-secondary');
-                const oppEvalCode = cm.ah_eval?.code;
-                const oppBadgeClass = (oppEvalCode === 'COVER' || oppEvalCode === 'HALF_WIN') ? 'bg-success' : ((oppEvalCode === 'NO_COVER' || oppEvalCode === 'HALF_LOSS') ? 'bg-danger' : 'bg-secondary');
-
-                compCardHtml = `
-                    <div class="p-2 mb-2 rounded border shadow-sm" style="background:#fffbeb; border-color:#fcd34d !important;">
-                        <div class="d-flex align-items-center justify-content-between mb-1 fw-bold text-dark small" style="font-size:.67rem;">
-                            <span><i class="fa-solid fa-code-compare me-1 text-warning"></i>Comparativa Directa vs ${escapeTeamHistoryHtml(matchObj.rival)}</span>
-                            <span class="badge bg-warning text-dark" style="font-size:.56rem;">Rival en Común</span>
-                        </div>
-                        <div class="row g-1 text-center" style="font-size:.66rem;">
-                            <div class="col-6">
-                                <div class="p-1 rounded bg-white border">
-                                    <div class="fw-bold text-truncate text-primary" style="font-size:.68rem;">${escapeTeamHistoryHtml(activeData?.team_name || homeTeam)}</div>
-                                    <div class="fw-bold ${matchObj.wdl === 'W' ? 'text-success' : (matchObj.wdl === 'L' ? 'text-danger' : 'text-warning')}" style="font-size:.78rem;">${matchObj.score}</div>
-                                    <div>AH: <strong>${matchObj.ah}</strong> · <span class="badge ${myBadgeClass}" style="font-size:.55rem; padding:1px 3px;">${matchObj.ah_eval?.label || '-'}</span></div>
-                                    <div class="text-muted" style="font-size:.55rem;">${matchObj.date || '-'}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-1 rounded bg-white border">
-                                    <div class="fw-bold text-truncate text-secondary" style="font-size:.68rem;">${escapeTeamHistoryHtml(cm.opponent_name)}</div>
-                                    <div class="fw-bold ${cm.wdl === 'W' ? 'text-success' : (cm.wdl === 'L' ? 'text-danger' : 'text-warning')}" style="font-size:.78rem;">${cm.score_display}</div>
-                                    <div>AH: <strong>${cm.ah}</strong> · <span class="badge ${oppBadgeClass}" style="font-size:.55rem; padding:1px 3px;">${cm.ah_eval?.label || '-'}</span></div>
-                                    <div class="text-muted" style="font-size:.55rem;">${cm.date || '-'}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
             if (cell.dataset.loaded === '1') {
                 return;
             }
 
             cell.innerHTML = `
-                ${compCardHtml}
                 <div class="text-center py-2 text-muted small" style="font-size:.68rem;">
                     <i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...
                 </div>
@@ -18479,10 +18442,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const stats = data.stats || [];
                 cell.dataset.loaded = '1';
-                cell.innerHTML = compCardHtml + formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
+                cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
             } catch (err) {
                 cell.innerHTML = `
-                    ${compCardHtml}
                     <div class="alert alert-warning py-1 px-2 my-1 small d-flex justify-content-between align-items-center" style="font-size:.65rem;">
                         <span><i class="fa-solid fa-triangle-exclamation me-1"></i>${err.message || 'Sin estadísticas disponibles'}</span>
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event, '${escapeTeamHistoryHtml(leagueId)}', '${panelPrefix}')">Reintentar</button>
