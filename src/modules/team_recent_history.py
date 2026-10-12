@@ -394,7 +394,8 @@ def get_team_recent_history(
     cache = _read_cache()
     if not force_refresh and not force_live and cache_key in cache:
         cached_entry = cache[cache_key]
-        if cached_entry and (time.time() - cached_entry.get("timestamp", 0)) < 86400:
+        cached_matches = cached_entry.get("data", {}).get("matches", []) if cached_entry else []
+        if cached_entry and len(cached_matches) > 1 and (time.time() - cached_entry.get("timestamp", 0)) < 86400:
             return {"status": "success", "cached": True, **cached_entry.get("data", {})}
 
     raw_matches: List[Dict[str, Any]] = []
@@ -444,20 +445,35 @@ def get_team_recent_history(
 
     opponent_name = clean_opp
 
-    # 0. Si se solicita en vivo (force_live) o se dispone de team_id, consultar NowGoal directamente
-    resolved_team_id = team_id or resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)
-    is_live_loaded = False
-    if force_live and resolved_team_id:
-        try:
-            live_matches = fetch_live_team_matches(clean_team, resolved_team_id)
-            if live_matches:
-                raw_matches = live_matches
-                is_live_loaded = True
-        except Exception as exc:
-            LOGGER.warning("Error obteniendo partidos en vivo para %s (ID %s): %s", clean_team, resolved_team_id, exc)
+    # 1. Si el equipo analizado pertenece al partido padre (local o visitante),
+    # los partidos precacheados del parent_data tienen maxima fidelidad y prioridad absoluta.
+    p_home = str(parent_data.get("home_name") or parent_data.get("home") or "").strip() if parent_data else ""
+    p_away = str(parent_data.get("away_name") or parent_data.get("away") or "").strip() if parent_data else ""
+    is_parent_home = bool(parent_data and _same_team(clean_team, p_home))
+    is_parent_away = bool(parent_data and _same_team(clean_team, p_away))
 
-    # 1. Intentar scrapear directamente desde el match_id indicado si difiere del equipo padre
-    if not raw_matches and clean_mid:
+    if is_parent_home:
+        raw_matches = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
+    elif is_parent_away:
+        raw_matches = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
+
+    # 2. Si se solicita en vivo (force_live) explícitamente, consultar NowGoal directamente
+    resolved_team_id = team_id
+    is_live_loaded = False
+    if force_live:
+        if not resolved_team_id:
+            resolved_team_id = resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)
+        if resolved_team_id:
+            try:
+                live_matches = fetch_live_team_matches(clean_team, resolved_team_id)
+                if live_matches:
+                    raw_matches = live_matches
+                    is_live_loaded = True
+            except Exception as exc:
+                LOGGER.warning("Error obteniendo partidos en vivo para %s (ID %s): %s", clean_team, resolved_team_id, exc)
+
+    # 3. Intentar scrapear directamente desde el match_id indicado solo si no es un equipo del partido padre
+    if not raw_matches and clean_mid and not (is_parent_home or is_parent_away):
         try:
             soup = es._load_main_match_soup(clean_mid)
             if soup:
@@ -468,10 +484,8 @@ def get_team_recent_history(
         except Exception as exc:
             LOGGER.warning("Error extrayendo partidos para %s con match_id %s: %s", clean_team, clean_mid, exc)
 
-    # 2. Si no hubo partidos directos, usar los partidos cacheados del parent_data
+    # 4. Respaldo adicional con parent_data si no se cargó previamente
     if not raw_matches and parent_data:
-        p_home = str(parent_data.get("home_name") or parent_data.get("home") or "").strip()
-        p_away = str(parent_data.get("away_name") or parent_data.get("away") or "").strip()
         if _same_team(clean_team, p_home):
             raw_matches = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
         elif _same_team(clean_team, p_away):

@@ -3722,6 +3722,10 @@
                 }
             }
 
+            if (window._currentTeamHistoryLeagueFilter) {
+                window._currentOpponentLeagueFilter = true;
+            }
+
             if (!window._currentOpponentHistoryData || String(window._currentOpponentHistoryData.team_name || '').toLowerCase() !== String(oppName).toLowerCase()) {
                 window._opponentTeamHistoryLoading = true;
                 renderTeamHistoryModalContent();
@@ -3741,7 +3745,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         team_name: oppName,
-                        match_id: window._currentTeamHistoryMatchId || '',
+                        match_id: '',
                         parent_match_id: window._currentTeamHistoryParentMatchId || '',
                         league_id: window._currentTeamHistoryLeagueId || '',
                         team_id: window._currentTeamHistoryData?.opponent_team_id || '',
@@ -4336,7 +4340,15 @@
             window._currentTeamHistoryTeamName = cleanTeam;
             window._currentTeamHistoryMatchId = String(matchId || '').trim();
             window._currentTeamHistoryParentMatchId = pMid;
-            window._currentTeamHistoryLeagueId = String(leagueId || '').trim();
+            let effLeagueId = String(leagueId || '').trim();
+            if (!effLeagueId || effLeagueId === '-') {
+                const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
+                    || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
+                if (pm) {
+                    effLeagueId = String(pm.league_id || pm.league || pm.league_name || '').trim();
+                }
+            }
+            window._currentTeamHistoryLeagueId = effLeagueId;
             window._currentTeamHistoryTeamId = String(teamId || '').trim();
             window._currentTeamHistoryOpponentName = String(opponentName || '').trim();
             window._currentTeamHistoryDefaultVenue = defaultVenue || '';
@@ -4372,16 +4384,17 @@
                 initialOppVenue = initialTeamVenue;
             }
 
+            const hasLeague = Boolean(effLeagueId && effLeagueId !== '-');
             window._currentTeamHistoryDefaultVenue = initialTeamVenue || window._currentTeamHistoryDefaultVenue || '';
             window._currentOpponentDefaultVenue = initialOppVenue || window._currentOpponentDefaultVenue || '';
             window._currentTeamHistoryVenueFilter = initialTeamVenue || 'all';
             window._currentTeamHistoryCommonFilter = false;
-            window._currentTeamHistoryLeagueFilter = false;
+            window._currentTeamHistoryLeagueFilter = hasLeague;
             window._currentTeamHistorySearchQuery = '';
             window._teamHistoryLimit = 10;
 
             window._currentOpponentVenueFilter = initialOppVenue || 'all';
-            window._currentOpponentLeagueFilter = false;
+            window._currentOpponentLeagueFilter = hasLeague;
             window._currentOpponentSearchQuery = '';
             window._opponentHistoryLimit = 10;
 
