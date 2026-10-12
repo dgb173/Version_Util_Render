@@ -4227,20 +4227,47 @@
                         </div>
                     `;
                 } else if (window._currentOpponentHistoryData) {
+                } else if (window._currentOpponentHistoryData) {
                     const oppData = window._currentOpponentHistoryData;
-                    const teamVenue = window._currentTeamHistoryDefaultVenue || (data.opponent_is_home === true ? 'away' : (data.opponent_is_home === false ? 'home' : ''));
-                    const oppVenue = window._currentOpponentDefaultVenue || (data.opponent_is_home === true ? 'home' : (data.opponent_is_home === false ? 'away' : ''));
+                    const pMid = window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+                    const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
+                        || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
+
+                    const parentHomeName = pm ? String(pm.home_name || pm.home || '').trim() : '';
+                    const parentAwayName = pm ? String(pm.away_name || pm.away || '').trim() : '';
+
+                    const isDataParentHome = Boolean(parentHomeName && (typeof sameTeamName === 'function' ? sameTeamName(data.team_name, parentHomeName) : data.team_name.toLowerCase() === parentHomeName.toLowerCase()));
+                    const isOppParentHome = Boolean(parentHomeName && (typeof sameTeamName === 'function' ? sameTeamName(oppData.team_name, parentHomeName) : oppData.team_name.toLowerCase() === parentHomeName.toLowerCase()));
+                    const isDataParentAway = Boolean(parentAwayName && (typeof sameTeamName === 'function' ? sameTeamName(data.team_name, parentAwayName) : data.team_name.toLowerCase() === parentAwayName.toLowerCase()));
+                    const isOppParentAway = Boolean(parentAwayName && (typeof sameTeamName === 'function' ? sameTeamName(oppData.team_name, parentAwayName) : oppData.team_name.toLowerCase() === parentAwayName.toLowerCase()));
 
                     let leftData = data;
                     let rightData = oppData;
                     let leftIsOpp = false;
                     let rightIsOpp = true;
 
-                    if (teamVenue === 'away' && oppVenue === 'home') {
+                    // Regla de orientación absoluta:
+                    // 1. Si el oponente es el LOCAL actual del partido padre, DEBE ir a la IZQUIERDA.
+                    if (isOppParentHome && !isDataParentHome) {
                         leftData = oppData;
                         rightData = data;
                         leftIsOpp = true;
                         rightIsOpp = false;
+                    } else if (isDataParentAway && !isOppParentAway) {
+                        // 2. Si el equipo base es el VISITANTE actual del partido padre, DEBE ir a la DERECHA.
+                        leftData = oppData;
+                        rightData = data;
+                        leftIsOpp = true;
+                        rightIsOpp = false;
+                    } else if (!isDataParentHome && !isOppParentHome && !isDataParentAway && !isOppParentAway) {
+                        const teamVenue = window._currentTeamHistoryDefaultVenue || '';
+                        const oppVenue = window._currentOpponentDefaultVenue || '';
+                        if (teamVenue === 'away' && oppVenue === 'home') {
+                            leftData = oppData;
+                            rightData = data;
+                            leftIsOpp = true;
+                            rightIsOpp = false;
+                        }
                     }
 
                     if (headTitle) {
@@ -4250,10 +4277,10 @@
                     bodyEl.innerHTML = `
                         <div class="row g-2">
                             <div class="col-12 col-lg-6">
-                                ${renderTeamHistorySinglePanel(leftData, leftIsOpp)}
+                                ${renderTeamHistorySinglePanel(leftData, leftIsOpp, 'left')}
                             </div>
                             <div class="col-12 col-lg-6">
-                                ${renderTeamHistorySinglePanel(rightData, rightIsOpp)}
+                                ${renderTeamHistorySinglePanel(rightData, rightIsOpp, 'right')}
                             </div>
                         </div>
                     `;
@@ -4564,7 +4591,7 @@
             }
         }
 
-        function renderTeamHistorySinglePanel(data, isOpponent = false) {
+        function renderTeamHistorySinglePanel(data, isOpponent = false, panelSide = '') {
             if (!data) return '';
             if (data.error) {
                 return `
@@ -4581,6 +4608,15 @@
             const teamName = data.team_name || 'Equipo';
             const opponentName = data.opponent_name || '';
             const hasCommonRivals = false;
+
+            const pMid = window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
+                || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
+            const parentHome = pm ? String(pm.home_name || pm.home || '').trim() : '';
+            const parentAway = pm ? String(pm.away_name || pm.away || '').trim() : '';
+
+            const isParentHome = Boolean(parentHome && (typeof sameTeamName === 'function' ? sameTeamName(teamName, parentHome) : teamName.toLowerCase() === parentHome.toLowerCase()));
+            const isParentAway = Boolean(parentAway && (typeof sameTeamName === 'function' ? sameTeamName(teamName, parentAway) : teamName.toLowerCase() === parentAway.toLowerCase()));
 
             const venueFilter = isOpponent ? (window._currentOpponentVenueFilter || 'all') : (window._currentTeamHistoryVenueFilter || 'all');
             const isCommonFilter = !isOpponent && !!window._currentTeamHistoryCommonFilter;
@@ -4622,21 +4658,39 @@
             const awayCount = allMatches.filter(m => m.venue === 'away').length;
 
             let roleBadge = '';
-            const oppIsHome = window._currentTeamHistoryData?.opponent_is_home === true;
-            const myDefaultVenue = isOpponent ? window._currentOpponentDefaultVenue : window._currentTeamHistoryDefaultVenue;
+            let panelStyle = 'background:#ffffff; border:1px solid #e2e8f0;';
 
-            if (myDefaultVenue === 'home') {
-                roleBadge = `<span class="badge bg-primary" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-house me-1"></i>LOCAL</span>`;
-            } else if (myDefaultVenue === 'away') {
-                roleBadge = `<span class="badge bg-warning text-dark fw-bold" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-plane me-1"></i>VISITANTE</span>`;
-            } else if (isOpponent) {
-                roleBadge = oppIsHome
-                    ? `<span class="badge bg-primary" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-house me-1"></i>LOCAL</span>`
-                    : `<span class="badge bg-warning text-dark fw-bold" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-plane me-1"></i>VISITANTE</span>`;
+            if (isParentHome) {
+                panelStyle = 'background:#f8fbff; border:1px solid #bfdbfe !important; border-top:3px solid #2563eb !important;';
+                roleBadge = `
+                    <span class="badge" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-size:.60rem; font-weight:800; padding:2px 5px;" title="Equipo Local del partido actual">
+                        <i class="fa-solid fa-house me-1"></i>LOCAL ACTUAL
+                    </span>
+                    <span class="badge" style="background:#ffffff; color:#2563eb; border:1px solid #bfdbfe; font-size:.56rem; font-weight:700; padding:1px 4px;">
+                        Partido de hoy
+                    </span>
+                `;
+            } else if (isParentAway) {
+                panelStyle = 'background:#fffcf8; border:1px solid #fed7aa !important; border-top:3px solid #ea580c !important;';
+                roleBadge = `
+                    <span class="badge" style="background:#ffedd5; color:#9a3412; border:1px solid #fdba74; font-size:.60rem; font-weight:800; padding:2px 5px;" title="Equipo Visitante del partido actual">
+                        <i class="fa-solid fa-plane me-1"></i>VISITANTE ACTUAL
+                    </span>
+                    <span class="badge" style="background:#ffffff; color:#ea580c; border:1px solid #fed7aa; font-size:.56rem; font-weight:700; padding:1px 4px;">
+                        Partido de hoy
+                    </span>
+                `;
             } else {
-                roleBadge = oppIsHome
-                    ? `<span class="badge bg-warning text-dark fw-bold" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-plane me-1"></i>VISITANTE</span>`
-                    : `<span class="badge bg-primary" style="font-size:.60rem; padding:2px 5px;"><i class="fa-solid fa-house me-1"></i>LOCAL</span>`;
+                const isLeftPanel = panelSide === 'left';
+                panelStyle = 'background:#fafbfc; border:1px solid #cbd5e1 !important; border-top:3px solid #64748b !important;';
+                roleBadge = `
+                    <span class="badge" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; font-size:.60rem; font-weight:800; padding:2px 5px;" title="Rival que se compara con el partido actual">
+                        <i class="fa-solid fa-code-compare me-1"></i>RIVAL COMPARADO
+                    </span>
+                    <span class="badge" style="background:#ffffff; color:#64748b; border:1px solid #cbd5e1; font-size:.56rem; font-weight:700; padding:1px 4px;">
+                        ${isLeftPanel ? 'Casa' : 'Fuera'}
+                    </span>
+                `;
             }
 
             let tableRowsHtml = '';
@@ -4717,12 +4771,12 @@
             const leagueFilterHandler = isOpponent ? 'toggleOpponentLeagueFilter' : 'toggleTeamHistoryLeagueFilter';
 
             return `
-                <div class="team-history-single-panel bg-white rounded border shadow-sm p-2 mb-2 d-flex flex-column" style="min-width:0;">
+                <div class="team-history-single-panel rounded shadow-sm p-2 mb-2 d-flex flex-column" style="min-width:0; ${panelStyle}">
                     <!-- Cabecera de Equipo con Rol (Local/Visitante) -->
                     <div class="d-flex align-items-center justify-content-between pb-1 mb-1 border-bottom">
-                        <div class="d-flex align-items-center gap-1 text-truncate" style="min-width:0;">
+                        <div class="d-flex align-items-center gap-1 text-truncate flex-wrap" style="min-width:0;">
                             ${roleBadge}
-                            <h6 class="fw-bold mb-0 text-truncate" style="font-size:.82rem; color:#1e3a5f;" title="${escapeTeamHistoryHtml(teamName)}">${escapeTeamHistoryHtml(teamName)}</h6>
+                            <h6 class="fw-bold mb-0 text-truncate ms-1" style="font-size:.82rem; color:#1e3a5f;" title="${escapeTeamHistoryHtml(teamName)}">${escapeTeamHistoryHtml(teamName)}</h6>
                         </div>
                         <div class="text-muted small text-nowrap" style="font-size:.62rem; font-weight:700;">
                             ${totalVis} partidos
@@ -4865,22 +4919,45 @@
                     `;
                 } else if (window._currentOpponentHistoryData) {
                     const oppData = window._currentOpponentHistoryData;
-                    const teamVenue = window._currentTeamHistoryDefaultVenue || (data.opponent_is_home === true ? 'away' : (data.opponent_is_home === false ? 'home' : ''));
-                    const oppVenue = window._currentOpponentDefaultVenue || (data.opponent_is_home === true ? 'home' : (data.opponent_is_home === false ? 'away' : ''));
+                    const pMid = window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+                    const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMid) : null)
+                        || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMid) : null);
 
-                    const teamIsAway = teamVenue === 'away';
-                    const oppIsHome = oppVenue === 'home';
+                    const parentHomeName = pm ? String(pm.home_name || pm.home || '').trim() : '';
+                    const parentAwayName = pm ? String(pm.away_name || pm.away || '').trim() : '';
+
+                    const isDataParentHome = Boolean(parentHomeName && (typeof sameTeamName === 'function' ? sameTeamName(data.team_name, parentHomeName) : data.team_name.toLowerCase() === parentHomeName.toLowerCase()));
+                    const isOppParentHome = Boolean(parentHomeName && (typeof sameTeamName === 'function' ? sameTeamName(oppData.team_name, parentHomeName) : oppData.team_name.toLowerCase() === parentHomeName.toLowerCase()));
+                    const isDataParentAway = Boolean(parentAwayName && (typeof sameTeamName === 'function' ? sameTeamName(data.team_name, parentAwayName) : data.team_name.toLowerCase() === parentAwayName.toLowerCase()));
+                    const isOppParentAway = Boolean(parentAwayName && (typeof sameTeamName === 'function' ? sameTeamName(oppData.team_name, parentAwayName) : oppData.team_name.toLowerCase() === parentAwayName.toLowerCase()));
 
                     let leftData = data;
                     let rightData = oppData;
                     let leftIsOpp = false;
                     let rightIsOpp = true;
 
-                    if (teamIsAway && oppIsHome) {
+                    // Regla de orientación absoluta:
+                    // 1. Si el oponente es el LOCAL actual del partido padre, DEBE ir a la IZQUIERDA.
+                    if (isOppParentHome && !isDataParentHome) {
                         leftData = oppData;
                         rightData = data;
                         leftIsOpp = true;
                         rightIsOpp = false;
+                    } else if (isDataParentAway && !isOppParentAway) {
+                        // 2. Si el equipo base es el VISITANTE actual del partido padre, DEBE ir a la DERECHA.
+                        leftData = oppData;
+                        rightData = data;
+                        leftIsOpp = true;
+                        rightIsOpp = false;
+                    } else if (!isDataParentHome && !isOppParentHome && !isDataParentAway && !isOppParentAway) {
+                        const teamVenue = window._currentTeamHistoryDefaultVenue || '';
+                        const oppVenue = window._currentOpponentDefaultVenue || '';
+                        if (teamVenue === 'away' && oppVenue === 'home') {
+                            leftData = oppData;
+                            rightData = data;
+                            leftIsOpp = true;
+                            rightIsOpp = false;
+                        }
                     }
 
                     if (modalTitle) {
@@ -4890,10 +4967,10 @@
                     modalBody.innerHTML = `
                         <div class="row g-2">
                             <div class="col-12 col-lg-6">
-                                ${renderTeamHistorySinglePanel(leftData, leftIsOpp)}
+                                ${renderTeamHistorySinglePanel(leftData, leftIsOpp, 'left')}
                             </div>
                             <div class="col-12 col-lg-6">
-                                ${renderTeamHistorySinglePanel(rightData, rightIsOpp)}
+                                ${renderTeamHistorySinglePanel(rightData, rightIsOpp, 'right')}
                             </div>
                         </div>
                     `;
