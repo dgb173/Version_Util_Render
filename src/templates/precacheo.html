@@ -18234,16 +18234,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             if (!Array.isArray(statsList) || !statsList.length) {
                 return `
-                    <div class="p-2 my-1 text-center" style="background:#ffffff; border:1px solid #cbd5e1; border-top:3px solid #059669 !important; border-radius:7px; box-shadow:0 1px 3px rgba(15,23,42,0.08);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.65rem; padding:2px 6px; border-radius:3px; border:1px solid #bbf7d0;">📊 ESTADÍSTICAS DEL PARTIDO</span>
-                                ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
-                                ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
+                    <div class="p-1 my-1 text-center" style="background:#ffffff; border:1px solid #cbd5e1; border-top:2px solid #059669 !important; border-radius:5px; box-shadow:0 1px 2px rgba(15,23,42,0.06); box-sizing:border-box; width:100%; max-width:100%; overflow:hidden;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; gap:4px; min-width:0;">
+                            <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
+                                <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap; flex-shrink:0;">📊 STATS</span>
+                                ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
+                                ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                             </div>
-                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
+                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
                         </div>
-                        <div class="text-muted small py-2" style="font-size:.65rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal para este partido</div>
+                        <div class="text-muted small py-1" style="font-size:.60rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal</div>
                     </div>
                 `;
             }
@@ -18326,18 +18326,18 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
 
                 const bg = rowIdx % 2 === 0 ? '#f8fafc' : '#ffffff';
-                const hDisplay = (s.isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapeTeamHistoryHtml(s.home)}</span>` : escapeTeamHistoryHtml(s.home);
-                const aDisplay = (s.isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapeTeamHistoryHtml(s.away)}</span>` : escapeTeamHistoryHtml(s.away);
+                const hDisplay = (s.isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.56rem;">🟥 ${escapeTeamHistoryHtml(s.home)}</span>` : escapeTeamHistoryHtml(s.home);
+                const aDisplay = (s.isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.56rem;">🟥 ${escapeTeamHistoryHtml(s.away)}</span>` : escapeTeamHistoryHtml(s.away);
 
                 return `
                     <tr style="background:${bg}; border-bottom:1px solid #e2e8f0;">
-                        <td style="width:25%; text-align:left; font-size:0.84rem; font-weight:${hWeight}; color:${hColor}; padding:4px 8px; border-right:1px solid #e2e8f0; overflow:hidden; white-space:nowrap;">
+                        <td style="width:22%; text-align:center; font-size:0.68rem; font-weight:${hWeight}; color:${hColor}; padding:2px 2px; border-right:1px solid #e2e8f0; overflow:hidden; white-space:nowrap;">
                             ${hDisplay}
                         </td>
-                        <td style="width:50%; text-align:center; font-size:0.68rem; color:#1e293b; font-weight:800; padding:4px 4px; border-right:1px solid #e2e8f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="font-size:0.72rem; margin-right:4px;">${s.icon}</span>${escapeTeamHistoryHtml(s.displayName)}
+                        <td style="width:56%; text-align:center; font-size:0.60rem; color:#1e293b; font-weight:700; padding:2px 2px; border-right:1px solid #e2e8f0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="font-size:0.64rem; margin-right:3px;">${s.icon}</span>${escapeTeamHistoryHtml(s.displayName)}
                         </td>
-                        <td style="width:25%; text-align:right; font-size:0.84rem; font-weight:${aWeight}; color:${aColor}; padding:4px 8px; overflow:hidden; white-space:nowrap;">
+                        <td style="width:22%; text-align:center; font-size:0.68rem; font-weight:${aWeight}; color:${aColor}; padding:2px 2px; overflow:hidden; white-space:nowrap;">
                             ${aDisplay}
                         </td>
                     </tr>
@@ -18345,41 +18345,41 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }).join('');
 
             return `
-                <div class="p-2 rounded border shadow-sm my-1" style="background:#ffffff; border:1px solid #cbd5e1; border-top:3px solid #059669 !important; border-radius:7px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; flex-wrap:nowrap; gap:6px;">
-                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap; overflow:hidden;">
-                            <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.65rem; padding:2px 6px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap;">📊 ESTADÍSTICAS DEL PARTIDO</span>
-                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.58rem; font-weight:800; padding:2px 5px; border-radius:3px; white-space:nowrap;">LIGA ${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
-                            ${effectiveDate ? `<span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
+                <div class="p-1 rounded border shadow-sm my-1" style="background:#ffffff; border:1px solid #cbd5e1; border-top:2px solid #059669 !important; border-radius:5px; box-sizing:border-box; width:100%; max-width:100%; overflow:hidden;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; gap:4px; min-width:0;">
+                        <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
+                            <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap; flex-shrink:0;">📊 STATS</span>
+                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
+                            ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                         </div>
-                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.63rem; cursor:pointer; white-space:nowrap;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
+                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
                     </div>
 
-                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:5px 7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                        <div style="flex:1 1 36%; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="color:${isTargetHome ? '#6d28d9' : '#166534'}; font-weight:900; font-size:.74rem;" title="${escapeTeamHistoryHtml(homeTeam)}">
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:3px 5px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:4px; min-width:0;">
+                        <div style="flex:1 1 0; min-width:0; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="color:${isTargetHome ? '#6d28d9' : '#166534'}; font-weight:800; font-size:.63rem;" title="${escapeTeamHistoryHtml(homeTeam)}">
                                 ${isTargetHome ? '🟣 ' : '🏠 '}${escapeTeamHistoryHtml(homeTeam)}
                             </span>
                         </div>
 
-                        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                            <div style="padding:2px 7px; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:.85rem; color:#0f172a; letter-spacing:1px; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
+                        <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;">
+                            <div style="padding:1px 5px; background:#ffffff; border:1px solid #cbd5e1; border-radius:3px; font-weight:900; font-size:.72rem; color:#0f172a; letter-spacing:0.5px;">
                                 ${escapeTeamHistoryHtml(effectiveScore || '-')}
                             </div>
-                            <div style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:2px 7px; border-radius:4px; border:1px solid #334155; font-size:.68rem; font-weight:900; box-shadow:0 1px 2px rgba(0,0,0,0.12);">
-                                <span style="color:#94a3b8; font-size:.56rem; margin-right:3px; text-transform:uppercase;">AH</span>
-                                <span style="color:#38bdf8; font-weight:900; font-size:.78rem;">${escapeTeamHistoryHtml(effectiveAh || '-')}</span>
+                            <div style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:1px 4px; border-radius:3px; border:1px solid #334155; font-size:.62rem; font-weight:900;">
+                                <span style="color:#94a3b8; font-size:.50rem; margin-right:2px; text-transform:uppercase;">AH</span>
+                                <span style="color:#38bdf8; font-weight:900; font-size:.68rem;">${escapeTeamHistoryHtml(effectiveAh || '-')}</span>
                             </div>
                         </div>
 
-                        <div style="flex:1 1 36%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="color:${isTargetAway ? '#6d28d9' : '#166534'}; font-weight:900; font-size:.74rem;" title="${escapeTeamHistoryHtml(awayTeam)}">
+                        <div style="flex:1 1 0; min-width:0; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="color:${isTargetAway ? '#6d28d9' : '#166534'}; font-weight:800; font-size:.63rem;" title="${escapeTeamHistoryHtml(awayTeam)}">
                                 ${escapeTeamHistoryHtml(awayTeam)}${isTargetAway ? ' 🟣' : ' ✈️'}
                             </span>
                         </div>
                     </div>
 
-                    <table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border:1px solid #e2e8f0; border-radius:5px; box-sizing:border-box; overflow:hidden;">
+                    <table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border:1px solid #e2e8f0; border-radius:4px; box-sizing:border-box; overflow:hidden;">
                         <tbody>
                             ${rowsHtml}
                         </tbody>
@@ -19191,7 +19191,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <td class="text-center py-1 px-1 ctx-stats">${statsBtn}</td>
                         </tr>
                         <tr id="th-stats-row-${prefix}-${idx}" class="th-stats-subrow" style="display:none; background:#f8fafc;">
-                            <td colspan="7" class="p-2 border-bottom" id="th-stats-cell-${prefix}-${idx}">
+                            <td colspan="7" class="p-1 border-bottom" id="th-stats-cell-${prefix}-${idx}" style="box-sizing:border-box; overflow:hidden;">
                                 <div class="text-center py-2 text-muted small"><i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...</div>
                             </td>
                         </tr>
