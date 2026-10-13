@@ -10013,7 +10013,7 @@
                 `;
 
                 const customCompareHtml = `
-                    <div class="pre-context-custom-compare" data-active-pointer="0" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" style="margin:8px 10px 10px; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px;">
+                    <div class="pre-context-custom-compare" data-active-pointer="0" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" style="margin:0; height:100%; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; display:flex; flex-direction:column;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; flex-wrap:wrap; gap:4px;">
                             <div>
                                 <span style="font-size:.74rem; font-weight:900; color:#1e293b;">
@@ -10048,7 +10048,7 @@
                 `;
 
                 const inlineTeamHistoryHtml = `
-                    <div class="pre-context-team-history-inline" id="team-history-inline-${esc(parentMatchId)}" style="display:none; margin:10px 10px 14px; padding:12px; background:#f8fafc; border:1.5px solid #3b82f6; border-radius:10px; box-shadow:0 4px 14px rgba(37,99,235,0.08);">
+                    <div class="pre-context-team-history-inline" id="team-history-inline-${esc(parentMatchId)}" style="display:none; margin:0; height:100%; padding:10px; background:#f8fafc; border:1.5px solid #3b82f6; border-radius:10px; box-shadow:0 4px 14px rgba(37,99,235,0.08);">
                         <div class="team-history-inline-head d-flex flex-wrap align-items-center justify-content-between gap-2 pb-2 mb-2 border-bottom" style="border-color:#e2e8f0 !important;">
                             <div class="d-flex align-items-center gap-2 flex-wrap" style="min-width:0;">
                                 <span class="badge bg-primary" style="font-size:.65rem; padding:3px 7px;"><i class="fa-solid fa-clock-rotate-left me-1"></i>HISTORIAL RIVAL</span>
@@ -10081,8 +10081,16 @@
                         </div>
                         <aside class="sofa-inline-column" aria-label="Clasificación de la competición"></aside>
                     </div>
-                    ${customCompareHtml}
-                    ${inlineTeamHistoryHtml}
+                    <div class="pre-context-compare-combined-container" id="compare-combined-container-${esc(parentMatchId)}" style="margin:8px 10px 12px;">
+                        <div class="row g-2 align-items-stretch pre-context-compare-combined-row" id="compare-combined-row-${esc(parentMatchId)}">
+                            <div class="col-12 pre-context-custom-compare-col" id="custom-compare-col-${esc(parentMatchId)}" style="transition:all 0.2s ease;">
+                                ${customCompareHtml}
+                            </div>
+                            <div class="col-12 pre-context-team-history-col" id="team-history-col-${esc(parentMatchId)}" style="display:none; transition:all 0.2s ease;">
+                                ${inlineTeamHistoryHtml}
+                            </div>
+                        </div>
+                    </div>
                 </section>`;
             };
 
@@ -18453,12 +18461,40 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
         }
 
+        function updateCompareCombinedLayout(pMid) {
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            if (!parentId) return;
+            const customCol = document.getElementById('custom-compare-col-' + parentId);
+            const historyCol = document.getElementById('team-history-col-' + parentId);
+            const inlineContainer = document.getElementById('team-history-inline-' + parentId);
+            if (!customCol || !historyCol) return;
+
+            const isHistoryVisible = inlineContainer && inlineContainer.style.display !== 'none';
+            const isComparisonMode = Boolean(window._teamHistoryComparisonMode);
+
+            if (!isHistoryVisible) {
+                customCol.className = 'col-12 pre-context-custom-compare-col';
+                historyCol.style.display = 'none';
+            } else if (isComparisonMode) {
+                // Modo Comparativa: 3 columnas juntas (1 col comparativa a la carta, 2 cols para los dos equipos de historial)
+                customCol.className = 'col-12 col-xl-4 col-lg-4 pre-context-custom-compare-col';
+                historyCol.style.display = 'block';
+                historyCol.className = 'col-12 col-xl-8 col-lg-8 pre-context-team-history-col';
+            } else {
+                // Modo Simple: 2 columnas juntas (1 col comparativa a la carta, 1 col historial del rival)
+                customCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-custom-compare-col';
+                historyCol.style.display = 'block';
+                historyCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-team-history-col';
+            }
+        }
+
         function closeInlineTeamHistory(pMid) {
             const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
             const inlineContainer = document.getElementById('team-history-inline-' + parentId);
             if (inlineContainer) {
                 inlineContainer.style.display = 'none';
             }
+            updateCompareCombinedLayout(parentId);
         }
 
         async function toggleInlineTeamHistoryComparison(pMid) {
@@ -18468,6 +18504,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!data) return;
 
             window._teamHistoryComparisonMode = !window._teamHistoryComparisonMode;
+            updateCompareCombinedLayout(parentId);
 
             if (!window._teamHistoryComparisonMode) {
                 renderTeamHistoryInlineContent(parentId);
@@ -18591,6 +18628,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const compBtn = inlineContainer.querySelector('.team-history-inline-compare-btn');
             const bodyEl = inlineContainer.querySelector('.team-history-inline-body');
             if (!bodyEl) return;
+            updateCompareCombinedLayout(parentId);
 
             const oppName = data.opponent_name || window._currentTeamHistoryOpponentName || '';
 
@@ -18785,6 +18823,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             // Preferir SIEMPRE el contenedor inline en la fila debajo de la tabla
             if (inlineContainer) {
                 inlineContainer.style.display = 'block';
+                updateCompareCombinedLayout(pMid);
                 const bodyEl = inlineContainer.querySelector('.team-history-inline-body');
                 if (bodyEl) {
                     bodyEl.innerHTML = `
