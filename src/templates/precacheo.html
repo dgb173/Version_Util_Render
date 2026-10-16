@@ -9775,8 +9775,8 @@
                             : '<span style="display:inline-block; font-size:.58rem; font-weight:900; background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; border-radius:3px; padding:0 3px; margin-right:3px; line-height:1.2;" title="Jugó Fuera (Visitante)">V</span>');
 
                         const rivalVenue = neutralLeague ? 'all' : (isSubjectHome ? 'away' : 'home');
-                        const counterpartTeam = teamName;
-                        const counterpartVenue = neutralLeague ? 'all' : (isSubjectHome ? 'home' : 'away');
+                        const comparisonTeam = opponentTeam;
+                        const comparisonVenue = neutralLeague ? 'all' : (role === 'home' ? 'away' : 'home');
 
                         // 1. Fila de Escritorio (PC - 100% Idéntica)
                         tableRows.push(`<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
@@ -9784,7 +9784,7 @@
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
                                 <div style="display:flex; align-items:center; justify-content:space-between; gap:3px;">
-                                    <span class="pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(rival)}', '${esc(rowMatchId)}', '${esc(parentMatchId)}', '${esc(leagueId)}', event, '', '${esc(counterpartTeam)}', '${rivalVenue}', '${counterpartVenue}')" title="Ver historial de ${esc(rival)} (Casa, Fuera, AH)">${esc(rival || '-')}</span>
+                                    <span class="pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(rival)}', '${esc(rowMatchId)}', '${esc(parentMatchId)}', '${esc(leagueId)}', event, '', '${esc(comparisonTeam)}', '${rivalVenue}', '${comparisonVenue}')" title="Ver historial de ${esc(rival)} (Casa, Fuera, AH)">${esc(rival || '-')}</span>
                                     <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
                                         <button type="button" class="pre-context-mini-stats-btn" onclick="toggleRowStatsFromMini(this, event)" title="Ver estadísticas de este partido debajo" style="padding:1px 5px; font-size:.58rem; font-weight:700; line-height:1.2; border:1px solid #10b981; border-radius:3px; background:#ecfdf5; color:#047857; cursor:pointer;"><i class="fa-solid fa-chart-simple"></i></button>
                                         <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
@@ -18179,14 +18179,26 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             data.opponent_name = oppName;
             window._currentTeamHistoryOpponentName = oppName;
 
-            // Si el oponente no tiene filtro asignado, heredar la condición solicitada (Visitante/Visitante o Local/Local)
+            // Si el oponente no tiene filtro asignado, usar su localía por defecto o deducirla del partido padre
             if (!window._currentOpponentVenueFilter || window._currentOpponentVenueFilter === 'all') {
                 if (window._currentOpponentDefaultVenue) {
                     window._currentOpponentVenueFilter = window._currentOpponentDefaultVenue;
+                } else if (window._currentTeamHistoryParentMatchId) {
+                    const pMidStr = String(window._currentTeamHistoryParentMatchId);
+                    const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null)
+                        || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null);
+                    if (pm) {
+                        const h = String(pm.home_name || pm.home || '').trim().toLowerCase();
+                        const a = String(pm.away_name || pm.away || '').trim().toLowerCase();
+                        const oppLower = oppName.toLowerCase();
+                        if (oppLower === h) window._currentOpponentVenueFilter = 'home';
+                        else if (oppLower === a) window._currentOpponentVenueFilter = 'away';
+                        else window._currentOpponentVenueFilter = 'all';
+                    }
                 } else if (window._currentTeamHistoryVenueFilter === 'away') {
-                    window._currentOpponentVenueFilter = 'away';
-                } else if (window._currentTeamHistoryVenueFilter === 'home') {
                     window._currentOpponentVenueFilter = 'home';
+                } else if (window._currentTeamHistoryVenueFilter === 'home') {
+                    window._currentOpponentVenueFilter = 'away';
                 }
             }
 
@@ -18666,10 +18678,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!window._currentOpponentVenueFilter || window._currentOpponentVenueFilter === 'all') {
                 if (window._currentOpponentDefaultVenue) {
                     window._currentOpponentVenueFilter = window._currentOpponentDefaultVenue;
+                } else if (window._currentTeamHistoryParentMatchId) {
+                    const pMidStr = String(window._currentTeamHistoryParentMatchId);
+                    const pm = (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null)
+                        || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '') === pMidStr) : null);
+                    if (pm) {
+                        const h = String(pm.home_name || pm.home || '').trim().toLowerCase();
+                        const a = String(pm.away_name || pm.away || '').trim().toLowerCase();
+                        const oppLower = oppName.toLowerCase();
+                        if (oppLower === h) window._currentOpponentVenueFilter = 'home';
+                        else if (oppLower === a) window._currentOpponentVenueFilter = 'away';
+                        else window._currentOpponentVenueFilter = 'all';
+                    }
                 } else if (window._currentTeamHistoryVenueFilter === 'away') {
-                    window._currentOpponentVenueFilter = 'away';
-                } else if (window._currentTeamHistoryVenueFilter === 'home') {
                     window._currentOpponentVenueFilter = 'home';
+                } else if (window._currentTeamHistoryVenueFilter === 'home') {
+                    window._currentOpponentVenueFilter = 'away';
                 }
             }
 
@@ -18807,28 +18831,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     let leftIsOpp = false;
                     let rightIsOpp = true;
 
-                    // Regla de orientación absoluta:
-                    // 1. Si el oponente es el LOCAL actual del partido padre, DEBE ir a la IZQUIERDA.
-                    if (isOppParentHome && !isDataParentHome) {
+                    // Regla de orientación:
+                    // 1. Si AMBOS equipos pertenecen al partido actual (Local y Visitante), ordenar Local a la izquierda y Visitante a la derecha.
+                    if (isOppParentHome && isDataParentAway) {
                         leftData = oppData;
                         rightData = data;
                         leftIsOpp = true;
                         rightIsOpp = false;
-                    } else if (isDataParentAway && !isOppParentAway) {
-                        // 2. Si el equipo base es el VISITANTE actual del partido padre, DEBE ir a la DERECHA.
-                        leftData = oppData;
-                        rightData = data;
-                        leftIsOpp = true;
-                        rightIsOpp = false;
-                    } else if (!isDataParentHome && !isOppParentHome && !isDataParentAway && !isOppParentAway) {
-                        const teamVenue = window._currentTeamHistoryDefaultVenue || '';
-                        const oppVenue = window._currentOpponentDefaultVenue || '';
-                        if (teamVenue === 'away' && oppVenue === 'home') {
-                            leftData = oppData;
-                            rightData = data;
-                            leftIsOpp = true;
-                            rightIsOpp = false;
-                        }
+                    } else if (isDataParentHome && isOppParentAway) {
+                        leftData = data;
+                        rightData = oppData;
+                        leftIsOpp = false;
+                        rightIsOpp = true;
+                    } else {
+                        // 2. Si se investiga un rival histórico seleccionado (o una comparativa personalizada),
+                        // mantener SIEMPRE el equipo seleccionado en el panel izquierdo (Panel 1) y el equipo de comparación en el derecho (Panel 2).
+                        leftData = data;
+                        rightData = oppData;
+                        leftIsOpp = false;
+                        rightIsOpp = true;
                     }
 
                     if (headTitle) {
@@ -18928,21 +18949,30 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (isNeutralLeague) {
                 initialTeamVenue = 'all';
                 initialOppVenue = 'all';
-            } else if (!initialTeamVenue && parentMatchObj) {
-                const h = String(parentMatchObj.home_name || parentMatchObj.home || '').trim().toLowerCase();
-                const a = String(parentMatchObj.away_name || parentMatchObj.away || '').trim().toLowerCase();
-                const cur = cleanTeam.toLowerCase();
-                if (cur === a) {
-                    initialTeamVenue = 'away';
-                    initialOppVenue = 'away';
-                } else if (cur === h) {
-                    initialTeamVenue = 'home';
-                    initialOppVenue = 'home';
+            } else {
+                if (!initialTeamVenue && parentMatchObj) {
+                    const h = String(parentMatchObj.home_name || parentMatchObj.home || '').trim().toLowerCase();
+                    const a = String(parentMatchObj.away_name || parentMatchObj.away || '').trim().toLowerCase();
+                    const cur = cleanTeam.toLowerCase();
+                    if (cur === a) {
+                        initialTeamVenue = 'away';
+                    } else if (cur === h) {
+                        initialTeamVenue = 'home';
+                    }
                 }
-            }
-
-            if (!initialOppVenue) {
-                initialOppVenue = initialTeamVenue || (isNeutralLeague ? 'all' : '');
+                if (!initialOppVenue && parentMatchObj) {
+                    const h = String(parentMatchObj.home_name || parentMatchObj.home || '').trim().toLowerCase();
+                    const a = String(parentMatchObj.away_name || parentMatchObj.away || '').trim().toLowerCase();
+                    const curOpp = String(window._currentTeamHistoryOpponentName || '').trim().toLowerCase();
+                    if (curOpp === a) {
+                        initialOppVenue = 'away';
+                    } else if (curOpp === h) {
+                        initialOppVenue = 'home';
+                    }
+                }
+                if (!initialOppVenue) {
+                    initialOppVenue = initialTeamVenue === 'home' ? 'away' : (initialTeamVenue === 'away' ? 'home' : 'all');
+                }
             }
 
             const hasLeague = Boolean(effLeagueId && effLeagueId !== '-');
@@ -19029,14 +19059,19 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (!initialTeamVenue && d) {
                     if (d.opponent_is_home === true) {
                         window._currentTeamHistoryVenueFilter = 'away';
-                        window._currentOpponentVenueFilter = 'away';
                         window._currentTeamHistoryDefaultVenue = 'away';
-                        window._currentOpponentDefaultVenue = 'away';
                     } else if (d.opponent_is_home === false) {
                         window._currentTeamHistoryVenueFilter = 'home';
-                        window._currentOpponentVenueFilter = 'home';
                         window._currentTeamHistoryDefaultVenue = 'home';
+                    }
+                }
+                if (!initialOppVenue && d) {
+                    if (d.opponent_is_home === true) {
+                        window._currentOpponentVenueFilter = 'home';
                         window._currentOpponentDefaultVenue = 'home';
+                    } else if (d.opponent_is_home === false) {
+                        window._currentOpponentVenueFilter = 'away';
+                        window._currentOpponentDefaultVenue = 'away';
                     }
                 }
             };
@@ -19521,28 +19556,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     let leftIsOpp = false;
                     let rightIsOpp = true;
 
-                    // Regla de orientación absoluta:
-                    // 1. Si el oponente es el LOCAL actual del partido padre, DEBE ir a la IZQUIERDA.
-                    if (isOppParentHome && !isDataParentHome) {
+                    // Regla de orientación:
+                    // 1. Si AMBOS equipos pertenecen al partido actual (Local y Visitante), ordenar Local a la izquierda y Visitante a la derecha.
+                    if (isOppParentHome && isDataParentAway) {
                         leftData = oppData;
                         rightData = data;
                         leftIsOpp = true;
                         rightIsOpp = false;
-                    } else if (isDataParentAway && !isOppParentAway) {
-                        // 2. Si el equipo base es el VISITANTE actual del partido padre, DEBE ir a la DERECHA.
-                        leftData = oppData;
-                        rightData = data;
-                        leftIsOpp = true;
-                        rightIsOpp = false;
-                    } else if (!isDataParentHome && !isOppParentHome && !isDataParentAway && !isOppParentAway) {
-                        const teamVenue = window._currentTeamHistoryDefaultVenue || '';
-                        const oppVenue = window._currentOpponentDefaultVenue || '';
-                        if (teamVenue === 'away' && oppVenue === 'home') {
-                            leftData = oppData;
-                            rightData = data;
-                            leftIsOpp = true;
-                            rightIsOpp = false;
-                        }
+                    } else if (isDataParentHome && isOppParentAway) {
+                        leftData = data;
+                        rightData = oppData;
+                        leftIsOpp = false;
+                        rightIsOpp = true;
+                    } else {
+                        // 2. Si se investiga un rival histórico seleccionado (o una comparativa personalizada),
+                        // mantener SIEMPRE el equipo seleccionado en el panel izquierdo (Panel 1) y el equipo de comparación en el derecho (Panel 2).
+                        leftData = data;
+                        rightData = oppData;
+                        leftIsOpp = false;
+                        rightIsOpp = true;
                     }
 
                     if (modalTitle) {
