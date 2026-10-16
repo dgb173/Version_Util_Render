@@ -3939,11 +3939,11 @@
                 return `
                     <div style="margin-bottom:4px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
-                            <span style="font-weight:900; font-size:0.76rem; color:${hColor}; min-width:24px; text-align:left;">${hDisp}</span>
-                            <span style="font-size:0.64rem; font-weight:700; color:#334155; text-align:center; flex:1; padding:0 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="font-weight:600; font-size:0.78rem; color:${hColor}; min-width:24px; text-align:left; letter-spacing:0.2px;">${hDisp}</span>
+                            <span style="font-size:0.66rem; font-weight:400; color:#475569; text-align:center; flex:1; padding:0 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.1px;">
                                 <span style="font-size:0.66rem; margin-right:2px;">${s.icon}</span>${escapeTeamHistoryHtml(s.displayName)}
                             </span>
-                            <span style="font-weight:900; font-size:0.76rem; color:${aColor}; min-width:24px; text-align:right;">${aDisp}</span>
+                            <span style="font-weight:600; font-size:0.78rem; color:${aColor}; min-width:24px; text-align:right; letter-spacing:0.2px;">${aDisp}</span>
                         </div>
                         <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:3px;">
                             ${barHtml}
@@ -3957,24 +3957,24 @@
                     <!-- Meta Header -->
                     <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center; gap:4px;">
                         <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
-                            <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap; flex-shrink:0;">📊 STATS</span>
-                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
-                            ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
+                            <span style="background:#f0fdf4; color:#166534; font-weight:600; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap; flex-shrink:0;">📊 STATS</span>
+                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:600; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
+                            ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                         </div>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
                     </div>
 
                     <!-- Split Header Equipos y Marcador -->
                     <div style="display:flex; align-items:stretch; min-height:34px; width:100%; border-bottom:1px solid #e2e8f0;">
                         <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:4px 6px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapeTeamHistoryHtml(homeTeam)}">
-                            <span style="font-weight:800; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🏠 ${escapeTeamHistoryHtml(homeTeam || 'Local')}</span>
+                            <span style="font-weight:600; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🏠 ${escapeTeamHistoryHtml(homeTeam || 'Local')}</span>
                         </div>
                         <div style="flex:0 0 auto; background:#0b1e36; color:#ffffff; padding:2px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:55px; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
-                            <span style="font-weight:900; font-size:0.80rem; letter-spacing:0.5px; line-height:1.1;">${escapeTeamHistoryHtml(effectiveScore || '-')}</span>
-                            ${effectiveAh && effectiveAh !== '-' ? `<span style="font-size:0.55rem; font-weight:800; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapeTeamHistoryHtml(effectiveAh)}</span>` : ''}
+                            <span style="font-weight:700; font-size:0.80rem; letter-spacing:0.5px; line-height:1.1;">${escapeTeamHistoryHtml(effectiveScore || '-')}</span>
+                            ${effectiveAh && effectiveAh !== '-' ? `<span style="font-size:0.55rem; font-weight:600; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapeTeamHistoryHtml(effectiveAh)}</span>` : ''}
                         </div>
                         <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:4px 6px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapeTeamHistoryHtml(awayTeam)}">
-                            <span style="font-weight:800; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeTeamHistoryHtml(awayTeam || 'Visitante')} ✈️</span>
+                            <span style="font-weight:600; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeTeamHistoryHtml(awayTeam || 'Visitante')} ✈️</span>
                         </div>
                     </div>
 
@@ -8029,6 +8029,7 @@
                                         <label class="pre-context-pick-cb-wrap" title="Seleccionar '${esc(rival)}' en el comparador de abajo">
                                             <input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')">
                                         </label>
+                                        <button type="button" class="pre-context-mini-stats-btn" onclick="toggleRowStatsFromMini(this, event)" title="Ver estadísticas de este partido debajo" style="padding:1px 5px; font-size:.58rem; font-weight:700; line-height:1.2; border:1px solid #10b981; border-radius:3px; background:#ecfdf5; color:#047857; cursor:pointer;"><i class="fa-solid fa-chart-simple"></i></button>
                                         <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
                                     </div>
                                 </div>
@@ -8123,7 +8124,7 @@
                             <button type="button" class="pre-context-pick-btn ms-1" style="padding:1px 5px; border:1px solid #cbd5e1; border-radius:3px; background:#fff; font-size:.58rem; color:#64748b; cursor:pointer;" onclick="quickSelectCustomRival(this, event, '${esc(role)}', '${esc(teamName)}')" title="Seleccionar '${esc(teamName)}' en el comparador de abajo"><i class="fa-regular fa-circle-dot me-1"></i>Comparar</button>
                             <span class="pre-context-role is-${allVenues ? 'all' : role}">${allVenues ? 'TODOS' : (role === 'home' ? 'CASA' : 'FUERA')}</span>
                         </div>
-                        ${totalTableRows ? `<div class="pre-context-team-actions"><button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button></div>` : ''}
+                        ${totalTableRows ? `<div class="pre-context-team-actions"><button type="button" class="pre-context-team-stats-btn" onclick="toggleAllPreContextTeamStats(this, event)" title="Desplegar todas las estadísticas de ${esc(teamName)} debajo"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button><button type="button" class="pre-context-team-col3-btn" onclick="toggleAllPreContextTeamCol3(this, event)" title="Desplegar todas las fichas H2H Col3 de ${esc(teamName)} debajo"><i class="fa-solid fa-layer-group me-1"></i>Col3</button><button type="button" class="pre-context-team-mov-btn" onclick="toggleAllPreContextTeamMov(this, event)" title="Desplegar todos los movimientos históricos de ${esc(teamName)} debajo"><i class="fa-solid fa-clock-rotate-left me-1"></i>Mov.</button><button type="button" class="pre-context-team-both-btn" onclick="toggleAllPreContextTeamBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov.) en todos los partidos"><i class="fa-solid fa-bolt me-1"></i>Ver Todo</button><button type="button" class="pre-context-team-pattern-btn" onclick="togglePreContextTeamPattern(this, event)" title="Cargar y generar lectura unificada de patrones (Col3 + H2H)"><i class="fa-solid fa-bolt me-1"></i>Patrones</button></div>` : ''}
                     </div>
                     ${totalTableRows ? `
                     <!-- Vista Escritorio (PC): Tabla completa intacta -->
@@ -9230,13 +9231,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return `
                     <div style="padding:2px 0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
-                            <span style="font-weight:900; font-size:0.80rem; color:${hColor}; min-width:28px; text-align:left;">
+                            <span style="font-weight:600; font-size:0.82rem; color:${hColor}; min-width:28px; text-align:left; letter-spacing:0.2px;">
                                 ${hDisplay}
                             </span>
-                            <span style="font-size:0.67rem; font-weight:700; color:#334155; text-align:center; flex:1; padding:0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <span style="font-size:0.70rem; font-weight:400; color:#475569; text-align:center; flex:1; padding:0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.1px;">
                                 <span style="font-size:0.72rem; margin-right:3px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
                             </span>
-                            <span style="font-weight:900; font-size:0.80rem; color:${aColor}; min-width:28px; text-align:right;">
+                            <span style="font-weight:600; font-size:0.82rem; color:${aColor}; min-width:28px; text-align:right; letter-spacing:0.2px;">
                                 ${aDisplay}
                             </span>
                         </div>
@@ -9250,13 +9251,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 headerHtml = `
                     <div style="display:flex; align-items:stretch; min-height:36px; width:100%; border-bottom:1px solid #e2e8f0; margin-bottom:6px; border-radius:8px 8px 0 0; overflow:hidden;">
                         <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(customHome.name)}">
-                            <span style="font-weight:800; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customHome.name)}</span>
+                            <span style="font-weight:600; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customHome.name)}</span>
                         </div>
-                        <div style="flex:0 0 auto; background:#0b1e36; color:#94a3b8; padding:3px 8px; display:flex; align-items:center; justify-content:center; min-width:50px; font-weight:800; font-size:0.62rem; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
+                        <div style="flex:0 0 auto; background:#0b1e36; color:#94a3b8; padding:3px 8px; display:flex; align-items:center; justify-content:center; min-width:50px; font-weight:600; font-size:0.62rem; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
                             STATS
                         </div>
                         <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(customAway.name)}">
-                            <span style="font-weight:800; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customAway.name)}</span>
+                            <span style="font-weight:600; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customAway.name)}</span>
                         </div>
                     </div>
                 `;
@@ -9325,27 +9326,27 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 ctx.statsSlot.innerHTML = `
                     <div class="stat-card" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06); width:100%;">
                         <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                            <span style="font-weight:900; font-size:.65rem; color:#166534; background:#f0fdf4; padding:2px 6px; border-radius:4px; border:1px solid #bbf7d0;">
+                            <span style="font-weight:600; font-size:.65rem; color:#166534; background:#f0fdf4; padding:2px 6px; border-radius:4px; border:1px solid #bbf7d0;">
                                 📊 ESTADÍSTICAS DEL PARTIDO
                             </span>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span class="badge" style="background:#0284c7; font-size:.6rem;">LIGA ${escapePreContextCol3(leagueId)}</span>
-                                <span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapePreContextCol3(rowDate)}</span>
+                                <span class="badge" style="background:#0284c7; font-size:.6rem; font-weight:600;">LIGA ${escapePreContextCol3(leagueId)}</span>
+                                <span style="font-size:.62rem; color:#64748b; font-weight:500; white-space:nowrap;">📅 ${escapePreContextCol3(rowDate)}</span>
                             </div>
                         </div>
 
-                        <div style="display:flex; align-items:stretch; min-height:40px; width:100%; border-bottom:1px solid #e2e8f0;">
+                        <div style="display:flex; align-items:stretch; min-height:38px; width:100%; border-bottom:1px solid #e2e8f0;">
                             <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(rowHome)}">
-                                <span style="font-weight:800; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <span style="font-weight:600; font-size:0.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                     ${escapePreContextCol3(rowHome)}
                                 </span>
                             </div>
                             <div style="flex:0 0 auto; background:#0b1e36; color:#ffffff; padding:3px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:62px; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
-                                <div style="font-weight:900; font-size:0.86rem; letter-spacing:0.5px; line-height:1.1;">${escapePreContextCol3(rowScore || '-')}</div>
-                                ${rowAh ? `<div style="font-size:0.58rem; font-weight:800; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapePreContextCol3(rowAh)}</div>` : ''}
+                                <div style="font-weight:700; font-size:0.84rem; letter-spacing:0.5px; line-height:1.1;">${escapePreContextCol3(rowScore || '-')}</div>
+                                ${rowAh ? `<div style="font-size:0.58rem; font-weight:600; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapePreContextCol3(rowAh)}</div>` : ''}
                             </div>
                             <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(rowAway)}">
-                                <span style="font-weight:800; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                <span style="font-weight:600; font-size:0.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                     ${escapePreContextCol3(rowAway)}
                                 </span>
                             </div>
@@ -9384,6 +9385,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (ctx.statsBtn) loadPreContextRowMatchStats(ctx.statsBtn, event, { force_open: true });
                 if (ctx.col3Btn) loadPreContextRowCol3(ctx.col3Btn, event, { force_open: true });
                 if (ctx.movBtn) loadPreContextRowMovHistorico(ctx.movBtn, event, { force_open: true });
+            }
+        }
+
+        function toggleRowStatsFromMini(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const row = btn.closest('tr.pre-context-row');
+            if (!row) return;
+            const statsBtn = row.querySelector('.pre-context-stats-btn');
+            if (statsBtn) {
+                loadPreContextRowMatchStats(statsBtn, event);
             }
         }
 
