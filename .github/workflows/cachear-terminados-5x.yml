@@ -1,0 +1,34 @@
+name: Cachear partidos terminados (compatibilidad 5x)
+
+on:
+  workflow_dispatch:
+    inputs:
+      handicap:
+        required: false
+        default: all
+        type: string
+      ou:
+        required: false
+        default: all
+        type: string
+      workers_per_bot:
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cachear-terminados-main
+  cancel-in-progress: false
+
+jobs:
+  cachear:
+    uses: ./.github/workflows/cloud-cache-worker.yml
+    with:
+      kind: finished
+      workers: ${{ inputs.workers_per_bot || '3' }}
+      handicap: ${{ inputs.handicap || 'all' }}
+      ou: ${{ inputs.ou || 'all' }}
+    secrets: inherit

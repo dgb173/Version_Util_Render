@@ -415,6 +415,13 @@ def get_team_recent_history(
                 p_home = str(parent_data.get("home_name") or parent_data.get("home") or "").strip()
                 p_away = str(parent_data.get("away_name") or parent_data.get("away") or "").strip()
                 is_neutral = bool(parent_data.get("is_neutral_venue") or parent_data.get("neutral") or False)
+                p_league = str(parent_data.get("league_name") or parent_data.get("league") or "").strip()
+                if not is_neutral and p_league:
+                    try:
+                        from src.modules import estudio_scraper
+                        is_neutral = bool(estudio_scraper._is_neutral_league(p_league))
+                    except Exception:
+                        pass
 
                 has_explicit_custom_opp = bool(clean_opp and not _same_team(clean_opp, p_home) and not _same_team(clean_opp, p_away))
 
@@ -442,6 +449,13 @@ def get_team_recent_history(
                         opp_matches_secondary = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
         except Exception as exc:
             LOGGER.warning("Error resolviendo oponente desde parent %s: %s", lookup_parent_id, exc)
+
+    if not is_neutral and league_id:
+        try:
+            from src.modules import estudio_scraper
+            is_neutral = bool(estudio_scraper._is_neutral_league(str(league_id).strip()))
+        except Exception:
+            pass
 
     opponent_name = clean_opp
 

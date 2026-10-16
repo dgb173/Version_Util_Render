@@ -1,0 +1,37 @@
+name: Cachear partidos terminados (bots paralelos)
+
+on:
+  workflow_dispatch:
+    inputs:
+      handicap:
+        description: Filtro de handicap asiático
+        required: false
+        default: all
+        type: string
+      ou:
+        description: Filtro de goles
+        required: false
+        default: all
+        type: string
+      workers_per_bot:
+        description: Workers por bot (1-6)
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cachear-terminados-main
+  cancel-in-progress: false
+
+jobs:
+  cachear:
+    uses: ./.github/workflows/cloud-cache-worker.yml
+    with:
+      kind: finished
+      workers: ${{ inputs.workers_per_bot || '3' }}
+      handicap: ${{ inputs.handicap || 'all' }}
+      ou: ${{ inputs.ou || 'all' }}
+    secrets: inherit

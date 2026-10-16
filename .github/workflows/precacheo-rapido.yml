@@ -1,0 +1,168 @@
+name: Precacheo rápido (8 shards)
+
+run-name: >-
+  Precacheo rápido ${{ github.event_name == 'schedule' && 'automático' || 'manual' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: Reanalizar también partidos ya cacheados
+        required: false
+        default: false
+        type: boolean
+      workers_per_shard:
+        description: Workers reales en cada runner (3-5 recomendado)
+        required: false
+        default: "4"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: actualizar-precacheo-main
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+  DATA_LEGACY_SYNC: "0"
+  SQL_BOOTSTRAP_MODE: partial
+  SQL_BOOTSTRAP_ONLY_BUCKETS: data_precacheo.json,data_pending_results.json
+  PRECACHEO_PENDING_MAX_AGE_DAYS: "7"
+  PRECACHEO_DAYS_THRESHOLD: "3"
+
+jobs:
+  preparar:
+    name: Snapshot y reparto de cola
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
+      APP_SQLITE_BOOTSTRAP_LOCK: ${{ github.workspace }}/data/app_data_bootstrap.lock
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar scraper de portada
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Crear snapshot y ocho colas equilibradas
+        env:
+          FORCE_FULL: ${{ inputs.force_full || false }}
+        run: |
+          python scripts/run_scraper.py
+          python scripts/export_snapshot_to_json.py
+          args=(--db "$APP_SQLITE_PATH" --cache-key app_main_page_cache_v1 --out temp_matches_job_fast.json --max-jobs 0)
+          if [[ "$FORCE_FULL" == "true" ]]; then args+=(--include-existing); fi
+          python scripts/build_job_from_snapshot.py "${args[@]}" || test "$?" -eq 4
+          test -f temp_matches_job_fast.json || echo '[]' > temp_matches_job_fast.json
+          python scripts/split_precache_jobs.py --input temp_matches_job_fast.json --output-dir fast_jobs --shards 8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: precache-prepared
+          path: |
+            data.json
+            data/data.json
+            fast_jobs
+          retention-days: 1
+
+  analizar:
+    name: Shard ${{ matrix.shard }}/8
+    needs: preparar
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
+      APP_SQLITE_BOOTSTRAP_LOCK: ${{ github.workspace }}/data/app_data_bootstrap.lock
+      ANALYSIS_MAX_CONCURRENCY: ${{ inputs.workers_per_shard || '4' }}
+      PLAYWRIGHT_MAX_CONCURRENCY: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Instalar dependencias de analisis
+        run: |
+          python -m pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - uses: actions/download-artifact@v4
+        with:
+          name: precache-prepared
+          path: prepared
+      - name: Analizar partidos con descarga completa (ficha tecnica y estadisticas)
+        run: |
+          workers="${{ inputs.workers_per_shard || '4' }}"
+          code=0
+          python background_runner.py \
+            --job_file "prepared/fast_jobs/shard_${{ matrix.shard }}.json" \
+            --concurrency "$workers" \
+            --flush_every 5 \
+            --output-json "shard-output/results_${{ matrix.shard }}.json" || code=$?
+          if (( code > 1 )); then exit "$code"; fi
+          if (( code == 1 )); then echo "El shard tuvo fallos parciales; se publicaran los partidos correctos."; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: precache-results-${{ matrix.shard }}
+          path: shard-output/results_${{ matrix.shard }}.json
+          retention-days: 1
+
+  publicar:
+    name: Fusionar y publicar una sola vez
+    needs: analizar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/download-artifact@v4
+        with:
+          name: precache-prepared
+          path: prepared
+      - uses: actions/download-artifact@v4
+        with:
+          path: downloaded-shards
+          pattern: precache-results-*
+      - name: Fusionar resultados y snapshot
+        run: |
+          cp prepared/data.json data.json
+          cp prepared/data/data.json data/data.json
+          python scripts/merge_precache_shards.py \
+            --base data/data_precacheo.json \
+            --shards-dir downloaded-shards \
+            --output data/data_precacheo.json \
+            --limit 400
+      - name: Publicar cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data.json data/data.json data/data_precacheo.json
+          if git diff --cached --quiet; then
+            echo "No hay cambios que publicar."
+            exit 0
+          fi
+          stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
+          git commit -m "chore: fast sharded precache completed ${stamp}"
+          git pull --rebase origin main
+          git push origin HEAD:main
