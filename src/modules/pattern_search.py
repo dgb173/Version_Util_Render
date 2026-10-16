@@ -918,6 +918,14 @@ def explore_matches(datajson, filters=None):
     target_favorite_result = (filters.get('favorite_result') or '').upper().strip()
     if target_favorite_result not in ('COVER', 'PUSH', 'NO_COVER'):
         target_favorite_result = None
+
+    target_prev_favorite_ah = _as_filter_values(filters.get('prev_favorite_ah')) if filters.get('prev_favorite_ah') else None
+    target_prev_favorite_result = (filters.get('prev_favorite_result') or '').upper().strip()
+    if target_prev_favorite_result not in ('COVER', 'PUSH', 'NO_COVER'):
+        target_prev_favorite_result = None
+    target_prev_favorite_movement = (filters.get('prev_favorite_movement') or '').upper().strip()
+    if target_prev_favorite_movement not in ('UP', 'DOWN', 'SAME'):
+        target_prev_favorite_movement = None
     
     exclude_empty = filters.get('exclude_empty', False)
     only_with_history = filters.get('only_with_history', False)
@@ -1037,6 +1045,32 @@ def explore_matches(datajson, filters=None):
         home_team_norm = home_team.lower()
         away_team_norm = away_team.lower()
 
+        def _calc_prev_cover_result(score_str, ah_raw, current_ah, is_team_home):
+            if not score_str:
+                return None
+            try:
+                parts = score_str.replace(' - ', ':').replace('-', ':').split(':')
+                if len(parts) != 2:
+                    return None
+                hg, ag = int(parts[0]), int(parts[1])
+                if ah_raw is not None:
+                    ah_val = float(ah_raw)
+                    betting_ah = -ah_val if is_team_home else ah_val
+                    res = asian_result(hg, ag, betting_ah) if is_team_home else asian_result(ag, hg, betting_ah)
+                    cat = res.get('category')
+                    if cat in ('COVER', 'NO_COVER', 'PUSH'):
+                        return cat
+                if current_ah is not None:
+                    c_ah = float(current_ah)
+                    sim_team_ah = -c_ah if is_team_home else c_ah
+                    res = asian_result(hg, ag, sim_team_ah) if is_team_home else asian_result(ag, hg, sim_team_ah)
+                    cat = res.get('category')
+                    if cat in ('COVER', 'NO_COVER', 'PUSH'):
+                        return cat
+            except Exception:
+                pass
+            return None
+
         # --- 3. Prev Home (Last Home Match from JSON) ---
         prev_home_data = None
         lhm = match.get('last_home_match')
@@ -1044,17 +1078,20 @@ def explore_matches(datajson, filters=None):
             p_score = lhm.get('score', '').replace(' - ', ':').replace('-', ':')
             p_ah_raw = lhm.get('handicap_line_raw')
             p_ah = safe_float_ah(p_ah_raw)
+            p_is_home = infer_team_is_home(lhm, home_team_norm, default_is_home=True)
             
             sim_wdl = get_simulated_wdl(p_score, hist_ah, True)
             real_wdl = get_team_real_wdl(
                 p_score,
-                infer_team_is_home(lhm, home_team_norm, default_is_home=True)
+                p_is_home
             )
             
             # Movement: Prev AH -> Current AH
             movement = None
             if p_ah is not None:
                 movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+
+            cover_res = _calc_prev_cover_result(p_score, p_ah, hist_ah, p_is_home)
             
             prev_home_data = {
                 'match_id': str(lhm.get('match_id') or ''),
@@ -1063,6 +1100,7 @@ def explore_matches(datajson, filters=None):
                 'ah': p_ah,
                 'wdl': real_wdl,
                 'wdl_simulated': sim_wdl,
+                'cover_result': cover_res,
                 'movement': movement,
                 'date': lhm.get('date'),
                 'home_team': lhm.get('home_team') or home_team,
@@ -1079,6 +1117,7 @@ def explore_matches(datajson, filters=None):
                 p_odds = pm.get('main_match_odds', {})
                 p_ah_raw = p_odds.get('ah_linea') or pm.get('handicap')
                 p_ah = safe_float_ah(p_ah_raw)
+                p_is_home = infer_team_is_home(pm, home_team_norm, default_is_home=True)
                 
                 p_score = pm.get('final_score') or pm.get('score')
                 if p_score:
@@ -1087,12 +1126,14 @@ def explore_matches(datajson, filters=None):
                 sim_wdl = get_simulated_wdl(p_score, hist_ah, True)
                 real_wdl = get_team_real_wdl(
                     p_score,
-                    infer_team_is_home(pm, home_team_norm, default_is_home=True)
+                    p_is_home
                 )
                 
                 movement = None
                 if p_ah is not None:
                     movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+
+                cover_res = _calc_prev_cover_result(p_score, p_ah, hist_ah, p_is_home)
                 
                 prev_home_data = {
                     'match_id': str(pm.get('match_id') or ''),
@@ -1101,6 +1142,7 @@ def explore_matches(datajson, filters=None):
                     'ah': p_ah,
                     'wdl': real_wdl,
                     'wdl_simulated': sim_wdl,
+                    'cover_result': cover_res,
                     'movement': movement,
                     'date': ph_entry['date'].strftime('%Y-%m-%d') if hasattr(ph_entry.get('date'), 'strftime') else str(ph_entry.get('date', '')),
                     'home_team': pm.get('home_name') or pm.get('home_team'),
@@ -1115,18 +1157,20 @@ def explore_matches(datajson, filters=None):
             p_score = lam.get('score', '').replace(' - ', ':').replace('-', ':')
             p_ah_raw = lam.get('handicap_line_raw')
             p_ah = safe_float_ah(p_ah_raw)
-            # Do NOT invert - user wants original sign displayed
+            p_is_home = infer_team_is_home(lam, away_team_norm, default_is_home=False)
             
             sim_wdl = get_simulated_wdl(p_score, hist_ah, False)
             real_wdl = get_team_real_wdl(
                 p_score,
-                infer_team_is_home(lam, away_team_norm, default_is_home=False)
+                p_is_home
             )
             
             # Movement: Prev AH -> Current AH
             movement = None
             if p_ah is not None:
                 movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+
+            cover_res = _calc_prev_cover_result(p_score, p_ah, hist_ah, p_is_home)
             
             prev_away_data = {
                 'match_id': str(lam.get('match_id') or ''),
@@ -1135,6 +1179,7 @@ def explore_matches(datajson, filters=None):
                 'ah': p_ah,
                 'wdl': real_wdl,
                 'wdl_simulated': sim_wdl,
+                'cover_result': cover_res,
                 'movement': movement,
                 'date': lam.get('date'),
                 'home_team': lam.get('home_team'),
@@ -1151,7 +1196,7 @@ def explore_matches(datajson, filters=None):
                 p_odds = pm.get('main_match_odds', {})
                 p_ah_raw = p_odds.get('ah_linea') or pm.get('handicap')
                 p_ah = safe_float_ah(p_ah_raw)
-                # Do NOT invert - user wants original sign displayed
+                p_is_home = infer_team_is_home(pm, away_team_norm, default_is_home=False)
                 
                 p_score = pm.get('final_score') or pm.get('score')
                 if p_score:
@@ -1160,12 +1205,14 @@ def explore_matches(datajson, filters=None):
                 sim_wdl = get_simulated_wdl(p_score, hist_ah, False)
                 real_wdl = get_team_real_wdl(
                     p_score,
-                    infer_team_is_home(pm, away_team_norm, default_is_home=False)
+                    p_is_home
                 )
 
                 movement = None
                 if p_ah is not None:
                     movement = f"{format_ah(p_ah)} -> {format_ah(hist_ah)}"
+
+                cover_res = _calc_prev_cover_result(p_score, p_ah, hist_ah, p_is_home)
 
                 prev_away_data = {
                     'match_id': str(pm.get('match_id') or ''),
@@ -1174,12 +1221,62 @@ def explore_matches(datajson, filters=None):
                     'ah': p_ah,
                     'wdl': real_wdl,
                     'wdl_simulated': sim_wdl,
+                    'cover_result': cover_res,
                     'movement': movement,
                     'date': pa_entry['date'].strftime('%Y-%m-%d') if hasattr(pa_entry.get('date'), 'strftime') else str(pa_entry.get('date', '')),
                     'home_team': pm.get('home_name') or pm.get('home_team'),
                     'away_team': pm.get('away_name') or pm.get('away_team'),
                     'stats_rows': pm.get('stats_rows', []) if include_stats else []
                 }
+
+        # Build favorite_previous summary
+        fav_previous = None
+        if match_favorite_side == 'HOME' and prev_home_data and prev_home_data.get('score'):
+            p_ah = prev_home_data.get('ah')
+            raw_lhm = match.get('last_home_match') or {}
+            p_is_home = infer_team_is_home(raw_lhm, home_team_norm, default_is_home=True)
+            fav_market_line = (p_ah if p_is_home else -p_ah) if p_ah is not None else None
+            mov_dir = None
+            if fav_market_line is not None and hist_ah is not None:
+                curr_strength = abs(hist_ah)
+                prev_strength = fav_market_line
+                if abs(curr_strength - prev_strength) < 0.01:
+                    mov_dir = 'SAME'
+                elif curr_strength > prev_strength:
+                    mov_dir = 'UP'
+                else:
+                    mov_dir = 'DOWN'
+            movement = f"{format_ah(fav_market_line)} -> {format_ah(abs(hist_ah))}" if fav_market_line is not None else None
+            fav_previous = {
+                'team_market_line': fav_market_line,
+                'cover_result': prev_home_data.get('cover_result'),
+                'movement': movement,
+                'movement_direction': mov_dir,
+                'team_is_home': p_is_home,
+            }
+        elif match_favorite_side == 'AWAY' and prev_away_data and prev_away_data.get('score'):
+            p_ah = prev_away_data.get('ah')
+            raw_lam = match.get('last_away_match') or {}
+            p_is_home = infer_team_is_home(raw_lam, away_team_norm, default_is_home=False)
+            fav_market_line = (-p_ah if not p_is_home else p_ah) if p_ah is not None else None
+            mov_dir = None
+            if fav_market_line is not None and hist_ah is not None:
+                curr_strength = abs(hist_ah)
+                prev_strength = fav_market_line
+                if abs(curr_strength - prev_strength) < 0.01:
+                    mov_dir = 'SAME'
+                elif curr_strength > prev_strength:
+                    mov_dir = 'UP'
+                else:
+                    mov_dir = 'DOWN'
+            movement = f"{format_ah(fav_market_line)} -> {format_ah(abs(hist_ah))}" if fav_market_line is not None else None
+            fav_previous = {
+                'team_market_line': fav_market_line,
+                'cover_result': prev_away_data.get('cover_result'),
+                'movement': movement,
+                'movement_direction': mov_dir,
+                'team_is_home': p_is_home,
+            }
 
         # --- 5. NEW: H2H Stadium and H2H General ---
         # Prioridad: market_analysis_data (Nuevo JSON estructurado)
@@ -1417,7 +1514,18 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_home_wdl:
             if not prev_home_data: continue
-            if prev_home_data.get('wdl') != target_prev_home_wdl: continue
+            ph_cover = prev_home_data.get('cover_result')
+            ph_sim = prev_home_data.get('wdl_simulated')
+            ph_real = prev_home_data.get('wdl')
+            if target_prev_home_wdl in ('COVER', 'NO_COVER', 'PUSH'):
+                matched = (ph_cover == target_prev_home_wdl) or \
+                          (target_prev_home_wdl == 'COVER' and ph_sim == 'HOME_WIN') or \
+                          (target_prev_home_wdl == 'NO_COVER' and ph_sim == 'AWAY_WIN') or \
+                          (target_prev_home_wdl == 'PUSH' and ph_sim == 'DRAW')
+            else:
+                matched = (ph_real == target_prev_home_wdl) or (ph_sim == target_prev_home_wdl)
+            if not matched:
+                continue
         if target_prev_home_real_wdl:
             if not prev_home_data: continue
             if prev_home_data.get('wdl') != target_prev_home_real_wdl:
@@ -1430,7 +1538,18 @@ def explore_matches(datajson, filters=None):
             
         if target_prev_away_wdl:
             if not prev_away_data: continue
-            if prev_away_data.get('wdl') != target_prev_away_wdl: continue
+            pa_cover = prev_away_data.get('cover_result')
+            pa_sim = prev_away_data.get('wdl_simulated')
+            pa_real = prev_away_data.get('wdl')
+            if target_prev_away_wdl in ('COVER', 'NO_COVER', 'PUSH'):
+                matched = (pa_cover == target_prev_away_wdl) or \
+                          (target_prev_away_wdl == 'COVER' and pa_sim == 'HOME_WIN') or \
+                          (target_prev_away_wdl == 'NO_COVER' and pa_sim == 'AWAY_WIN') or \
+                          (target_prev_away_wdl == 'PUSH' and pa_sim == 'DRAW')
+            else:
+                matched = (pa_real == target_prev_away_wdl) or (pa_sim == target_prev_away_wdl)
+            if not matched:
+                continue
         if target_prev_away_real_wdl:
             if not prev_away_data: continue
             if prev_away_data.get('wdl') != target_prev_away_real_wdl:
@@ -1439,6 +1558,25 @@ def explore_matches(datajson, filters=None):
         if filters.get('prev_away_ah'):
             if not prev_away_data: continue
             if not ah_matches_any_bucket(prev_away_data.get('ah'), filters.get('prev_away_ah')):
+                continue
+
+        # Favorite's previous match strict filters
+        if target_prev_favorite_ah:
+            if not fav_previous or fav_previous.get('team_market_line') is None:
+                continue
+            if not ah_matches_any_bucket(fav_previous.get('team_market_line'), target_prev_favorite_ah):
+                continue
+
+        if target_prev_favorite_result:
+            if not fav_previous:
+                continue
+            if fav_previous.get('cover_result') != target_prev_favorite_result:
+                continue
+
+        if target_prev_favorite_movement:
+            if not fav_previous:
+                continue
+            if fav_previous.get('movement_direction') != target_prev_favorite_movement:
                 continue
         
         # --- 6.5 H2H Filters ---
@@ -1543,6 +1681,7 @@ def explore_matches(datajson, filters=None):
             },
             'prev_home': prev_home_data,
             'prev_away': prev_away_data,
+            'favorite_previous': fav_previous,
             'h2h_stadium': h2h_stadium_data,
             'h2h_general': h2h_general_data,
             'h2h_col3': h2h_col3_data,

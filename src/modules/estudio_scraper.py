@@ -10,6 +10,8 @@ import re
 import json
 import math
 import threading
+import html
+import unicodedata
 from contextlib import contextmanager
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
@@ -207,7 +209,7 @@ def check_handicap_cover(resultado_raw: str, ah_line_num: float, favorite_team_n
     try:
         goles_h, goles_a = map(int, resultado_raw.split('-'))
         if ah_line_num == 0.0:
-            if main_home_team_name.lower() == home_team_in_h2h.lower():
+            if _history_team_key(main_home_team_name) == _history_team_key(home_team_in_h2h):
                 if goles_h > goles_a: return ("CUBIERTO", True)
                 elif goles_a > goles_h: return ("NO CUBIERTO", False)
                 else: return ("PUSH", None)
@@ -216,9 +218,9 @@ def check_handicap_cover(resultado_raw: str, ah_line_num: float, favorite_team_n
                 elif goles_h > goles_a: return ("NO CUBIERTO", False)
                 else: return ("PUSH", None)
         
-        if favorite_team_name.lower() == home_team_in_h2h.lower():
+        if _history_team_key(favorite_team_name) == _history_team_key(home_team_in_h2h):
             favorite_margin = goles_h - goles_a
-        elif favorite_team_name.lower() == away_team_in_h2h.lower():
+        elif _history_team_key(favorite_team_name) == _history_team_key(away_team_in_h2h):
             favorite_margin = goles_a - goles_h
         else:
             return ("indeterminado", None)
@@ -251,7 +253,7 @@ def _analizar_precedente_handicap(precedente_data, ah_actual_num, favorito_actua
     home_team_precedente = precedente_data.get('home')
     away_team_precedente = precedente_data.get('away')
 
-    if not all([res_raw, res_raw != '?-?', ah_raw, ah_raw != '-']):
+    if not res_raw or res_raw == '?-?':
         return {"html": "<li><span class='ah-value'>Hándicap:</span> No hay datos suficientes en este precedente.</li>", "movement": "N/A", "result": "N/A", "evaluation": "N/A", "is_covered": None}
 
     ah_historico_num = parse_ah_to_number_of(ah_raw)
@@ -268,7 +270,7 @@ def _analizar_precedente_handicap(precedente_data, ah_actual_num, favorito_actua
         elif ah_historico_num < 0:
             favorito_historico_name = away_team_precedente
         
-        if favorito_actual_name.lower() == (favorito_historico_name or "").lower():
+        if _history_team_key(favorito_actual_name) == _history_team_key(favorito_historico_name):
             if abs(ah_actual_num) > abs(ah_historico_num):
                 comparativa_texto = f"El mercado considera a este equipo <strong>más favorito</strong> que en el precedente (movimiento: <strong style='color: green; font-size:1.2em;'>{line_movement_str}</strong>). "
             elif abs(ah_actual_num) < abs(ah_historico_num):
@@ -283,7 +285,7 @@ def _analizar_precedente_handicap(precedente_data, ah_actual_num, favorito_actua
             else:
                 comparativa_texto = f"El mercado <strong>ha eliminado al favorito</strong> ('{favorito_historico_name}') que existía en el precedente (movimiento: <strong style='color: orange; font-size:1.2em;'>{line_movement_str}</strong>). "
     else:
-        comparativa_texto = f"No se pudo realizar una comparación detallada (línea histórica: <strong>{format_ah_as_decimal_string_of(ah_raw)}</strong>). "
+        comparativa_texto = "La cuota histórica no estaba disponible; se evalúa el marcador frente a la línea actual. "
 
     resultado_cover, cubierto = check_handicap_cover(res_raw, ah_actual_num, favorito_actual_name, home_team_precedente, away_team_precedente, main_home_team_name)
     
@@ -902,7 +904,7 @@ def _calculate_stats_for_matches(matches, team_name):
         except:
             continue
             
-        is_home_team = team_name.lower() in m.get('home', '').lower()
+        is_home_team = _history_team_key(team_name) == _history_team_key(m.get('home'))
         
         # W/D/L
         if is_home_team:
@@ -1396,13 +1398,14 @@ def get_team_league_info_from_script_of(soup):
     content = script_tag.string
     def find_val(pattern):
         match = re.search(pattern, content)
-        return match.group(1).replace("\'", "'") if match else None
+        return re.sub(r"\\(['\"\\])", r"\1", match.group(1)) if match else None
     home_id = find_val(r"hId:\s*parseInt\('(\d+)'\)")
     away_id = find_val(r"gId:\s*parseInt\('(\d+)'\)")
     league_id = find_val(r"sclassId:\s*parseInt\('(\d+)'\)")
-    home_name = find_val(r"hName:\s*'([^']*)'") or "N/A"
-    away_name = find_val(r"gName:\s*'([^']*)'") or "N/A"
-    league_name = find_val(r"lName:\s*'([^']*)'") or "N/A"
+    js_string = r"'((?:\\.|[^'\\])*)'"
+    home_name = find_val(r"hName:\s*" + js_string) or "N/A"
+    away_name = find_val(r"gName:\s*" + js_string) or "N/A"
+    league_name = find_val(r"lName:\s*" + js_string) or "N/A"
     return home_id, away_id, league_id, home_name, away_name, league_name
 
 def _parse_date_ddmmyyyy(d: str) -> tuple:
@@ -1415,6 +1418,11 @@ def _parse_date_ddmmyyyy(d: str) -> tuple:
     if m2: return (int(m2.group(1)), int(m2.group(2)), int(m2.group(3)))
     
     return (1900, 1, 1)
+
+def _history_team_key(name):
+    """Iguala variantes de comillas y espacios usadas por Nowgoal en cabecera/filas."""
+    normalized = unicodedata.normalize('NFKC', html.unescape(str(name or ''))).casefold()
+    return ''.join(char for char in normalized if char.isalnum())
 
 def extract_recent_matches(soup, table_id, team_name, league_id, is_home_game, odds_map=None, limit=5, is_neutral_venue=False):
     """
@@ -1434,8 +1442,9 @@ def extract_recent_matches(soup, table_id, team_name, league_id, is_home_game, o
         if league_id and details.get('league_id_hist') != str(league_id):
             continue
         
-        is_team_home = team_name.lower() in details.get('home', '').lower()
-        is_team_away = team_name.lower() in details.get('away', '').lower()
+        team_key = _history_team_key(team_name)
+        is_team_home = bool(team_key) and team_key == _history_team_key(details.get('home'))
+        is_team_away = bool(team_key) and team_key == _history_team_key(details.get('away'))
         
         # Condición: El equipo analizado debe jugar en la condición especificada (Local o Visitante)
         should_include = False
@@ -1523,19 +1532,19 @@ def _summarize_similar_handicaps(matches, team_name, target_line, goal_line=None
         return {"target_line": None, "threshold": None, "samples": 0, "matches": []}
 
     candidates = []
-    team_key = str(team_name or "").strip().lower()
+    team_key = _history_team_key(team_name)
     for item in matches or []:
         if not isinstance(item, dict):
             continue
         home = str(item.get("home") or item.get("home_team") or "")
         away = str(item.get("away") or item.get("away_team") or "")
-        subject_home = bool(team_key and team_key in home.lower())
-        subject_away = bool(team_key and team_key in away.lower())
+        subject_home = bool(team_key and team_key == _history_team_key(home))
+        subject_away = bool(team_key and team_key == _history_team_key(away))
         if not subject_home and not subject_away:
             continue
-        raw_line = parse_ah_to_number_of(str(
-            item.get("ahLine") or item.get("ahLine_raw") or item.get("ah_line") or ""
-        ))
+        line_value = next((item.get(key) for key in ('ahLine', 'ahLine_raw', 'ah_line')
+                           if item.get(key) not in (None, '', '-', 'N/A')), '')
+        raw_line = parse_ah_to_number_of(str(line_value))
         score = _parse_context_score(item.get("score") or item.get("score_raw"))
         if raw_line is None or score is None:
             continue
@@ -1788,7 +1797,7 @@ def calculate_over_under_stats(matches, source):
 
 
 def _public_last_match(last_match, *, general_fallback, team_name):
-    team_is_home = team_name.lower() in str(last_match.get('home') or '').lower()
+    team_is_home = _history_team_key(team_name) == _history_team_key(last_match.get('home'))
     return {
         "date": last_match.get('date', 'N/A'),
         "home_team": last_match.get('home'),
@@ -1946,13 +1955,18 @@ def fetch_odds_from_ajax(match_id):
                         vals = part.split(',')
                         if len(vals) >= 14:
                             # Verificar que tenga datos válidos (no vacíos)
-                            # Priorizar índice 8 (Main AH) sobre índice 4 (Secondary AH)
-                            ah_val = vals[8] if vals[8] else vals[4]
+                            # El índice 4 pertenece al AH inicial; el 8 es posterior.
+                            # Nunca sustituir una inicial ausente por la posterior.
+                            ah_val = vals[4]
                             
                             if ah_val and vals[12]:
                                 target_odds = {
                                     "ah_linea_raw": ah_val,
-                                    "goals_linea_raw": vals[12]
+                                    "goals_linea_raw": vals[12],
+                                    "ah_home_cuota": vals[3], "ah_away_cuota": vals[5],
+                                    "goals_over_cuota": vals[11], "goals_under_cuota": vals[13],
+                                    "bookmaker_id": comp_id_clean,
+                                    "price_format": "hongkong",
                                 }
                                 # print(f"Found odds for ID '{pid}': {target_odds}")
                                 break
@@ -2035,7 +2049,9 @@ def fetch_odds_with_playwright(match_id: str):
 def extract_bet365_initial_odds_of(soup, match_id=None):
     odds_info = {
         "ah_home_cuota": "N/A", "ah_linea_raw": "N/A", "ah_away_cuota": "N/A",
-        "goals_over_cuota": "N/A", "goals_linea_raw": "N/A", "goals_under_cuota": "N/A"
+        "goals_over_cuota": "N/A", "goals_linea_raw": "N/A", "goals_under_cuota": "N/A",
+        "odds_stage": "initial", "price_format": "unverified",
+        "captured_at": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
     }
     
     if soup:
@@ -2100,18 +2116,19 @@ def extract_bet365_initial_odds_of(soup, match_id=None):
         if ajax_odds:
             if odds_info["ah_linea_raw"] in ["N/A", "-", ""]:
                 odds_info["ah_linea_raw"] = ajax_odds.get("ah_linea_raw", "N/A")
+                odds_info['ah_home_cuota'] = ajax_odds.get('ah_home_cuota', 'N/A')
+                odds_info['ah_away_cuota'] = ajax_odds.get('ah_away_cuota', 'N/A')
+                odds_info['ah_price_format'] = ajax_odds.get('price_format', 'unverified')
+                odds_info['ah_bookmaker_id'] = ajax_odds.get('bookmaker_id')
             if odds_info["goals_linea_raw"] in ["N/A", "-", ""]:
                 odds_info["goals_linea_raw"] = ajax_odds.get("goals_linea_raw", "N/A")
+                odds_info['goals_over_cuota'] = ajax_odds.get('goals_over_cuota', 'N/A')
+                odds_info['goals_under_cuota'] = ajax_odds.get('goals_under_cuota', 'N/A')
+                odds_info['ou_price_format'] = ajax_odds.get('price_format', 'unverified')
+                odds_info['ou_bookmaker_id'] = ajax_odds.get('bookmaker_id')
 
-    # Fallback 2: BF Data (para partidos en vivo/futuros si AJAX falla)
-    if (odds_info["ah_linea_raw"] in ["N/A", "-", ""] or odds_info["goals_linea_raw"] in ["N/A", "-", ""]) and match_id:
-        fallback_data = fetch_odds_from_bf_data(match_id)
-        if fallback_data:
-            if odds_info["ah_linea_raw"] in ["N/A", "-", ""]:
-                odds_info["ah_linea_raw"] = fallback_data.get("ah_linea_raw", "N/A")
-            if odds_info["goals_linea_raw"] in ["N/A", "-", ""]:
-                odds_info["goals_linea_raw"] = fallback_data.get("goals_linea_raw", "N/A")
-    
+    # El feed BF ofrece la línea disponible al consultarlo y no acredita apertura.
+    # Las iniciales faltantes se recuperan desde earlyOdds mediante Playwright.
     # Fallback 3: Playwright (para cuotas que requieren JavaScript dinámico)
     if PLAYWRIGHT_AVAILABLE and (odds_info["ah_linea_raw"] in ["N/A", "-", ""] or odds_info["goals_linea_raw"] in ["N/A", "-", ""]) and match_id:
         pw_odds = fetch_odds_with_playwright(match_id)
@@ -2121,6 +2138,8 @@ def extract_bet365_initial_odds_of(soup, match_id=None):
             if odds_info["goals_linea_raw"] in ["N/A", "-", ""]:
                 odds_info["goals_linea_raw"] = pw_odds.get("goals_linea_raw", "N/A")
                 
+    if odds_info.get('ah_price_format') == odds_info.get('ou_price_format') == 'hongkong':
+        odds_info['price_format'] = 'hongkong'
     return odds_info
 
 def extract_standings_data_from_h2h_page_of(soup, team_name):
@@ -2137,13 +2156,13 @@ def extract_standings_data_from_h2h_page_of(soup, team_name):
     team_table_soup = None
     is_home_table = False
     home_div = standings_section.find("div", class_="home-div")
-    if home_div and team_name.lower() in home_div.get_text(strip=True).lower():
+    if home_div and _history_team_key(team_name) in _history_team_key(home_div.get_text(strip=True)):
         team_table_soup = home_div.find("table", class_="team-table-home")
         is_home_table = True
         data["specific_type"] = "Est. como Local (en Liga)"
     else:
         guest_div = standings_section.find("div", class_="guest-div")
-        if guest_div and team_name.lower() in guest_div.get_text(strip=True).lower():
+        if guest_div and _history_team_key(team_name) in _history_team_key(guest_div.get_text(strip=True)):
             team_table_soup = guest_div.find("table", class_="team-table-guest")
             is_home_table = False
             data["specific_type"] = "Est. como Visitante (en Liga)"
@@ -2345,15 +2364,15 @@ def extract_match_date_of(soup):
 def _normalize_team_name(name):
     if not name: return ""
     # Normalización básica: lowercase, quitar espacios y sufijos comunes
-    n = name.lower().strip()
+    n = unicodedata.normalize('NFKC', html.unescape(name)).casefold().strip()
     # Eliminar puntuación común y sufijos (ordenados por longitud para evitar solapamientos incorrectos)
-    suffixes = [" u19", " u21", " u23", " fc", " cf", " ssc", " as", " csd", " cd", " sc", " ac", " afc", " yth"]
+    suffixes = [" fc", " cf", " ssc", " as", " csd", " cd", " sc", " ac", " afc"]
     for s in suffixes:
         if n.endswith(s):
             n = n[:-len(s)].strip()
     # Reemplazar algunos caracteres especiales
     n = n.replace("-", " ").replace(".", "")
-    return n.strip()
+    return _history_team_key(n)
 
 def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=None):
     results = {
@@ -2431,8 +2450,8 @@ def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id,
     for row in table.find_all("tr", id=re.compile(rf"tr{table_id[-1]}_\d+")):
         if not (details := get_match_details_from_row_of(row, score_class_selector=score_selector, source_table_type='hist', odds_map=odds_map)): continue
         
-        h, a = details.get('home','').lower(), details.get('away','').lower()
-        main, opp = main_team.lower(), opponent.lower()
+        h, a = _history_team_key(details.get('home')), _history_team_key(details.get('away'))
+        main, opp = _history_team_key(main_team), _history_team_key(opponent)
         
         if (main == h and opp == a) or (main == a and opp == h):
             res = {
@@ -2615,14 +2634,14 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
             lat_home = last_away_match.get('home_team', '')
             lat_away = last_away_match.get('away_team', '')
             # Asumimos que away_name jugó ahí. Si away_name es home, rival es away.
-            if away_name.lower() in lat_home.lower(): rival_name_for_home_to_find = lat_away
+            if _history_team_key(away_name) == _history_team_key(lat_home): rival_name_for_home_to_find = lat_away
             else: rival_name_for_home_to_find = lat_home
 
         rival_name_for_away_to_find = "N/A"
         if last_home_match:
             lhm_home = last_home_match.get('home_team', '')
             lhm_away = last_home_match.get('away_team', '')
-            if home_name.lower() in lhm_home.lower(): rival_name_for_away_to_find = lhm_away
+            if _history_team_key(home_name) == _history_team_key(lhm_home): rival_name_for_away_to_find = lhm_away
             else: rival_name_for_away_to_find = lhm_home
         # ---------------------------------------------------------------------
 
@@ -2633,30 +2652,26 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
             a_team = comp_L_vs_UV_A.get('away_team', '')
             # Simple heuristic: The one that is NOT the home_name is the rival
             # Normalize for comparison
-            hn_norm = home_name.lower().strip()
-            if h_team.lower().strip() == hn_norm:
+            hn_norm = _history_team_key(home_name)
+            if _history_team_key(h_team) == hn_norm:
                 comp_L_vs_UV_A['rival_name'] = a_team
-            elif a_team.lower().strip() == hn_norm:
+            elif _history_team_key(a_team) == hn_norm:
                 comp_L_vs_UV_A['rival_name'] = h_team
             else:
                 # Fallback: try partial match
-                if hn_norm in h_team.lower(): comp_L_vs_UV_A['rival_name'] = a_team
-                elif hn_norm in a_team.lower(): comp_L_vs_UV_A['rival_name'] = h_team
-                else: comp_L_vs_UV_A['rival_name'] = "Rival Desconocido"
+                comp_L_vs_UV_A['rival_name'] = "Rival Desconocido"
 
         if comp_V_vs_UL_H:
             # Away Team vs Rival.
             h_team = comp_V_vs_UL_H.get('home_team', '')
             a_team = comp_V_vs_UL_H.get('away_team', '')
-            an_norm = away_name.lower().strip()
-            if h_team.lower().strip() == an_norm:
+            an_norm = _history_team_key(away_name)
+            if _history_team_key(h_team) == an_norm:
                 comp_V_vs_UL_H['rival_name'] = a_team
-            elif a_team.lower().strip() == an_norm:
+            elif _history_team_key(a_team) == an_norm:
                 comp_V_vs_UL_H['rival_name'] = h_team
             else:
-                if an_norm in h_team.lower(): comp_V_vs_UL_H['rival_name'] = a_team
-                elif an_norm in a_team.lower(): comp_V_vs_UL_H['rival_name'] = h_team
-                else: comp_V_vs_UL_H['rival_name'] = "Rival Desconocido"
+                comp_V_vs_UL_H['rival_name'] = "Rival Desconocido"
         # -----------------------------------------------------
 
     except Exception as exc:
@@ -2708,7 +2723,19 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
         "away_ou_stats_general": away_ou_stats_general,
         "main_match_odds": {
             "ah_linea": format_ah_as_decimal_string_of(main_match_odds_data.get('ah_linea_raw', '?')),
-            "goals_linea": format_ah_as_decimal_string_of(main_match_odds_data.get('goals_linea_raw', '?'))
+            "goals_linea": format_ah_as_decimal_string_of(main_match_odds_data.get('goals_linea_raw', '?')),
+            "ah_home_cuota": main_match_odds_data.get('ah_home_cuota'),
+            "ah_away_cuota": main_match_odds_data.get('ah_away_cuota'),
+            "goals_over_cuota": main_match_odds_data.get('goals_over_cuota'),
+            "goals_under_cuota": main_match_odds_data.get('goals_under_cuota'),
+            # Conservar el precio original; no inferir su formato por magnitud.
+            "price_format": main_match_odds_data.get('price_format', 'unverified'),
+            "odds_stage": main_match_odds_data.get('odds_stage', 'unverified'),
+            "captured_at": main_match_odds_data.get('captured_at'),
+            "ah_price_format": main_match_odds_data.get('ah_price_format', main_match_odds_data.get('price_format', 'unverified')),
+            "ou_price_format": main_match_odds_data.get('ou_price_format', main_match_odds_data.get('price_format', 'unverified')),
+            "ah_bookmaker_id": main_match_odds_data.get('ah_bookmaker_id'),
+            "ou_bookmaker_id": main_match_odds_data.get('ou_bookmaker_id'),
         },
         # Estadisticas del propio partido. El Explorador historico usa esta
         # coleccion al reutilizar el encuentro como Prev/H2H/indirecta.

@@ -3841,7 +3841,7 @@
                                 ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
                                 ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                             </div>
-                            ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
+                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
                         </div>
                         <div class="text-muted small py-1" style="font-size:.60rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal</div>
                     </div>
@@ -3952,7 +3952,7 @@
                             ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
                             ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
                         </div>
-                        ${typeof idx === 'number' ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(${idx}, null, null, null, null, null, null, event, null, '${panelPrefix}')">✕ ocultar</button>` : ''}
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:700; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
                     </div>
 
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; padding:3px 5px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; gap:4px; min-width:0;">
@@ -3988,14 +3988,85 @@
             `;
         }
 
-        async function toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event, leagueId, panelPrefix = 'main') {
+        async function toggleTeamHistoryRowStats(targetEl, event, ...legacyArgs) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            const subrow = document.getElementById(`th-stats-row-${panelPrefix}-${idx}`);
-            const cell = document.getElementById(`th-stats-cell-${panelPrefix}-${idx}`);
-            const btn = document.getElementById(`th-stats-btn-${panelPrefix}-${idx}`);
+
+            let btn = null;
+            let subrow = null;
+            let cell = null;
+            let panelPrefix = 'main';
+            let idx = 0;
+            let matchId = '';
+            let homeTeam = '';
+            let awayTeam = '';
+            let date = '';
+            let score = '';
+            let ah = '';
+            let leagueId = '';
+            let isRetry = false;
+
+            // Caso A: Elemento DOM (this)
+            if (targetEl && typeof targetEl === 'object' && targetEl.nodeType === 1) {
+                // 1. Botón "✕ ocultar"
+                if (targetEl.classList.contains('th-hide-btn') || targetEl.closest('.th-hide-btn')) {
+                    subrow = targetEl.closest('tr.th-stats-subrow');
+                    const parentRow = subrow ? subrow.previousElementSibling : null;
+                    btn = parentRow ? parentRow.querySelector('.th-stats-btn') : null;
+                    if (subrow) subrow.style.display = 'none';
+                    if (btn) {
+                        btn.classList.remove('btn-success', 'text-white');
+                        btn.classList.add('btn-outline-success');
+                    }
+                    return;
+                }
+
+                // 2. Botón "Reintentar"
+                if (targetEl.classList.contains('th-retry-btn') || targetEl.closest('.th-retry-btn')) {
+                    isRetry = true;
+                    subrow = targetEl.closest('tr.th-stats-subrow');
+                    cell = subrow ? subrow.querySelector('td') : null;
+                    const parentRow = subrow ? subrow.previousElementSibling : null;
+                    btn = parentRow ? parentRow.querySelector('.th-stats-btn') : null;
+                } else {
+                    // 3. Botón "Stats" en la fila del partido
+                    btn = targetEl.closest('.th-stats-btn') || targetEl;
+                    const parentRow = btn ? btn.closest('tr') : null;
+                    subrow = parentRow ? parentRow.nextElementSibling : null;
+                    cell = subrow ? subrow.querySelector('td') : null;
+                }
+
+                if (btn && btn.dataset) {
+                    idx = parseInt(btn.dataset.idx, 10) || 0;
+                    matchId = btn.dataset.matchId || '';
+                    homeTeam = btn.dataset.homeTeam || '';
+                    awayTeam = btn.dataset.awayTeam || '';
+                    date = btn.dataset.date || '';
+                    score = btn.dataset.score || '';
+                    ah = btn.dataset.ah || '';
+                    leagueId = btn.dataset.leagueId || '';
+                    panelPrefix = btn.dataset.panelPrefix || 'main';
+                }
+            } else if (typeof targetEl === 'number') {
+                // Caso B: Firma legacy toggleTeamHistoryRowStats(idx, matchId, homeTeam, awayTeam, date, score, ah, event, leagueId, panelPrefix)
+                idx = targetEl;
+                matchId = legacyArgs[0] || '';
+                homeTeam = legacyArgs[1] || '';
+                awayTeam = legacyArgs[2] || '';
+                date = legacyArgs[3] || '';
+                score = legacyArgs[4] || '';
+                ah = legacyArgs[5] || '';
+                leagueId = legacyArgs[7] || '';
+                panelPrefix = legacyArgs[8] || 'main';
+
+                subrow = document.getElementById(`th-stats-row-${panelPrefix}-${idx}`);
+                cell = document.getElementById(`th-stats-cell-${panelPrefix}-${idx}`);
+                btn = document.getElementById(`th-stats-btn-${panelPrefix}-${idx}`);
+            }
+
             if (!subrow || !cell) return;
 
-            if (subrow.style.display !== 'none') {
+            // Si no es retry y ya está desplegado, plegar
+            if (!isRetry && subrow.style.display !== 'none') {
                 subrow.style.display = 'none';
                 if (btn) {
                     btn.classList.remove('btn-success', 'text-white');
@@ -4010,10 +4081,7 @@
                 btn.classList.add('btn-success', 'text-white');
             }
 
-            const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
-            const matchObj = activeData?.matches?.[idx] || null;
-
-            if (cell.dataset.loaded === '1') {
+            if (!isRetry && cell.dataset.loaded === '1') {
                 return;
             }
 
@@ -4024,18 +4092,22 @@
             `;
 
             try {
+                const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
+                const matchObj = (activeData?.matches && idx >= 0 && idx < activeData.matches.length) ? activeData.matches[idx] : null;
+
                 const effectiveHome = homeTeam || (matchObj && matchObj.home_team) || '';
                 const effectiveAway = awayTeam || (matchObj && matchObj.away_team) || '';
                 const effectiveDate = date || (matchObj && matchObj.date) || '';
                 const effectiveScore = score || (matchObj && matchObj.score) || '';
                 const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((matchObj && matchObj.ah) || '');
                 const effectiveLeague = leagueId || (matchObj && matchObj.league_id) || '';
+                const effectiveMatchId = String(matchId || (matchObj && matchObj.match_id) || '').replace(/\D/g, '');
 
                 const response = await fetch('/api/match_stats', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        match_id: String(matchId || (matchObj && matchObj.match_id) || '').replace(/\D/g, ''),
+                        match_id: effectiveMatchId,
                         row_home: effectiveHome,
                         row_away: effectiveAway,
                         row_date: effectiveDate,
@@ -4052,13 +4124,25 @@
                 cell.dataset.loaded = '1';
                 cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
             } catch (err) {
+                cell.dataset.loaded = '0';
                 cell.innerHTML = `
                     <div class="alert alert-warning py-1 px-2 my-1 small d-flex justify-content-between align-items-center" style="font-size:.65rem;">
                         <span><i class="fa-solid fa-triangle-exclamation me-1"></i>${err.message || 'Sin estadísticas disponibles'}</span>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" onclick="toggleTeamHistoryRowStats(${idx}, '${matchId}', '${escapeTeamHistoryHtml(homeTeam)}', '${escapeTeamHistoryHtml(awayTeam)}', '${escapeTeamHistoryHtml(date)}', '${escapeTeamHistoryHtml(score)}', '${escapeTeamHistoryHtml(ah)}', event, '${escapeTeamHistoryHtml(leagueId)}', '${panelPrefix}')">Reintentar</button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none th-retry-btn" onclick="toggleTeamHistoryRowStats(this, event)">Reintentar</button>
                     </div>
                 `;
             }
+        }
+
+        function closeCustomCompare(btnEl, pMid, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
+            if (!parentId) return;
+            const customCol = document.getElementById('custom-compare-col-' + parentId);
+            if (customCol) {
+                customCol.style.display = 'none';
+            }
+            updateCompareCombinedLayout(parentId);
         }
 
         function updateCompareCombinedLayout(pMid) {
@@ -4070,21 +4154,30 @@
             if (!customCol || !historyCol) return;
 
             const isHistoryVisible = inlineContainer && inlineContainer.style.display !== 'none';
+            const isCustomVisible = customCol.style.display !== 'none';
             const isComparisonMode = Boolean(window._teamHistoryComparisonMode);
 
-            if (!isHistoryVisible) {
+            if (!isHistoryVisible && !isCustomVisible) {
+                historyCol.style.display = 'none';
+                customCol.style.display = 'none';
+            } else if (!isHistoryVisible && isCustomVisible) {
                 customCol.className = 'col-12 pre-context-custom-compare-col';
                 historyCol.style.display = 'none';
-            } else if (isComparisonMode) {
-                // Modo Comparativa: 3 columnas juntas (1 col comparativa a la carta, 2 cols para los dos equipos de historial)
-                customCol.className = 'col-12 col-xl-4 col-lg-4 pre-context-custom-compare-col';
+            } else if (isHistoryVisible && !isCustomVisible) {
+                // Historial ocupa todo el ancho: 2 columnas limpias al 50% para local y visitante
                 historyCol.style.display = 'block';
-                historyCol.className = 'col-12 col-xl-8 col-lg-8 pre-context-team-history-col';
+                historyCol.className = 'col-12 pre-context-team-history-col';
+                customCol.style.display = 'none';
             } else {
-                // Modo Simple: 2 columnas juntas (1 col comparativa a la carta, 1 col historial del rival)
-                customCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-custom-compare-col';
+                // Ambos visibles (historial + comparativa a la carta activada)
                 historyCol.style.display = 'block';
-                historyCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-team-history-col';
+                if (isComparisonMode) {
+                    customCol.className = 'col-12 col-xl-4 col-lg-4 pre-context-custom-compare-col';
+                    historyCol.className = 'col-12 col-xl-8 col-lg-8 pre-context-team-history-col';
+                } else {
+                    customCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-custom-compare-col';
+                    historyCol.className = 'col-12 col-xl-6 col-lg-6 pre-context-team-history-col';
+                }
             }
         }
 
@@ -4373,10 +4466,11 @@
             window._currentTeamHistoryDefaultVenue = defaultVenue || '';
             window._currentOpponentDefaultVenue = opponentDefaultVenue || '';
 
-            // Resetear estado comparativa
-            window._teamHistoryComparisonMode = false;
+            // Modo comparativa de 2 columnas por defecto si hay rival disponible
+            const hasOpponent = Boolean(window._currentTeamHistoryOpponentName);
+            window._teamHistoryComparisonMode = hasOpponent;
             window._currentOpponentHistoryData = null;
-            window._opponentTeamHistoryLoading = false;
+            window._opponentTeamHistoryLoading = hasOpponent;
 
             // Configurar filtros por defecto (Visitante por defecto en Fuera, Local por defecto en Casa)
             let initialTeamVenue = defaultVenue || '';
@@ -4417,6 +4511,11 @@
             window._currentOpponentSearchQuery = '';
             window._opponentHistoryLimit = 10;
 
+            // Iniciar carga del rival en paralelo si está en modo comparativa
+            if (hasOpponent && window._currentTeamHistoryOpponentName) {
+                loadOpponentHistoryData(window._currentTeamHistoryOpponentName);
+            }
+
             // Preferir SIEMPRE el contenedor inline en la fila debajo de la tabla
             if (inlineContainer) {
                 inlineContainer.style.display = 'block';
@@ -4436,9 +4535,15 @@
                 if (headTitle) headTitle.innerHTML = `${escapeTeamHistoryHtml(cleanTeam)}`;
                 if (headSub) headSub.innerHTML = `Consultando partidos y hándicaps asiáticos...`;
                 if (compBtn) {
-                    compBtn.classList.remove('btn-primary', 'text-white');
-                    compBtn.classList.add('btn-outline-primary');
-                    compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+                    if (hasOpponent) {
+                        compBtn.classList.remove('btn-outline-primary');
+                        compBtn.classList.add('btn-primary', 'text-white');
+                        compBtn.innerHTML = `<i class="fa-solid fa-table-columns me-1"></i>Vista Simple`;
+                    } else {
+                        compBtn.classList.remove('btn-primary', 'text-white');
+                        compBtn.classList.add('btn-outline-primary');
+                        compBtn.innerHTML = `<i class="fa-solid fa-code-compare me-1"></i>Comparar con Rival`;
+                    }
                 }
 
                 // Scroll suave hasta la fila inline
@@ -4765,31 +4870,40 @@
                     }
 
                     const statsBtn = m.match_id
-                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${prefix}-${idx}" style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2;" onclick="toggleTeamHistoryRowStats(${idx}, '${m.match_id}', '${escapeTeamHistoryHtml(m.home_team)}', '${escapeTeamHistoryHtml(m.away_team)}', '${escapeTeamHistoryHtml(m.date)}', '${escapeTeamHistoryHtml(m.score)}', '${escapeTeamHistoryHtml(m.ah)}', event, '${escapeTeamHistoryHtml(m.league_id || '')}', '${prefix}')" title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
+                        ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${prefix}-${idx}"
+                            data-idx="${idx}"
+                            data-match-id="${escapeTeamHistoryHtml(m.match_id || '')}"
+                            data-home-team="${escapeTeamHistoryHtml(m.home_team || '')}"
+                            data-away-team="${escapeTeamHistoryHtml(m.away_team || '')}"
+                            data-date="${escapeTeamHistoryHtml(m.date || '')}"
+                            data-score="${escapeTeamHistoryHtml(m.score || '')}"
+                            data-ah="${escapeTeamHistoryHtml(m.ah || '')}"
+                            data-league-id="${escapeTeamHistoryHtml(m.league_id || '')}"
+                            data-panel-prefix="${prefix}"
+                            style="padding:0 3px; font-size:.54rem; font-weight:800; line-height:1.2; height:18px;"
+                            onclick="toggleTeamHistoryRowStats(this, event)"
+                            title="Ver estadísticas y ataques peligrosos"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button>`
                         : `<span class="text-muted small">-</span>`;
 
-                    const commonRivalBadge = '';
-
                     return `
-                        <tr class="pre-context-row ${rowClass}" style="vertical-align:middle; font-size:.67rem; ${rowStyle} border-bottom:1px solid #edf0f3;" id="th-match-row-${prefix}-${idx}">
-                            <td class="fw-bold text-nowrap py-1 px-1 ctx-date" style="font-size:.66rem; min-width:95px !important; white-space:nowrap !important;">${venueBadge}${m.date || '-'}</td>
-                            <td class="py-1 px-1 text-center ctx-league"><span class="badge bg-light text-dark border" style="font-size:.56rem; padding:1px 3px;">${m.league_id || '-'}</span></td>
-                            <td class="fw-bold py-1 px-1 ctx-rival" style="color:#1e293b;">
-                                <div class="text-truncate" title="${escapeTeamHistoryHtml(m.rival)}">${escapeTeamHistoryHtml(m.rival || '-')}</div>
-                                ${commonRivalBadge}
+                        <tr class="pre-context-row ${rowClass}" style="vertical-align:middle; font-size:.62rem; ${rowStyle} border-bottom:1px solid #edf0f3;" id="th-match-row-${prefix}-${idx}">
+                            <td class="fw-bold text-nowrap py-1 px-1 ctx-date" style="font-size:.60rem; width:78px; white-space:nowrap !important; overflow:hidden;">${venueBadge}${m.date || '-'}</td>
+                            <td class="py-1 px-1 text-center ctx-league" style="width:32px;"><span class="badge bg-light text-dark border" style="font-size:.52rem; padding:1px 2px;">${m.league_id || '-'}</span></td>
+                            <td class="fw-bold py-1 px-1 ctx-rival" style="color:#1e293b; overflow:hidden;">
+                                <div class="text-truncate" style="font-size:.62rem;" title="${escapeTeamHistoryHtml(m.rival)}">${escapeTeamHistoryHtml(m.rival || '-')}</div>
                             </td>
-                            <td class="text-center py-1 px-1 ctx-score">
-                                <span class="fw-bold" style="font-size:.75rem; color:${scoreColor};">${m.score || '-'}</span>
+                            <td class="text-center py-1 px-1 ctx-score" style="width:36px;">
+                                <span class="fw-bold" style="font-size:.70rem; color:${scoreColor};">${m.score || '-'}</span>
                             </td>
-                            <td class="text-center fw-bold py-1 px-1 ctx-ah" style="color:#2563eb; font-size:.70rem;">${m.ah || '-'}</td>
-                            <td class="text-center py-1 px-1 ctx-eval">
-                                <span class="badge" style="${ahBadgeStyle} font-size:.56rem; font-weight:800; padding:1px 4px;">${ahLabel}</span>
+                            <td class="text-center fw-bold py-1 px-1 ctx-ah" style="color:#2563eb; font-size:.66rem; width:38px;">${m.ah || '-'}</td>
+                            <td class="text-center py-1 px-1 ctx-eval" style="width:52px;">
+                                <span class="badge" style="${ahBadgeStyle} font-size:.52rem; font-weight:800; padding:1px 3px;">${ahLabel}</span>
                             </td>
-                            <td class="text-center py-1 px-1 ctx-stats">${statsBtn}</td>
+                            <td class="text-center py-1 px-1 ctx-stats" style="width:44px;">${statsBtn}</td>
                         </tr>
                         <tr id="th-stats-row-${prefix}-${idx}" class="th-stats-subrow" style="display:none; background:#f8fafc;">
                             <td colspan="7" class="p-1 border-bottom" id="th-stats-cell-${prefix}-${idx}" style="box-sizing:border-box; overflow:hidden;">
-                                <div class="text-center py-2 text-muted small"><i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...</div>
+                                <div class="text-center py-2 text-muted small" style="font-size:.58rem;"><i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...</div>
                             </td>
                         </tr>
                     `;
@@ -4802,44 +4916,38 @@
             const leagueFilterHandler = isOpponent ? 'toggleOpponentLeagueFilter' : 'toggleTeamHistoryLeagueFilter';
 
             return `
-                <div class="team-history-single-panel rounded shadow-sm p-2 mb-2 d-flex flex-column" style="min-width:0; ${panelStyle}">
+                <div class="team-history-single-panel rounded shadow-sm p-1 mb-1 d-flex flex-column" style="min-width:0; ${panelStyle}; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                     <!-- Cabecera de Equipo con Rol (Local/Visitante) -->
-                    <div class="d-flex align-items-center justify-content-between pb-1 mb-1 border-bottom">
-                        <div class="d-flex align-items-center gap-1 text-truncate flex-wrap" style="min-width:0;">
+                    <div class="d-flex align-items-center justify-content-between px-1 py-1 mb-1 border-bottom" style="border-color:#e2e8f0 !important; background:rgba(255,255,255,0.7); border-radius:4px;">
+                        <div class="d-flex align-items-center gap-1 text-truncate" style="min-width:0;">
                             ${roleBadge}
-                            <h6 class="fw-bold mb-0 text-truncate ms-1" style="font-size:.82rem; color:#1e3a5f;" title="${escapeTeamHistoryHtml(teamName)}">${escapeTeamHistoryHtml(teamName)}</h6>
+                            <h6 class="fw-bold mb-0 text-truncate ms-1" style="font-size:.76rem; color:#1e293b;" title="${escapeTeamHistoryHtml(teamName)}">${escapeTeamHistoryHtml(teamName)}</h6>
                         </div>
-                        <div class="text-muted small text-nowrap" style="font-size:.62rem; font-weight:700;">
+                        <div class="text-muted text-nowrap ms-1" style="font-size:.58rem; font-weight:700;">
                             ${totalVis} partidos
                         </div>
                     </div>
 
-                    <!-- Toolbar de Filtros -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 p-1 mb-1 bg-light rounded border">
+                    <!-- Toolbar de Filtros Compacta -->
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 px-1 py-1 mb-1 bg-white rounded border" style="border-color:#e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-1 flex-wrap">
                             <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn ${venueFilter === 'all' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('all')" style="font-size:.63rem; font-weight:800;">
+                                <button type="button" class="btn ${venueFilter === 'all' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-1" onclick="${venueChangeHandler}('all')" style="font-size:.58rem; font-weight:800; height:20px; line-height:1.2;">
                                     Todos (${allMatches.length})
                                 </button>
-                                <button type="button" class="btn ${venueFilter === 'home' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('home')" style="font-size:.63rem; font-weight:800;">
+                                <button type="button" class="btn ${venueFilter === 'home' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-1" onclick="${venueChangeHandler}('home')" style="font-size:.58rem; font-weight:800; height:20px; line-height:1.2;">
                                     Casa (${homeCount})
                                 </button>
-                                <button type="button" class="btn ${venueFilter === 'away' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-2" onclick="${venueChangeHandler}('away')" style="font-size:.63rem; font-weight:800;">
+                                <button type="button" class="btn ${venueFilter === 'away' && !isCommonFilter ? 'btn-primary active' : 'btn-outline-primary'} py-0 px-1" onclick="${venueChangeHandler}('away')" style="font-size:.58rem; font-weight:800; height:20px; line-height:1.2;">
                                     Fuera (${awayCount})
                                 </button>
                             </div>
 
-                            ${hasCommonRivals ? `
-                                <button type="button" class="btn ${isCommonFilter ? 'btn-warning active text-dark fw-bold' : 'btn-outline-warning text-dark fw-bold'} py-0 px-2" onclick="toggleTeamHistoryCommonFilter()" style="font-size:.62rem; border-width:1.5px;" title="Ver solo partidos con rivales comunes que también ha enfrentado ${escapeTeamHistoryHtml(opponentName)}">
-                                    <i class="fa-solid fa-bolt me-1 ${isCommonFilter ? 'text-dark' : 'text-warning'}"></i>vs ${escapeTeamHistoryHtml(opponentName)} (${data.common_rivals_count})
-                                </button>
-                            ` : ''}
-
-                            <div class="btn-group btn-group-sm ms-1" role="group">
-                                <button type="button" class="btn ${currentLimit === 10 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="${limitChangeHandler}(10)" style="font-size:.61rem; font-weight:800;" title="Ver solo últimos 10 partidos">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn ${currentLimit === 10 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-1" onclick="${limitChangeHandler}(10)" style="font-size:.56rem; font-weight:800; height:20px; line-height:1.2;" title="Ver solo últimos 10 partidos">
                                     Últimos 10
                                 </button>
-                                <button type="button" class="btn ${currentLimit === 0 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-2" onclick="${limitChangeHandler}(0)" style="font-size:.61rem; font-weight:800;" title="Ver todos los partidos disponibles">
+                                <button type="button" class="btn ${currentLimit === 0 ? 'btn-dark' : 'btn-outline-secondary'} py-0 px-1" onclick="${limitChangeHandler}(0)" style="font-size:.56rem; font-weight:800; height:20px; line-height:1.2;" title="Ver todos los partidos disponibles">
                                     Todos (${filtered.length})
                                 </button>
                             </div>
@@ -4847,47 +4955,47 @@
 
                         <div class="d-flex align-items-center gap-1">
                             ${targetLid ? `
-                                <label class="form-check form-check-inline mb-0 small" style="font-size:.62rem; font-weight:700; cursor:pointer;">
-                                    <input class="form-check-input" type="checkbox" ${isLeagueFilter ? 'checked' : ''} onchange="${leagueFilterHandler}(this)" style="width:11px; height:11px;">
+                                <label class="form-check form-check-inline mb-0 small" style="font-size:.58rem; font-weight:700; cursor:pointer;" title="Filtrar solo partidos de la liga actual (${targetLid})">
+                                    <input class="form-check-input" type="checkbox" ${isLeagueFilter ? 'checked' : ''} onchange="${leagueFilterHandler}(this)" style="width:10px; height:10px; margin-top:2px;">
                                     L.${targetLid}
                                 </label>
                             ` : ''}
-                            <input type="text" class="form-control form-control-sm py-0 px-1 border" placeholder="Buscar rival..." value="${searchQuery}" oninput="${searchHandler}(this.value)" style="font-size:.63rem; width:75px; height:20px;">
+                            <input type="text" class="form-control form-control-sm py-0 px-1 border" placeholder="Buscar rival..." value="${searchQuery}" oninput="${searchHandler}(this.value)" style="font-size:.58rem; width:70px; height:20px; line-height:1.2;">
                         </div>
                     </div>
 
-                    <!-- KPI Bar -->
-                    <div class="d-flex align-items-center justify-content-between p-1 px-2 mb-1 bg-light rounded border small" style="font-size:.65rem;">
+                    <!-- KPI Bar Ultracompacta -->
+                    <div class="d-flex align-items-center justify-content-between px-1 py-1 mb-1 bg-white rounded border" style="font-size:.58rem; border-color:#e2e8f0 !important;">
                         <div>
                             <span class="text-muted">${isLimited ? 'Últimos' : 'Total'}:</span>
-                            <strong>${totalVis}</strong>
-                            ${isLimited ? `<span class="text-muted" style="font-size:.58rem;">(de ${filtered.length})</span>` : ''}
+                            <strong style="color:#0f172a;">${totalVis}</strong>
+                            ${isLimited ? `<span class="text-muted" style="font-size:.52rem;">(${filtered.length})</span>` : ''}
                         </div>
-                        <div>
-                            <span class="badge bg-success" style="font-size:.57rem; padding:1px 3px;">V ${wins}</span>
-                            <span class="badge bg-warning text-dark" style="font-size:.57rem; padding:1px 3px;">E ${draws}</span>
-                            <span class="badge bg-danger" style="font-size:.57rem; padding:1px 3px;">D ${losses}</span>
-                            <span class="text-muted fw-bold ms-1" style="font-size:.58rem;">(${winPct}%)</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success" style="font-size:.54rem; padding:1px 3px;">V ${wins}</span>
+                            <span class="badge bg-warning text-dark" style="font-size:.54rem; padding:1px 3px;">E ${draws}</span>
+                            <span class="badge bg-danger" style="font-size:.54rem; padding:1px 3px;">D ${losses}</span>
+                            <span class="text-muted fw-bold" style="font-size:.54rem;">(${winPct}%)</span>
                         </div>
-                        <div>
-                            <span class="badge bg-success" style="font-size:.57rem; padding:1px 3px;">Cubre: ${coverWins} (${coverPct}%)</span>
-                            <span class="badge bg-danger" style="font-size:.57rem; padding:1px 3px;">Falla: ${coverLosses}</span>
-                            ${coverPush ? `<span class="badge bg-secondary" style="font-size:.57rem; padding:1px 3px;">Nulo: ${coverPush}</span>` : ''}
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge bg-success" style="font-size:.54rem; padding:1px 3px;" title="Cubre AH">Cubre: ${coverWins} (${coverPct}%)</span>
+                            <span class="badge bg-danger" style="font-size:.54rem; padding:1px 3px;" title="Falla AH">Falla: ${coverLosses}</span>
+                            ${coverPush ? `<span class="badge bg-secondary" style="font-size:.54rem; padding:1px 3px;" title="Empate/Nulo AH">Nulo: ${coverPush}</span>` : ''}
                         </div>
                     </div>
 
-                    <!-- Tabla de Partidos con Fecha Completa -->
-                    <div class="table-responsive bg-white rounded border" style="max-height: 400px; overflow-y:auto;">
-                        <table class="table table-sm mb-0 team-history-table">
-                            <thead class="sticky-top" style="z-index:1; font-size:.65rem; background:#f8fafc; color:#64748b; font-weight:900; border-bottom:1px solid #edf0f3;">
+                    <!-- Tabla de Partidos con diseño nítido y compacto -->
+                    <div class="table-responsive bg-white rounded border" style="max-height: 360px; overflow-y:auto; border-color:#e2e8f0 !important;">
+                        <table class="table table-sm mb-0 team-history-table" style="table-layout:fixed; width:100%;">
+                            <thead class="sticky-top" style="z-index:1; font-size:.60rem; background:#f8fafc; color:#64748b; font-weight:900; border-bottom:1px solid #e2e8f0;">
                                 <tr>
-                                    <th class="ctx-date" style="padding:4px 4px;">Fecha</th>
-                                    <th class="text-center ctx-league" style="padding:4px 2px;">Liga</th>
-                                    <th class="ctx-rival" style="padding:4px 4px;">Rival</th>
-                                    <th class="text-center ctx-score" style="padding:4px 2px;">Res</th>
-                                    <th class="text-center ctx-ah" style="padding:4px 2px;">AH</th>
-                                    <th class="text-center ctx-eval" style="padding:4px 2px;">Lectura</th>
-                                    <th class="text-center ctx-stats" style="padding:4px 2px;">Stats</th>
+                                    <th class="ctx-date" style="width:78px; padding:3px 2px;">Fecha</th>
+                                    <th class="text-center ctx-league" style="width:32px; padding:3px 1px;">Liga</th>
+                                    <th class="ctx-rival" style="padding:3px 3px;">Rival</th>
+                                    <th class="text-center ctx-score" style="width:36px; padding:3px 1px;">Res</th>
+                                    <th class="text-center ctx-ah" style="width:38px; padding:3px 1px;">AH</th>
+                                    <th class="text-center ctx-eval" style="width:52px; padding:3px 1px;">Lectura</th>
+                                    <th class="text-center ctx-stats" style="width:44px; padding:3px 1px;">Stats</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -4898,14 +5006,14 @@
 
                     <!-- Botón inferior 10 vs Todos -->
                     ${isLimited ? `
-                        <div class="p-1 text-center bg-white rounded border mt-1">
-                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(0)" style="font-size:.65rem;">
+                        <div class="p-1 text-center bg-white rounded border mt-1" style="border-color:#e2e8f0 !important;">
+                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(0)" style="font-size:.58rem; height:20px; line-height:1.2;">
                                 <i class="fa-solid fa-angles-down me-1"></i>Ver los ${filtered.length - totalVis} restantes (Mostrar todos los ${filtered.length})
                             </button>
                         </div>
                     ` : (filtered.length > 10 ? `
-                        <div class="p-1 text-center bg-white rounded border mt-1">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(10)" style="font-size:.65rem;">
+                        <div class="p-1 text-center bg-white rounded border mt-1" style="border-color:#e2e8f0 !important;">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 fw-bold w-100" onclick="${limitChangeHandler}(10)" style="font-size:.58rem; height:20px; line-height:1.2;">
                                 <i class="fa-solid fa-angles-up me-1"></i>Volver a mostrar solo los últimos 10
                             </button>
                         </div>
@@ -5729,18 +5837,8 @@
 
             // Inicializar autocompletado de ligas
             initLeagueAutocomplete();
-            // Inicio limpio: solo buscar automáticamente cuando llegamos con un patrón/preset.
-            if (isPatternAutoSearch || hasPreset) {
-                triggerSearch();
-            } else {
-                totalResults = [];
-                filteredResultsGlobal = [];
-                currentPage = 1;
-                renderTable([]);
-                const emptyCell = document.querySelector('#table-body td');
-                if (emptyCell) emptyCell.textContent = 'Selecciona los filtros y pulsa Aplicar Filtros';
-                renderPaginationControls(0);
-            }
+            // Cargar partidos siempre al entrar al Explorador o cuando llegamos con preset
+            triggerSearch();
         }
 
 
@@ -6836,97 +6934,144 @@
                 }
 
                 // --- Stats Logic: Replicado de Pre-Cacheo ---
-                // Helper para crear filas de estadísticas
+                // --- Stats Logic: Replicado de Pre-Cacheo (Estilo Prototype Moderno) ---
+                // Helper para crear filas de estadísticas con barra proporcional dual
                 const createStatsRows = (statsData) => {
                     if (!statsData || statsData.length === 0) return '';
+                    const getStatMeta = (raw) => {
+                        const s = String(raw || '').toLowerCase();
+                        if (s.includes('puerta') || s.includes('target')) return { icon: '🎯', label: 'Tiros a puerta' };
+                        if (s.includes('tiro') || s.includes('shot')) return { icon: '⚽', label: 'Tiros totales' };
+                        if (s.includes('córner') || s.includes('corner') || s.includes('esquina')) return { icon: '🚩', label: 'Saques de esquina' };
+                        if (s.includes('peligros') || s.includes('dangerous')) return { icon: '⚡', label: 'Ataques peligrosos' };
+                        if (s.includes('ataque') || s.includes('attack')) return { icon: '📈', label: 'Ataques totales' };
+                        if (s.includes('roja') || s.includes('red')) return { icon: '🟥', label: 'Tarjetas rojas' };
+                        if (s.includes('amarill') || s.includes('yellow')) return { icon: '🟨', label: 'Tarjetas amarillas' };
+                        if (s.includes('falta') || s.includes('foul')) return { icon: '⛔', label: 'Faltas' };
+                        if (s.includes('posesi') || s.includes('possession')) return { icon: '🔄', label: 'Posesión' };
+                        return { icon: '📊', label: raw };
+                    };
+
+                    const parseVal = (str) => {
+                        if (!str) return 0;
+                        const match = str.toString().match(/(\d+)/);
+                        return match ? parseInt(match[0], 10) : 0;
+                    };
 
                     return statsData.map(stat => {
-                        const label = stat.label ?? '';
-                        const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(label);
-                        // Extraer valores numéricos
-                        const parseVal = (str) => {
-                            if (!str) return 0;
-                            const match = str.toString().match(/(\d+)/);
-                            return match ? parseInt(match[0]) : 0;
-                        };
+                        const rawLabel = stat.label ?? stat.name ?? '';
+                        const { icon, label } = getStatMeta(rawLabel);
+                        const isRedCardRow = !!stat.is_red_card || /tarjetas?\s+rojas?|red\s+cards?/i.test(rawLabel);
                         const hVal = parseVal(stat.home);
                         const aVal = parseVal(stat.away);
 
-                        // Colores según quién tiene más
-                        let hClass = 'text-dark';
-                        let aClass = 'text-dark';
-                        let labelClass = 'text-muted';
+                        let hClass = '#0284c7';
+                        let aClass = '#dc2626';
+                        let barHColor = '#0284c7';
+                        let barAColor = '#dc2626';
+
                         if (isRedCardRow) {
-                            hClass = hVal > 0 ? 'text-danger fw-bold' : 'text-muted';
-                            aClass = aVal > 0 ? 'text-danger fw-bold' : 'text-muted';
-                            labelClass = 'text-danger fw-bold';
-                        } else if (hVal > aVal) {
-                            hClass = 'text-success fw-bold';
-                            aClass = 'text-danger';
-                        } else if (hVal < aVal) {
-                            hClass = 'text-danger';
-                            aClass = 'text-success fw-bold';
+                            hClass = hVal > 0 ? '#dc2626' : '#94a3b8';
+                            aClass = aVal > 0 ? '#dc2626' : '#94a3b8';
+                            barHColor = hVal > 0 ? '#dc2626' : '#e2e8f0';
+                            barAColor = aVal > 0 ? '#dc2626' : '#e2e8f0';
                         }
 
+                        const sum = hVal + aVal;
+                        let barHtml = '';
+                        if (sum === 0) {
+                            barHtml = `<div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div><div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>`;
+                        } else if (hVal > 0 && aVal === 0) {
+                            barHtml = `<div style="width:100%; background:${barHColor}; border-radius:9999px;"></div>`;
+                        } else if (aVal > 0 && hVal === 0) {
+                            barHtml = `<div style="width:100%; background:${barAColor}; border-radius:9999px;"></div>`;
+                        } else {
+                            const hPct = Math.round((hVal / sum) * 100);
+                            const aPct = 100 - hPct;
+                            barHtml = `<div style="width:calc(${hPct}% - 1.5px); background:${barHColor}; border-radius:9999px; min-width:3px;"></div><div style="width:calc(${aPct}% - 1.5px); background:${barAColor}; border-radius:9999px; min-width:3px;"></div>`;
+                        }
+
+                        const hDisp = (isRedCardRow && hVal > 0) ? `🟥 ${stat.home ?? hVal}` : (stat.home ?? hVal);
+                        const aDisp = (isRedCardRow && aVal > 0) ? `🟥 ${stat.away ?? aVal}` : (stat.away ?? aVal);
+
                         return `
-            <div class="d-flex justify-content-between" style = "font-size: 0.75rem; line-height: 1.4; border-bottom: 1px solid rgba(0,0,0,0.1); padding: 2px 0;">
-                                <span class="${hClass}">${hVal}</span>
-                                <span class="${labelClass}" style="font-size: 0.65rem;">${label}</span>
-                                <span class="${aClass}">${aVal}</span>
+                            <div style="margin-bottom:4px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
+                                    <span style="font-weight:900; font-size:0.76rem; color:${hClass}; min-width:22px; text-align:left;">
+                                        ${hDisp}
+                                    </span>
+                                    <span style="font-size:0.64rem; font-weight:700; color:#334155; text-align:center; flex:1; padding:0 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        <span style="font-size:0.68rem; margin-right:2px;">${icon}</span>${label}
+                                    </span>
+                                    <span style="font-weight:900; font-size:0.76rem; color:${aClass}; min-width:22px; text-align:right;">
+                                        ${aDisp}
+                                    </span>
+                                </div>
+                                <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:4px;">
+                                    ${barHtml}
+                                </div>
                             </div>
-            `;
+                        `;
                     }).join('');
                 };
 
-                // Helper para crear el HTML de una celda de stats completa con colores por grupo
+                // Helper para crear el HTML de una celda de stats completa con formato moderno prototype
                 const createStatBox = (title, data, isEmpty, colorClass, bgColor) => {
-                    if (isEmpty) {
+                    if (isEmpty || !data) {
                         return `
-            <div style = "background: ${bgColor}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.6;">
-                                <div class="fw-bold ${colorClass} text-uppercase" style="font-size: 0.75rem; margin-bottom: 8px;">${title}</div>
-                                <span class="text-muted" style="font-size: 1rem;">-</span>
+                            <div style="background: ${bgColor}; border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0.65;">
+                                <div class="fw-bold ${colorClass} text-uppercase" style="font-size: 0.72rem; margin-bottom: 6px;">${title}</div>
+                                <span class="text-muted" style="font-size: 0.85rem;">-</span>
                             </div>
-            `;
+                        `;
                     }
 
                     const hasDangerousAttacks = Array.isArray(data.stats) && data.stats.some(stat =>
                         /peligros|dangerous/i.test(String(stat.label || ''))
                     );
 
-                    // Info del partido
-                    const matchLine = data.match ? `
-            <div style = "font-size: 0.75rem; margin-bottom: 6px; text-align: center;">
-                            <span class="text-success fw-bold">${data.match.home || ''}</span>
-                            <span class="fw-bold text-dark mx-2" style="font-size: 0.9rem; background: rgba(255,255,255,0.5); padding: 2px 6px; border-radius: 4px;">${data.match.score || ''}</span>
-                            <span class="text-danger fw-bold">${data.match.away || ''}</span>
-                        </div>
-            ` : '';
+                    const homeTeam = (data.match && data.match.home) || '';
+                    const awayTeam = (data.match && data.match.away) || '';
+                    const score = (data.match && data.match.score) || '-';
+                    const ah = data.ah || '';
 
-                    // Fecha
-                    const dateLine = data.date ? `<div class="text-muted text-center" style = "font-size: 0.65rem; margin-bottom: 4px;"> ${data.date}</div> ` : '';
-
-                    // AH
-                    const ahLine = data.ah ? `<div class="text-center" style = "font-size: 0.7rem; margin-bottom: 4px;"> AH: <span class="fw-bold text-dark">${data.ah}</span></div> ` : '';
+                    const dateHtml = data.date ? `<span style="font-size: 0.60rem; color: #64748b; font-weight: 700;">📅 ${data.date}</span>` : '';
 
                     // Stats rows
                     const statsHtml = data.stats && data.stats.length > 0 ? `
-            <div data-progression-stats-target style = "margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 6px;">
-                ${createStatsRows(data.stats)}
+                        <div data-progression-stats-target style="padding-top: 2px;">
+                            ${createStatsRows(data.stats)}
                         </div>
-            ` : (data.match_id ? `
-            <div data-progression-stats-target class="text-center text-muted" style="margin-top:6px;border-top:1px solid rgba(0,0,0,0.1);padding-top:6px;font-size:.65rem;">
-                Estadísticas pendientes de cargar
-            </div>` : '');
+                    ` : (data.match_id ? `
+                        <div data-progression-stats-target class="text-center text-muted" style="padding-top:6px; font-size:.65rem;">
+                            Estadísticas pendientes de cargar
+                        </div>` : '<div class="text-muted text-center" style="font-size: 0.65rem; padding: 8px 0;">Sin estadísticas disponibles</div>');
 
                     return `
-            <div data-progression-match-id="${data.match_id || ''}" data-stats-loaded="${hasDangerousAttacks ? '1' : '0'}" style = "background: ${bgColor}; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <div class="fw-bold ${colorClass} text-uppercase text-center" style="font-size: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom: 6px; margin-bottom: 8px;">${title}</div>
-                            ${matchLine}
-                            ${dateLine}
-                            ${ahLine}
-                            ${statsHtml}
+                        <div data-progression-match-id="${data.match_id || ''}" data-stats-loaded="${hasDangerousAttacks ? '1' : '0'}" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.12); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column;">
+                            <div style="background: ${bgColor}; border-bottom: 1px solid rgba(0,0,0,0.08); padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; gap: 4px;">
+                                <span class="fw-bold ${colorClass} text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">${title}</span>
+                                ${dateHtml}
+                            </div>
+
+                            <div style="display: flex; align-items: stretch; min-height: 36px; width: 100%; border-bottom: 1px solid #e2e8f0;">
+                                <div style="flex: 1 1 0; background: #0284c7; color: #ffffff; padding: 4px 6px; display: flex; align-items: center; justify-content: flex-start; min-width: 0;" title="${homeTeam}">
+                                    <span style="font-weight: 800; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${homeTeam || 'Local'}</span>
+                                </div>
+                                <div style="flex: 0 0 auto; background: #0b1e36; color: #ffffff; padding: 2px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; border-left: 1px solid rgba(255,255,255,0.15); border-right: 1px solid rgba(255,255,255,0.15);">
+                                    <div style="font-weight: 900; font-size: 0.82rem; letter-spacing: 0.5px; line-height: 1.1;">${score}</div>
+                                    ${ah ? `<div style="font-size: 0.56rem; font-weight: 800; color: #38bdf8; line-height: 1; margin-top: 2px;">AH ${ah}</div>` : ''}
+                                </div>
+                                <div style="flex: 1 1 0; background: #dc2626; color: #ffffff; padding: 4px 6px; display: flex; align-items: center; justify-content: flex-end; min-width: 0;" title="${awayTeam}">
+                                    <span style="font-weight: 800; font-size: 0.72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${awayTeam || 'Visitante'}</span>
+                                </div>
+                            </div>
+
+                            <div style="padding: 6px 8px 3px 8px; background: #ffffff; flex: 1 1 auto;">
+                                ${statsHtml}
+                            </div>
                         </div>
-            `;
+                    `;
                 };
 
                 // Colores de fondo por grupo
@@ -8124,9 +8269,14 @@
                                     Pulsa 🔘 en las tablas para llenar los equipos o selecciónalos manualmente
                                 </span>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.62rem; font-weight:800;" onclick="resetAllCustomCompareSlots(this, event)">
-                                <i class="fa-solid fa-rotate-left me-1"></i>Limpiar tabla
-                            </button>
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.62rem; font-weight:800;" onclick="resetAllCustomCompareSlots(this, event)">
+                                    <i class="fa-solid fa-rotate-left me-1"></i>Limpiar tabla
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size:.62rem; font-weight:800;" onclick="closeCustomCompare(this, '${esc(parentMatchId)}', event)" title="Ocultar comparativa a la carta">
+                                    <i class="fa-solid fa-xmark me-1"></i>Cerrar
+                                </button>
+                            </div>
                         </div>
                         <div class="custom-compare-grid" style="display:grid; grid-template-columns:1fr; gap:8px;">
                             ${renderCompareSlot(0, '#2563eb', '📌 Comparativa a la Carta')}
@@ -8181,7 +8331,7 @@
                     </div>
                     <div class="pre-context-compare-combined-container" id="compare-combined-container-${esc(parentMatchId)}" style="margin:8px 10px 12px;">
                         <div class="row g-2 align-items-stretch pre-context-compare-combined-row" id="compare-combined-row-${esc(parentMatchId)}">
-                            <div class="col-12 pre-context-custom-compare-col" id="custom-compare-col-${esc(parentMatchId)}" style="transition:all 0.2s ease;">
+                            <div class="col-12 pre-context-custom-compare-col" id="custom-compare-col-${esc(parentMatchId)}" style="display:none; transition:all 0.2s ease;">
                                 ${customCompareHtml}
                             </div>
                             <div class="col-12 pre-context-team-history-col" id="team-history-col-${esc(parentMatchId)}" style="display:none; transition:all 0.2s ease;">
@@ -8466,6 +8616,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const compSection = panel.querySelector('.pre-context-custom-compare');
             if (!compSection) return;
 
+            const customCol = compSection.closest('.pre-context-custom-compare-col');
+            if (customCol && customCol.style.display === 'none') {
+                customCol.style.display = 'block';
+                const parentMid = compSection.dataset.parentMatchId;
+                if (parentMid) updateCompareCombinedLayout(parentMid);
+            }
+
             const slots = compSection.querySelectorAll('.custom-compare-slot');
             if (!slots.length) return;
             const currentSlotEl = slots[0];
@@ -8544,6 +8701,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!panel) return;
             const compSection = panel.querySelector('.pre-context-custom-compare');
             if (!compSection) return;
+
+            const customCol = compSection.closest('.pre-context-custom-compare-col');
+            if (customCol && customCol.style.display === 'none') {
+                customCol.style.display = 'block';
+                const parentMid = compSection.dataset.parentMatchId;
+                if (parentMid) updateCompareCombinedLayout(parentMid);
+            }
 
             const slots = compSection.querySelectorAll('.custom-compare-slot');
             if (!slots.length) return;
@@ -8640,6 +8804,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (!panel) return;
             const compSection = panel.querySelector('.pre-context-custom-compare');
             if (!compSection) return;
+
+            const customCol = compSection.closest('.pre-context-custom-compare-col');
+            if (customCol && customCol.style.display === 'none') {
+                customCol.style.display = 'block';
+                const parentMid = compSection.dataset.parentMatchId;
+                if (parentMid) updateCompareCombinedLayout(parentMid);
+            }
 
             const slots = compSection.querySelectorAll('.custom-compare-slot');
             if (!slots.length) return;
@@ -8924,14 +9095,24 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
 
             const targetOrder = [
-                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
-                { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
                 { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
                 { match: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
-                { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
+                { match: 'target', label: 'Tiros a Puerta', icon: '🎯' },
+                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
+                { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
+                { match: 'córner', label: 'Saques de Esquina', icon: '🚩' },
+                { match: 'corner', label: 'Saques de Esquina', icon: '🚩' },
+                { match: 'esquina', label: 'Saques de Esquina', icon: '🚩' },
                 { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
                 { match: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡' },
+                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
+                { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
+                { match: 'posesión', label: 'Posesión', icon: '🔄' },
+                { match: 'possession', label: 'Posesión', icon: '🔄' },
+                { match: 'faltas', label: 'Faltas', icon: '⛔' },
+                { match: 'fouls', label: 'Faltas', icon: '⛔' },
+                { match: 'tarjetas amarillas', label: 'Tarjetas Amarillas', icon: '🟨' },
+                { match: 'yellow cards', label: 'Tarjetas Amarillas', icon: '🟨' },
                 { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
                 { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
             ];
@@ -8950,7 +9131,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         displayName: target.label,
                         icon: target.icon,
                         home: String(found.home ?? '-').trim(),
-                        away: String(found.away ?? '-').trim()
+                        away: String(found.away ?? '-').trim(),
+                        isRed: target.label.includes('Rojas')
+                    });
+                }
+            }
+
+            for (const s of statsList) {
+                const rawName = String(s.name || s.label || s.stat_name || '').trim();
+                if (!rawName) continue;
+                if (!result.some(r => r.displayName.toLowerCase() === rawName.toLowerCase())) {
+                    result.push({
+                        displayName: rawName,
+                        icon: '📊',
+                        home: String(s.home ?? '-').trim(),
+                        away: String(s.away ?? '-').trim(),
+                        isRed: /rojas|red/i.test(rawName)
                     });
                 }
             }
@@ -8959,69 +9155,99 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
 
-            const rows = result.map((s, idx) => {
-                const hVal = Number.parseInt(s.home, 10);
-                const aVal = Number.parseInt(s.away, 10);
-                let hColor = '#475569';
-                let aColor = '#475569';
-                let hWeight = '800';
-                let aWeight = '800';
+            const rowsHtml = result.map((s) => {
+                const parseNum = (str) => {
+                    if (!str) return 0;
+                    const m = String(str).match(/(\d+)/);
+                    return m ? parseInt(m[0], 10) : 0;
+                };
+                const hVal = parseNum(s.home);
+                const aVal = parseNum(s.away);
+                const isRed = s.isRed;
 
-                const isRed = s.displayName.includes('Rojas');
+                let hColor = '#0284c7';
+                let aColor = '#dc2626';
+                let barHColor = '#0284c7';
+                let barAColor = '#dc2626';
+
                 if (isRed) {
                     hColor = hVal > 0 ? '#dc2626' : '#94a3b8';
                     aColor = aVal > 0 ? '#dc2626' : '#94a3b8';
-                    hWeight = hVal > 0 ? '900' : '700';
-                    aWeight = aVal > 0 ? '900' : '700';
-                } else if (Number.isFinite(hVal) && Number.isFinite(aVal)) {
-                    if (hVal > aVal) {
-                        hColor = '#16a34a'; // VERDE para el ganador
-                        aColor = '#dc2626'; // ROJO para el perdedor
-                        hWeight = '900';
-                        aWeight = '900';
-                    } else if (aVal > hVal) {
-                        hColor = '#dc2626'; // ROJO para el perdedor
-                        aColor = '#16a34a'; // VERDE para el ganador
-                        hWeight = '900';
-                        aWeight = '900';
-                    } else {
-                        hColor = '#475569';
-                        aColor = '#475569';
-                        hWeight = '800';
-                        aWeight = '800';
-                    }
+                    barHColor = hVal > 0 ? '#dc2626' : '#e2e8f0';
+                    barAColor = aVal > 0 ? '#dc2626' : '#e2e8f0';
                 }
 
-                const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+                const sum = hVal + aVal;
+                let dualBarHtml = '';
+                if (sum === 0) {
+                    dualBarHtml = `
+                        <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:5px;">
+                            <div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>
+                            <div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>
+                        </div>
+                    `;
+                } else if (hVal > 0 && aVal === 0) {
+                    dualBarHtml = `
+                        <div style="display:flex; width:100%; height:5px; margin-top:2px; margin-bottom:5px;">
+                            <div style="width:100%; background:${barHColor}; border-radius:9999px;"></div>
+                        </div>
+                    `;
+                } else if (aVal > 0 && hVal === 0) {
+                    dualBarHtml = `
+                        <div style="display:flex; width:100%; height:5px; margin-top:2px; margin-bottom:5px;">
+                            <div style="width:100%; background:${barAColor}; border-radius:9999px;"></div>
+                        </div>
+                    `;
+                } else {
+                    const hPct = Math.round((hVal / sum) * 100);
+                    const aPct = 100 - hPct;
+                    dualBarHtml = `
+                        <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:5px;">
+                            <div style="width:calc(${hPct}% - 1.5px); background:${barHColor}; border-radius:9999px; min-width:3px;"></div>
+                            <div style="width:calc(${aPct}% - 1.5px); background:${barAColor}; border-radius:9999px; min-width:3px;"></div>
+                        </div>
+                    `;
+                }
+
+                const hDisplay = (isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home);
+                const aDisplay = (isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away);
+
                 return `
-                    <tr style="background:${bg}; border-bottom:1px solid #f1f5f9;">
-                        <td style="width:23%; text-align:left; font-size:0.80rem; font-weight:${hWeight}; color:${hColor}; padding:3px 4px; overflow:hidden; white-space:nowrap;">
-                            ${isRed && hVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home)}
-                        </td>
-                        <td style="width:54%; text-align:center; font-size:0.63rem; color:#1e293b; font-weight:800; padding:3px 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="font-size:0.68rem; margin-right:2px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
-                        </td>
-                        <td style="width:23%; text-align:right; font-size:0.80rem; font-weight:${aWeight}; color:${aColor}; padding:3px 4px; overflow:hidden; white-space:nowrap;">
-                            ${isRed && aVal > 0 ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away)}
-                        </td>
-                    </tr>
+                    <div style="padding:2px 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
+                            <span style="font-weight:900; font-size:0.80rem; color:${hColor}; min-width:28px; text-align:left;">
+                                ${hDisplay}
+                            </span>
+                            <span style="font-size:0.67rem; font-weight:700; color:#334155; text-align:center; flex:1; padding:0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <span style="font-size:0.72rem; margin-right:3px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
+                            </span>
+                            <span style="font-weight:900; font-size:0.80rem; color:${aColor}; min-width:28px; text-align:right;">
+                                ${aDisplay}
+                            </span>
+                        </div>
+                        ${dualBarHtml}
+                    </div>
                 `;
             }).join('');
 
             let headerHtml = '';
             if (customHome && customAway) {
                 headerHtml = `
-                    <thead>
-                        <tr style="background:#f1f5f9; border-bottom:1px solid #cbd5e1;">
-                            <th style="width:40%; text-align:left; font-size:0.64rem; font-weight:900; color:${customHome.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customHome.name)}">${escapePreContextCol3(customHome.name)}</th>
-                            <th style="width:20%; text-align:center; font-size:0.58rem; color:#64748b; padding:3px 1px; font-weight:800;">Stats</th>
-                            <th style="width:40%; text-align:right; font-size:0.64rem; font-weight:900; color:${customAway.color || '#334155'}; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapePreContextCol3(customAway.name)}">${escapePreContextCol3(customAway.name)}</th>
-                        </tr>
-                    </thead>
+                    <div style="display:flex; align-items:stretch; min-height:36px; width:100%; border-bottom:1px solid #e2e8f0; margin-bottom:6px; border-radius:8px 8px 0 0; overflow:hidden;">
+                        <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(customHome.name)}">
+                            <span style="font-weight:800; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customHome.name)}</span>
+                        </div>
+                        <div style="flex:0 0 auto; background:#0b1e36; color:#94a3b8; padding:3px 8px; display:flex; align-items:center; justify-content:center; min-width:50px; font-weight:800; font-size:0.62rem; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
+                            STATS
+                        </div>
+                        <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(customAway.name)}">
+                            <span style="font-weight:800; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customAway.name)}</span>
+                        </div>
+                    </div>
                 `;
             }
 
-            return `<table class="table table-sm mb-0" style="margin:0; width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse; border-radius:5px; box-sizing:border-box; overflow:hidden;">${headerHtml}<tbody>${rows}</tbody></table>`;
+            return `<div class="modern-stats-box" style="width:100%; box-sizing:border-box;">${headerHtml}${rowsHtml}</div>`;
         }
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
@@ -9081,39 +9307,38 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 button.dataset.loaded = '1';
                 ctx.statsSlot.classList.add('is-card');
-                                                ctx.statsSlot.innerHTML = `
-                    <div class="pre-col3-card-head" style="display:flex; align-items:center; margin-bottom:4px; gap:6px; padding-right:55px; flex-wrap:nowrap;">
-                        <span class="pre-col3-status is-better" style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.65rem;">📊 ESTADÍSTICAS DEL PARTIDO</span>
-                        <span class="pre-col3-badge is-direct" style="background:#0284c7; font-size:.6rem;">LIGA ${escapePreContextCol3(leagueId)}</span>
-                        <span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapePreContextCol3(rowDate)}</span>
-                    </div>
-
-                    <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:5px 7px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                        <div style="flex:1 1 36%; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="color:${button.dataset.rowRole === 'home' ? '#166534' : '#6d28d9'}; font-weight:900; font-size:.72rem;" title="${escapePreContextCol3(rowHome)}">
-                                ${button.dataset.rowRole === 'home' ? '🏠 ' : '🟣 '}${escapePreContextCol3(rowHome)}
+                ctx.statsSlot.innerHTML = `
+                    <div class="stat-card" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06); width:100%;">
+                        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <span style="font-weight:900; font-size:.65rem; color:#166534; background:#f0fdf4; padding:2px 6px; border-radius:4px; border:1px solid #bbf7d0;">
+                                📊 ESTADÍSTICAS DEL PARTIDO
                             </span>
-                        </div>
-
-                        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                            <div style="padding:2px 7px; background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; font-weight:900; font-size:.85rem; color:#0f172a; letter-spacing:1px; box-shadow:0 1px 2px rgba(0,0,0,0.06);">
-                                ${escapePreContextCol3(rowScore)}
-                            </div>
-                            <div style="display:inline-flex; align-items:center; background:#0f172a; color:#ffffff; padding:2px 7px; border-radius:4px; border:1px solid #334155; font-size:.68rem; font-weight:900; box-shadow:0 1px 2px rgba(0,0,0,0.12);">
-                                <span style="color:#94a3b8; font-size:.56rem; margin-right:3px; text-transform:uppercase;">AH</span>
-                                <span style="color:#38bdf8; font-weight:900; font-size:.78rem;">${escapePreContextCol3(rowAh || '-')}</span>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span class="badge" style="background:#0284c7; font-size:.6rem;">LIGA ${escapePreContextCol3(leagueId)}</span>
+                                <span style="font-size:.62rem; color:#64748b; font-weight:700; white-space:nowrap;">📅 ${escapePreContextCol3(rowDate)}</span>
                             </div>
                         </div>
 
-                        <div style="flex:1 1 36%; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                            <span style="color:${button.dataset.rowRole === 'home' ? '#6d28d9' : '#166534'}; font-weight:900; font-size:.72rem;" title="${escapePreContextCol3(rowAway)}">
-                                ${escapePreContextCol3(rowAway)}${button.dataset.rowRole === 'home' ? ' 🟣' : ' ✈️'}
-                            </span>
+                        <div style="display:flex; align-items:stretch; min-height:40px; width:100%; border-bottom:1px solid #e2e8f0;">
+                            <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(rowHome)}">
+                                <span style="font-weight:800; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    ${escapePreContextCol3(rowHome)}
+                                </span>
+                            </div>
+                            <div style="flex:0 0 auto; background:#0b1e36; color:#ffffff; padding:3px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:62px; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
+                                <div style="font-weight:900; font-size:0.86rem; letter-spacing:0.5px; line-height:1.1;">${escapePreContextCol3(rowScore || '-')}</div>
+                                ${rowAh ? `<div style="font-size:0.58rem; font-weight:800; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapePreContextCol3(rowAh)}</div>` : ''}
+                            </div>
+                            <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(rowAway)}">
+                                <span style="font-weight:800; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                    ${escapePreContextCol3(rowAway)}
+                                </span>
+                            </div>
                         </div>
-                    </div>
 
-                    <div style="margin-top:3px;">
-                        ${stats.length ? formatStatsTableHtml(stats) : '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>'}
+                        <div style="padding:6px 8px 3px 8px; background:#ffffff;">
+                            ${stats.length ? formatStatsTableHtml(stats) : '<div style="font-size:.65rem; color:#94a3b8; text-align:center; padding:8px 0;">Sin estadísticas registradas</div>'}
+                        </div>
                     </div>
                 `;
             } catch (error) {

@@ -376,6 +376,11 @@ def _compact_main_match_odds(raw: Any) -> Dict[str, Any]:
     return {
         "ah_linea": raw.get("ah_linea"),
         "goals_linea": raw.get("goals_linea"),
+        **{key: raw[key] for key in (
+            "ah_home_cuota", "ah_away_cuota", "goals_over_cuota", "goals_under_cuota",
+            "price_format", "odds_stage", "bookmaker_id", "captured_at",
+            "ah_price_format", "ou_price_format", "ah_bookmaker_id", "ou_bookmaker_id",
+        ) if key in raw},
     }
 
 

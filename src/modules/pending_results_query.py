@@ -7,6 +7,8 @@ import json
 import math
 import os
 import re
+import threading
+import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from zoneinfo import ZoneInfo
 
@@ -15,6 +17,13 @@ from . import data_manager, precache_fast_store, sql_store
 
 UTC = dt.timezone.utc
 SPAIN_TZ = ZoneInfo("Europe/Madrid")
+
+_TIME_RE = re.compile(r'"time"\s*:\s*"([^"]+)"')
+_START_TIME_RE = re.compile(r'"start_time"\s*:\s*"([^"]+)"')
+
+_CANDIDATES_CACHE_LOCK = threading.Lock()
+_CANDIDATES_CACHE: Dict[Tuple[Any, ...], Tuple[float, List[Dict[str, Any]]]] = {}
+_CANDIDATES_CACHE_TTL = 15.0  # seconds
 
 
 def _handicap_bucket_sql(selected_values: Optional[Sequence[str]]) -> Tuple[str, List[float]]:
@@ -66,46 +75,63 @@ def _fetch_sql_candidates(
     handicap_buckets: Optional[Sequence[str]],
     buckets: Optional[Sequence[str]] = None,
 ) -> List[Dict[str, Any]]:
-    """Fetch lightweight candidate headers directly from SQL."""
-    sql_store.ensure_bootstrap()
+    """Fetch lightweight candidate headers directly from SQL with in-memory caching."""
     selected_buckets = list(
         buckets or [data_manager.PRECACHEO_BUCKET, data_manager.PENDING_RESULTS_BUCKET]
     )
     if not selected_buckets:
         return []
+
+    cache_key = (
+        tuple(sorted(str(b) for b in (handicap_buckets or []))),
+        tuple(sorted(str(b) for b in selected_buckets)),
+    )
+    now_mono = time.monotonic()
+    with _CANDIDATES_CACHE_LOCK:
+        cached = _CANDIDATES_CACHE.get(cache_key)
+        if cached and (now_mono - cached[0]) < _CANDIDATES_CACHE_TTL:
+            return [dict(item) for item in cached[1]]
+
+    sql_store.ensure_bootstrap()
     placeholders = ", ".join("?" for _ in selected_buckets)
     query = """
         SELECT
             match_id,
             handicap,
-            COALESCE(score, json_extract(payload_json, '$.final_score')) AS score,
-            COALESCE(match_date, json_extract(payload_json, '$.date')) AS match_date,
-            json_extract(payload_json, '$.start_time') AS start_time,
-            json_extract(payload_json, '$.time') AS match_time
+            CASE WHEN score IS NOT NULL THEN score ELSE json_extract(payload_json, '$.final_score') END AS score,
+            CASE WHEN match_date IS NOT NULL THEN match_date ELSE json_extract(payload_json, '$.date') END AS match_date,
+            substr(payload_json, 1, 1500) AS head_json
         FROM matches
         WHERE bucket IN ({placeholders})
     """.format(placeholders=placeholders)
-    params: List[Any] = selected_buckets
+    params: List[Any] = list(selected_buckets)
 
     handicap_sql, handicap_params = _handicap_bucket_sql(handicap_buckets)
     if handicap_sql:
         query += f" AND {handicap_sql}"
         params.extend(handicap_params)
-    query += " ORDER BY updated_at DESC"
 
     with sql_store._connect() as conn:
         rows = conn.execute(query, params).fetchall()
-    return [
-        {
+
+    results: List[Dict[str, Any]] = []
+    for row in rows:
+        head = row["head_json"] or ""
+        t_match = _TIME_RE.search(head)
+        st_match = _START_TIME_RE.search(head)
+        results.append({
             "match_id": row["match_id"],
             "handicap": row["handicap"],
             "score": row["score"],
             "match_date": row["match_date"],
-            "start_time": row["start_time"],
-            "time": row["match_time"],
-        }
-        for row in rows
-    ]
+            "start_time": st_match.group(1) if st_match else None,
+            "time": t_match.group(1) if t_match else None,
+        })
+
+    with _CANDIDATES_CACHE_LOCK:
+        _CANDIDATES_CACHE[cache_key] = (now_mono, results)
+
+    return [dict(item) for item in results]
 
 
 def _fetch_candidates(handicap_buckets: Optional[Sequence[str]]) -> List[Dict[str, Any]]:
@@ -124,26 +150,20 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
 
     placeholders = ", ".join("?" for _ in ordered_ids)
     query = (
-        "SELECT match_id, payload_json, explorer_json "
+        "SELECT match_id, "
+        "CASE WHEN explorer_json IS NOT NULL AND length(explorer_json) > 10 THEN explorer_json ELSE payload_json END AS match_json "
         f"FROM matches WHERE match_id IN ({placeholders})"
     )
     output: Dict[str, Dict[str, Any]] = {}
-    # Iterate the cursor instead of fetchall(): otherwise 100 full JSON strings,
-    # their compact copies and their parsed dictionaries coexist in memory.
     with sql_store._connect() as conn:
         for row in conn.execute(query, ordered_ids):
-            base: Dict[str, Any] = {}
-            if row["explorer_json"]:
-                try:
-                    base = json.loads(row["explorer_json"])
-                except Exception:
-                    base = {}
-
-            if not base and row["payload_json"]:
-                try:
-                    base = json.loads(row["payload_json"])
-                except Exception:
-                    base = {}
+            raw = row["match_json"]
+            if not raw:
+                continue
+            try:
+                base = json.loads(raw)
+            except Exception:
+                continue
 
             if not isinstance(base, dict) or not base:
                 continue
@@ -156,6 +176,7 @@ def _fetch_payloads_by_ids(match_ids: Sequence[str]) -> Dict[str, Dict[str, Any]
 
             output[str(row["match_id"])] = base
     return output
+
 
 
 def _parse_clock(value: Any) -> Tuple[int, int]:

@@ -121,6 +121,19 @@ def test_analyze_passes_correct_profile_and_removes_future_zero_score(monkeypatc
     assert result['cache_profile'] == 'full'
 
 
+def test_verified_feed_cannot_overwrite_opening_line_and_its_price(monkeypatch):
+    from modules import estudio_scraper
+    opening = {'ah_linea':'0.25','goals_linea':'2.5','ah_home_cuota':'1.10',
+               'ah_away_cuota':'0.75','odds_stage':'initial','price_format':'hongkong'}
+    monkeypatch.setattr(estudio_scraper,'analizar_partido_completo',lambda *args,**kwargs:row(main_match_odds=opening.copy()))
+    result,error = cache.analyze({'id':'1','source_verified':True,'handicap':'0','goal_line':'3'},'upcoming',attempts=1)
+    assert error is None
+    assert result['handicap'] == result['main_match_odds']['ah_linea'] == '0.25'
+    assert result['goal_line'] == '2.5'
+    assert result['main_match_odds']['ah_home_cuota'] == '1.10'
+    assert result['main_match_odds']['odds_stage'] == 'initial'
+
+
 def test_finished_merge_publishes_status_without_growing_git_data_files(tmp_path):
     prepared = tmp_path / 'prepared'
     results = tmp_path / 'results/cache-result-0'

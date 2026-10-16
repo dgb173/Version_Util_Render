@@ -158,6 +158,15 @@ class ClaveDicotomicaV7Tests(unittest.TestCase):
         self.assertEqual(result["prediction_tier_ah"], "NO_BET")
         self.assertFalse(result["quality"]["eligible"])
 
+    def test_missing_h2h_still_exposes_forced_low_reliability_classification(self):
+        match = _match()
+        match['h2h_general'] = {}
+        result = apply_key(match)
+        joint = result['joint_initial_market']
+        self.assertTrue(joint['available'])
+        self.assertTrue(joint['forced_tie_ah'])
+        self.assertEqual(joint['reliability'], 'LOW')
+
     def test_unvalidated_exact_handicap_is_observation_only(self):
         match = _match()
         match["main_match_odds"]["ah_linea"] = "0.75"

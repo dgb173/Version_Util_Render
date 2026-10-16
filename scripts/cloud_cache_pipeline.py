@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 UTC = dt.timezone.utc
 SPAIN = ZoneInfo('Europe/Madrid')
-VERSION = 2
+VERSION = 3
 
 
 def read_json(path, default=None):
@@ -206,7 +206,7 @@ def analyze(source, kind, attempts=2):
                 raise ValueError((row or {}).get('error') or 'Empty analysis')
             row['match_id'] = mid(source)
             if source.get('source_verified'):
-                for key in ('start_time', 'match_date', 'time', 'handicap', 'goal_line'):
+                for key in ('start_time', 'match_date', 'time'):
                     if source.get(key) is not None:
                         row[key] = source[key]
                 if kind == 'finished':
@@ -215,8 +215,14 @@ def analyze(source, kind, attempts=2):
                     # Never turn a not-yet-played fixture into a fictitious 0:0.
                     row['score'] = row['final_score'] = None
                 for key, source_key in (('ah_linea', 'handicap'), ('goals_linea', 'goal_line')):
-                    if numeric(source.get(source_key)):
-                        row.setdefault('main_match_odds', {})[key] = source[source_key]
+                    odds = row.setdefault('main_match_odds', {})
+                    if numeric(odds.get(key)):
+                        # La apertura extraída del H2H prevalece sobre el feed,
+                        # que puede contener una línea posterior del partido.
+                        row[source_key] = odds[key]
+                    elif numeric(source.get(source_key)):
+                        odds[key] = row[source_key] = source[source_key]
+                        odds['odds_stage'] = 'unverified'
             error = quality_error(row, kind)
             if not error:
                 row['cloud_cache_version'] = VERSION

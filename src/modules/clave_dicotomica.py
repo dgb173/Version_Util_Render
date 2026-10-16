@@ -142,10 +142,12 @@ def _col3_payload(match):
     return raw, nested if isinstance(nested, dict) else raw
 
 
-def _no_bet_result(reason, *, fav='', dog='', h=0.0, ou_raw=0.0):
+def _no_bet_result(reason, *, fav='', dog='', h=0.0, ou_raw=0.0, match=None):
     """Return the complete V7 contract when prediction inputs are unusable."""
+    from .joint_initial_market import classify_joint_initial_market
     return {
         'engine_version': ENGINE_VERSION,
+        'joint_initial_market': classify_joint_initial_market(match or {}, quality_eligible=False),
         'ah': 'NO_BET',
         'ah_label': 'NO BET AH',
         'ou': 'NO_BET',
@@ -255,7 +257,7 @@ def apply_key(m):
     ou_raw = parse_ah(odds.get('goals_linea'))
 
     if ah_raw is None or ou_raw is None:
-        return _no_bet_result('Sin odds suficientes')
+        return _no_bet_result('Sin odds suficientes', match=m)
 
     h = abs(ah_raw)
     is_pickem = h < 0.01
@@ -295,7 +297,7 @@ def apply_key(m):
     hg_h2h, ag_h2h = parse_score(h2h_score_str)
     if hg_h2h is None or (match_date_obj and h2h_date_obj and h2h_date_obj >= match_date_obj):
         reason = 'H2H no anterior al partido' if hg_h2h is not None else 'Sin H2H valido'
-        return _no_bet_result(reason, fav=fav_name, dog=dog_name, h=h, ou_raw=ou_raw)
+        return _no_bet_result(reason, fav=fav_name, dog=dog_name, h=h, ou_raw=ou_raw, match=m)
 
     fav_in_h2h_is_home = _same_team(fav_name, h2h_home_name) if h2h_home_name else fav_is_home
     goles_F_h2h = hg_h2h if fav_in_h2h_is_home else ag_h2h
@@ -2120,6 +2122,11 @@ def apply_key(m):
         vrd += f' | draw_type={draw_type} (score_DRAW={score_DRAW:.1f})'
     argumentos.append(vrd)
 
+    from .joint_initial_market import classify_joint_initial_market
+    joint_initial_market = classify_joint_initial_market(
+        m, edge_ah=edge_AH, edge_ou=edge_OU, quality_eligible=quality_eligible,
+    )
+
     return {
         'engine_version': ENGINE_VERSION,
         'ah': ah_pick,
@@ -2130,6 +2137,7 @@ def apply_key(m):
         'raw_ah_label': raw_ah_label,
         'raw_ou': raw_ou_pick,
         'raw_ou_label': raw_ou_label,
+        'joint_initial_market': joint_initial_market,
         'prediction_tier_ah': ah_tier,
         'prediction_tier_ou': ou_tier,
         'core_ah': core_ah_pick,
