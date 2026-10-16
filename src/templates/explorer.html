@@ -3833,6 +3833,170 @@
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
+        function buildModernStatsCardHtml({ statsList, homeTeam = '', awayTeam = '', date = '', score = '', ah = '', leagueId = '', showHideBtn = false, hideBtnOnClick = '' }) {
+            const esc = (val) => String(val ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+            const parseVal = (v) => {
+                if (v === undefined || v === null || v === '') return 0;
+                const m = String(v).match(/(\d+)/);
+                return m ? parseInt(m[0], 10) : 0;
+            };
+
+            let shotsTotal = null;
+            let shotsTarget = null;
+            let dangerousAttacks = null;
+            let totalAttacks = null;
+            let corners = null;
+
+            if (Array.isArray(statsList) && statsList.length) {
+                statsList.forEach(s => {
+                    if (!s) return;
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    const h = parseVal(s.home);
+                    const a = parseVal(s.away);
+
+                    if ((name.includes('puerta') || name.includes('target') || name.includes('shots on goal')) && shotsTarget === null) {
+                        shotsTarget = [h, a];
+                    } else if ((name.includes('tiro') || name.includes('shot')) && !name.includes('puerta') && !name.includes('target') && shotsTotal === null) {
+                        shotsTotal = [h, a];
+                    } else if ((name.includes('peligros') || name.includes('dangerous')) && dangerousAttacks === null) {
+                        dangerousAttacks = [h, a];
+                    } else if ((name.includes('ataque') || name.includes('attack')) && !name.includes('peligros') && !name.includes('dangerous') && totalAttacks === null) {
+                        totalAttacks = [h, a];
+                    } else if ((name.includes('corner') || name.includes('córner') || name.includes('esquina')) && corners === null) {
+                        corners = [h, a];
+                    }
+                });
+            }
+
+            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks || corners);
+
+            const stH = shotsTotal ? shotsTotal[0] : 0;
+            const stA = shotsTotal ? shotsTotal[1] : 0;
+            const spH = shotsTarget ? shotsTarget[0] : 0;
+            const spA = shotsTarget ? shotsTarget[1] : 0;
+            const daH = dangerousAttacks ? dangerousAttacks[0] : 0;
+            const daA = dangerousAttacks ? dangerousAttacks[1] : 0;
+            const taH = totalAttacks ? totalAttacks[0] : 0;
+            const taA = totalAttacks ? totalAttacks[1] : 0;
+
+            const calcPct = (num, den) => den > 0 ? Math.round((num / den) * 100) + '%' : (num > 0 ? '100%' : '0%');
+            const shotAccH = calcPct(spH, stH);
+            const shotAccA = calcPct(spA, stA);
+            const dangAccH = calcPct(daH, taH);
+            const dangAccA = calcPct(daA, taA);
+
+            const renderBoxRow = (label, iconHtml, hVal, aVal) => {
+                const isHEqual = hVal === aVal;
+                const isHGreater = hVal > aVal;
+                const isAGreater = aVal > hVal;
+
+                const hBg = (isHGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const hColor = (isHGreater || isHEqual) ? '#15803d' : '#991b1b';
+                const aBg = (isAGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const aColor = (isAGreater || isHEqual) ? '#15803d' : '#991b1b';
+
+                return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2;">
+                        <div style="width:38px; background:${hBg}; color:${hColor}; font-weight:700; font-size:0.63rem; padding:1.5px 0; border-radius:4px; text-align:center; flex-shrink:0;">
+                            ${hVal}
+                        </div>
+                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-size:0.58rem; color:#334155; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <span style="font-size:0.60rem; display:inline-flex; align-items:center;">${iconHtml}</span>
+                            <span>${esc(label)}</span>
+                        </div>
+                        <div style="width:38px; background:${aBg}; color:${aColor}; font-weight:700; font-size:0.63rem; padding:1.5px 0; border-radius:4px; text-align:center; flex-shrink:0;">
+                            ${aVal}
+                        </div>
+                    </div>
+                `;
+            };
+
+            const renderPctRow = (label, iconHtml, hPctStr, aPctStr) => {
+                return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2;">
+                        <div style="width:38px; color:#2563eb; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
+                            ${hPctStr}
+                        </div>
+                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-size:0.58rem; color:#334155; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <span style="font-size:0.60rem; display:inline-flex; align-items:center;">${iconHtml}</span>
+                            <span>${esc(label)}</span>
+                        </div>
+                        <div style="width:38px; color:#dc2626; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
+                            ${aPctStr}
+                        </div>
+                    </div>
+                `;
+            };
+
+            let statsBodyHtml = '';
+            if (hasStats) {
+                statsBodyHtml = `
+                    <div style="padding:5px 8px 3px 8px; display:flex; flex-direction:column; gap:3px; background:#ffffff;">
+                        ${renderBoxRow('Tiros totales', '<i class="fa-regular fa-futbol"></i>', stH, stA)}
+                        ${renderBoxRow('Tiros a puerta', '<i class="fa-solid fa-bullseye" style="color:#dc2626;"></i>', spH, spA)}
+                        ${renderBoxRow('Ataques peligrosos', '<i class="fa-solid fa-bolt" style="color:#d97706;"></i>', daH, daA)}
+                        ${renderBoxRow('Ataques totales', '<i class="fa-solid fa-chart-simple" style="color:#64748b;"></i>', taH, taA)}
+                        ${corners ? renderBoxRow('Saques de esquina', '🚩', corners[0], corners[1]) : ''}
+                        <div style="border-top:1px solid #f1f5f9; margin:2px 0 1px 0;"></div>
+                        ${renderPctRow('Precisión de tiro', '<i class="fa-solid fa-crosshairs" style="color:#334155;"></i>', shotAccH, shotAccA)}
+                        ${renderPctRow('Peligrosidad ofensiva', '<i class="fa-solid fa-bolt" style="color:#334155;"></i>', dangAccH, dangAccA)}
+                    </div>
+                `;
+            } else {
+                statsBodyHtml = `
+                    <div style="padding:8px 8px; font-size:.58rem; color:#94a3b8; text-align:center; background:#ffffff;">
+                        <i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal
+                    </div>
+                `;
+            }
+
+            const rawScore = String(score || '').trim();
+            const cleanScore = rawScore ? rawScore.replace(':', ' - ').replace(/^(\d+)-(\d+)$/, '$1 - $2') : '-';
+            const cleanAh = String(ah || '').replace(/^AH\s*/i, '').trim();
+            const formattedAh = (cleanAh && cleanAh !== '-' && cleanAh !== 'N/A') ? `AH ${cleanAh}` : '';
+            const cleanLeague = String(leagueId || '').replace(/^L\.?/i, '').trim();
+
+            return `
+                <div class="stat-card modern-match-stats-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; box-sizing:border-box;">
+                    <!-- Top Bar -->
+                    <div style="background:#f8fafc; border-bottom:1px solid #edf2f7; padding:3px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; gap:3px; font-weight:700; font-size:.55rem; color:#15803d; background:#f0fdf4; padding:1px 5px; border-radius:4px; border:1px solid #bbf7d0; letter-spacing:0.2px;">
+                            <i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> ESTADÍSTICAS DEL PARTIDO
+                        </span>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            ${cleanLeague && cleanLeague !== '-' ? `<span style="background:#0284c7; color:#ffffff; font-size:.52rem; font-weight:700; padding:1px 5px; border-radius:3px; letter-spacing:0.2px;">LIGA ${esc(cleanLeague)}</span>` : ''}
+                            ${date ? `<span style="font-size:.55rem; color:#64748b; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">📅 ${esc(date)}</span>` : ''}
+                            ${showHideBtn ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.56rem; font-weight:600; margin-left:3px; cursor:pointer;" onclick="${hideBtnOnClick}">✕ ocultar</button>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Match Header (Equipos y Marcador) -->
+                    <div style="padding:5px 8px; display:flex; align-items:center; justify-content:space-between; gap:6px; border-bottom:1px solid #f1f5f9; background:#ffffff;">
+                        <div style="display:flex; align-items:center; gap:5px; flex:1 1 0; min-width:0;" title="${esc(homeTeam)}">
+                            <div style="width:3px; height:16px; background:#2563eb; border-radius:2px; flex-shrink:0;"></div>
+                            <span style="font-weight:700; font-size:0.66rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${esc(homeTeam || 'Local')}
+                            </span>
+                        </div>
+                        <div style="flex:0 0 auto; background:#f1f5f9; border-radius:6px; padding:2px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:52px; border:1px solid #e2e8f0;">
+                            <div style="font-weight:800; font-size:0.78rem; color:#0f172a; line-height:1.1; letter-spacing:0.5px;">${esc(cleanScore)}</div>
+                            ${formattedAh ? `<div style="font-size:0.52rem; font-weight:600; color:#475569; line-height:1; margin-top:1px;">${esc(formattedAh)}</div>` : ''}
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px; flex:1 1 0; min-width:0;" title="${esc(awayTeam)}">
+                            <span style="font-weight:700; font-size:0.66rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right;">
+                                ${esc(awayTeam || 'Visitante')}
+                            </span>
+                            <div style="width:3px; height:16px; background:#ef4444; border-radius:2px; flex-shrink:0;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Body con estadísticas -->
+                    ${statsBodyHtml}
+                </div>
+            `;
+        }
+
         function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
             const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
             const m = (activeData?.matches && typeof idx === 'number') ? activeData.matches[idx] : null;
@@ -3841,162 +4005,19 @@
             const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((m && m.ah) || '-');
             const effectiveLeague = leagueId || (m && m.league_id) || '';
 
-            if (!Array.isArray(statsList) || !statsList.length) {
-                return `
-                    <div class="my-1" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05); overflow:hidden; width:100%;">
-                        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
-                                <span style="background:#f0fdf4; color:#166534; font-weight:900; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0;">📊 STATS</span>
-                                ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:800; padding:1px 4px; border-radius:3px;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
-                                ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:700;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
-                            </div>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:700; cursor:pointer;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
-                        </div>
-                        <div class="text-muted small py-2 text-center" style="font-size:.62rem;"><i class="fa-solid fa-circle-info me-1"></i>Sin estadísticas detalladas en NowGoal</div>
-                    </div>
-                `;
-            }
-
-            const canonicalDefs = [
-                { key: 'shots_total', label: 'Tiros totales', icon: '⚽', test: (s) => (s.includes('tiro') || s.includes('shot')) && !s.includes('puerta') && !s.includes('target') && !s.includes('goal') },
-                { key: 'shots_target', label: 'Tiros a puerta', icon: '🎯', test: (s) => s.includes('puerta') || s.includes('target') || s.includes('shots on goal') },
-                { key: 'corners', label: 'Saques de esquina', icon: '🚩', test: (s) => s.includes('corner') || s.includes('córner') || s.includes('esquina') },
-                { key: 'attacks_dangerous', label: 'Ataques peligrosos', icon: '⚡', test: (s) => s.includes('peligros') || s.includes('dangerous') },
-                { key: 'attacks_total', label: 'Ataques totales', icon: '📈', test: (s) => (s.includes('ataque') || s.includes('attack')) && !s.includes('peligros') && !s.includes('dangerous') },
-                { key: 'possession', label: 'Posesión', icon: '⏱️', test: (s) => s.includes('posesi') || s.includes('possession') },
-                { key: 'fouls', label: 'Faltas', icon: '⛔', test: (s) => s.includes('falta') || s.includes('foul') },
-                { key: 'yellow_cards', label: 'Tarjetas amarillas', icon: '🟨', test: (s) => s.includes('amarill') || s.includes('yellow') },
-                { key: 'red_cards', label: 'Tarjetas rojas', icon: '🟥', test: (s) => s.includes('roja') || s.includes('red') },
-            ];
-
-            const matchedRows = [];
-            const usedRawIndices = new Set();
-            for (const def of canonicalDefs) {
-                const foundIdx = statsList.findIndex((s, i) => {
-                    if (usedRawIndices.has(i)) return false;
-                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
-                    return def.test(name);
-                });
-                if (foundIdx !== -1) {
-                    const found = statsList[foundIdx];
-                    usedRawIndices.add(foundIdx);
-                    matchedRows.push({
-                        displayName: def.label,
-                        icon: def.icon,
-                        home: String(found.home ?? '-').trim(),
-                        away: String(found.away ?? '-').trim(),
-                        isRed: def.key === 'red_cards'
-                    });
-                }
-            }
-
-            statsList.forEach((s, i) => {
-                if (usedRawIndices.has(i)) return;
-                const rawName = String(s.name || s.label || s.stat_name || '').trim();
-                const rawLower = rawName.toLowerCase();
-                if (rawLower.includes('tiro') || rawLower.includes('shot') || rawLower.includes('ataque') || rawLower.includes('attack') || rawLower.includes('corner') || rawLower.includes('esquina')) {
-                    return;
-                }
-                if (rawName) {
-                    matchedRows.push({
-                        displayName: rawName,
-                        icon: '📊',
-                        home: String(s.home ?? '-').trim(),
-                        away: String(s.away ?? '-').trim(),
-                        isRed: /rojas|red/i.test(rawName)
-                    });
-                }
+            return buildModernStatsCardHtml({
+                statsList,
+                homeTeam: homeTeam || (m && m.home_team) || '',
+                awayTeam: awayTeam || (m && m.away_team) || '',
+                date: effectiveDate,
+                score: effectiveScore,
+                ah: effectiveAh,
+                leagueId: effectiveLeague,
+                showHideBtn: true,
+                hideBtnOnClick: 'toggleTeamHistoryRowStats(this, event)'
             });
-
-            const parseNum = (str) => {
-                if (!str) return 0;
-                const match = String(str).match(/(\d+)/);
-                return match ? parseInt(match[0], 10) : 0;
-            };
-
-            const statsRowsHtml = matchedRows.map(s => {
-                const isRed = s.isRed;
-                const hVal = parseNum(s.home);
-                const aVal = parseNum(s.away);
-
-                let hColor = '#0284c7';
-                let aColor = '#dc2626';
-                let barHColor = '#0284c7';
-                let barAColor = '#dc2626';
-
-                if (isRed) {
-                    hColor = hVal > 0 ? '#dc2626' : '#94a3b8';
-                    aColor = aVal > 0 ? '#dc2626' : '#94a3b8';
-                    barHColor = hVal > 0 ? '#dc2626' : '#e2e8f0';
-                    barAColor = aVal > 0 ? '#dc2626' : '#e2e8f0';
-                }
-
-                const sum = hVal + aVal;
-                let barHtml = '';
-                if (sum === 0) {
-                    barHtml = `<div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div><div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>`;
-                } else if (hVal > 0 && aVal === 0) {
-                    barHtml = `<div style="width:100%; background:${barHColor}; border-radius:9999px;"></div>`;
-                } else if (aVal > 0 && hVal === 0) {
-                    barHtml = `<div style="width:100%; background:${barAColor}; border-radius:9999px;"></div>`;
-                } else {
-                    const hPct = Math.round((hVal / sum) * 100);
-                    const aPct = 100 - hPct;
-                    barHtml = `<div style="width:calc(${hPct}% - 1.5px); background:${barHColor}; border-radius:9999px; min-width:3px;"></div><div style="width:calc(${aPct}% - 1.5px); background:${barAColor}; border-radius:9999px; min-width:3px;"></div>`;
-                }
-
-                const hDisp = (isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.58rem;">🟥 ${escapeTeamHistoryHtml(s.home)}</span>` : escapeTeamHistoryHtml(s.home);
-                const aDisp = (isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.58rem;">🟥 ${escapeTeamHistoryHtml(s.away)}</span>` : escapeTeamHistoryHtml(s.away);
-
-                return `
-                    <div style="margin-bottom:4px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
-                            <span style="font-weight:600; font-size:0.78rem; color:${hColor}; min-width:24px; text-align:left; letter-spacing:0.2px;">${hDisp}</span>
-                            <span style="font-size:0.66rem; font-weight:400; color:#475569; text-align:center; flex:1; padding:0 3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.1px;">
-                                <span style="font-size:0.66rem; margin-right:2px;">${s.icon}</span>${escapeTeamHistoryHtml(s.displayName)}
-                            </span>
-                            <span style="font-weight:600; font-size:0.78rem; color:${aColor}; min-width:24px; text-align:right; letter-spacing:0.2px;">${aDisp}</span>
-                        </div>
-                        <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:3px;">
-                            ${barHtml}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            return `
-                <div class="my-1 shadow-sm" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; box-sizing:border-box; width:100%; max-width:100%;">
-                    <!-- Meta Header -->
-                    <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center; gap:4px;">
-                        <div style="display:flex; align-items:center; gap:4px; min-width:0; overflow:hidden;">
-                            <span style="background:#f0fdf4; color:#166534; font-weight:600; font-size:.58rem; padding:1px 4px; border-radius:3px; border:1px solid #bbf7d0; white-space:nowrap; flex-shrink:0;">📊 STATS</span>
-                            ${effectiveLeague ? `<span class="badge" style="background:#0284c7; color:#fff; font-size:.54rem; font-weight:600; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0;">L.${escapeTeamHistoryHtml(effectiveLeague)}</span>` : ''}
-                            ${effectiveDate ? `<span style="font-size:.56rem; color:#64748b; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📅 ${escapeTeamHistoryHtml(effectiveDate)}</span>` : ''}
-                        </div>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.58rem; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;" onclick="toggleTeamHistoryRowStats(this, event)">✕ ocultar</button>
-                    </div>
-
-                    <!-- Split Header Equipos y Marcador -->
-                    <div style="display:flex; align-items:stretch; min-height:34px; width:100%; border-bottom:1px solid #e2e8f0;">
-                        <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:4px 6px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapeTeamHistoryHtml(homeTeam)}">
-                            <span style="font-weight:600; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">🏠 ${escapeTeamHistoryHtml(homeTeam || 'Local')}</span>
-                        </div>
-                        <div style="flex:0 0 auto; background:#0b1e36; color:#ffffff; padding:2px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:55px; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
-                            <span style="font-weight:700; font-size:0.80rem; letter-spacing:0.5px; line-height:1.1;">${escapeTeamHistoryHtml(effectiveScore || '-')}</span>
-                            ${effectiveAh && effectiveAh !== '-' ? `<span style="font-size:0.55rem; font-weight:600; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapeTeamHistoryHtml(effectiveAh)}</span>` : ''}
-                        </div>
-                        <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:4px 6px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapeTeamHistoryHtml(awayTeam)}">
-                            <span style="font-weight:600; font-size:0.70rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeTeamHistoryHtml(awayTeam || 'Visitante')} ✈️</span>
-                        </div>
-                    </div>
-
-                    <!-- Body con estadísticas y barra proporcional -->
-                    <div style="padding:6px 8px 3px 8px; background:#ffffff;">
-                        ${statsRowsHtml || '<div class="text-muted text-center small py-2">Sin estadísticas disponibles</div>'}
-                    </div>
-                </div>
-            `;
         }
+
 
         async function toggleTeamHistoryRowStats(targetEl, event, ...legacyArgs) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -9071,6 +9092,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             data-col3-home-color="${homeColor}" 
                             data-col3-away="${escapePreContextCol3(col3Away)}" 
                             data-col3-away-color="${awayColor}" 
+                            data-col3-date="${escapePreContextCol3(col3.date || '')}"
+                            data-col3-score="${escapePreContextCol3(score || '')}"
+                            data-col3-ah="${escapePreContextCol3(col3.handicap ?? col3.ah ?? '')}"
+                            data-col3-league="${escapePreContextCol3(col3.league_id || '')}"
                             onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || '')}')" 
                             title="Descargar y ver Ataques Peligrosos, Tiros, Corners...">
                             <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
@@ -9137,166 +9162,22 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
         }
 
-        function formatStatsTableHtml(statsList, customHome = null, customAway = null) {
+        function formatStatsTableHtml(statsList, customHome = null, customAway = null, meta = {}) {
             if (!Array.isArray(statsList) || !statsList.length) {
-                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
+                return '<div style="font-size:.60rem; color:#94a3b8; text-align:center; padding:6px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
             }
-
-            const targetOrder = [
-                { match: 'tiros a puerta', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'shots on goal', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'target', label: 'Tiros a Puerta', icon: '🎯' },
-                { match: 'tiros', label: 'Tiros Totales', icon: '⚽' },
-                { match: 'shots', label: 'Tiros Totales', icon: '⚽' },
-                { match: 'córner', label: 'Saques de Esquina', icon: '🚩' },
-                { match: 'corner', label: 'Saques de Esquina', icon: '🚩' },
-                { match: 'esquina', label: 'Saques de Esquina', icon: '🚩' },
-                { match: 'ataques peligrosos', label: 'Ataques Peligrosos', icon: '⚡' },
-                { match: 'dangerous attacks', label: 'Ataques Peligrosos', icon: '⚡' },
-                { match: 'ataques', label: 'Ataques Totales', icon: '📈' },
-                { match: 'attacks', label: 'Ataques Totales', icon: '📈' },
-                { match: 'posesión', label: 'Posesión', icon: '🔄' },
-                { match: 'possession', label: 'Posesión', icon: '🔄' },
-                { match: 'faltas', label: 'Faltas', icon: '⛔' },
-                { match: 'fouls', label: 'Faltas', icon: '⛔' },
-                { match: 'tarjetas amarillas', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'yellow cards', label: 'Tarjetas Amarillas', icon: '🟨' },
-                { match: 'tarjetas rojas', label: 'Tarjetas Rojas', icon: '🟥' },
-                { match: 'red cards', label: 'Tarjetas Rojas', icon: '🟥' },
-            ];
-
-            const result = [];
-            for (const target of targetOrder) {
-                if (result.some(r => r.displayName === target.label)) continue;
-                const found = statsList.find(s => {
-                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
-                    if ((target.match === 'tiros' || target.match === 'shots') && (name.includes('tiros a puerta') || name.includes('shots on goal') || name.includes('target') || name.includes('puerta'))) return false;
-                    if ((target.match === 'ataques' || target.match === 'attacks') && (name.includes('ataques peligrosos') || name.includes('dangerous attacks') || name.includes('peligros'))) return false;
-                    return name === target.match || name.includes(target.match);
-                });
-                if (found) {
-                    result.push({
-                        displayName: target.label,
-                        icon: target.icon,
-                        home: String(found.home ?? '-').trim(),
-                        away: String(found.away ?? '-').trim(),
-                        isRed: target.label.includes('Rojas')
-                    });
-                }
-            }
-
-            for (const s of statsList) {
-                const rawName = String(s.name || s.label || s.stat_name || '').trim();
-                if (!rawName) continue;
-                if (!result.some(r => r.displayName.toLowerCase() === rawName.toLowerCase())) {
-                    result.push({
-                        displayName: rawName,
-                        icon: '📊',
-                        home: String(s.home ?? '-').trim(),
-                        away: String(s.away ?? '-').trim(),
-                        isRed: /rojas|red/i.test(rawName)
-                    });
-                }
-            }
-
-            if (!result.length) {
-                return '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin estadísticas registradas</div>';
-            }
-
-            const rowsHtml = result.map((s) => {
-                const parseNum = (str) => {
-                    if (!str) return 0;
-                    const m = String(str).match(/(\d+)/);
-                    return m ? parseInt(m[0], 10) : 0;
-                };
-                const hVal = parseNum(s.home);
-                const aVal = parseNum(s.away);
-                const isRed = s.isRed;
-
-                let hColor = '#0284c7';
-                let aColor = '#dc2626';
-                let barHColor = '#0284c7';
-                let barAColor = '#dc2626';
-
-                if (isRed) {
-                    hColor = hVal > 0 ? '#dc2626' : '#94a3b8';
-                    aColor = aVal > 0 ? '#dc2626' : '#94a3b8';
-                    barHColor = hVal > 0 ? '#dc2626' : '#e2e8f0';
-                    barAColor = aVal > 0 ? '#dc2626' : '#e2e8f0';
-                }
-
-                const sum = hVal + aVal;
-                let dualBarHtml = '';
-                if (sum === 0) {
-                    dualBarHtml = `
-                        <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:5px;">
-                            <div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>
-                            <div style="flex:1 1 0; background:#e2e8f0; border-radius:9999px;"></div>
-                        </div>
-                    `;
-                } else if (hVal > 0 && aVal === 0) {
-                    dualBarHtml = `
-                        <div style="display:flex; width:100%; height:5px; margin-top:2px; margin-bottom:5px;">
-                            <div style="width:100%; background:${barHColor}; border-radius:9999px;"></div>
-                        </div>
-                    `;
-                } else if (aVal > 0 && hVal === 0) {
-                    dualBarHtml = `
-                        <div style="display:flex; width:100%; height:5px; margin-top:2px; margin-bottom:5px;">
-                            <div style="width:100%; background:${barAColor}; border-radius:9999px;"></div>
-                        </div>
-                    `;
-                } else {
-                    const hPct = Math.round((hVal / sum) * 100);
-                    const aPct = 100 - hPct;
-                    dualBarHtml = `
-                        <div style="display:flex; width:100%; height:5px; gap:3px; margin-top:2px; margin-bottom:5px;">
-                            <div style="width:calc(${hPct}% - 1.5px); background:${barHColor}; border-radius:9999px; min-width:3px;"></div>
-                            <div style="width:calc(${aPct}% - 1.5px); background:${barAColor}; border-radius:9999px; min-width:3px;"></div>
-                        </div>
-                    `;
-                }
-
-                const hDisplay = (isRed && hVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.home)}</span>` : escapePreContextCol3(s.home);
-                const aDisplay = (isRed && aVal > 0) ? `<span class="badge bg-danger px-1 py-0" style="font-size:0.62rem;">🟥 ${escapePreContextCol3(s.away)}</span>` : escapePreContextCol3(s.away);
-
-                return `
-                    <div style="padding:2px 0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; line-height:1.2;">
-                            <span style="font-weight:600; font-size:0.82rem; color:${hColor}; min-width:28px; text-align:left; letter-spacing:0.2px;">
-                                ${hDisplay}
-                            </span>
-                            <span style="font-size:0.70rem; font-weight:400; color:#475569; text-align:center; flex:1; padding:0 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.1px;">
-                                <span style="font-size:0.72rem; margin-right:3px;">${s.icon}</span>${escapePreContextCol3(s.displayName)}
-                            </span>
-                            <span style="font-weight:600; font-size:0.82rem; color:${aColor}; min-width:28px; text-align:right; letter-spacing:0.2px;">
-                                ${aDisplay}
-                            </span>
-                        </div>
-                        ${dualBarHtml}
-                    </div>
-                `;
-            }).join('');
-
-            let headerHtml = '';
-            if (customHome && customAway) {
-                headerHtml = `
-                    <div style="display:flex; align-items:stretch; min-height:36px; width:100%; border-bottom:1px solid #e2e8f0; margin-bottom:6px; border-radius:8px 8px 0 0; overflow:hidden;">
-                        <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(customHome.name)}">
-                            <span style="font-weight:600; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customHome.name)}</span>
-                        </div>
-                        <div style="flex:0 0 auto; background:#0b1e36; color:#94a3b8; padding:3px 8px; display:flex; align-items:center; justify-content:center; min-width:50px; font-weight:600; font-size:0.62rem; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
-                            STATS
-                        </div>
-                        <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:4px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(customAway.name)}">
-                            <span style="font-weight:600; font-size:0.73rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapePreContextCol3(customAway.name)}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            return `<div class="modern-stats-box" style="width:100%; box-sizing:border-box;">${headerHtml}${rowsHtml}</div>`;
+            return buildModernStatsCardHtml({
+                statsList,
+                homeTeam: customHome ? (customHome.name || customHome) : (meta.home || ''),
+                awayTeam: customAway ? (customAway.name || customAway) : (meta.away || ''),
+                date: meta.date || '',
+                score: meta.score || '',
+                ah: meta.ah || '',
+                leagueId: meta.leagueId || '',
+                showHideBtn: false
+            });
         }
+
 
         async function loadPreContextRowMatchStats(button, event, options = {}) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -9355,40 +9236,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 button.dataset.loaded = '1';
                 ctx.statsSlot.classList.add('is-card');
-                ctx.statsSlot.innerHTML = `
-                    <div class="stat-card" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06); width:100%;">
-                        <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:4px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                            <span style="font-weight:600; font-size:.65rem; color:#166534; background:#f0fdf4; padding:2px 6px; border-radius:4px; border:1px solid #bbf7d0;">
-                                📊 ESTADÍSTICAS DEL PARTIDO
-                            </span>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span class="badge" style="background:#0284c7; font-size:.6rem; font-weight:600;">LIGA ${escapePreContextCol3(leagueId)}</span>
-                                <span style="font-size:.62rem; color:#64748b; font-weight:500; white-space:nowrap;">📅 ${escapePreContextCol3(rowDate)}</span>
-                            </div>
-                        </div>
-
-                        <div style="display:flex; align-items:stretch; min-height:38px; width:100%; border-bottom:1px solid #e2e8f0;">
-                            <div style="flex:1 1 0; background:#0284c7; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-start; min-width:0;" title="${escapePreContextCol3(rowHome)}">
-                                <span style="font-weight:600; font-size:0.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                    ${escapePreContextCol3(rowHome)}
-                                </span>
-                            </div>
-                            <div style="flex:0 0 auto; background:#0b1e36; color:#ffffff; padding:3px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:62px; border-left:1px solid rgba(255,255,255,0.15); border-right:1px solid rgba(255,255,255,0.15);">
-                                <div style="font-weight:700; font-size:0.84rem; letter-spacing:0.5px; line-height:1.1;">${escapePreContextCol3(rowScore || '-')}</div>
-                                ${rowAh ? `<div style="font-size:0.58rem; font-weight:600; color:#38bdf8; line-height:1; margin-top:2px;">AH ${escapePreContextCol3(rowAh)}</div>` : ''}
-                            </div>
-                            <div style="flex:1 1 0; background:#dc2626; color:#ffffff; padding:5px 8px; display:flex; align-items:center; justify-content:flex-end; min-width:0;" title="${escapePreContextCol3(rowAway)}">
-                                <span style="font-weight:600; font-size:0.74rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                    ${escapePreContextCol3(rowAway)}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div style="padding:6px 8px 3px 8px; background:#ffffff;">
-                            ${stats.length ? formatStatsTableHtml(stats) : '<div style="font-size:.65rem; color:#94a3b8; text-align:center; padding:8px 0;">Sin estadísticas registradas</div>'}
-                        </div>
-                    </div>
-                `;
+                ctx.statsSlot.innerHTML = buildModernStatsCardHtml({
+                    statsList: stats,
+                    homeTeam: rowHome,
+                    awayTeam: rowAway,
+                    date: rowDate,
+                    score: rowScore,
+                    ah: rowAh,
+                    leagueId: leagueId,
+                    showHideBtn: false
+                });
             } catch (error) {
                 ctx.statsSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
             } finally {
@@ -9508,7 +9365,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 } else {
                     const customHome = btn.dataset.col3Home ? { name: btn.dataset.col3Home, color: btn.dataset.col3HomeColor || '#6d28d9' } : null;
                     const customAway = btn.dataset.col3Away ? { name: btn.dataset.col3Away, color: btn.dataset.col3AwayColor || '#b45309' } : null;
-                    container.innerHTML = formatStatsTableHtml(stats, customHome, customAway);
+                    const meta = {
+                        home: btn.dataset.col3Home || '',
+                        away: btn.dataset.col3Away || '',
+                        date: btn.dataset.col3Date || '',
+                        score: btn.dataset.col3Score || '',
+                        ah: btn.dataset.col3Ah || '',
+                        leagueId: btn.dataset.col3League || ''
+                    };
+                    container.innerHTML = formatStatsTableHtml(stats, customHome, customAway, meta);
                 }
 
                 container.dataset.loaded = '1';
@@ -9724,6 +9589,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         data-col3-home-color="${homeMeta.color}" 
                         data-col3-away="${escapePreContextCol3(col3Away)}" 
                         data-col3-away-color="${awayMeta.color}" 
+                        data-col3-date="${escapePreContextCol3(col3.date || '')}"
+                        data-col3-score="${escapePreContextCol3(score || '')}"
+                        data-col3-ah="${escapePreContextCol3(col3.handicap ?? col3.ah ?? '')}"
+                        data-col3-league="${escapePreContextCol3(col3.league_id || '')}"
                         onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" 
                         title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
                         <i class="fa-solid fa-chart-simple me-1"></i>📊 Estadísticas
