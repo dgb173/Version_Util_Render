@@ -3462,6 +3462,17 @@
         </div>
     </div>
 
+    <!-- Modal Rápido Estadísticas de Partido (Todas las filas) -->
+    <div class="modal fade" id="quickMatchStatsModal" tabindex="-1" aria-labelledby="quickMatchStatsModalLabel" aria-hidden="true" style="z-index: 1088;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px; width: 92%; margin: 1.75rem auto;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background: transparent;">
+                <div id="quickMatchStatsModalBody" style="background: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <!-- buildModernStatsCardHtml renderizado dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Historial de Equipo / Rival Modificable Flotante y Arrastrable -->
     <div class="modal fade team-history-floating-modal" id="teamHistoryModal" tabindex="-1" aria-labelledby="teamHistoryModalLabel" aria-hidden="true" style="z-index: 1085;" data-bs-backdrop="false" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable team-history-dialog" id="teamHistoryModalDialog">
@@ -3880,12 +3891,6 @@
             const taH = totalAttacks ? totalAttacks[0] : 0;
             const taA = totalAttacks ? totalAttacks[1] : 0;
 
-            const calcPct = (num, den) => den > 0 ? Math.round((num / den) * 100) + '%' : (num > 0 ? '100%' : '0%');
-            const shotAccH = calcPct(spH, stH);
-            const shotAccA = calcPct(spA, stA);
-            const dangAccH = calcPct(daH, taH);
-            const dangAccA = calcPct(daA, taA);
-
             const renderBoxRow = (label, iconHtml, hVal, aVal) => {
                 const isHEqual = hVal === aVal;
                 const isHGreater = hVal > aVal;
@@ -3912,23 +3917,6 @@
                 `;
             };
 
-            const renderPctRow = (label, iconHtml, hPctStr, aPctStr) => {
-                return `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2;">
-                        <div style="width:38px; color:#2563eb; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
-                            ${hPctStr}
-                        </div>
-                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-size:0.58rem; color:#334155; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            <span style="font-size:0.60rem; display:inline-flex; align-items:center;">${iconHtml}</span>
-                            <span>${esc(label)}</span>
-                        </div>
-                        <div style="width:38px; color:#dc2626; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
-                            ${aPctStr}
-                        </div>
-                    </div>
-                `;
-            };
-
             let statsBodyHtml = '';
             if (hasStats) {
                 statsBodyHtml = `
@@ -3938,9 +3926,6 @@
                         ${renderBoxRow('Ataques peligrosos', '<i class="fa-solid fa-bolt" style="color:#d97706;"></i>', daH, daA)}
                         ${renderBoxRow('Ataques totales', '<i class="fa-solid fa-chart-simple" style="color:#64748b;"></i>', taH, taA)}
                         ${corners ? renderBoxRow('Saques de esquina', '🚩', corners[0], corners[1]) : ''}
-                        <div style="border-top:1px solid #f1f5f9; margin:2px 0 1px 0;"></div>
-                        ${renderPctRow('Precisión de tiro', '<i class="fa-solid fa-crosshairs" style="color:#334155;"></i>', shotAccH, shotAccA)}
-                        ${renderPctRow('Peligrosidad ofensiva', '<i class="fa-solid fa-bolt" style="color:#334155;"></i>', dangAccH, dangAccA)}
                     </div>
                 `;
             } else {
@@ -3995,6 +3980,172 @@
                     ${statsBodyHtml}
                 </div>
             `;
+        }
+
+        window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+
+        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '') {
+            const parseVal = (v) => {
+                if (v === undefined || v === null || v === '') return 0;
+                const m = String(v).match(/(\d+)/);
+                return m ? parseInt(m[0], 10) : 0;
+            };
+
+            let shotsTotal = null;
+            let shotsTarget = null;
+            let dangerousAttacks = null;
+            let totalAttacks = null;
+
+            if (Array.isArray(statsList) && statsList.length) {
+                statsList.forEach(s => {
+                    if (!s) return;
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    const h = parseVal(s.home);
+                    const a = parseVal(s.away);
+
+                    if ((name.includes('puerta') || name.includes('target') || name.includes('shots on goal')) && shotsTarget === null) {
+                        shotsTarget = [h, a];
+                    } else if ((name.includes('tiro') || name.includes('shot')) && !name.includes('puerta') && !name.includes('target') && shotsTotal === null) {
+                        shotsTotal = [h, a];
+                    } else if ((name.includes('peligros') || name.includes('dangerous')) && dangerousAttacks === null) {
+                        dangerousAttacks = [h, a];
+                    } else if ((name.includes('ataque') || name.includes('attack')) && !name.includes('peligros') && !name.includes('dangerous') && totalAttacks === null) {
+                        totalAttacks = [h, a];
+                    }
+                });
+            }
+
+            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks);
+            if (!hasStats) {
+                return `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:5px; padding:3px; margin-top:3px; text-align:center; font-size:0.52rem; color:#94a3b8;">
+                        <span>Sin stats en NowGoal</span>
+                        <button type="button" class="btn btn-link p-0 ms-1 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
+                    </div>
+                `;
+            }
+
+            const stH = shotsTotal ? shotsTotal[0] : 0;
+            const stA = shotsTotal ? shotsTotal[1] : 0;
+            const spH = shotsTarget ? shotsTarget[0] : 0;
+            const spA = shotsTarget ? shotsTarget[1] : 0;
+            const daH = dangerousAttacks ? dangerousAttacks[0] : 0;
+            const daA = dangerousAttacks ? dangerousAttacks[1] : 0;
+            const taH = totalAttacks ? totalAttacks[0] : 0;
+            const taA = totalAttacks ? totalAttacks[1] : 0;
+
+            const renderRow = (iconHtml, titleText, hVal, aVal) => {
+                const isHEqual = hVal === aVal;
+                const isHGreater = hVal > aVal;
+                const isAGreater = aVal > hVal;
+
+                const hBg = (isHGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const hColor = (isHGreater || isHEqual) ? '#15803d' : '#991b1b';
+                const aBg = (isAGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const aColor = (isAGreater || isHEqual) ? '#15803d' : '#991b1b';
+
+                return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:3px; line-height:1.2; margin-bottom:2px;" title="${titleText}">
+                        <span style="min-width:22px; text-align:center; background:${hBg}; color:${hColor}; font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${hVal}</span>
+                        <span style="font-size:0.78rem; text-align:center; flex:1; cursor:help; line-height:1;" title="${titleText}">${iconHtml}</span>
+                        <span style="min-width:22px; text-align:center; background:${aBg}; color:${aColor}; font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${aVal}</span>
+                    </div>
+                `;
+            };
+
+            return `
+                <div style="background:#ffffff; border:1px solid #10b981; border-radius:6px; padding:3px 5px; margin-top:3px; box-shadow:0 1px 4px rgba(0,0,0,0.06); width:100%; box-sizing:border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:2px; margin-bottom:3px;">
+                        <span style="font-size:0.62rem; font-weight:800; color:#15803d; letter-spacing:0.3px;"><i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> STATS</span>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.65rem; text-decoration:none; font-weight:700; line-height:1; cursor:pointer;" title="Ocultar">✕</button>
+                    </div>
+                    ${renderRow('⚽', 'Tiros totales', stH, stA)}
+                    ${renderRow('🎯', 'Tiros a puerta', spH, spA)}
+                    ${renderRow('📊', 'Ataques totales', taH, taA)}
+                    ${renderRow('⚡', 'Ataques peligrosos', daH, daA)}
+                </div>
+            `;
+        }
+
+        async function toggleCellInlineStats(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!btn) return;
+
+            const parentWrap = btn.closest('.cell-stats-btn-wrap') || btn.parentElement;
+            const slot = parentWrap ? parentWrap.querySelector('.cell-inline-stats-slot') : null;
+            if (!slot) return;
+
+            const isCurrentlyOpen = slot.style.display !== 'none';
+            if (isCurrentlyOpen) {
+                slot.style.display = 'none';
+                return;
+            }
+
+            slot.style.display = 'block';
+
+            if (slot.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(btn.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(btn.dataset.parentMatchId || '').replace(/\D/g, '');
+            const homeTeam = btn.dataset.home || '';
+            const awayTeam = btn.dataset.away || '';
+            const score = btn.dataset.score || '';
+            const ah = btn.dataset.ah || '';
+            const date = btn.dataset.date || '';
+
+            const cacheKey = matchId ? `id_${matchId}` : `${homeTeam}_${awayTeam}_${date}`;
+
+            if (window._quickMatchStatsCache && window._quickMatchStatsCache[cacheKey]) {
+                const cachedStats = window._quickMatchStatsCache[cacheKey];
+                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah);
+                slot.dataset.loaded = '1';
+                return;
+            }
+
+            slot.innerHTML = `
+                <div style="font-size:0.54rem; color:#059669; text-align:center; padding:4px 2px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:5px; margin-top:3px;">
+                    <i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando stats...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_home: homeTeam,
+                        row_away: awayTeam,
+                        row_date: date,
+                        row_score: score,
+                        row_ah: ah
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+                const stats = data.stats || [];
+                window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                window._quickMatchStatsCache[cacheKey] = stats;
+                if (data.match_id && !matchId) {
+                    btn.dataset.matchId = data.match_id;
+                    window._quickMatchStatsCache[`id_${data.match_id}`] = stats;
+                }
+
+                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah);
+                slot.dataset.loaded = '1';
+            } catch (err) {
+                slot.innerHTML = `
+                    <div style="font-size:0.52rem; color:#94a3b8; text-align:center; padding:3px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; margin-top:3px;">
+                        Sin stats en NowGoal
+                        <button type="button" class="btn btn-link p-0 ms-1 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
+                    </div>
+                `;
+            }
         }
 
         function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
@@ -6570,6 +6721,30 @@
 
             // Helper igual a Pre-Cacheo
             function isValidValue(val) { return val !== undefined && val !== null && val !== "undefined" && val !== ""; }
+            const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '' }) => {
+                if (!score || score === '-' || score === '?:?' || score === '?-?' || score === '??') return '';
+                return `
+                    <div class="mt-1 d-flex flex-column align-items-center cell-stats-btn-wrap" style="width:100%;">
+                        <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
+                            data-match-id="${escAttr(matchId)}"
+                            data-parent-match-id="${escAttr(parentMatchId)}"
+                            data-home="${escAttr(home)}"
+                            data-away="${escAttr(away)}"
+                            data-score="${escAttr(score)}"
+                            data-ah="${escAttr(ah)}"
+                            data-date="${escAttr(date)}"
+                            data-league="${escAttr(league)}"
+                            onclick="toggleCellInlineStats(this, event)"
+                            style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
+                            title="Ver estadísticas en esta celda">
+                            <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
+                        </button>
+                        <div class="cell-inline-stats-slot" style="display:none; width:100%;"></div>
+                    </div>
+                `;
+            };
 
             results.forEach(item => {
                 try {
@@ -6651,6 +6826,24 @@
                             }
                         }
 
+                        const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        if (Array.isArray(item.prev_home.stats_rows) && item.prev_home.stats_rows.length) {
+                            window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                            if (item.prev_home.match_id) window._quickMatchStatsCache[`id_${String(item.prev_home.match_id).replace(/\D/g, '')}`] = item.prev_home.stats_rows;
+                            window._quickMatchStatsCache[`${rHome}_${rAway}_${item.prev_home.date || ''}`] = item.prev_home.stats_rows;
+                        }
+
+                        const phStatsBtn = makeCellStatsBtnHtml({
+                            matchId: item.prev_home.match_id || '',
+                            parentMatchId: item.match_id || c.match_id || '',
+                            home: rHome || '',
+                            away: rAway || '',
+                            score: item.prev_home.score || '',
+                            ah: formatAh(item.prev_home.ah) || '',
+                            date: item.prev_home.date || '',
+                            league: item.prev_home.league_id || ''
+                        });
+
                         prevHomeHtml = `
                         <div class="d-flex flex-column">
                             ${item.prev_home.date ? `<div class="text-muted" style="font-size: 0.55rem;">${item.prev_home.date}</div>` : ''}
@@ -6662,6 +6855,7 @@
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
                             </div>
+                            ${phStatsBtn}
                         </div>`;
                     }
                 }
@@ -6691,6 +6885,23 @@
                             }
                         }
 
+                        if (Array.isArray(item.prev_away.stats_rows) && item.prev_away.stats_rows.length) {
+                            window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                            if (item.prev_away.match_id) window._quickMatchStatsCache[`id_${String(item.prev_away.match_id).replace(/\D/g, '')}`] = item.prev_away.stats_rows;
+                            window._quickMatchStatsCache[`${rHome}_${rAway}_${item.prev_away.date || ''}`] = item.prev_away.stats_rows;
+                        }
+
+                        const paStatsBtn = makeCellStatsBtnHtml({
+                            matchId: item.prev_away.match_id || '',
+                            parentMatchId: item.match_id || c.match_id || '',
+                            home: rHome || '',
+                            away: rAway || '',
+                            score: item.prev_away.score || '',
+                            ah: formatAh(item.prev_away.ah) || '',
+                            date: item.prev_away.date || '',
+                            league: item.prev_away.league_id || ''
+                        });
+
                         prevAwayHtml = `
                         <div class="d-flex flex-column">
                             ${item.prev_away.date ? `<div class="text-muted" style="font-size: 0.55rem;">${item.prev_away.date}</div>` : ''}
@@ -6702,6 +6913,7 @@
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
                             </div>
+                            ${paStatsBtn}
                         </div>`;
                     }
                 }
@@ -6732,13 +6944,25 @@
                         h2hStadiumResAttr = h2hRes;
                         movColor = h2hRes === 'COVER' ? 'text-success' : (h2hRes === 'NO_COVER' ? 'text-danger' : 'text-push');
                     }
+                    const hasValidResult = st.score && st.score !== 'N/A' && st.score !== '?:?' && st.score !== '?-?';
+                    const h2hStStatsBtn = hasValidResult ? makeCellStatsBtnHtml({
+                        matchId: st.match_id || '',
+                        parentMatchId: item.match_id || c.match_id || '',
+                        home: c.home || '',
+                        away: c.away || '',
+                        score: st.score,
+                        ah: st.movement || '',
+                        date: st.date || '',
+                        league: league || ''
+                    }) : '';
                     h2hStadiumHtml = `
-            <div class="d-flex flex-column">
-                ${st.date ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
-        <div class="fw-bold small ${movColor}">${st.movement}</div>
-                            ${(st.score && st.score !== 'N/A' && st.score !== '?:?') ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.score}</div>` : ''}
+                        <div class="d-flex flex-column">
+                            ${st.date ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
+                            <div class="fw-bold small ${movColor}">${st.movement || (hasValidResult ? 'Histórico' : '-')}</div>
+                            ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.score}</div>` : ''}
+                            ${h2hStStatsBtn}
                         </div>
-            `;
+                    `;
                 }
 
                 // --- H2H General with calculated WDL colors ---
@@ -6760,13 +6984,25 @@
                         h2hGeneralResAttr = h2hRes;
                         movColor = h2hRes === 'COVER' ? 'text-success' : (h2hRes === 'NO_COVER' ? 'text-danger' : 'text-push');
                     }
+                    const hasValidResult = gen.score && gen.score !== 'N/A' && gen.score !== '?:?' && gen.score !== '?-?';
+                    const h2hGenStatsBtn = hasValidResult ? makeCellStatsBtnHtml({
+                        matchId: gen.match_id || '',
+                        parentMatchId: item.match_id || c.match_id || '',
+                        home: c.home || '',
+                        away: c.away || '',
+                        score: gen.score,
+                        ah: gen.movement || '',
+                        date: gen.date || '',
+                        league: league || ''
+                    }) : '';
                     h2hGeneralHtml = `
-            <div class="d-flex flex-column">
-                ${gen.date ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
-        <div class="fw-bold small ${movColor}">${gen.movement}</div>
-                            ${(gen.score && gen.score !== 'N/A' && gen.score !== '?:?') ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.score}</div>` : ''}
+                        <div class="d-flex flex-column">
+                            ${gen.date ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
+                            <div class="fw-bold small ${movColor}">${gen.movement || (hasValidResult ? 'Histórico' : '-')}</div>
+                            ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.score}</div>` : ''}
+                            ${h2hGenStatsBtn}
                         </div>
-            `;
+                    `;
                 }
 
                 // --- H2H Col3 Comparator: MEJORA / IGUALA / EMPEORA ---
@@ -6913,17 +7149,29 @@
                                 ? '<span class="badge bg-warning text-dark" style="font-size: 0.55rem;">Inversa</span>'
                                 : '';
 
+                        const col3StatsBtn = mirrorScore ? makeCellStatsBtnHtml({
+                            matchId: h.match_id || '',
+                            parentMatchId: item.match_id || c.match_id || '',
+                            home: homeT,
+                            away: awayT,
+                            score: mirrorScore,
+                            ah: formatAh(h.ah) || '',
+                            date: date,
+                            league: h.league_id || ''
+                        }) : '';
+
                         h2hHtml = `
-            <div class="d-flex flex-column">
-                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">${performanceStatus} ${mirrorTypeLabel}</div>
-                            ${date ? `<div class="text-muted" style="font-size: 0.55rem;">${date}</div>` : ''}
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${formatAh(h.ah)}</span>
-                                <span class="fw-bold">${h.score || '-'}</span>
+                            <div class="d-flex flex-column">
+                                <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">${performanceStatus} ${mirrorTypeLabel}</div>
+                                ${date ? `<div class="text-muted" style="font-size: 0.55rem;">${date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${formatAh(h.ah)}</span>
+                                    <span class="fw-bold">${h.score || '-'}</span>
+                                </div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
+                                ${col3StatsBtn}
                             </div>
-                            <div class="small text-muted" style="font-size: 0.75rem;">${homeT} vs ${awayT}</div>
-                        </div>
-            `;
+                        `;
                     }
                 }
 
@@ -6950,17 +7198,29 @@
                         else if (cov === 'NO_COVER') resColor = 'text-danger';
                         else if (cov === 'PUSH') resColor = 'text-push';
 
+                        const indLocalStatsBtn = score ? makeCellStatsBtnHtml({
+                            matchId: l.match_id || '',
+                            parentMatchId: item.match_id || c.match_id || '',
+                            home: l.home_team || (l.localia === 'A' ? '' : c.home),
+                            away: l.away_team || (l.localia === 'A' ? c.home : ''),
+                            score: score,
+                            ah: ahLine || '',
+                            date: l.date || '',
+                            league: l.league_id || ''
+                        }) : '';
+
                         indLocalHtml = `
-            <div class="d-flex flex-column">
-                ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
-        <div class="d-flex justify-content-between">
-            <span class="fw-bold small">${ahLine || '-'}</span>
-            <span class="fw-bold ${resColor}">${score || '-'}</span>
-        </div>
+                            <div class="d-flex flex-column">
+                                ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${resColor}">${score || '-'}</span>
+                                </div>
                                 ${(l.home_team || l.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${l.home_team || ''} vs ${l.away_team || ''}</div>` : ''}
                                 ${l.localia ? `<div class="mt-1"><span class="badge ${(l.localia === 'L' || l.localia === 'H' || l.localia === 'Local' || l.localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(l.localia === 'L' || l.localia === 'H' || l.localia === 'Local' || l.localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                                ${indLocalStatsBtn}
                             </div>
-            `;
+                        `;
                     }
                 }
 
@@ -6987,17 +7247,29 @@
                         else if (cov === 'NO_COVER') resColor = 'text-danger';
                         else if (cov === 'PUSH') resColor = 'text-push';
 
+                        const indVisitanteStatsBtn = score ? makeCellStatsBtnHtml({
+                            matchId: r.match_id || '',
+                            parentMatchId: item.match_id || c.match_id || '',
+                            home: r.home_team || (r.localia === 'A' ? '' : c.away),
+                            away: r.away_team || (r.localia === 'A' ? c.away : ''),
+                            score: score,
+                            ah: ahLine || '',
+                            date: r.date || '',
+                            league: r.league_id || ''
+                        }) : '';
+
                         indVisitanteHtml = `
-            <div class="d-flex flex-column">
-                ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
-        <div class="d-flex justify-content-between">
-            <span class="fw-bold small">${ahLine || '-'}</span>
-            <span class="fw-bold ${resColor}">${score || '-'}</span>
-        </div>
+                            <div class="d-flex flex-column">
+                                ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold small">${ahLine || '-'}</span>
+                                    <span class="fw-bold ${resColor}">${score || '-'}</span>
+                                </div>
                                 ${(r.home_team || r.away_team) ? `<div class="small text-muted" style="font-size: 0.7rem;">${r.home_team || ''} vs ${r.away_team || ''}</div>` : ''}
                                 ${r.localia ? `<div class="mt-1"><span class="badge ${(r.localia === 'L' || r.localia === 'H' || r.localia === 'Local' || r.localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(r.localia === 'L' || r.localia === 'H' || r.localia === 'Local' || r.localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                                ${indVisitanteStatsBtn}
                             </div>
-            `;
+                        `;
                     }
                 }
 
@@ -7304,6 +7576,27 @@
                 tr.dataset.prev_away_ah = item.prev_away ? item.prev_away.ah : '';
                 tr.dataset.prev_away_wdl = paCoverAttr || (item.prev_away ? item.prev_away.wdl : '');
 
+                let ftCellContent = c.score || '-';
+                if (c.score && c.score !== '?:?' && c.score !== '-') {
+                    const cleanScore = String(c.score).trim();
+                    const ftBtn = makeCellStatsBtnHtml({
+                        matchId: item.match_id || c.match_id || '',
+                        parentMatchId: item.match_id || c.match_id || '',
+                        home: c.home || '',
+                        away: c.away || '',
+                        score: cleanScore,
+                        ah: formatAh(c.ah_real) || '',
+                        date: c.date || '',
+                        league: league || ''
+                    });
+                    ftCellContent = `
+                        <div class="d-flex flex-column align-items-center">
+                            <span>${cleanScore}</span>
+                            ${ftBtn}
+                        </div>
+                    `;
+                }
+
                 tr.innerHTML = `
             <td class="text-center text-muted small">
                 <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted"
@@ -7326,7 +7619,7 @@
         ${formatAh(c.ah_real)}
         ${c.ou_line ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${c.ou_line}</div>` : ''}
     </td>
-    <td class="col-res bg-light ${ftColor} fw-bold">${c.score}</td>
+    <td class="col-res bg-light ${ftColor} fw-bold">${ftCellContent}</td>
     
     <!-- Prev Home -->
     <td class="col-prev ${!prevHomeHasData ? 'cell-no-data' : ''}">${prevHomeHtml}</td>

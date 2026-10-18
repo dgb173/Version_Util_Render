@@ -10787,12 +10787,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const taH = totalAttacks ? totalAttacks[0] : 0;
             const taA = totalAttacks ? totalAttacks[1] : 0;
 
-            const calcPct = (num, den) => den > 0 ? Math.round((num / den) * 100) + '%' : (num > 0 ? '100%' : '0%');
-            const shotAccH = calcPct(spH, stH);
-            const shotAccA = calcPct(spA, stA);
-            const dangAccH = calcPct(daH, taH);
-            const dangAccA = calcPct(daA, taA);
-
             const renderBoxRow = (label, iconHtml, hVal, aVal) => {
                 const isHEqual = hVal === aVal;
                 const isHGreater = hVal > aVal;
@@ -10819,23 +10813,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 `;
             };
 
-            const renderPctRow = (label, iconHtml, hPctStr, aPctStr) => {
-                return `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2;">
-                        <div style="width:38px; color:#2563eb; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
-                            ${hPctStr}
-                        </div>
-                        <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-size:0.58rem; color:#334155; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            <span style="font-size:0.60rem; display:inline-flex; align-items:center;">${iconHtml}</span>
-                            <span>${esc(label)}</span>
-                        </div>
-                        <div style="width:38px; color:#dc2626; font-weight:700; font-size:0.63rem; padding:1.5px 0; text-align:center; flex-shrink:0;">
-                            ${aPctStr}
-                        </div>
-                    </div>
-                `;
-            };
-
             let statsBodyHtml = '';
             if (hasStats) {
                 statsBodyHtml = `
@@ -10845,9 +10822,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         ${renderBoxRow('Ataques peligrosos', '<i class="fa-solid fa-bolt" style="color:#d97706;"></i>', daH, daA)}
                         ${renderBoxRow('Ataques totales', '<i class="fa-solid fa-chart-simple" style="color:#64748b;"></i>', taH, taA)}
                         ${corners ? renderBoxRow('Saques de esquina', '🚩', corners[0], corners[1]) : ''}
-                        <div style="border-top:1px solid #f1f5f9; margin:2px 0 1px 0;"></div>
-                        ${renderPctRow('Precisión de tiro', '<i class="fa-solid fa-crosshairs" style="color:#334155;"></i>', shotAccH, shotAccA)}
-                        ${renderPctRow('Peligrosidad ofensiva', '<i class="fa-solid fa-bolt" style="color:#334155;"></i>', dangAccH, dangAccA)}
                     </div>
                 `;
             } else {
@@ -10992,6 +10966,172 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             } finally {
                 button.disabled = false;
                 syncDetailRowState(ctx);
+            }
+        }
+
+        window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+
+        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '') {
+            const parseVal = (v) => {
+                if (v === undefined || v === null || v === '') return 0;
+                const m = String(v).match(/(\d+)/);
+                return m ? parseInt(m[0], 10) : 0;
+            };
+
+            let shotsTotal = null;
+            let shotsTarget = null;
+            let dangerousAttacks = null;
+            let totalAttacks = null;
+
+            if (Array.isArray(statsList) && statsList.length) {
+                statsList.forEach(s => {
+                    if (!s) return;
+                    const name = String(s.name || s.label || s.stat_name || '').toLowerCase().trim();
+                    const h = parseVal(s.home);
+                    const a = parseVal(s.away);
+
+                    if ((name.includes('puerta') || name.includes('target') || name.includes('shots on goal')) && shotsTarget === null) {
+                        shotsTarget = [h, a];
+                    } else if ((name.includes('tiro') || name.includes('shot')) && !name.includes('puerta') && !name.includes('target') && shotsTotal === null) {
+                        shotsTotal = [h, a];
+                    } else if ((name.includes('peligros') || name.includes('dangerous')) && dangerousAttacks === null) {
+                        dangerousAttacks = [h, a];
+                    } else if ((name.includes('ataque') || name.includes('attack')) && !name.includes('peligros') && !name.includes('dangerous') && totalAttacks === null) {
+                        totalAttacks = [h, a];
+                    }
+                });
+            }
+
+            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks);
+            if (!hasStats) {
+                return `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:5px; padding:3px; margin-top:3px; text-align:center; font-size:0.52rem; color:#94a3b8;">
+                        <span>Sin stats en NowGoal</span>
+                        <button type="button" class="btn btn-link p-0 ms-1 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
+                    </div>
+                `;
+            }
+
+            const stH = shotsTotal ? shotsTotal[0] : 0;
+            const stA = shotsTotal ? shotsTotal[1] : 0;
+            const spH = shotsTarget ? shotsTarget[0] : 0;
+            const spA = shotsTarget ? shotsTarget[1] : 0;
+            const daH = dangerousAttacks ? dangerousAttacks[0] : 0;
+            const daA = dangerousAttacks ? dangerousAttacks[1] : 0;
+            const taH = totalAttacks ? totalAttacks[0] : 0;
+            const taA = totalAttacks ? totalAttacks[1] : 0;
+
+            const renderRow = (iconHtml, titleText, hVal, aVal) => {
+                const isHEqual = hVal === aVal;
+                const isHGreater = hVal > aVal;
+                const isAGreater = aVal > hVal;
+
+                const hBg = (isHGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const hColor = (isHGreater || isHEqual) ? '#15803d' : '#991b1b';
+                const aBg = (isAGreater || isHEqual) ? '#dcfce7' : '#fee2e2';
+                const aColor = (isAGreater || isHEqual) ? '#15803d' : '#991b1b';
+
+                return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:3px; line-height:1.2; margin-bottom:2px;" title="${titleText}">
+                        <span style="min-width:22px; text-align:center; background:${hBg}; color:${hColor}; font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${hVal}</span>
+                        <span style="font-size:0.78rem; text-align:center; flex:1; cursor:help; line-height:1;" title="${titleText}">${iconHtml}</span>
+                        <span style="min-width:22px; text-align:center; background:${aBg}; color:${aColor}; font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${aVal}</span>
+                    </div>
+                `;
+            };
+
+            return `
+                <div style="background:#ffffff; border:1px solid #10b981; border-radius:6px; padding:3px 5px; margin-top:3px; box-shadow:0 1px 4px rgba(0,0,0,0.06); width:100%; box-sizing:border-box;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:2px; margin-bottom:3px;">
+                        <span style="font-size:0.62rem; font-weight:800; color:#15803d; letter-spacing:0.3px;"><i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> STATS</span>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.65rem; text-decoration:none; font-weight:700; line-height:1; cursor:pointer;" title="Ocultar">✕</button>
+                    </div>
+                    ${renderRow('⚽', 'Tiros totales', stH, stA)}
+                    ${renderRow('🎯', 'Tiros a puerta', spH, spA)}
+                    ${renderRow('📊', 'Ataques totales', taH, taA)}
+                    ${renderRow('⚡', 'Ataques peligrosos', daH, daA)}
+                </div>
+            `;
+        }
+
+        async function toggleCellInlineStats(btn, event) {
+            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (!btn) return;
+
+            const parentWrap = btn.closest('.cell-stats-btn-wrap') || btn.parentElement;
+            const slot = parentWrap ? parentWrap.querySelector('.cell-inline-stats-slot') : null;
+            if (!slot) return;
+
+            const isCurrentlyOpen = slot.style.display !== 'none';
+            if (isCurrentlyOpen) {
+                slot.style.display = 'none';
+                return;
+            }
+
+            slot.style.display = 'block';
+
+            if (slot.dataset.loaded === '1') {
+                return;
+            }
+
+            const matchId = String(btn.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(btn.dataset.parentMatchId || '').replace(/\D/g, '');
+            const homeTeam = btn.dataset.home || '';
+            const awayTeam = btn.dataset.away || '';
+            const score = btn.dataset.score || '';
+            const ah = btn.dataset.ah || '';
+            const date = btn.dataset.date || '';
+
+            const cacheKey = matchId ? `id_${matchId}` : `${homeTeam}_${awayTeam}_${date}`;
+
+            if (window._quickMatchStatsCache && window._quickMatchStatsCache[cacheKey]) {
+                const cachedStats = window._quickMatchStatsCache[cacheKey];
+                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah);
+                slot.dataset.loaded = '1';
+                return;
+            }
+
+            slot.innerHTML = `
+                <div style="font-size:0.54rem; color:#059669; text-align:center; padding:4px 2px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:5px; margin-top:3px;">
+                    <i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando stats...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: matchId,
+                        parent_match_id: parentMatchId,
+                        row_home: homeTeam,
+                        row_away: awayTeam,
+                        row_date: date,
+                        row_score: score,
+                        row_ah: ah
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || data.status !== 'success') {
+                    throw new Error(data.error || 'No se pudieron descargar las estadísticas');
+                }
+                const stats = data.stats || [];
+                window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                window._quickMatchStatsCache[cacheKey] = stats;
+                if (data.match_id && !matchId) {
+                    btn.dataset.matchId = data.match_id;
+                    window._quickMatchStatsCache[`id_${data.match_id}`] = stats;
+                }
+
+                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah);
+                slot.dataset.loaded = '1';
+            } catch (err) {
+                slot.innerHTML = `
+                    <div style="font-size:0.52rem; color:#94a3b8; text-align:center; padding:3px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; margin-top:3px;">
+                        Sin stats en NowGoal
+                        <button type="button" class="btn btn-link p-0 ms-1 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
+                    </div>
+                `;
             }
         }
 
@@ -13867,11 +14007,69 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
 
                 // FT (Score)
+                // FT (Score)
                 let ftHtml = '<span class="text-muted">-</span>';
-                if (pc && pc.score && pc.score !== '??') {
-                    ftHtml = `<span class="fw-bold text-success">${pc.score}</span>`;
-                } else if (pc && pc.final_score && pc.final_score !== '??') {
-                    ftHtml = `<span class="fw-bold text-success">${pc.final_score}</span>`;
+                const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '' }) => {
+                    if (!score || score === '-' || score === '?:?' || score === '?-?' || score === '??') return '';
+                    return `
+                        <div class="mt-1 d-flex flex-column align-items-center cell-stats-btn-wrap" style="width:100%;">
+                            <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
+                                data-match-id="${escAttr(matchId)}"
+                                data-parent-match-id="${escAttr(parentMatchId)}"
+                                data-home="${escAttr(home)}"
+                                data-away="${escAttr(away)}"
+                                data-score="${escAttr(score)}"
+                                data-ah="${escAttr(ah)}"
+                                data-date="${escAttr(date)}"
+                                data-league="${escAttr(league)}"
+                                onclick="toggleCellInlineStats(this, event)"
+                                style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
+                                title="Ver estadísticas en esta celda">
+                                <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
+                            </button>
+                            <div class="cell-inline-stats-slot" style="display:none; width:100%;"></div>
+                        </div>
+                    `;
+                };
+
+                if (pc && pc.score && pc.score !== '??' && pc.score !== '?:?') {
+                    const cleanScoreVal = String(pc.score).trim();
+                    const ftBtn = makeCellStatsBtnHtml({
+                        matchId: m.match_id || '',
+                        parentMatchId: m.match_id || '',
+                        home: m.home || '',
+                        away: m.away || '',
+                        score: cleanScoreVal,
+                        ah: formatAh(ah) || '',
+                        date: m.date || '',
+                        league: m.league_id || ''
+                    });
+                    ftHtml = `
+                        <div class="d-flex flex-column align-items-center">
+                            <span class="fw-bold text-success">${cleanScoreVal}</span>
+                            ${ftBtn}
+                        </div>
+                    `;
+                } else if (pc && pc.final_score && pc.final_score !== '??' && pc.final_score !== '?:?') {
+                    const cleanFinalScore = String(pc.final_score).trim();
+                    const ftBtn = makeCellStatsBtnHtml({
+                        matchId: m.match_id || '',
+                        parentMatchId: m.match_id || '',
+                        home: m.home || '',
+                        away: m.away || '',
+                        score: cleanFinalScore,
+                        ah: formatAh(ah) || '',
+                        date: m.date || '',
+                        league: m.league_id || ''
+                    });
+                    ftHtml = `
+                        <div class="d-flex flex-column align-items-center">
+                            <span class="fw-bold text-success">${cleanFinalScore}</span>
+                            ${ftBtn}
+                        </div>
+                    `;
                 } else {
                     ftHtml = '<span class="text-muted">?:?</span>';
                 }
@@ -13898,6 +14096,12 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     const lhmAwayName = lhm.away_team || '';
                     const lhmDate = lhm.date || '';
 
+                    if (Array.isArray(lhm.stats_rows) && lhm.stats_rows.length) {
+                        window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                        if (lhm.match_id) window._quickMatchStatsCache[`id_${String(lhm.match_id).replace(/\D/g, '')}`] = lhm.stats_rows;
+                        window._quickMatchStatsCache[`${lhmHomeName}_${lhmAwayName}_${lhmDate}`] = lhm.stats_rows;
+                    }
+
                     // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
                     prevHomeStats = {
                         title: 'Prev Home',
@@ -13905,6 +14109,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         stats: Array.isArray(lhm.stats_rows) ? lhm.stats_rows : [],
                         match: { home: lhmHomeName, away: lhmAwayName, score: lhm.score }
                     };
+
+                    const prevHomeStatsBtn = makeCellStatsBtnHtml({
+                        matchId: lhm.match_id || '',
+                        parentMatchId: m.match_id || '',
+                        home: lhmHomeName,
+                        away: lhmAwayName,
+                        score: lhm.score || '',
+                        ah: ahVal || '',
+                        date: lhmDate || '',
+                        league: lhm.league_id_hist || lhm.league_id || ''
+                    });
 
                     prevHomeHtml = `
                         <div class="d-flex flex-column">
@@ -13917,6 +14132,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lhmHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lhmAwayName}</span>
                             </div>
+                            ${prevHomeStatsBtn}
                         </div>
                     `;
                 }
@@ -13928,17 +14144,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     const lam = pc.last_away_match;
                     const ahVal = formatAh(lam.handicap_line_raw);
 
-
                     // Calc WDL - Usar el AH del partido ACTUAL (invertido para away)
                     let wdlClass = 'text-dark';
                     const prevAwayWdlForCell = getPrevAwayWdl(lam.score, currentAh);
                     wdlClass = wdlToTextClass(prevAwayWdlForCell);
 
-
                     // Nombres completos y fecha
                     const lamHomeName = lam.home_team || '';
                     const lamAwayName = lam.away_team || '';
                     const lamDate = lam.date || '';
+
+                    if (Array.isArray(lam.stats_rows) && lam.stats_rows.length) {
+                        window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                        if (lam.match_id) window._quickMatchStatsCache[`id_${String(lam.match_id).replace(/\D/g, '')}`] = lam.stats_rows;
+                        window._quickMatchStatsCache[`${lamHomeName}_${lamAwayName}_${lamDate}`] = lam.stats_rows;
+                    }
 
                     // Guardar partido y resúmenes O/U aunque no existan stats avanzadas.
                     prevAwayStats = {
@@ -13947,6 +14167,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         stats: Array.isArray(lam.stats_rows) ? lam.stats_rows : [],
                         match: { home: lamHomeName, away: lamAwayName, score: lam.score }
                     };
+
+                    const prevAwayStatsBtn = makeCellStatsBtnHtml({
+                        matchId: lam.match_id || '',
+                        parentMatchId: m.match_id || '',
+                        home: lamHomeName,
+                        away: lamAwayName,
+                        score: lam.score || '',
+                        ah: ahVal || '',
+                        date: lamDate || '',
+                        league: lam.league_id_hist || lam.league_id || ''
+                    });
 
                     prevAwayHtml = `
                         <div class="d-flex flex-column">
@@ -13959,6 +14190,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
                                 <span class="text-home">${lamHomeName}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${lamAwayName}</span>
                             </div>
+                            ${prevAwayStatsBtn}
                         </div>
                     `;
                 }
@@ -13990,11 +14222,23 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             else if (res === 'PUSH') movColor = 'text-push';
                         }
 
+                        const h2hStStatsBtn = hasValidResult ? makeCellStatsBtnHtml({
+                            matchId: st.match_id || '',
+                            parentMatchId: m.match_id || '',
+                            home: m.home || m.home_team || '',
+                            away: m.away || m.away_team || '',
+                            score: st.result,
+                            ah: st.movement || '',
+                            date: st.date || '',
+                            league: m.league_id || ''
+                        }) : '';
+
                         h2hStadiumHtml = `
                             <div class="d-flex flex-column">
                                 ${st.date && st.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
                                 <div class="fw-bold small ${movColor}">${hasValidMovement ? st.movement : (hasValidResult ? 'Histórico' : '-')}</div>
                                 ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.result}</div>` : ''}
+                                ${h2hStStatsBtn}
                             </div>
                         `;
                     }
@@ -14034,11 +14278,23 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             else if (res === 'PUSH') movColor = 'text-push';
                         }
 
+                        const h2hGenStatsBtn = hasValidResult ? makeCellStatsBtnHtml({
+                            matchId: gen.match_id || '',
+                            parentMatchId: m.match_id || '',
+                            home: m.home || m.home_team || '',
+                            away: m.away || m.away_team || '',
+                            score: gen.result,
+                            ah: gen.movement || '',
+                            date: gen.date || '',
+                            league: m.league_id || ''
+                        }) : '';
+
                         h2hGeneralHtml = `
                             <div class="d-flex flex-column">
                                 ${gen.date && gen.date !== 'N/A' ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
                                 <div class="fw-bold small ${movColor}">${hasValidMovement ? gen.movement : (hasValidResult ? 'Histórico' : '-')}</div>
                                 ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.result}</div>` : ''}
+                                ${h2hGenStatsBtn}
                             </div>
                         `;
                     }
@@ -14262,6 +14518,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                     ? '<span class="badge bg-secondary" style="font-size: 0.5rem;">= Igual</span>'
                                     : '';
 
+                        const col3StatsBtn = mirrorScore ? makeCellStatsBtnHtml({
+                            matchId: col3.match_id || '',
+                            parentMatchId: m.match_id || '',
+                            home: homeTeam,
+                            away: awayTeam,
+                            score: mirrorScore,
+                            ah: mirrorAhRaw || '',
+                            date: date || '',
+                            league: col3.league_id || ''
+                        }) : '';
+
                         h2hCol3Html = `
                             <div class="d-flex flex-column">
                                 <div class="fw-bold ${statusColor}" style="font-size: 0.75rem; border-bottom: 1px solid #eee; margin-bottom: 2px;">
@@ -14277,6 +14544,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                     ${coverLabel}
                                     ${movementLabel}
                                 </div>
+                                ${col3StatsBtn}
                             </div>
                         `;
                     }
@@ -14321,6 +14589,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         // Localía normalizada: H (local) o A (visitante)
                         indLeftLocAttr = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A';
 
+                        const indLeftStatsBtn = score ? makeCellStatsBtnHtml({
+                            matchId: l.match_id || '',
+                            parentMatchId: m.match_id || '',
+                            home: homeTeam,
+                            away: awayTeam,
+                            score: score,
+                            ah: ahLine || '',
+                            date: l.date || '',
+                            league: l.league_id || ''
+                        }) : '';
+
                         indLeftHtml = `
                             <div class="d-flex flex-column">
                                 ${l.date ? `<div class="text-muted" style="font-size: 0.55rem;">${l.date}</div>` : ''}
@@ -14330,6 +14609,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 </div>
                                 ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
                                 ${localia ? `<div class="mt-1"><span class="badge ${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                                ${indLeftStatsBtn}
                             </div>
                         `;
                     }
@@ -14371,6 +14651,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         // Localía normalizada: H (local) o A (visitante)
                         indRightLocAttr = (localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A';
 
+                        const indRightStatsBtn = score ? makeCellStatsBtnHtml({
+                            matchId: r.match_id || '',
+                            parentMatchId: m.match_id || '',
+                            home: homeTeam,
+                            away: awayTeam,
+                            score: score,
+                            ah: ahLine || '',
+                            date: r.date || '',
+                            league: r.league_id || ''
+                        }) : '';
+
                         indRightHtml = `
                             <div class="d-flex flex-column">
                                 ${r.date ? `<div class="text-muted" style="font-size: 0.55rem;">${r.date}</div>` : ''}
@@ -14380,6 +14671,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 </div>
                                 ${(homeTeam || awayTeam) ? `<div class="small text-muted" style="font-size: 0.75rem;">${homeTeam} vs ${awayTeam}</div>` : ''}
                                 ${localia ? `<div class="mt-1"><span class="badge ${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'bg-success' : 'bg-danger'}" style="font-size: 0.6rem;">${(localia === 'L' || localia === 'H' || localia === 'Local' || localia === 'Home') ? 'H' : 'A'}</span></div>` : ''}
+                                ${indRightStatsBtn}
                             </div>
                         `;
                     }
@@ -15963,8 +16255,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             `${r.prev_home.da !== null ? `⚡${r.prev_home.da}` : ''}` +
                             `${r.prev_home.sot !== null ? ` 🎯${r.prev_home.sot}` : ''}` +
                             `</div>` : '';
+                        const prevHomeBtn = (r.prev_home && r.prev_home.score) ? `
+                            <div class="mt-1 d-flex justify-content-center">
+                                <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
+                                    data-match-id="${escAttr(r.prev_home.match_id || '')}"
+                                    data-parent-match-id="${escAttr(r.match_id || '')}"
+                                    data-home="${escAttr(r.prev_home.home_team || r.home || '')}"
+                                    data-away="${escAttr(r.prev_home.away_team || r.prev_home.rival || '')}"
+                                    data-score="${escAttr(r.prev_home.score || '')}"
+                                    data-ah="${escAttr(r.prev_home.ah || '')}"
+                                    data-date="${escAttr(r.prev_home.date || '')}"
+                                    data-league="${escAttr(r.prev_home.league_id || '')}"
+                                    onclick="openQuickMatchStatsModal(this, event)"
+                                    style="font-size: 0.56rem; font-weight: 700; padding: 1px 5px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 2px; cursor: pointer; line-height: 1.1;"
+                                    title="Ver estadísticas del partido">
+                                    <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.54rem;"></i> Stats
+                                </button>
+                            </div>` : '';
                         const prevHomeHtml = r.prev_home ?
-                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${prevHomeColorClass}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}${prevHomeStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>` :
+                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${prevHomeColorClass}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}${prevHomeStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>${prevHomeBtn}` :
                             '<span class="text-muted">-</span>';
 
                         // Calcular Cover/WDL para Prev Away
@@ -15980,8 +16289,25 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             `${r.prev_away.da !== null ? `⚡${r.prev_away.da}` : ''}` +
                             `${r.prev_away.sot !== null ? ` 🎯${r.prev_away.sot}` : ''}` +
                             `</div>` : '';
+                        const prevAwayBtn = (r.prev_away && r.prev_away.score) ? `
+                            <div class="mt-1 d-flex justify-content-center">
+                                <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
+                                    data-match-id="${escAttr(r.prev_away.match_id || '')}"
+                                    data-parent-match-id="${escAttr(r.match_id || '')}"
+                                    data-home="${escAttr(r.prev_away.home_team || '')}"
+                                    data-away="${escAttr(r.prev_away.away_team || r.prev_away.rival || r.away || '')}"
+                                    data-score="${escAttr(r.prev_away.score || '')}"
+                                    data-ah="${escAttr(r.prev_away.ah || '')}"
+                                    data-date="${escAttr(r.prev_away.date || '')}"
+                                    data-league="${escAttr(r.prev_away.league_id || '')}"
+                                    onclick="openQuickMatchStatsModal(this, event)"
+                                    style="font-size: 0.56rem; font-weight: 700; padding: 1px 5px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 2px; cursor: pointer; line-height: 1.1;"
+                                    title="Ver estadísticas del partido">
+                                    <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.54rem;"></i> Stats
+                                </button>
+                            </div>` : '';
                         const prevAwayHtml = r.prev_away ?
-                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${prevAwayColorClass}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}${prevAwayStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>` :
+                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${prevAwayColorClass}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}${prevAwayStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>${prevAwayBtn}` :
                             '<span class="text-muted">-</span>';
 
 
@@ -17942,6 +18268,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <strong>Consultando SofaScore…</strong>
                         <span>Cargando clasificación y temporadas</span>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rápido Estadísticas de Partido (Todas las filas) -->
+    <div class="modal fade" id="quickMatchStatsModal" tabindex="-1" aria-labelledby="quickMatchStatsModalLabel" aria-hidden="true" style="z-index: 1088;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px; width: 92%; margin: 1.75rem auto;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; background: transparent;">
+                <div id="quickMatchStatsModalBody" style="background: #ffffff; border-radius: 12px; overflow: hidden;">
+                    <!-- buildModernStatsCardHtml renderizado dinámicamente -->
                 </div>
             </div>
         </div>
