@@ -135,7 +135,9 @@ def _validate_outputs(max_json_bytes: int) -> dict:
         if not path.is_file():
             raise RefreshError(f"No se generó el archivo obligatorio: {path}")
         size = path.stat().st_size
-        if size <= 2:
+        if size == 0:
+            raise RefreshError(f"El archivo generado está vacío (0 bytes): {path}")
+        if path != PENDING_FILE and size <= 2:
             raise RefreshError(f"El archivo generado está vacío: {path}")
         if size > max_json_bytes:
             raise RefreshError(
