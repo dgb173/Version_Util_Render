@@ -176,11 +176,11 @@ def save_match_to_json_thread_safe(match_data):
 
 
 # --- Mantén tu lógica para la página principal ---
-URL_NOWGOAL = "https://live.nowgoal50.com/"
+URL_NOWGOAL = "https://www.nowgoal.net/"
 
 REQUEST_TIMEOUT_SECONDS = 12
 _REQUEST_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
     "Connection": "keep-alive",
@@ -1854,23 +1854,23 @@ GRANDES_LIGAS_CONFIG = {
 
 GRANDES_LIGAS_DATA_URLS = {
     'Premier League': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s36_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s36_en.js',
         'id': 36, 'short': 'PL', 'color': '#3d195b'
     },
     'La Liga': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s31_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s31_en.js',
         'id': 31, 'short': 'LL', 'color': '#ee1d23'
     },
     'Serie A': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s34_2948_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s34_2948_en.js',
         'id': 34, 'short': 'SA', 'color': '#008c45'
     },
     'Ligue 1': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s11_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s11_en.js',
         'id': 11, 'short': 'L1', 'color': '#091c3e'
     },
     'Bundesliga': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s8_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s8_en.js',
         'id': 8, 'short': 'BL', 'color': '#d00027'
     },
 }
@@ -2067,35 +2067,35 @@ TODAS_LIGAS_CONFIG = {
     # Top 5 Europeas
     'Premier League': {
         'id': 36,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s36_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s36_en.js',
         'short': 'PL',
         'color': '#3d195b',
         'country': 'England'
     },
     'La Liga': {
         'id': 31,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s31_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s31_en.js',
         'short': 'LL',
         'color': '#ee1d23',
         'country': 'Spain'
     },
     'Serie A': {
         'id': 34,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s34_2948_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s34_2948_en.js',
         'short': 'SA',
         'color': '#008c45',
         'country': 'Italy'
     },
     'Bundesliga': {
         'id': 8,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s8_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s8_en.js',
         'short': 'BL',
         'color': '#d00027',
         'country': 'Germany'
     },
     'Ligue 1': {
         'id': 11,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s11_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s11_en.js',
         'short': 'L1',
         'color': '#091c3e',
         'country': 'France'
@@ -2103,35 +2103,35 @@ TODAS_LIGAS_CONFIG = {
     # Segundas Divisiones
     'Championship': {
         'id': 37,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s37_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s37_en.js',
         'short': 'CH',
         'color': '#ff6600',
         'country': 'England'
     },
     'La Liga 2': {
         'id': 32,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s32_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s32_en.js',
         'short': 'LL2',
         'color': '#ffcc00',
         'country': 'Spain'
     },
     'Serie B': {
         'id': 35,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s35_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s35_en.js',
         'short': 'SB',
         'color': '#006600',
         'country': 'Italy'
     },
     'Bundesliga 2': {
         'id': 9,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s9_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s9_en.js',
         'short': 'BL2',
         'color': '#aa0027',
         'country': 'Germany'
     },
     'Ligue 2': {
         'id': 12,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s12_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s12_en.js',
         'short': 'L2',
         'color': '#445566',
         'country': 'France'
@@ -2139,35 +2139,35 @@ TODAS_LIGAS_CONFIG = {
     # Otras ligas europeas
     'Eredivisie': {
         'id': 17,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s17_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s17_en.js',
         'short': 'ERE',
         'color': '#ff4500',
         'country': 'Netherlands'
     },
     'Primeira Liga': {
         'id': 28,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s28_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s28_en.js',
         'short': 'PRI',
         'color': '#006600',
         'country': 'Portugal'
     },
     'Belgian Pro League': {
         'id': 3,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s3_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s3_en.js',
         'short': 'BEL',
         'color': '#ff0000',
         'country': 'Belgium'
     },
     'Scottish Premiership': {
         'id': 45,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s45_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s45_en.js',
         'short': 'SPL',
         'color': '#003399',
         'country': 'Scotland'
     },
     'Super Lig': {
         'id': 52,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s52_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s52_en.js',
         'short': 'TUR',
         'color': '#e30a17',
         'country': 'Turkey'
@@ -2175,14 +2175,14 @@ TODAS_LIGAS_CONFIG = {
     # Sudamérica
     'Argentina Primera': {
         'id': 1,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2024/s1_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2024/s1_en.js',
         'short': 'ARG',
         'color': '#75aadb',
         'country': 'Argentina'
     },
     'Brasileirao': {
         'id': 4,
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2024/s4_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2024/s4_en.js',
         'short': 'BRA',
         'color': '#009c3b',
         'country': 'Brazil'
@@ -2709,7 +2709,7 @@ def api_favoritas_matches():
                     
                     # 1. Intentar encontrar el JS exacto desde la página de la liga (más fiable para IDs con sufijo como 273_462)
                     try:
-                        subleague_url = f'https://football.nowgoal26.com/subleague/{lid}'
+                        subleague_url = f'https://football.nowgoal.net/subleague/{lid}'
                         print(f"🌍 [FAVORITAS] Buscando JS dinámico en {subleague_url}...")
                         sub_res = session.get(subleague_url, timeout=8)
                         if sub_res.status_code == 200:
@@ -2718,7 +2718,7 @@ def api_favoritas_matches():
                             if js_uri_match:
                                 season_found = js_uri_match.group(1)
                                 suffix = js_uri_match.group(2) or ""
-                                found_url = f'https://football.nowgoal26.com/jsData/matchResult/{season_found}/s{lid}{suffix}_en.js'
+                                found_url = f'https://football.nowgoal.net/jsData/matchResult/{season_found}/s{lid}{suffix}_en.js'
                                 print(f"🎯 [FAVORITAS] Encontrado JS exacto: {found_url}")
                                 response = session.get(found_url, timeout=8)
                                 if response.status_code == 200 and 'var arrMatch =' in response.text:
@@ -2729,7 +2729,7 @@ def api_favoritas_matches():
                     # 2. Reintentos manuales por temporada si falló lo anterior
                     if not success:
                         for season in seasons:
-                            url_base = f'https://football.nowgoal26.com/jsData/matchResult/{season}/s{lid}_en.js'
+                            url_base = f'https://football.nowgoal.net/jsData/matchResult/{season}/s{lid}_en.js'
                             print(f"🌍 [FAVORITAS] Probando ID Custom {lid} (Temp {season})...")
                             try:
                                 response = session.get(url_base, timeout=8)
@@ -3055,14 +3055,14 @@ def api_favoritas_precache_start():
                 if not response or response.status_code != 200:
                     # Intentar búsqueda dinámica en subleague (id custom o url fallida)
                     try:
-                        subleague_url = f'https://football.nowgoal26.com/subleague/{lid}'
+                        subleague_url = f'https://football.nowgoal.net/subleague/{lid}'
                         sub_res = session.get(subleague_url, timeout=8)
                         if sub_res.status_code == 200:
                             js_uri_match = re.search(fr'/jsData/matchResult/([^/]+)/s{lid}(_[^/.]*)?_en\.js', sub_res.text)
                             if js_uri_match:
                                 season_found = js_uri_match.group(1)
                                 suffix = js_uri_match.group(2) or ""
-                                found_url = f'https://football.nowgoal26.com/jsData/matchResult/{season_found}/s{lid}{suffix}_en.js'
+                                found_url = f'https://football.nowgoal.net/jsData/matchResult/{season_found}/s{lid}{suffix}_en.js'
                                 response = session.get(found_url, timeout=8)
                     except:
                         pass
@@ -3071,7 +3071,7 @@ def api_favoritas_precache_start():
                     # Reintentos manuales por temporada (fallback final)
                     seasons = ['2025-2026', '2024-2025', '2025', '2024']
                     for season in seasons:
-                        url_base = f'https://football.nowgoal26.com/jsData/matchResult/{season}/s{lid}_en.js'
+                        url_base = f'https://football.nowgoal.net/jsData/matchResult/{season}/s{lid}_en.js'
                         r = session.get(url_base, timeout=8)
                         if r.status_code == 200 and 'var arrMatch =' in r.text:
                             response = r

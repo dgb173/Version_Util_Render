@@ -32,12 +32,12 @@ except ImportError:
 
 
 # --- CONFIGURACIÓN GLOBAL ---
-BASE_URL_OF = os.getenv("NOWGOAL_BASE_URL", "https://www.nowgoal50.com").rstrip("/")
+BASE_URL_OF = os.getenv("NOWGOAL_BASE_URL", "https://www.nowgoal.net").rstrip("/")
 SELENIUM_TIMEOUT_SECONDS_OF = 10
 PLACEHOLDER_NODATA = "*(No disponible)*"
 REQUEST_TIMEOUT_SECONDS = 10
 REQUEST_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
     "Connection": "keep-alive",

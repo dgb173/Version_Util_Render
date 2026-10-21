@@ -70,7 +70,7 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Referer": "https://football.nowgoal26.com/"
+        "Referer": "https://football.nowgoal.net/"
     }
 
     session = requests.Session()
@@ -78,7 +78,7 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
     
     for current_season in season_formats:
         try:
-            league_url = f"https://football.nowgoal26.com/league/{current_season}/{league_id}" if current_season else f"https://football.nowgoal26.com/league/{league_id}"
+            league_url = f"https://football.nowgoal.net/league/{current_season}/{league_id}" if current_season else f"https://football.nowgoal.net/league/{league_id}"
             logger.info(f"Checking league page: {league_url}")
             
             page_response = session.get(league_url, timeout=30)
@@ -91,7 +91,7 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
                 logger.warning(f"No _dataPath found in HTML for {league_url}")
                 continue
                 
-            data_url = requests.compat.urljoin("https://football.nowgoal26.com", path_match.group(1))
+            data_url = requests.compat.urljoin("https://football.nowgoal.net", path_match.group(1))
             logger.info(f"Fetching schedule data from: {data_url}")
             
             data_response = session.get(data_url, timeout=30)
@@ -168,7 +168,7 @@ def extract_ids_by_params(season, league_id, ah_filter=None):
 def extract_ids_from_league(url):
     """
     Extracts match IDs from a NowGoal league URL.
-    URL format: https://football.nowgoal26.com/league/{season}/{leagueId}
+    URL format: https://football.nowgoal.net/league/{season}/{leagueId}
     """
     try:
         match = re.search(r"league/([\d-]+)/(\d+)", url)

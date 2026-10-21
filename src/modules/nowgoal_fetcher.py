@@ -32,14 +32,12 @@ SPAIN_TZ = ZoneInfo("Europe/Madrid")
 UTC_TZ = dt.timezone.utc
 
 NOWGOAL_BASE_HOSTS = [
-    "https://live.nowgoal50.com",
-    "https://live1.nowgoal50.com",
-    "https://www.nowgoal50.com",
-    "https://live11.nowgoal26.com",
-    "https://live10.nowgoal26.com",
-    "https://live20.nowgoal25.com",
-    "https://www.nowgoal26.com",
-    "https://www.nowgoal25.com",
+    "https://www.nowgoal.net",
+    "https://nowgoal.net",
+    "https://www.nowgoal2.top",
+    "https://nowgoal2.top",
+    "https://live10.goaloo28.com",
+    "https://live1.goaloo28.com",
 ]
 NOWGOAL_RESULTS_PATH = "/football/results"
 
@@ -532,39 +530,47 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
+            raw_data = {}
             try:
-                page.goto(f"{NOWGOAL_BASE_HOSTS[0]}/", wait_until="domcontentloaded", timeout=25000)
-                page.wait_for_timeout(4000)
+                for base_host in NOWGOAL_BASE_HOSTS:
+                    try:
+                        page.goto(f"{base_host}/", wait_until="domcontentloaded", timeout=25000)
+                        page.wait_for_timeout(4000)
 
-                raw_data = page.evaluate("""() => {
-                    const matches = [];
-                    const leagues = {};
-                    if (typeof B !== 'undefined' && Array.isArray(B)) {
-                        for (let i = 0; i < B.length; i++) {
-                            const row = B[i];
-                            if (row && row.length >= 2) {
-                                leagues[String(row[0])] = String(row[1] || '');
+                        raw_data = page.evaluate("""() => {
+                            const matches = [];
+                            const leagues = {};
+                            if (typeof B !== 'undefined' && Array.isArray(B)) {
+                                for (let i = 0; i < B.length; i++) {
+                                    const row = B[i];
+                                    if (row && row.length >= 2) {
+                                        leagues[String(row[0])] = String(row[1] || '');
+                                    }
+                                }
                             }
-                        }
-                    }
-                    if (typeof A !== 'undefined' && Array.isArray(A)) {
-                        for (let i = 0; i < A.length; i++) {
-                            const row = A[i];
-                            if (row && row.length >= 7) {
-                                matches.push(row);
+                            if (typeof A !== 'undefined' && Array.isArray(A)) {
+                                for (let i = 0; i < A.length; i++) {
+                                    const row = A[i];
+                                    if (row && row.length >= 7) {
+                                        matches.push(row);
+                                    }
+                                }
                             }
-                        }
-                    }
-                    const odds = {};
-                    for (const tr of document.querySelectorAll('tr[id^="tr1_"]')) {
-                        const id = tr.id.replace('tr1_', '');
-                        const values = (tr.getAttribute('odds') || '').split(',');
-                        if (values.length > 10) {
-                            odds[id] = { handicap: values[2], goal_line: values[10] };
-                        }
-                    }
-                    return { matches, leagues, odds };
-                }""")
+                            const odds = {};
+                            for (const tr of document.querySelectorAll('tr[id^="tr1_"]')) {
+                                const id = tr.id.replace('tr1_', '');
+                                const values = (tr.getAttribute('odds') || '').split(',');
+                                if (values.length > 10) {
+                                    odds[id] = { handicap: values[2], goal_line: values[10] };
+                                }
+                            }
+                            return { matches, leagues, odds };
+                        }""")
+                        if raw_data.get("matches"):
+                            break
+                    except Exception as nav_err:
+                        LOGGER.warning("Fallo en Playwright para %s: %s", base_host, nav_err)
+                        continue
             finally:
                 browser.close()
 
@@ -674,30 +680,38 @@ def fetch_finished_matches_with_playwright() -> List[Dict[str, Any]]:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             page = browser.new_page()
+            rows = []
             try:
-                page.goto(
-                    f"{NOWGOAL_BASE_HOSTS[0]}{NOWGOAL_RESULTS_PATH}",
-                    wait_until="domcontentloaded",
-                    timeout=25000,
-                )
-                page.wait_for_selector('tr[id^="tr1_"]', timeout=15000)
-                rows = page.evaluate(r"""() => Array.from(document.querySelectorAll('tr[id^="tr1_"]')).map(tr => {
-                    const id = tr.id.replace('tr1_', '');
-                    const odds = (tr.getAttribute('odds') || '').split(',');
-                    const status = (tr.querySelector(`#time_${id}`)?.textContent || '').trim();
-                    const meta = (tr.querySelector('.toolimg')?.getAttribute('data-match') || '').split(',');
-                    return {
-                        id,
-                        home_team: (tr.querySelector(`#team1_${id}`)?.textContent || '').trim(),
-                        away_team: (tr.querySelector(`#team2_${id}`)?.textContent || '').trim(),
-                        league: meta.slice(2).join(',').trim(),
-                        date_raw: tr.querySelector(`#mt_${id}`)?.getAttribute('data-t') || '',
-                        status,
-                        score: (tr.querySelector('.f-b b')?.textContent || '').replace(/\s+/g, ''),
-                        handicap: odds.length > 2 ? odds[2] : '',
-                        goal_line: odds.length > 10 ? odds[10] : ''
-                    };
-                }).filter(row => row.id && /^(FT|AET|Pen)/i.test(row.status))""")
+                for base_host in NOWGOAL_BASE_HOSTS:
+                    try:
+                        page.goto(
+                            f"{base_host}{NOWGOAL_RESULTS_PATH}",
+                            wait_until="domcontentloaded",
+                            timeout=25000,
+                        )
+                        page.wait_for_selector('tr[id^="tr1_"]', timeout=15000)
+                        rows = page.evaluate(r"""() => Array.from(document.querySelectorAll('tr[id^="tr1_"]')).map(tr => {
+                            const id = tr.id.replace('tr1_', '');
+                            const odds = (tr.getAttribute('odds') || '').split(',');
+                            const status = (tr.querySelector(`#time_${id}`)?.textContent || '').trim();
+                            const meta = (tr.querySelector('.toolimg')?.getAttribute('data-match') || '').split(',');
+                            return {
+                                id,
+                                home_team: (tr.querySelector(`#team1_${id}`)?.textContent || '').trim(),
+                                away_team: (tr.querySelector(`#team2_${id}`)?.textContent || '').trim(),
+                                league: meta.slice(2).join(',').trim(),
+                                date_raw: tr.querySelector(`#mt_${id}`)?.getAttribute('data-t') || '',
+                                status,
+                                score: (tr.querySelector('.f-b b')?.textContent || '').replace(/\s+/g, ''),
+                                handicap: odds.length > 2 ? odds[2] : '',
+                                goal_line: odds.length > 10 ? odds[10] : ''
+                            };
+                        }).filter(row => row.id && /^(FT|AET|Pen)/i.test(row.status))""")
+                        if rows:
+                            break
+                    except Exception as nav_err:
+                        LOGGER.warning("Fallo en Playwright resultados para %s: %s", base_host, nav_err)
+                        continue
             finally:
                 browser.close()
 

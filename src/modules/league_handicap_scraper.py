@@ -15,7 +15,7 @@ from . import data_manager, sql_store
 from .estudio_scraper import analizar_partido_completo
 
 
-BASE_URL = "https://football.nowgoal26.com"
+BASE_URL = "https://football.nowgoal.net"
 DEFAULT_COMPANY_ID = 8
 HEADERS = {
     "User-Agent": (

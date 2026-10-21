@@ -20,10 +20,10 @@ try:
 except Exception:
     nowgoal_fetcher = None
 
-URL_NOWGOAL = "https://live.nowgoal50.com/"
+URL_NOWGOAL = "https://www.nowgoal.net/"
 REQUEST_TIMEOUT_SECONDS = 12
 _REQUEST_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
     "Connection": "keep-alive",
@@ -110,7 +110,7 @@ def _fetch_nowgoal_html_sync(url: str) -> str | None:
     session = _get_shared_requests_session()
     try:
         with _requests_fetch_lock:
-            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS)
+            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
         response.raise_for_status()
         return response.text
     except Exception as exc:

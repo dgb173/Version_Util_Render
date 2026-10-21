@@ -44,23 +44,23 @@ except ImportError as e:
 # Configuración de ligas
 LIGAS_URLS = {
     'Premier League': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s36_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s36_en.js',
         'id': 36, 'short': 'PL'
     },
     'La Liga': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s31_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s31_en.js',
         'id': 31, 'short': 'LL'
     },
     'Serie A': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s34_2948_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s34_2948_en.js',
         'id': 34, 'short': 'SA'
     },
     'Ligue 1': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s11_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s11_en.js',
         'id': 11, 'short': 'L1'
     },
     'Bundesliga': {
-        'url': 'https://football.nowgoal26.com/jsData/matchResult/2025-2026/s8_en.js',
+        'url': 'https://football.nowgoal.net/jsData/matchResult/2025-2026/s8_en.js',
         'id': 8, 'short': 'BL'
     },
 }

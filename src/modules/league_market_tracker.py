@@ -28,8 +28,8 @@ from . import sql_store
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-INFO_BASE = "https://football.nowgoal26.com"
-LIVE_BASE = "https://live10.nowgoal26.com"
+INFO_BASE = "https://football.nowgoal.net"
+LIVE_BASE = "https://www.nowgoal.net"
 DEFAULT_LEAGUE_ID = "381"
 DEFAULT_COMPANIES = (8, 31, 3)  # Bet365, SBOBET, Crown
 HEADERS = {

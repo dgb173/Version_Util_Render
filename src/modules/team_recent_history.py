@@ -15,6 +15,7 @@ import re
 import threading
 import time
 import urllib.request
+import ssl
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -291,17 +292,18 @@ def fetch_live_team_matches(team_name: str, team_id: str) -> List[Dict[str, Any]
     if not clean_id:
         return []
 
-    url = f"https://football.nowgoal50.com/ajax/getteamschedulebypageno?id={clean_id}&pageNo=1&sclassId=0&init=1"
+    url = f"https://football.nowgoal.net/ajax/getteamschedulebypageno?id={clean_id}&pageNo=1&sclassId=0&init=1"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Referer": f"https://football.nowgoal50.com/team/summary/{clean_id}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Referer": f"https://football.nowgoal.net/team/summary/{clean_id}",
         "X-Requested-With": "XMLHttpRequest",
         "Accept": "application/json, text/javascript, */*; q=0.01",
     }
     req = urllib.request.Request(url, headers=headers)
     match_list: List[Dict[str, Any]] = []
+    ssl_ctx = ssl._create_unverified_context()
     try:
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=8, context=ssl_ctx) as resp:
             raw_bytes = resp.read()
             try:
                 content = gzip.decompress(raw_bytes).decode("utf-8-sig", errors="ignore")

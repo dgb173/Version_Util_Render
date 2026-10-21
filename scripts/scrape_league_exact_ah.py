@@ -29,7 +29,7 @@ from modules import data_manager, sql_store  # noqa: E402
 from modules.estudio_scraper import analizar_partido_completo  # noqa: E402
 
 
-BASE_URL = "https://football.nowgoal26.com"
+BASE_URL = "https://football.nowgoal.net"
 DEFAULT_COMPANY_ID = 8
 HEADERS = {
     "User-Agent": (
