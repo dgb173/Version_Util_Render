@@ -10934,8 +10934,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return;
             }
 
-            const cleanId = String(matchId || '').replace(/\D/g, '');
-            if (!cleanId) {
+            const cleanId = String(matchId || btn.dataset.matchId || '').replace(/\D/g, '');
+            const parentMatchId = String(btn.dataset.parentMatchId || '').replace(/\D/g, '');
+            const rowHome = btn.dataset.col3Home || '';
+            const rowAway = btn.dataset.col3Away || '';
+            const rowDate = btn.dataset.col3Date || '';
+            const rowScore = btn.dataset.col3Score || '';
+            const rowAh = btn.dataset.col3Ah || '';
+            const rowLeague = btn.dataset.col3League || '';
+
+            if (!cleanId && !parentMatchId && (!rowHome || !rowAway)) {
                 container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:3px;">Estadísticas no disponibles para este partido</div>';
                 container.style.display = 'block';
                 return;
@@ -10946,7 +10954,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Descargando stats...';
 
             try {
-                const response = await fetch(`/api/match_stats/${cleanId}`);
+                const response = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: cleanId,
+                        parent_match_id: parentMatchId,
+                        row_date: rowDate,
+                        row_home: rowHome,
+                        row_away: rowAway,
+                        row_score: rowScore,
+                        row_ah: rowAh,
+                        league_id: rowLeague
+                    })
+                });
                 const data = await response.json();
                 if (!response.ok || data.status !== 'success') {
                     throw new Error(data.error || 'No se pudieron descargar las estadísticas');
@@ -10956,15 +10977,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (!stats.length) {
                     container.innerHTML = '<div style="font-size:.62rem; color:#94a3b8; text-align:center; padding:4px; background:#f8fafc; border-radius:4px;">Sin ataques/tiros registrados para este encuentro</div>';
                 } else {
-                    const customHome = btn.dataset.col3Home ? { name: btn.dataset.col3Home, color: btn.dataset.col3HomeColor || '#6d28d9' } : null;
-                    const customAway = btn.dataset.col3Away ? { name: btn.dataset.col3Away, color: btn.dataset.col3AwayColor || '#b45309' } : null;
+                    const customHome = rowHome ? { name: rowHome, color: btn.dataset.col3HomeColor || '#6d28d9' } : null;
+                    const customAway = rowAway ? { name: rowAway, color: btn.dataset.col3AwayColor || '#b45309' } : null;
                     const meta = {
-                        home: btn.dataset.col3Home || '',
-                        away: btn.dataset.col3Away || '',
-                        date: btn.dataset.col3Date || '',
-                        score: btn.dataset.col3Score || '',
-                        ah: btn.dataset.col3Ah || '',
-                        leagueId: btn.dataset.col3League || ''
+                        home: rowHome,
+                        away: rowAway,
+                        date: rowDate,
+                        score: rowScore,
+                        ah: rowAh,
+                        leagueId: rowLeague
                     };
                     container.innerHTML = formatStatsTableHtml(stats, customHome, customAway, meta);
                 }
@@ -11353,7 +11374,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
                     </div>
                     <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">
-                        <button type="button" class="pre-card-stats-toggle" onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" title="Descargar y ver estadísticas...">
+                        <button type="button" class="pre-card-stats-toggle" 
+                            data-col3-home="${escapePreContextCol3(item.home_team || '')}"
+                            data-col3-away="${escapePreContextCol3(item.away_team || '')}"
+                            data-col3-date="${escapePreContextCol3(dateStr)}"
+                            data-col3-score="${escapePreContextCol3(scoreStr)}"
+                            data-col3-ah="${escapePreContextCol3(String(ahStr))}"
+                            data-parent-match-id="${escapePreContextCol3(button.dataset.parentMatchId || button.dataset.matchId || '')}"
+                            onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" 
+                            title="Descargar y ver estadísticas...">
                             <i class="fa-solid fa-chart-simple me-1"></i>📊 Stats
                         </button>
                         <div class="pre-card-stats-container" style="display:none;"></div>

@@ -1232,43 +1232,77 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
             return None
         return cached_value.copy(deep=True)
 
-    url = f"{BASE_URL_OF}/match/live-{match_id}"
+    session = get_requests_session_of()
+    wanted_order = [
+        "Shots",
+        "Shots on Goal",
+        "Attacks",
+        "Dangerous Attacks",
+        "Red Cards",
+        "Corner Kicks",
+        "Possession"
+    ]
+    collected = {}
+
+    # 1. Consulta AJAX directa a NowGoal (type=15 sirve tT_f)
     try:
-        session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'lxml')
-        wanted_order = [
-            "Shots",
-            "Shots on Goal",
-            "Attacks",
-            "Dangerous Attacks",
-            "Red Cards"
-        ]
-        collected = {}
-        team_tech_div = soup.find('div', id='teamTechDiv_detail')
-        if team_tech_div and (stat_list := team_tech_div.find('ul', class_='stat')):
-            for li in stat_list.find_all('li'):
-                if (title_span := li.find('span', class_='stat-title')):
-                    raw_title = title_span.get_text(strip=True)
-                    values = [v.get_text(strip=True) for v in li.find_all('span', class_='stat-c')]
-                    if len(values) == 2:
-                        collected[raw_title] = {"Home": values[0], "Away": values[1]}
+        ajax_url = f"{BASE_URL_OF}/Ajax/SoccerAjax?type=15&id={match_id}"
+        resp_ajax = session.get(ajax_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        if resp_ajax.status_code == 200:
+            dj = resp_ajax.json() if resp_ajax.text.startswith("{") else {}
+            raw_text = dj.get("Data", "") if isinstance(dj, dict) else resp_ajax.text
+            m = re.search(rf'tT_f\[{match_id}\]\s*=\s*(\[.*?\]);', raw_text) or re.search(r'tT_f\[\d+\]\s*=\s*(\[.*?\]);', raw_text)
+            if m:
+                clean_arr = m.group(1).replace("'", '"')
+                stat_rows = json.loads(clean_arr)
+                KIND_MAP = {
+                    0: "Corner Kicks",
+                    2: "Yellow Cards",
+                    3: "Red Cards",
+                    4: "Shots",
+                    5: "Shots on Goal",
+                    6: "Attacks",
+                    7: "Dangerous Attacks",
+                    8: "Shots off Goal",
+                    11: "Possession",
+                }
+                for r in stat_rows:
+                    if isinstance(r, list) and len(r) >= 3:
+                        k_name = KIND_MAP.get(r[0])
+                        if k_name:
+                            collected[k_name] = {"Home": str(r[1]).strip(), "Away": str(r[2]).strip()}
+    except Exception as exc:
+        LOGGER.debug("Error consultando type=15 en match_progression_stats: %s", exc)
 
-        table_rows = []
-        for name in wanted_order:
-            if name in collected:
-                vals = collected[name]
-                table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
+    # 2. Fallback: Página HTML live si AJAX no devolvió stats
+    if not collected:
+        url = f"{BASE_URL_OF}/match/live-{match_id}"
+        try:
+            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'lxml')
+                team_tech_div = soup.find('div', id='teamTechDiv_detail')
+                if team_tech_div and (stat_list := team_tech_div.find('ul', class_='stat')):
+                    for li in stat_list.find_all('li'):
+                        if (title_span := li.find('span', class_='stat-title')):
+                            raw_title = title_span.get_text(strip=True)
+                            values = [v.get_text(strip=True) for v in li.find_all('span', class_='stat-c')]
+                            if len(values) == 2:
+                                collected[raw_title] = {"Home": values[0], "Away": values[1]}
+        except requests.RequestException:
+            pass
 
-        df = pd.DataFrame(table_rows)
-        df = df.set_index("Estadistica_EN") if not df.empty else df
-        cache_value = df.copy(deep=True) if df is not None else _STATS_NOT_FOUND
-        _write_cache(_stats_cache, match_id, cache_value, _stats_cache_lock)
-        return df
-    except requests.RequestException:
-        _write_cache(_stats_cache, match_id, _STATS_NOT_FOUND, _stats_cache_lock)
-        return None
+    table_rows = []
+    for name in wanted_order:
+        if name in collected:
+            vals = collected[name]
+            table_rows.append({"Estadistica_EN": name, "Casa": vals.get('Home', '-'), "Fuera": vals.get('Away', '-')})
+
+    df = pd.DataFrame(table_rows)
+    df = df.set_index("Estadistica_EN") if not df.empty else df
+    cache_value = df.copy(deep=True) if df is not None and not df.empty else _STATS_NOT_FOUND
+    _write_cache(_stats_cache, match_id, cache_value, _stats_cache_lock)
+    return df if not df.empty else None
 
 def get_rival_a_for_original_h2h_of(soup, league_id=None):
     if not soup or not (table := soup.find("table", id="table_v1")): return None, None, None, False
