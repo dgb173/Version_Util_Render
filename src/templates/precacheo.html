@@ -8896,20 +8896,105 @@
             bootstrap.Collapse.getOrCreateInstance(collapseElement, { toggle: false }).show();
         }
 
+        function extractContainerStatsRows(container) {
+            if (!container) return [];
+            const rows = [];
+            const modernStatRows = container.querySelectorAll('.modern-stat-row, .modern-match-stats-card div[title], .stat-card div[title]');
+            modernStatRows.forEach(row => {
+                const statName = row.dataset?.statName || row.getAttribute('title')?.trim();
+                if (!statName) return;
+                const lower = statName.toLowerCase();
+                if (lower.includes('click') || lower.includes('ocultar') || lower.includes('ver ') || lower.includes('historial')) return;
+
+                if (row.dataset?.homeVal !== undefined && row.dataset?.awayVal !== undefined) {
+                    rows.push(`    * ${statName}: ${row.dataset.homeVal} - ${row.dataset.awayVal}`);
+                    return;
+                }
+
+                const spans = row.querySelectorAll('span');
+                if (spans.length >= 3) {
+                    const hVal = spans[0].innerText.trim();
+                    const aVal = spans[spans.length - 1].innerText.trim();
+                    if (/^\d+$/.test(hVal) && /^\d+$/.test(aVal)) {
+                        rows.push(`    * ${statName}: ${hVal} - ${aVal}`);
+                    }
+                }
+            });
+
+            if (!rows.length) {
+                container.querySelectorAll('table tbody tr').forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length >= 3) {
+                        const homeVal = tds[0].innerText.trim();
+                        const statName = tds[1].innerText.trim();
+                        const awayVal = tds[2].innerText.trim();
+                        if (statName) rows.push(`    * ${statName}: ${homeVal} - ${awayVal}`);
+                    }
+                });
+            }
+
+            if (!rows.length) {
+                const text = container.innerText || '';
+                if (text.includes('Sin estadísticas') || text.includes('Sin ataques') || text.includes('no disponibles')) {
+                    rows.push('    * Sin estadísticas detalladas en NowGoal');
+                } else if (text.includes('Cargando') || text.includes('Descargando')) {
+                    rows.push('    * Estadísticas en proceso de carga...');
+                } else if (text.includes('Error:')) {
+                    const errMatch = text.match(/Error:\s*([^\n\r]+)/);
+                    rows.push(`    * Error: ${errMatch ? errMatch[1].trim() : 'Error al cargar'}`);
+                }
+            }
+
+            return rows;
+        }
+
         function extractOpenContextCardsText(panel) {
             if (!panel) return '';
             const openSections = [];
 
             // 1. Estadisticas de partidos abiertas (.match-stats-slot)
             const openStatsSlots = panel.querySelectorAll('.match-stats-slot');
+            const seenMatchKeys = new Set();
             openStatsSlots.forEach(slot => {
                 if (slot.style.display === 'none' || !slot.innerHTML.trim()) return;
-                const headText = slot.querySelector('.pre-col3-card-head')?.innerText?.replace(/\s+/g, ' ').trim() || 'ESTADISTICAS';
+                const parentTr = slot.closest('tr');
+                const prevTr = parentTr ? parentTr.previousElementSibling : null;
+                const mobileCard = slot.closest('.mismarcadores-match-card');
+                const btn = prevTr?.querySelector('.pre-context-stats-btn') || mobileCard?.querySelector('.pre-context-stats-btn');
+                const cardEl = slot.querySelector('.modern-match-stats-card');
+
+                const rowDate = btn?.dataset?.rowDate || cardEl?.dataset?.date || slot.querySelector('span[style*="color:#64748b"]')?.innerText?.replace(/[📅\s]+/g, ' ').trim() || '';
+                const rowLeague = btn?.dataset?.leagueId || cardEl?.dataset?.league || slot.querySelector('span[style*="background:#0284c7"]')?.innerText?.replace(/^LIGA\s*/i, '').trim() || '';
+                const rowHome = btn?.dataset?.rowHome || cardEl?.dataset?.home || slot.querySelector('.modern-match-stats-card div[title]:first-child span')?.innerText?.trim() || '';
+                const rowAway = btn?.dataset?.rowAway || cardEl?.dataset?.away || slot.querySelector('.modern-match-stats-card div[title]:last-child span')?.innerText?.trim() || '';
+                const rowScore = btn?.dataset?.rowScore || cardEl?.dataset?.score || slot.querySelector('.modern-match-stats-card div[style*="letter-spacing"]')?.innerText?.trim() || '';
+                const rawAh = btn?.dataset?.rowAh || cardEl?.dataset?.ah || slot.querySelector('.modern-match-stats-card div[style*="font-size:0.52rem"]')?.innerText?.trim() || '';
+
+                const matchKey = `${rowDate}_${rowHome}_${rowAway}_${rowScore}`;
+                if (matchKey !== '___' && seenMatchKeys.has(matchKey)) return;
+                if (matchKey !== '___') seenMatchKeys.add(matchKey);
+
+                const cleanScore = rowScore ? rowScore.replace(':', ' - ') : '-';
+                const cleanAh = (rawAh && rawAh !== '-' && rawAh !== 'N/A') ? (String(rawAh).startsWith('AH') ? rawAh : `AH ${rawAh}`) : '';
+                const ahPart = cleanAh ? ` | ${cleanAh}` : '';
+                const leaguePart = (rowLeague && rowLeague !== '-') ? `Liga ${rowLeague} | ` : '';
+                const datePart = rowDate ? `${rowDate} | ` : '';
+                const matchup = (rowHome && rowAway) ? `${rowHome} ${cleanScore} ${rowAway}${ahPart}` : '';
+
+                let block = `📊 [ESTADÍSTICAS DEL PARTIDO] ${datePart}${leaguePart}${matchup}`.trim();
+                const statRows = extractContainerStatsRows(slot);
+                if (statRows.length) {
+                    block += '\n' + statRows.join('\n');
+                } else {
+                    block += '\n    * Sin estadísticas detalladas en NowGoal';
+                }
+                openSections.push(block);
+                return;
                 const dateText = slot.querySelector('div[style*="color:#64748b"]')?.innerText?.trim() || '';
                 
                 // Obtener equipos y score
-                const matchupEl = slot.querySelector('div[style*="font-weight:900"][style*="font-size:.72rem"]');
-                const matchupText = matchupEl ? matchupEl.innerText.replace(/\s+/g, ' ').trim() : '';
+                /* dead code removed */
+
 
                 // Obtener estadisticas de la tabla
                 const statRows = [];
@@ -8923,7 +9008,7 @@
                     }
                 });
 
-                let block = `📊 [${headText}] ${dateText} | ${matchupText}`;
+
                 if (statRows.length) {
                     block += '\n' + statRows.join('\n');
                 }
@@ -8953,7 +9038,7 @@
                 // Verificar si tiene estadisticas desplegadas dentro
                 const innerStatsContainer = slot.querySelector('.pre-card-stats-container');
                 if (innerStatsContainer && innerStatsContainer.style.display !== 'none') {
-                    const innerStatRows = [];
+                    const innerStatRows = extractContainerStatsRows(innerStatsContainer);
                     innerStatsContainer.querySelectorAll('table tbody tr').forEach(tr => {
                         const tds = tr.querySelectorAll('td');
                         if (tds.length >= 3) {
@@ -9008,7 +9093,7 @@
 
                     const innerStatsContainer = resultBox.querySelector('.pre-card-stats-container');
                     if (innerStatsContainer && innerStatsContainer.style.display !== 'none') {
-                        const innerStatRows = [];
+                        const innerStatRows = extractContainerStatsRows(innerStatsContainer);
                         innerStatsContainer.querySelectorAll('table tbody tr').forEach(tr => {
                             const tds = tr.querySelectorAll('td');
                             if (tds.length >= 3) {
@@ -10456,7 +10541,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const aColor = (isAGreater || isHEqual) ? '#15803d' : '#991b1b';
 
                 return `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2; margin-bottom:2px;" title="${titleText}">
+                    <div class="modern-stat-row" data-stat-name="${esc(titleText)}" data-home-val="${hVal}" data-away-val="${aVal}" style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2; margin-bottom:2px;" title="${titleText}">
                         <span style="min-width:24px; text-align:center; background:${hBg}; color:${hColor}; font-weight:800; padding:1.5px 4px; border-radius:3px; font-size:0.72rem;">${hVal}</span>
                         <span style="font-size:0.78rem; text-align:center; flex:1; cursor:help; line-height:1;" title="${titleText}">${iconHtml}</span>
                         <span style="min-width:24px; text-align:center; background:${aBg}; color:${aColor}; font-weight:800; padding:1.5px 4px; border-radius:3px; font-size:0.72rem;">${aVal}</span>
@@ -10490,7 +10575,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const cleanLeague = String(leagueId || '').replace(/^L\.?/i, '').trim();
 
             return `
-                <div class="stat-card modern-match-stats-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:320px; margin:0 auto; box-sizing:border-box;">
+                <div class="stat-card modern-match-stats-card" data-home="${esc(homeTeam)}" data-away="${esc(awayTeam)}" data-date="${esc(date)}" data-score="${esc(cleanScore)}" data-ah="${esc(formattedAh)}" data-league="${esc(cleanLeague)}" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:320px; margin:0 auto; box-sizing:border-box;">
                     <!-- Top Bar -->
                     <div style="background:#f8fafc; border-bottom:1px solid #edf2f7; padding:3px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
                         <span style="display:inline-flex; align-items:center; gap:3px; font-weight:700; font-size:.55rem; color:#15803d; background:#f0fdf4; padding:1px 5px; border-radius:4px; border:1px solid #bbf7d0; letter-spacing:0.2px;">
