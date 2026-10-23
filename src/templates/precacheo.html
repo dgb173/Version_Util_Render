@@ -8989,30 +8989,6 @@
                     block += '\n    * Sin estadísticas detalladas en NowGoal';
                 }
                 openSections.push(block);
-                return;
-                const dateText = slot.querySelector('div[style*="color:#64748b"]')?.innerText?.trim() || '';
-                
-                // Obtener equipos y score
-                /* dead code removed */
-
-
-                // Obtener estadisticas de la tabla
-                const statRows = [];
-                slot.querySelectorAll('table tbody tr').forEach(tr => {
-                    const tds = tr.querySelectorAll('td');
-                    if (tds.length >= 3) {
-                        const homeVal = tds[0].innerText.trim();
-                        const statName = tds[1].innerText.trim();
-                        const awayVal = tds[2].innerText.trim();
-                        if (statName) statRows.push(`    * ${statName}: ${homeVal} - ${awayVal}`);
-                    }
-                });
-
-
-                if (statRows.length) {
-                    block += '\n' + statRows.join('\n');
-                }
-                openSections.push(block);
             });
 
             // 2. Fichas H2H Col3 abiertas (.col3-slot)
