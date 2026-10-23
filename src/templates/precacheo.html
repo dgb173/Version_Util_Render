@@ -9413,6 +9413,7 @@
                             league_id_hist: item.league_id_hist || found.league_id_hist || found.league_id || found.title || found.name || '-',
                             ahLine: item.ahLine || found.ahLine || found.ahLine_raw || found.ah_line || '-',
                             ahLine_raw: item.ahLine_raw || found.ahLine_raw || found.ahLine || '-',
+                            ouLine: item.ouLine || found.ouLine || found.ou_line || item.ou_line || '-',
                             matchIndex: item.matchIndex || found.matchIndex || found.match_id || found.id || '',
                             home_id: item.home_id || found.home_id || '',
                             away_id: item.away_id || found.away_id || '',
@@ -9467,6 +9468,10 @@
                             ? item.ahLine
                             : (item?.ahLine_raw ?? item?.ah_line ?? item?.ah ?? item?.handicap ?? '-');
                         const rowAh = rawAh !== 'N/A' && rawAh !== '' ? rawAh : '-';
+                        const rawOu = (item?.ouLine !== undefined && item?.ouLine !== null && item?.ouLine !== '' && item?.ouLine !== 'N/A')
+                            ? item.ouLine
+                            : (item?.ou_line ?? item?.ou ?? item?.goals_line ?? '-');
+                        const rowOu = rawOu !== 'N/A' && rawOu !== '' ? rawOu : '-';
                         const rowScore = item?.score || item?.score_raw || item?.result || '-';
 
                         const isSameHa = isSameHaMatch(teamTargetAh, rowAh);
@@ -9512,6 +9517,7 @@
                             </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah">${esc(rowAh)}</td>
+                            <td class="ctx-ou"><span class="pre-context-ou-badge" style="display:inline-block; font-size:.68rem; font-weight:800; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; padding:1px 5px; border-radius:3px;" title="Línea de Goles Inicial (Over/Under)">${esc(rowOu)}</span></td>
                             <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
                             <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
                             <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
@@ -9541,6 +9547,7 @@
                                 </div>
                                 <div class="mm-meta-right">
                                     <span class="mm-ah-badge">AH ${esc(rowAh)}</span>
+                                    ${rowOu && rowOu !== '-' ? `<span class="mm-ou-badge" style="font-size:.62rem; font-weight:800; color:#166534; background:#f0fdf4; border:1px solid #bbf7d0; padding:1px 5px; border-radius:3px; margin-right:3px;">O/U ${esc(rowOu)}</span>` : ''}
                                     <span class="mm-res-badge is-${result.toLowerCase()}" title="${result === 'W' ? 'Ganado' : (result === 'L' ? 'Perdido' : 'Empate')}">${resLetter}</span>
                                 </div>
                             </div>
@@ -9598,7 +9605,7 @@
                     <!-- Vista Escritorio (PC): Tabla completa intacta -->
                     <div class="pre-context-table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%;">
                         <table class="pre-context-table">
-                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-ou" title="Línea de Goles Inicial (Over/Under)">O/U</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                             <tbody>${totalTableRows}</tbody>
                         </table>
                     </div>
@@ -9759,7 +9766,7 @@
                         else draws += 1;
                     }
                     const leagueId = item?.league_id_hist ?? item?.league_id ?? '-';
-                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}`;
+                    return `${item?.date || '-'} | Liga ID ${leagueId} | ${item?.home ?? item?.home_team ?? '-'} ${item?.score || item?.score_raw || '-'} ${item?.away ?? item?.away_team ?? '-'} | AH ${item?.ahLine ?? item?.ahLine_raw ?? item?.ah_line ?? '-'}${(item?.ouLine && item.ouLine !== '-' && item.ouLine !== 'N/A') ? ` | O/U ${item.ouLine}` : ((item?.ou_line && item.ou_line !== '-' && item.ou_line !== 'N/A') ? ` | O/U ${item.ou_line}` : '')}`;
                 });
                 return `${allVenues ? 'TODAS LAS LOCALÍAS' : (role === 'home' ? 'CASA' : 'FUERA')} — ${teamName}
 ${lines.length ? lines.join('\n') : 'Sin historial previo disponible'}
@@ -9806,8 +9813,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                         <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
+                        <button type="button" class="pre-context-odds-btn" onclick="toggleMainMatchOddsMovement(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ver movimiento de cuotas Bet365 del partido actual (Initial vs Live: AH, O/U, 1X2)" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center;"><i class="fa-solid fa-chart-line me-1" style="color:#15803d;"></i>📈 Cuotas Bet365</button>
                     </div>
                 </div>
+                <div class="main-match-odds-container" style="display:none; margin:8px 0 12px 0;"></div>
                 ${summaryBoxesHtml || ''}
                 <div class="pre-context-moments hide-previous">
                     ${renderMoment('Partido actual', current)}
@@ -9842,6 +9851,127 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
         }
 
+
+        async function toggleMainMatchOddsMovement(btn, matchId) {
+            if (!btn) return;
+            const panel = btn.closest('.pre-context-panel') || document;
+            let container = panel.querySelector('.main-match-odds-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'main-match-odds-container';
+                container.style.display = 'none';
+                btn.parentElement.after(container);
+            }
+            if (container.style.display !== 'none') {
+                container.style.display = 'none';
+                btn.classList.remove('is-active');
+                return;
+            }
+            if (container.dataset.loaded === '1') {
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+                return;
+            }
+            const cleanId = String(matchId || '').replace(/\D/g, '');
+            if (!cleanId) {
+                alert('No se pudo identificar el ID del partido para cuotas');
+                return;
+            }
+            btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>Consultando cuotas...';
+            try {
+                const res = await fetch(`/api/match_odds_movement/${cleanId}`);
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || data.error || 'No hay cuotas disponibles');
+                }
+                container.innerHTML = renderMainMatchOddsCardHtml(data);
+                container.dataset.loaded = '1';
+                container.style.display = 'block';
+                btn.classList.add('is-active');
+            } catch (err) {
+                container.innerHTML = `<div style="font-size:.68rem; color:#dc2626; padding:8px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; text-align:center;">Error al cargar cuotas: ${escapePreContextCol3(err.message)}</div>`;
+                container.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        function renderMainMatchOddsCardHtml(data) {
+            const esc = escapePreContextCol3;
+            const bName = data.bookmaker_name || 'Bet365';
+            const ah = data.ah || {};
+            const ou = data.ou || {};
+            const m1x2 = data['1x2'] || {};
+
+            const fmtBadge = (mov, diff) => {
+                const m = String(mov || '').toUpperCase();
+                if (m === 'SUBE') return `<span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">↑ Sube (${diff > 0 ? '+' : ''}${diff})</span>`;
+                if (m === 'BAJA') return `<span style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">↓ Baja (${diff})</span>`;
+                return `<span style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">= Repite</span>`;
+            };
+
+            return `<div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:10px 12px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:6px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="background:#16a34a; color:#fff; font-size:.62rem; font-weight:900; padding:2px 7px; border-radius:3px; text-transform:uppercase;">${esc(bName)}</span>
+                        <span style="font-size:.76rem; font-weight:900; color:#0f172a;">Movimiento de Cuotas · Partido Actual</span>
+                    </div>
+                    <span style="font-size:.62rem; color:#64748b; font-weight:700;">Apertura (Initial) ➔ Actual (Live)</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+                    <!-- Asian Handicap -->
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:900; font-size:.70rem; color:#1e293b;"><i class="fa-solid fa-arrows-split-up-and-left me-1 text-primary"></i>Asian Handicap</span>
+                            ${fmtBadge(ah.movement, ah.diff)}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Apertura:</span>
+                            <span style="font-weight:800; color:#0f172a;">Línea <b>${esc(ah.initial?.line || '-')}</b> (${esc(ah.initial?.home || '-')} / ${esc(ah.initial?.away || '-')})</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Live / Final:</span>
+                            <span style="font-weight:900; color:#2563eb;">Línea <b>${esc(ah.live?.line || '-')}</b> (${esc(ah.live?.home || '-')} / ${esc(ah.live?.away || '-')})</span>
+                        </div>
+                    </div>
+
+                    <!-- Over / Under -->
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:900; font-size:.70rem; color:#166534;"><i class="fa-solid fa-futbol me-1 text-success"></i>Goles (Over / Under)</span>
+                            ${fmtBadge(ou.movement, ou.diff)}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Apertura:</span>
+                            <span style="font-weight:800; color:#0f172a;">Línea <b>${esc(ou.initial?.line || '-')}</b> (O ${esc(ou.initial?.over || '-')} / U ${esc(ou.initial?.under || '-')})</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Live / Final:</span>
+                            <span style="font-weight:900; color:#15803d;">Línea <b>${esc(ou.live?.line || '-')}</b> (O ${esc(ou.live?.over || '-')} / U ${esc(ou.live?.under || '-')})</span>
+                        </div>
+                    </div>
+
+                    <!-- 1X2 Moneyline -->
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:900; font-size:.70rem; color:#1e293b;"><i class="fa-solid fa-trophy me-1 text-warning"></i>1X2 (Moneyline)</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Apertura:</span>
+                            <span style="font-weight:800; color:#0f172a;">1: ${esc(m1x2.initial?.home || '-')} | X: ${esc(m1x2.initial?.draw || '-')} | 2: ${esc(m1x2.initial?.away || '-')}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:.68rem; margin:2px 0;">
+                            <span style="color:#64748b;">Live / Final:</span>
+                            <span style="font-weight:900; color:#0284c7;">1: ${esc(m1x2.live?.home || '-')} | X: ${esc(m1x2.live?.draw || '-')} | 2: ${esc(m1x2.live?.away || '-')}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+    
         let preContextCol3Loading = false;
         let preContextCol3ActiveButton = null;
 
@@ -11281,6 +11411,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                 ${escapePreContextCol3(col3.handicap ?? '-')}
                             </span>
                         </div>
+                        ${(col3.ou || col3.ouLine || col3.ou_line) ? `
+                        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; border-left:1px solid #cbd5e1; padding-left:6px; min-width:45px;">
+                            <span style="font-size:.52rem; font-weight:800; color:#166534; text-transform:uppercase;">O/U</span>
+                            <span style="font-size:.72rem; font-weight:900; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; padding:1px 5px; border-radius:3px; margin-top:1px;" title="Línea de Goles Inicial (Over/Under)">
+                                ${escapePreContextCol3(col3.ou || col3.ouLine || col3.ou_line)}
+                            </span>
+                        </div>` : ''}
 
                     </div>
                 </div>
@@ -11371,6 +11508,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <span style="color:#64748b; margin:0 5px;">·</span>
                             <span style="color:#22c55e; font-weight:900; font-size:.78rem;">${escapePreContextCol3(String(scoreStr))}</span>
                         </span>
+                        ${(item.ou || item.ouLine || item.ou_line) ? `<span style="display:inline-flex; align-items:center; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:2px 6px; border-radius:4px; font-size:.62rem; font-weight:800;" title="Línea inicial de goles (Over/Under)"><i class="fa-solid fa-futbol me-1" style="font-size:.56rem; color:#16a34a;"></i>O/U ${escapePreContextCol3(String(item.ou || item.ouLine || item.ou_line))}</span>` : ''}
                         <span class="pre-col3-tags" style="margin:0;">${movTag}</span>
                     </div>
                     <div class="pre-col3-stats-wrap" onclick="event.stopPropagation();">

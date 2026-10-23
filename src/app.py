@@ -6005,6 +6005,7 @@ def api_precacheo_h2h_mov_historico():
         st_id = _get_field(h2h_stadium_raw, 'match1_id', 'matchIndex', 'match_id')
         st_date = _get_field(h2h_stadium_raw, 'date1', 'date') or (market_data.get('stadium') or {}).get('date')
         st_ah = _get_field(h2h_stadium_raw, 'ah1', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or '-'
+        st_ou = _get_field(h2h_stadium_raw, 'ou1', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('stadium') or {}).get('ou')
         st_score = (_get_field(h2h_stadium_raw, 'res1_raw', 'res1', 'score_raw', 'score') or (market_data.get('stadium') or {}).get('result') or '-').replace('-', ':')
         st_mov = (market_data.get('stadium') or {}).get('movement') or _calc_mov(row_ah, st_ah)
         st_cover = (market_data.get('stadium') or {}).get('is_covered')
@@ -6015,6 +6016,7 @@ def api_precacheo_h2h_mov_historico():
                 'date': st_date or 'Fecha N/D',
                 'score': st_score,
                 'ah': st_ah,
+                'ou': st_ou,
                 'movement': st_mov,
                 'cover': st_cover,
                 'home_team': _get_field(h2h_stadium_raw, 'h2h_stad_home', 'home_team', 'home') or row_home,
@@ -6024,6 +6026,7 @@ def api_precacheo_h2h_mov_historico():
         gen_id = _get_field(h2h_general_raw, 'match6_id', 'matchIndex', 'match_id')
         gen_date = _get_field(h2h_general_raw, 'date6', 'date') or (market_data.get('general') or {}).get('date')
         gen_ah = _get_field(h2h_general_raw, 'ah6', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or st_ah
+        gen_ou = _get_field(h2h_general_raw, 'ou6', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('general') or {}).get('ou')
         gen_score = (_get_field(h2h_general_raw, 'res6_raw', 'res6', 'score_raw', 'score') or (market_data.get('general') or {}).get('result') or '-').replace('-', ':')
         gen_mov = (market_data.get('general') or {}).get('movement') or _calc_mov(row_ah, gen_ah)
         gen_cover = (market_data.get('general') or {}).get('is_covered')
@@ -6037,6 +6040,7 @@ def api_precacheo_h2h_mov_historico():
                 'date': gen_date or 'Fecha N/D',
                 'score': gen_score,
                 'ah': gen_ah,
+                'ou': gen_ou,
                 'movement': gen_mov,
                 'cover': gen_cover,
                 'home_team': gen_home,
@@ -6132,6 +6136,23 @@ def api_match_stats(match_id=None):
         })
     except Exception as exc:
         logging.exception("Error en /api/match_stats")
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
+@app.route('/api/match_odds_movement/<match_id>', methods=['GET', 'POST'])
+def api_match_odds_movement(match_id):
+    """Devuelve el movimiento de cuotas Bet365 (Initial vs Live: AH, O/U, 1X2) del partido actual."""
+    try:
+        clean_id = "".join(filter(str.isdigit, str(match_id or '')))
+        if not clean_id:
+            return jsonify({'status': 'error', 'error': 'ID de partido no válido'}), 400
+
+        from modules.estudio_scraper import get_match_odds_movement_of
+        res = get_match_odds_movement_of(clean_id)
+        status_code = 200 if res.get('status') == 'success' else (404 if res.get('status') == 'not_found' else 500)
+        return jsonify(res), status_code
+    except Exception as exc:
+        logging.exception("Error en /api/match_odds_movement")
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 

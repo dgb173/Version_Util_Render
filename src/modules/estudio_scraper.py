@@ -2845,3 +2845,102 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
             check_odds_early=check_odds_early,
             include_summary_stats=include_summary_stats,
         )
+
+
+def get_match_odds_movement_of(match_id: str) -> dict:
+    """Extrae las cuotas Initial vs Live (AH, O/U, 1X2) de Bet365/Crown para el partido actual analizable."""
+    if not match_id or not str(match_id).isdigit():
+        return {"status": "error", "error": "ID de partido inválido"}
+    match_id = str(match_id)
+    url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
+    try:
+        session = get_requests_session_of()
+        resp = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        if resp.status_code != 200:
+            return {"status": "error", "error": f"Error HTTP {resp.status_code}"}
+        dj = resp.json() if resp.text.startswith("{") else {}
+        if dj.get("ErrCode") != 0 or not dj.get("Data"):
+            return {"status": "not_found", "message": "Sin datos de cuotas disponibles para este partido"}
+        
+        raw_data = dj["Data"]
+        companies = raw_data.split('^')
+        bookies = {}
+        for comp in companies:
+            if '*' not in comp:
+                continue
+            cid_raw, odds_str = comp.split('*', 1)
+            cid = cid_raw.split(';')[0].strip()
+            cname = cid_raw.split(';')[1].strip() if ';' in cid_raw else cid
+            if cid == '8': cname = 'Bet365'
+            elif cid == '3': cname = 'Crown'
+            elif cid == '31': cname = 'Sbobet'
+            elif cid == '12': cname = 'Easybets'
+            elif cid == '50': cname = '1xBet'
+            bookies[cid] = (cname, odds_str)
+            
+        priority = ["8", "3", "31", "12", "50"]
+        found_id, found_name, found_str = None, None, None
+        for p in priority:
+            if p in bookies:
+                found_id = p
+                found_name, found_str = bookies[p]
+                break
+        if not found_id and bookies:
+            found_id, (found_name, found_str) = next(iter(bookies.items()))
+        if not found_id:
+            return {"status": "not_found", "message": "No se encontró casa de apuestas compatible"}
+            
+        parts = [p.split(',') for p in found_str.split(';') if len(p.split(',')) >= 14]
+        if not parts:
+            return {"status": "not_found", "message": "Datos incompletos de cuotas"}
+            
+        init_p = parts[0]
+        live_p = parts[1] if len(parts) > 1 else init_p
+        
+        def fmt_ah(val):
+            if not val or val in ('-', 'N/A'): return '-'
+            return format_ah_as_decimal_string_of(str(val))
+            
+        def calc_mov(v_init, v_live):
+            try:
+                i = float(v_init)
+                l = float(v_live)
+                diff = l - i
+                if abs(diff) < 0.01: return "IGUAL", 0.0
+                return ("SUBE" if diff > 0 else "BAJA"), round(diff, 2)
+            except Exception:
+                return "IGUAL", 0.0
+
+        ah_init_fmt = fmt_ah(init_p[4])
+        ah_live_fmt = fmt_ah(live_p[4])
+        ah_mov, ah_diff = calc_mov(ah_init_fmt, ah_live_fmt)
+
+        ou_init_fmt = fmt_ah(init_p[12])
+        ou_live_fmt = fmt_ah(live_p[12])
+        ou_mov, ou_diff = calc_mov(ou_init_fmt, ou_live_fmt)
+
+        return {
+            "status": "success",
+            "match_id": match_id,
+            "bookmaker_name": found_name,
+            "bookmaker_id": found_id,
+            "ah": {
+                "initial": {"home": init_p[3], "line": ah_init_fmt, "away": init_p[5]},
+                "live": {"home": live_p[3], "line": ah_live_fmt, "away": live_p[5]},
+                "movement": ah_mov,
+                "diff": ah_diff,
+            },
+            "ou": {
+                "initial": {"over": init_p[11], "line": ou_init_fmt, "under": init_p[13]},
+                "live": {"over": live_p[11], "line": ou_live_fmt, "under": live_p[13]},
+                "movement": ou_mov,
+                "diff": ou_diff,
+            },
+            "1x2": {
+                "initial": {"home": init_p[0], "draw": init_p[1], "away": init_p[2]},
+                "live": {"home": live_p[0], "draw": live_p[1], "away": live_p[2]},
+            }
+        }
+    except Exception as exc:
+        LOGGER.exception("Error en get_match_odds_movement_of: %s", exc)
+        return {"status": "error", "error": str(exc)}
