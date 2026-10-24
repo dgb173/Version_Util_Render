@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='league_table_modal.css') }}?v={{ range(1000, 9999) | random }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/motor_cuantitativo_v4.css') }}?v={{ range(1000, 9999) | random }}">
     <style>
         .table-action-btn {
             width: 32px !important;
@@ -9112,7 +9113,8 @@
                     throw new Error(data.error || 'No se pudo generar el prompt LLM');
                 }
                 const divider = '='.repeat(72);
-                const combined = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}`;
+                const motorAudit = panel && panel._motorV4AuditTemplate ? `\n\n${panel._motorV4AuditTemplate}` : '';
+                const combined = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${data.prompt}${motorAudit}`;
                 await deferredClipboard.finish(combined);
                 button.innerHTML = '<i class="fa-solid fa-check me-1"></i>Contexto + prompt copiados';
                 button.classList.add('btn-success');
@@ -9811,6 +9813,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                         <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                         <button type="button" class="pre-context-odds-btn" onclick="toggleMainMatchOddsMovement(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ver movimiento de cuotas Bet365 del partido actual (Initial vs Live: AH, O/U, 1X2)" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center;"><i class="fa-solid fa-chart-line me-1" style="color:#15803d;"></i>📈 Cuotas Bet365</button>
+                        <button type="button" class="pre-context-motor-v4-btn" onclick="openMotorV4Modal(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ejecutar Motor Cuantitativo Dual Entero-Binario v4.0 (Anti-Sesgos)"><i class="fa-solid fa-brain me-1" style="color:#7c3aed;"></i><span>🧠 Motor v4.0</span></button>
                     </div>
                 </div>
                 <div class="main-match-odds-container" style="display:none; margin:8px 0 12px 0;"></div>
@@ -19718,6 +19721,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
     </script>
 
     <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
+    <script defer src="{{ url_for('static', filename='js/motor_cuantitativo_v4.js') }}?v={{ range(1000, 9999) | random }}"></script>
 
     <script>
         (() => {
