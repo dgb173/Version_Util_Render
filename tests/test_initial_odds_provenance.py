@@ -6,8 +6,8 @@ from pathlib import Path
 
 def _ajax_session(initial_ah='0.5'):
     values = ['0'] * 14
-    values[3:6] = ['0.91', initial_ah, '0.95']
-    values[8] = '2.5'
+    values[3:6] = ['1.10', '3', '0.75']
+    values[7:10] = ['0.91', initial_ah, '0.95']
     values[11:14] = ['0.93', '2.25', '0.97']
     class Response:
         status_code = 200
@@ -24,6 +24,7 @@ def test_ajax_uses_initial_ah_even_when_later_line_is_available(monkeypatch):
     result = es.fetch_odds_from_ajax('123')
     assert result['ah_linea_raw'] == '0.5'
     assert result['ah_home_cuota'] == '0.91'
+    assert result['ah_away_cuota'] == '0.95'
     assert result['goals_linea_raw'] == '2.25'
 
 
@@ -63,7 +64,31 @@ def test_real_nowgoal_payload_distinguishes_initial_and_later_lines(monkeypatch)
         def get(self,*args,**kwargs):return Response()
     monkeypatch.setattr(es,'get_requests_session_of',Session)
     result = es.fetch_odds_from_ajax('3074606')
-    assert es.parse_ah_to_number_of(result['ah_linea_raw']) == .25
+    assert es.parse_ah_to_number_of(result['ah_linea_raw']) == 0.0
     assert result['bookmaker_id'] == '8'
-    assert result['ah_away_cuota'] == '0.75'
+    assert result['ah_home_cuota'] == '0.83'
+    assert result['ah_away_cuota'] == '0.98'
     assert result['price_format'] == 'hongkong'
+
+
+def test_elevated_handicap_not_capped_at_three(monkeypatch):
+    # En partidos con handicap elevado (ej: 4/4.5 = 4.25), vals[4] viene como '3' pero el AH real en vals[8] es '4/4.5'
+    values = ['0'] * 14
+    values[3:6] = ['1.10', '3', '0.75']
+    values[7:10] = ['0.85', '4/4.5', '0.95']
+    values[11:14] = ['1.00', '5/5.5', '0.80']
+    class Response:
+        status_code = 200
+        def json(self):
+            return {'ErrCode': 0, 'Data': '8*' + ','.join(values)}
+    class Session:
+        def get(self, *args, **kwargs):
+            return Response()
+    monkeypatch.setattr(es, 'get_requests_session_of', Session)
+    result = es.fetch_odds_from_ajax('3105325')
+    assert result['ah_linea_raw'] == '4/4.5'
+    assert es.parse_ah_to_number_of(result['ah_linea_raw']) == 4.25
+    assert result['ah_home_cuota'] == '0.85'
+    assert result['ah_away_cuota'] == '0.95'
+    assert result['goals_linea_raw'] == '5/5.5'
+    assert es.parse_ah_to_number_of(result['goals_linea_raw']) == 5.25

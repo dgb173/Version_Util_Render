@@ -1989,20 +1989,28 @@ def fetch_odds_from_ajax(match_id):
                         vals = part.split(',')
                         if len(vals) >= 14:
                             # Verificar que tenga datos válidos (no vacíos)
-                            # El índice 4 pertenece al AH inicial; el 8 es posterior.
-                            # Nunca sustituir una inicial ausente por la posterior.
-                            ah_val = vals[4]
+                            # Formato NowGoal (SoccerAjax):
+                            # parts[0] representa la fase Inicial (earlyOdds / First).
+                            # vals[0..2]: 1X2 (Home, Draw, Away)
+                            # vals[3..5]: Linea secundaria / europea (se fija en 3 en handicaps elevados)
+                            # vals[7..9]: Handicap Asiatico inicial real (7: Home, 8: AH Line, 9: Away)
+                            # vals[11..13]: Over/Under inicial real (11: Over, 12: OU Line, 13: Under)
+                            # vals[8] es el AH inicial real. No hacer fallback a vals[4] porque es la linea secundaria/europea (que NowGoal fija en 3).
+                            ah_val = vals[8] if len(vals) > 8 else ''
+                            ah_h = vals[7] if len(vals) > 7 else 'N/A'
+                            ah_a = vals[9] if len(vals) > 9 else 'N/A'
                             
                             if ah_val and vals[12]:
                                 target_odds = {
                                     "ah_linea_raw": ah_val,
                                     "goals_linea_raw": vals[12],
-                                    "ah_home_cuota": vals[3], "ah_away_cuota": vals[5],
-                                    "goals_over_cuota": vals[11], "goals_under_cuota": vals[13],
+                                    "ah_home_cuota": ah_h,
+                                    "ah_away_cuota": ah_a,
+                                    "goals_over_cuota": vals[11],
+                                    "goals_under_cuota": vals[13],
                                     "bookmaker_id": comp_id_clean,
                                     "price_format": "hongkong",
                                 }
-                                # print(f"Found odds for ID '{pid}': {target_odds}")
                                 break
                     if target_odds: break
             if target_odds: break
@@ -2911,8 +2919,20 @@ def get_match_odds_movement_of(match_id: str) -> dict:
             except Exception:
                 return "IGUAL", 0.0
 
-        ah_init_fmt = fmt_ah(init_p[4])
-        ah_live_fmt = fmt_ah(live_p[4])
+        # En NowGoal SoccerAjax/?type=1, las columnas 3..5 corresponden a la linea secundaria europea
+        # (que en handicaps elevados se fija por defecto en 3), mientras que las columnas 7..9 corresponden
+        # al Handicap Asiatico real (7: Home, 8: AH Line, 9: Away).
+        # Columnas 7..9 son el AH real; no hacer fallback a columnas 3..5 para no capturar el 3 europeo.
+        ah_init_val = init_p[8] if len(init_p) > 8 else ''
+        ah_init_h = init_p[7] if len(init_p) > 7 else '-'
+        ah_init_a = init_p[9] if len(init_p) > 9 else '-'
+
+        ah_live_val = live_p[8] if len(live_p) > 8 else ''
+        ah_live_h = live_p[7] if len(live_p) > 7 else '-'
+        ah_live_a = live_p[9] if len(live_p) > 9 else '-'
+
+        ah_init_fmt = fmt_ah(ah_init_val)
+        ah_live_fmt = fmt_ah(ah_live_val)
         ah_mov, ah_diff = calc_mov(ah_init_fmt, ah_live_fmt)
 
         ou_init_fmt = fmt_ah(init_p[12])
@@ -2925,8 +2945,8 @@ def get_match_odds_movement_of(match_id: str) -> dict:
             "bookmaker_name": found_name,
             "bookmaker_id": found_id,
             "ah": {
-                "initial": {"home": init_p[3], "line": ah_init_fmt, "away": init_p[5]},
-                "live": {"home": live_p[3], "line": ah_live_fmt, "away": live_p[5]},
+                "initial": {"home": ah_init_h, "line": ah_init_fmt, "away": ah_init_a},
+                "live": {"home": ah_live_h, "line": ah_live_fmt, "away": ah_live_a},
                 "movement": ah_mov,
                 "diff": ah_diff,
             },

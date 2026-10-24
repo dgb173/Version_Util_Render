@@ -3681,7 +3681,7 @@
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
-        function buildModernStatsCardHtml({ statsList, homeTeam = '', awayTeam = '', date = '', score = '', ah = '', leagueId = '', showHideBtn = false, hideBtnOnClick = '' }) {
+        function buildModernStatsCardHtml({ statsList, homeTeam = '', awayTeam = '', date = '', score = '', ah = '', ou = '', leagueId = '', showHideBtn = false, hideBtnOnClick = '' }) {
             const esc = (val) => String(val ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
             const parseVal = (v) => {
@@ -3769,11 +3769,13 @@
             const rawScore = String(score || '').trim();
             const cleanScore = rawScore ? rawScore.replace(':', ' - ').replace(/^(\d+)-(\d+)$/, '$1 - $2') : '-';
             const cleanAh = String(ah || '').replace(/^AH\s*/i, '').trim();
-            const formattedAh = (cleanAh && cleanAh !== '-' && cleanAh !== 'N/A') ? `AH ${cleanAh}` : '';
+            const formattedAh = (cleanAh && cleanAh !== '-' && cleanAh !== 'N/A') ? cleanAh : '-';
+            const cleanOu = String(ou || '').replace(/^(?:O\/U|OU|Goles|Goals)\s*/i, '').trim();
+            const formattedOu = (cleanOu && cleanOu !== '-' && cleanOu !== 'N/A') ? cleanOu : '-';
             const cleanLeague = String(leagueId || '').replace(/^L\.?/i, '').trim();
 
             return `
-                <div class="stat-card modern-match-stats-card" data-home="${esc(homeTeam)}" data-away="${esc(awayTeam)}" data-date="${esc(date)}" data-score="${esc(cleanScore)}" data-ah="${esc(formattedAh)}" data-league="${esc(cleanLeague)}" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:320px; margin:0 auto; box-sizing:border-box;">
+                <div class="stat-card modern-match-stats-card" data-home="${esc(homeTeam)}" data-away="${esc(awayTeam)}" data-date="${esc(date)}" data-score="${esc(cleanScore)}" data-ah="${esc(formattedAh)}" data-ou="${esc(formattedOu)}" data-league="${esc(cleanLeague)}" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:340px; margin:0 auto; box-sizing:border-box;">
                     <!-- Top Bar -->
                     <div style="background:#f8fafc; border-bottom:1px solid #edf2f7; padding:3px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
                         <span style="display:inline-flex; align-items:center; gap:3px; font-weight:700; font-size:.55rem; color:#15803d; background:#f0fdf4; padding:1px 5px; border-radius:4px; border:1px solid #bbf7d0; letter-spacing:0.2px;">
@@ -3786,7 +3788,7 @@
                         </div>
                     </div>
 
-                    <!-- Match Header (Equipos y Marcador) -->
+                    <!-- Match Header (Equipos, Marcador, AH y NUEVA COLUMNA DE GOLES) -->
                     <div style="padding:5px 8px; display:flex; align-items:center; justify-content:space-between; gap:6px; border-bottom:1px solid #f1f5f9; background:#ffffff;">
                         <div style="display:flex; align-items:center; gap:5px; flex:1 1 0; min-width:0;" title="${esc(homeTeam)}">
                             <div style="width:3px; height:16px; background:#2563eb; border-radius:2px; flex-shrink:0;"></div>
@@ -3794,9 +3796,20 @@
                                 ${esc(homeTeam || 'Local')}
                             </span>
                         </div>
-                        <div style="flex:0 0 auto; background:#f1f5f9; border-radius:6px; padding:2px 8px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:52px; border:1px solid #e2e8f0;">
-                            <div style="font-weight:800; font-size:0.78rem; color:#0f172a; line-height:1.1; letter-spacing:0.5px;">${esc(cleanScore)}</div>
-                            ${formattedAh ? `<div style="font-size:0.52rem; font-weight:600; color:#475569; line-height:1; margin-top:1px;">${esc(formattedAh)}</div>` : ''}
+                        <!-- Apartado Central: Marcador + Columna AH + NUEVA COLUMNA DE GOLES -->
+                        <div style="flex:0 0 auto; display:flex; align-items:center; gap:3px;">
+                            <div style="background:#f1f5f9; border-radius:5px; padding:2px 6px; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:40px; border:1px solid #e2e8f0;">
+                                <div style="font-weight:800; font-size:0.78rem; color:#0f172a; line-height:1.1; letter-spacing:0.5px;">${esc(cleanScore)}</div>
+                                <span style="font-size:0.48rem; font-weight:700; color:#64748b; line-height:1; margin-top:1px;">FT</span>
+                            </div>
+                            <div style="background:#f8fafc; border-radius:5px; padding:2px 5px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #cbd5e1; min-width:34px;" title="Línea de Asian Handicap">
+                                <span style="font-size:0.48rem; font-weight:800; color:#64748b; text-transform:uppercase; line-height:1;">AH</span>
+                                <div style="font-weight:800; font-size:0.66rem; color:#1e293b; line-height:1.1; margin-top:1px;">${esc(formattedAh)}</div>
+                            </div>
+                            <div style="background:#f0fdf4; border-radius:5px; padding:2px 5px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #bbf7d0; min-width:34px;" title="Línea de Goles Inicial de este partido (Over/Under)">
+                                <span style="font-size:0.48rem; font-weight:800; color:#166534; text-transform:uppercase; line-height:1;">GOLES</span>
+                                <div style="font-weight:800; font-size:0.66rem; color:#15803d; line-height:1.1; margin-top:1px;">${esc(formattedOu)}</div>
+                            </div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px; flex:1 1 0; min-width:0;" title="${esc(awayTeam)}">
                             <span style="font-weight:700; font-size:0.66rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right;">
@@ -8269,10 +8282,9 @@
                             </td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah">${esc(rowAh)}</td>
-                            <td class="ctx-ou"><span class="pre-context-ou-badge" style="display:inline-block; font-size:.68rem; font-weight:800; color:#15803d; background:#f0fdf4; border:1px solid #bbf7d0; padding:1px 5px; border-radius:3px;" title="Línea de Goles Inicial (Over/Under)">${esc(rowOu)}</span></td>
-                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
-                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
-                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
+                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
+                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
                         </tr>
                         <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
                             <td colspan="8" class="pre-context-detail-cell">
@@ -8321,13 +8333,13 @@
                                     <input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')">
                                     <span>Comp</span>
                                 </label>
-                                <button type="button" class="mm-btn mm-btn-stats pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido">
+                                <button type="button" class="mm-btn mm-btn-stats pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido">
                                     <i class="fa-solid fa-chart-simple me-1"></i>Stats
                                 </button>
-                                <button type="button" class="mm-btn mm-btn-col3 pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3">
+                                <button type="button" class="mm-btn mm-btn-col3 pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3">
                                     <i class="fa-regular fa-eye me-1"></i>Col3
                                 </button>
-                                <button type="button" class="mm-btn mm-btn-mov pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo">
+                                <button type="button" class="mm-btn mm-btn-mov pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo">
                                     <i class="fa-solid fa-chart-line me-1"></i>Mov.
                                 </button>
                                 <button type="button" class="mm-btn mm-btn-both pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas debajo">
@@ -8365,7 +8377,7 @@
                     <!-- Vista Escritorio (PC): Tabla completa intacta -->
                     <div class="pre-context-table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%;">
                         <table class="pre-context-table">
-                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-ou" title="Línea de Goles Inicial (Over/Under)">O/U</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                             <tbody>${totalTableRows}</tbody>
                         </table>
                     </div>
@@ -8646,9 +8658,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
-                        ${summaryBoxesId ? `<button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${summaryBoxesId}', this)" title="Mostrar u ocultar las fichas de resumen y comparativas rápidas (Prev Home, Away, H2H, Ind)"><i class="fa-solid fa-table-cells-large me-1"></i>Fichas Resumen</button>` : ''}
-                        <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap o bucket similar"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
-
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
@@ -8657,7 +8666,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     </div>
                 </div>
                 <div class="main-match-odds-container" style="display:none; margin:8px 0 12px 0;"></div>
-                ${summaryBoxesHtml || ''}
                 <div class="pre-context-moments hide-previous">
                     ${renderMoment('Partido actual', current)}
                     ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
@@ -9478,6 +9486,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 date: meta.date || '',
                 score: meta.score || '',
                 ah: meta.ah || '',
+                ou: meta.ou || '',
                 leagueId: meta.leagueId || '',
                 showHideBtn: false
             });
@@ -9511,6 +9520,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const rowScore = button.dataset.rowScore || '';
             const rowDate = button.dataset.rowDate || '';
             const rowAh = button.dataset.rowAh || '';
+            const rowOu = button.dataset.rowOu || '';
             const leagueId = button.dataset.leagueId || '';
 
             button.disabled = true;
@@ -9548,6 +9558,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     date: rowDate,
                     score: rowScore,
                     ah: rowAh,
+                    ou: rowOu || data.ou_line || '',
                     leagueId: leagueId,
                     showHideBtn: false
                 });
