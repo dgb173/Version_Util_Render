@@ -343,80 +343,75 @@
             b.b4 = 0;
             bDet.b4 = `Favorito no cubrió el último H2H o está por debajo en tabla frente al rival.`;
         }
-
-        // b5: Volumen Ofensivo Filtrado por Rol y Filiales (Con Detección de Fichas Stats Cerradas)
+        // b5: Volumen Ofensivo Filtrado por Rol y Filiales (Con Proxy de Goles si Stats están cerradas)
         const favTirosPuerta = favoritoRole === 'home' ? (data.statsHomeTirosPuerta || 0) : (data.statsAwayTirosPuerta || 0);
         const noFavTirosPuerta = favoritoRole === 'home' ? (data.statsAwayTirosPuerta || 0) : (data.statsHomeTirosPuerta || 0);
         const favAp = favoritoRole === 'home' ? (data.statsHomeAp || 0) : (data.statsAwayAp || 0);
         const noFavAp = favoritoRole === 'home' ? (data.statsAwayAp || 0) : (data.statsHomeAp || 0);
         const favTirosTotales = favoritoRole === 'home' ? (data.statsHomeTiros || 0) : (data.statsAwayTiros || 0);
 
-        if (!data.hasDetailedStats) {
-            b.b5 = 0;
-            bDet.b5 = `Fichas Stats no abiertas; requiere desplegar las fichas Stats en la tarjeta para auditar Tiros y Ataques Peligrosos.`;
-        } else if ((favTirosPuerta - noFavTirosPuerta >= 1.5) && (favAp - noFavAp >= 10) && favTirosTotales >= 9) {
-            b.b5 = 1;
-            bDet.b5 = `Favorito supera en tiros a puerta (+${(favTirosPuerta - noFavTirosPuerta).toFixed(1)}) y AP (+${Math.round(favAp - noFavAp)}), sin burbuja de pocos tiros.`;
-        } else if (data.efectoPresaFav) {
-            b.b5 = 1;
-            bDet.b5 = `Efecto Presa positivo en el Favorito (gran generación de peligro con sub-registro de goles).`;
+        if (data.hasDetailedStats && (favTirosTotales > 0 || favAp > 0)) {
+            if ((favTirosPuerta - noFavTirosPuerta >= 1.0) || (favAp - noFavAp >= 5) || favTirosTotales >= 9) {
+                b.b5 = 1;
+                bDet.b5 = `Favorito supera en generación ofensiva (+${(favTirosPuerta - noFavTirosPuerta).toFixed(1)} TP, +${Math.round(favAp - noFavAp)} AP, ${favTirosTotales} Tiros).`;
+            } else {
+                b.b5 = 0;
+                bDet.b5 = `No-Favorito equipara o supera volumen (Fav ${favTirosPuerta.toFixed(1)} TP vs No-Fav ${noFavTirosPuerta.toFixed(1)} TP).`;
+            }
         } else {
-            b.b5 = 0;
-            bDet.b5 = `Sin superioridad ofensiva clara filtrada (Fav: ${favTirosPuerta.toFixed(1)} TP, ${favAp.toFixed(0)} AP vs No-Fav: ${noFavTirosPuerta.toFixed(1)} TP, ${noFavAp.toFixed(0)} AP).`;
+            // Si las fichas Stats están cerradas, evaluar con balance de goles en hándicaps similares (Proxy ofensivo)
+            const favGf = favoritoRole === 'home' ? (data.similaresGfHomeAvg || 1.3) : (data.similaresGfAwayAvg || 1.3);
+            const favGc = favoritoRole === 'home' ? (data.similaresGcHomeAvg || 1.1) : (data.similaresGcAwayAvg || 1.1);
+            if (favGf >= favGc) {
+                b.b5 = 1;
+                bDet.b5 = `Proxy ofensivo: Favorito con balance positivo de goles (${favGf.toFixed(2)} GF >= ${favGc.toFixed(2)} GC). Despliega Stats para auditar tiros.`;
+            } else {
+                b.b5 = 0;
+                bDet.b5 = `Proxy ofensivo: Favorito encaja más de lo que marca (${favGf.toFixed(2)} GF < ${favGc.toFixed(2)} GC).`;
+            }
         }
 
         // b6: Solidez de Victoria y Margen vs Fricción de Empate
         const favWinRate = favoritoRole === 'home' ? (data.homeWinRate || 0) : (data.awayWinRate || 0);
-        const favMarginG2 = data.favMargin2GolesRate || 0; // % victorias por 2+ goles
-        if (absHz >= 5) {
-            // Línea exigente (AH 1.25 o 1.50)
-            if (favMarginG2 > 0.50) {
-                b.b6 = 1;
-                bDet.b6 = `Línea alta (|Hz|=${absHz}): Favorito gana por 2+ goles en el ${Math.round(favMarginG2 * 100)}% de sus victorias.`;
-            } else {
-                b.b6 = 0;
-                bDet.b6 = `Línea alta (|Hz|=${absHz}): Favorito suele ganar por la mínima (1 gol), riesgo de fallo de cobertura.`;
-            }
+        // favEmpatesPct ya declarado arriba
+
+        if (favWinRate >= 0.38 && favEmpatesPct <= 0.40) {
+            b.b6 = 1;
+            bDet.b6 = `Favorito sólido (${Math.round(favWinRate * 100)}% victorias) con baja tasa de empates (${Math.round(favEmpatesPct * 100)}%).`;
+        } else if (favWinRate >= 0.50) {
+            b.b6 = 1;
+            bDet.b6 = `Alta efectividad de victoria del Favorito (${Math.round(favWinRate * 100)}%).`;
         } else {
-            // Línea corta (AH 0.25 a 1.0)
-            if (favWinRate >= 0.50 && favEmpatesPct < 0.35) {
-                b.b6 = 1;
-                bDet.b6 = `Favorito gana el ${Math.round(favWinRate * 100)}% con baja tasa de empates (${Math.round(favEmpatesPct * 100)}%).`;
-            } else {
-                b.b6 = 0;
-                bDet.b6 = `Fricción de empate alta (${Math.round(favEmpatesPct * 100)}%) o bajo % de victorias (${Math.round(favWinRate * 100)}%).`;
-            }
+            b.b6 = 0;
+            bDet.b6 = `Fricción de empate alta (${Math.round(favEmpatesPct * 100)}%) o victorias insuficientes (${Math.round(favWinRate * 100)}%).`;
         }
 
-        // REGLAS DE BLOQUEO DE HÁNDICAP (Con Protección de Muestra Mínima >= 2)
+        // REGLAS DETERMINISTAS DE DECISIÓN DE HÁNDICAP
         let scoreAh = b.b1 + b.b2 + b.b3 + b.b4 + b.b5 + b.b6;
         let bloqueoAh = null;
         let veredictoAh = '';
 
-        const muestraValidaParaBloqueo = (favHasCoverActual || noFavHasCoverActual) && !(data.correlacionActualTexto || '').toLowerCase().includes('insuficiente');
-
-        if (b.b1 === 0 && b.b2 === 0 && muestraValidaParaBloqueo) {
+        // Solo activar bloqueo si las DOS correlaciones contradicen de forma manifiesta al favorito con muestra
+        if (b.b1 === 0 && b.b2 === 0 && corrActualFavoreceNoFav && corrH2HFavoreceNoFav && muestraValidaParaBloqueo) {
             bloqueoAh = 'BLOQUEO POR DOBLE CORRELACIÓN CONTRA FAVORITO';
             veredictoAh = `TRAMPA EN EL FAVORITO -> ENTRADA FUERTE AL NO-FAVORITO (+AH) [${noFavorito}] (${bloqueoAh})`;
         } else if (noFavHasCoverActual && coverNoFavActual === 100 && noFavSamplesActual >= 4 && b.b3 === 0) {
             bloqueoAh = 'BLOQUEO POR NO-FAVORITO 100% COVER EN HÁNDICAPS SIMILARES';
             veredictoAh = `ENTRADA FUERTE AL NO-FAVORITO (+AH) [${noFavorito}] (${bloqueoAh})`;
-        } else if (b.b1 === 1 && b.b2 === 1 && noFavHasCoverActual && coverNoFavActual <= 33 && (coverNoFavH2H !== null && coverNoFavH2H <= 33)) {
+        } else if (b.b1 === 1 && b.b2 === 1 && noFavHasCoverActual && coverNoFavActual <= 33) {
             bloqueoAh = 'BLOQUEO INVERSO PRO-FAVORITO (PROHIBIDO NO-FAVORITO)';
-            veredictoAh = `ENTRADA FUERTE AL FAVORITO [${favorito} (Línea: ${favoritoRole === 'home' ? '-' : '+'}${Math.abs(rawAh).toFixed(2)})] (${bloqueoAh})`;
+            veredictoAh = `ENTRADA FUERTE AL FAVORITO [${favorito} ${lineDisplay}] (${bloqueoAh})`;
         } else {
-            if (scoreAh >= 5) {
-                if (absHz >= 5 && b.b6 === 0) {
-                    veredictoAh = `ENTRADA AL FAVORITO [${favorito}], pero bajar 1 entero a línea asiática alternativa para blindar victoria por 1 gol.`;
-                } else {
-                    veredictoAh = `ENTRADA FUERTE AL FAVORITO [${favorito} (Línea: ${favoritoRole === 'home' ? '-' : '+'}${Math.abs(rawAh).toFixed(2)})] en línea principal.`;
-                }
-            } else if (scoreAh >= 3) {
-                veredictoAh = `FAVORITO CON FRICCIÓN DE EMPATE [${favorito}]. Prohibido pagar línea par en pre-partido. Bajar 1-2 enteros (línea alternativa) o esperar min 15-20 en vivo.`;
+            // Decisión equilibrada sin sesgo:
+            if (b.b1 === 1 || scoreAh >= 3) {
+                // Favorito respaldado por correlación actual o mayoría de compuertas
+                veredictoAh = `ENTRADA AL FAVORITO [${favorito} ${lineDisplay}] en línea principal.`;
             } else {
-                veredictoAh = `TRAMPA EN EL FAVORITO -> ENTRADA FUERTE AL NO-FAVORITO (+AH) [${noFavorito}]. Todo el valor matemático está en el no-favorito.`;
+                // No-favorito solo si la correlación falla (b1=0) y el score es minoritario (score <= 2)
+                veredictoAh = `VALOR EN EL NO-FAVORITO [${noFavorito} ${lineDisplay}] (+AH).`;
             }
         }
+
 
         // --- PASO 4: MÓDULO B — LAS 6 COMPUERTAS BINARIAS DE GOLES (g1..g6) ---
         const g = {};
@@ -565,43 +560,39 @@
                 razon: ''
             }
         };
-        // 1. Predicción de Hándicap Asiático (Signos y Notación idéntica a la tabla de la App)
+        // 1. Predicción de Hándicap Asiático (Equilibrada: Favorito vs No-Favorito)
         const lineDisplay = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
 
         if (bloqueoAh) {
             if (bloqueoAh.includes('PRO-FAVORITO')) {
                 pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
                 pred.ah.accion = `Entrada Fuerte al Favorito [${favorito}]`;
-                pred.ah.confianza = 'BLOQUEO PRO-FAVORITO';
+                pred.ah.confianza = 'BLOQUEO PRO-FAVORITO (ALTA)';
                 pred.ah.confClass = 'conf-bloqueo';
                 pred.ah.razon = bloqueoAh;
             } else {
                 pred.ah.pick = `${noFavorito} ${lineDisplay} (No-Favorito)`;
                 pred.ah.accion = `Entrada Fuerte al No-Favorito (+AH) [${noFavorito}]`;
-                pred.ah.confianza = 'BLOQUEO ANTI-SESGO';
+                pred.ah.confianza = 'BLOQUEO ANTI-SESGO (ALTA)';
                 pred.ah.confClass = 'conf-bloqueo';
                 pred.ah.razon = `${bloqueoAh}. Todo el valor está en ${noFavorito}.`;
             }
-        } else if (scoreAh >= 5) {
+        } else if (b.b1 === 1 || scoreAh >= 3) {
+            // ¡¡¡RECOMENDACIÓN AL FAVORITO CUANDO LA CORRELACIÓN O EL SCORE LO RESPALDAN!!!
             pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
-            pred.ah.accion = `Entrada Directa al Favorito [${favorito}]`;
-            pred.ah.confianza = 'ALTA';
+            pred.ah.accion = `Apostar al Favorito [${favorito}]`;
+            pred.ah.confianza = scoreAh >= 4 ? 'ALTA' : 'MEDIA-ALTA';
             pred.ah.confClass = 'conf-alta';
-            pred.ah.razon = 'Score AH >= 5/6. Superioridad integral en correlación y métricas.';
-        } else if (scoreAh >= 3) {
-            const lineAlt = `+${((absHz + 1) / 4).toFixed(2)}`;
-            pred.ah.pick = `${noFavorito} ${lineAlt} (o Esperar Live)`;
-            pred.ah.accion = 'Prohibido pagar línea par pre-partido; buscar colchón o Live';
-            pred.ah.confianza = 'MEDIA (Fricción)';
-            pred.ah.confClass = 'conf-media';
-            pred.ah.razon = 'Favorito con alta fricción de empate. El mercado castiga la línea par.';
+            pred.ah.razon = `Score AH ${scoreAh}/6. ${b.b1 === 1 ? 'Correlación favorable al favorito' : 'Mayoría de compuertas a favor'}.`;
         } else {
+            // Solo si score <= 2 y b1 === 0
             pred.ah.pick = `${noFavorito} ${lineDisplay} (No-Favorito)`;
-            pred.ah.accion = `Entrada Fuerte al No-Favorito (+AH) [${noFavorito}]`;
+            pred.ah.accion = `Apostar al No-Favorito (+AH) [${noFavorito}]`;
             pred.ah.confianza = 'ALTA';
             pred.ah.confClass = 'conf-alta';
-            pred.ah.razon = 'Score AH <= 2/6. Trampa en las líneas del favorito; valor en el no-favorito.';
+            pred.ah.razon = `Score AH ${scoreAh}/6. La correlación y las métricas otorgan el valor al no-favorito.`;
         }
+
 
 
         // 2. Predicción de Goles
@@ -819,6 +810,59 @@
         const posAwayMatch = promptText.match(new RegExp(`${awayName}[^:]*:\\s*Puesto\\s*(\\d+)`, 'i'));
         if (posAwayMatch) awayPos = parseNum(posAwayMatch[1]);
 
+        // 6. Extracción dinámica real de Victorias y Empates desde el Resumen del historial
+        let homeWinRate = 0.50;
+        let awayWinRate = 0.50;
+        let homeDrawRate = 0.25;
+        let awayDrawRate = 0.25;
+        let localWinsStreak = 0;
+
+        const resumenMatches = [...rawContext.matchAll(/Resumen:\s*V\s*(\d+)\s*\|\s*E\s*(\d+)\s*\|\s*D\s*(\d+)/gi)];
+        if (resumenMatches.length >= 1) {
+            const v1 = parseNum(resumenMatches[0][1], 0);
+            const e1 = parseNum(resumenMatches[0][2], 0);
+            const d1 = parseNum(resumenMatches[0][3], 0);
+            const t1 = v1 + e1 + d1;
+            if (t1 > 0) {
+                homeWinRate = v1 / t1;
+                homeDrawRate = e1 / t1;
+            }
+        }
+        if (resumenMatches.length >= 2) {
+            const v2 = parseNum(resumenMatches[1][1], 0);
+            const e2 = parseNum(resumenMatches[1][2], 0);
+            const d2 = parseNum(resumenMatches[1][3], 0);
+            const t2 = v2 + e2 + d2;
+            if (t2 > 0) {
+                awayWinRate = v2 / t2;
+                awayDrawRate = e2 / t2;
+            }
+        }
+
+        // Si no hay resumen textual, buscar en el promptText (standings)
+        const stdRegex = /\((?:Stats general|Stats):\s*(\d+)-(\d+)-(\d+)\)/gi;
+        const stdMatches = [...promptText.matchAll(stdRegex)];
+        if (stdMatches.length >= 1 && resumenMatches.length === 0) {
+            const v = parseNum(stdMatches[0][1], 0);
+            const e = parseNum(stdMatches[0][2], 0);
+            const d = parseNum(stdMatches[0][3], 0);
+            const t = v + e + d;
+            if (t > 0) {
+                homeWinRate = v / t;
+                homeDrawRate = e / t;
+            }
+        }
+        if (stdMatches.length >= 2 && resumenMatches.length < 2) {
+            const v = parseNum(stdMatches[1][1], 0);
+            const e = parseNum(stdMatches[1][2], 0);
+            const d = parseNum(stdMatches[1][3], 0);
+            const t = v + e + d;
+            if (t > 0) {
+                awayWinRate = v / t;
+                awayDrawRate = e / t;
+            }
+        }
+
         return {
             homeName,
             awayName,
@@ -828,11 +872,11 @@
             goalLine,
             homePos,
             awayPos,
-            homeWinRate: 0.35,
-            awayWinRate: 0.40,
-            homeDrawRate: 0.30,
-            awayDrawRate: 0.30,
-            localWinsStreak: 0,
+            homeWinRate,
+            awayWinRate,
+            homeDrawRate,
+            awayDrawRate,
+            localWinsStreak,
             localAvgShots: shotsHome / nStats || 8,
             localShotEff: 0.40,
             bothHighScoringRecent: /3:3|3:0|2:4|4:1|4:2/.test(rawContext),
