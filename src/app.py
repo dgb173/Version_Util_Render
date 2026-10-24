@@ -4354,7 +4354,7 @@ def api_sofascore_league_table():
     public_table = sofascore_public_page.get_context(home_name, away_name, league_name, goal_line)
     if public_table.get('available'):
         return jsonify(public_table)
-    from modules import nowgoal_verified_tables
+
     pre_match = cached_match.get('pre_match_context') or {}
     if not isinstance(pre_match, dict):
         pre_match = {}
@@ -4363,10 +4363,46 @@ def api_sofascore_league_table():
         current_pre_match = {}
     nowgoal_id = (payload.get('nowgoal_league_id') or cached_match.get('league_id')
                   or pre_match.get('league_id') or current_pre_match.get('league_id'))
+
+    # Proveedor universal de NowGoal (en vivo CDN + cache SQLite)
+    from modules import nowgoal_table_provider
+    nowgoal_table = nowgoal_table_provider.get_league_table_context(
+        home_name=home_name,
+        away_name=away_name,
+        league_name=league_name,
+        nowgoal_league_id=nowgoal_id,
+        match_id=match_id,
+        goal_line=goal_line,
+    )
+    if nowgoal_table.get('available'):
+        return jsonify(nowgoal_table)
+
+    from modules import nowgoal_verified_tables
     verified_table = nowgoal_verified_tables.get_context(home_name, away_name, league_name, nowgoal_id)
     if verified_table.get('available'):
         return jsonify(verified_table)
+
     result = sofascore_context.get_league_table_context(**query)
+    if result.get('available'):
+        return jsonify(result)
+
+    if result.get('reason') in {'provider_unavailable', 'match_not_resolved'} and match_date:
+        retry_result = sofascore_context.get_league_table_context(**{**query, 'match_date': None})
+        if retry_result.get('available'):
+            return jsonify(retry_result)
+
+    # Fallback garantizado H2H con estadísticas de los equipos del cruce
+    h2h_fallback = nowgoal_table_provider.build_h2h_standings_fallback(
+        home_name=home_name,
+        away_name=away_name,
+        league_name=league_name,
+        home_standings=fallback_home,
+        away_standings=fallback_away,
+        match_id=match_id,
+    )
+    if h2h_fallback.get('available'):
+        return jsonify(h2h_fallback)
+
     fallback = sofascore_context.build_match_standings_fallback(
         home_name=home_name,
         away_name=away_name,
@@ -4374,26 +4410,9 @@ def api_sofascore_league_table():
         home_standings=fallback_home,
         away_standings=fallback_away,
     )
-
-    # Si Render no puede alcanzar SofaScore, responder ya con la clasificación
-    # incluida por NowGoal en vez de encadenar varios timeouts externos.
-    if not result.get('available') and fallback.get('available'):
+    if fallback.get('available'):
         return jsonify(fallback)
 
-    # SofaScore puede fallar de forma puntual aunque el torneo sí exista. Un
-    # segundo intento evita convertir ese corte breve en un falso "sin tabla".
-    if not result.get('available') and result.get('reason') == 'provider_unavailable':
-        time.sleep(0.2)
-        result = sofascore_context.get_league_table_context(**query)
-
-    # La fecha ayuda a escoger el evento, pero no forma parte de la tabla. Si
-    # viene con un formato inesperado, dejamos que el resolvedor use el cruce.
-    if (
-        not result.get('available')
-        and match_date
-        and result.get('reason') in {'provider_unavailable', 'match_not_resolved'}
-    ):
-        result = sofascore_context.get_league_table_context(**{**query, 'match_date': None})
     return jsonify(result)
 
 # --- NUEVA RUTA PARA ANALIZAR PARTIDOS FINALIZADOS ---

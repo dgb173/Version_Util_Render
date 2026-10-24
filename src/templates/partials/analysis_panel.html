@@ -267,6 +267,10 @@
                             data-home-name="{{ data.home_name }}"
                             data-away-name="{{ data.away_name }}"
                             data-league-name="{{ data.league_name or '' }}"
+                            data-nowgoal-league-id="{{ data.league_id or '' }}"
+                            data-match-id="{{ data.match_id or '' }}"
+                            data-goal-line="{{ data.main_match_odds.goals_linea if (data.main_match_odds and data.main_match_odds.goals_linea) else '2.5' }}"
+                            data-handicap="{{ data.initial_ah or '' }}"
                             data-match-date="{{ data.match_date or '' }}">
                             <i class="fa-solid fa-table-list me-2"></i>Ver clasificación completa
                         </button>

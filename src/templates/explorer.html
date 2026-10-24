@@ -7,6 +7,7 @@
     <title>{{ explorer_title|default('Explorador de Datos') }} ⚽</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='league_table_modal.css') }}?v={{ range(1000, 9999) | random }}">
     <style>
         body {
             background-color: #f7f9fc;
@@ -595,6 +596,8 @@
             box-shadow: 0 0 0 3px rgba(13, 110, 253, .18);
         }
 
+        .pre-context-standings-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 9px; border:1px solid #0d6efd; border-radius:5px; background:#eff6ff; color:#075985; font-size:.72rem; font-weight:850; white-space:nowrap; cursor:pointer; }
+        .pre-context-standings-btn:hover,.pre-context-standings-btn[aria-expanded="true"] { background:#0d6efd; color:#fff; }
         .pre-context-head {
             display: flex;
             align-items: center;
@@ -8658,6 +8661,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 <div class="pre-context-head">
                     <div class="pre-context-title"><i class="fa-solid fa-clock-rotate-left me-1"></i>Contexto previo</div>
                     <div class="pre-context-actions">
+                        <button type="button" class="league-table-trigger pre-context-standings-btn" data-home-name="${esc(current.home_name || currentHome)}" data-away-name="${esc(current.away_name || currentAway)}" data-league-name="${esc(current.league_name || pc?.league_name || pc?.league || '')}" data-nowgoal-league-id="${esc(current.league_id || pc?.league_id || currentLeagueId)}" data-match-date="${esc(current.date || pc?.match_date || pc?.date || '')}" data-match-id="${esc(parentMatchId)}" data-handicap="${esc(parentCurrentAh)}" data-goal-line="${esc(pc?.main_match_odds?.goals_linea || pc?.goal_line || pc?.ou_line || '2.5')}" aria-expanded="false"><i class="fa-solid fa-ranking-star"></i><span>Ver tabla</span></button>
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
@@ -11327,6 +11331,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
 </body>
 
 </html>
