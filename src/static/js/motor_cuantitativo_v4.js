@@ -168,6 +168,7 @@
         const Hz = Math.round(rawAh * 4);
         const Gz = Math.round(rawOu * 4);
         const absHz = Math.abs(Hz);
+        const lineDisplay = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
 
         // Identificación de roles según convención NowGoal de la plataforma:
         // rawAh > 0 (ej. +0.5, +1.25) -> El LOCAL es el Favorito (da el hándicap)
@@ -390,6 +391,7 @@
         let scoreAh = b.b1 + b.b2 + b.b3 + b.b4 + b.b5 + b.b6;
         let bloqueoAh = null;
         let veredictoAh = '';
+        const muestraValidaParaBloqueo = (favSamplesActual >= 2 || noFavSamplesActual >= 2);
 
         // Solo activar bloqueo si las DOS correlaciones contradicen de forma manifiesta al favorito con muestra
         if (b.b1 === 0 && b.b2 === 0 && corrActualFavoreceNoFav && corrH2HFavoreceNoFav && muestraValidaParaBloqueo) {
@@ -561,7 +563,7 @@
             }
         };
         // 1. Predicción de Hándicap Asiático (Equilibrada: Favorito vs No-Favorito)
-        const lineDisplay = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
+        // lineDisplay ya declarado arriba
 
         if (bloqueoAh) {
             if (bloqueoAh.includes('PRO-FAVORITO')) {
