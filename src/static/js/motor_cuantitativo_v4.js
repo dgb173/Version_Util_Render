@@ -46,13 +46,13 @@
             }
 
             // Formato de fila: YYYY-MM-DD | Liga ID ... | EquipoA 1:2 EquipoB | AH [signo]X.XX
-            const m = line.match(/^(\d{4}-\d{2}-\d{2})\s*\\|\s*[^|]+\\|\s*([^0-9:]+)\s+(\d+)\s*:\s*(\d+)\s+([^|]+)\\|\s*AH\s*([0-9.-]+)/i);
+            const m = line.match(/^(\d{4}-\d{2}-\d{2})\s*\|\s*[^|]+\|\s*([^0-9:]+)\s+(\d+)\s*:\s*(\d+)\s+([^|]+)\|\s*AH\s*([0-9.-]+)/i);
             if (m) {
                 const date = m[1];
-                const t1 = m[2].trim();
+                const t1 = (m[2] || '').trim();
                 const g1 = parseInt(m[3], 10);
                 const g2 = parseInt(m[4], 10);
-                const t2 = m[5].trim();
+                const t2 = (m[5] || '').trim();
                 const rawAhVal = parseFloat(m[6]);
 
                 if (currentSection === 'HOME') {
@@ -105,31 +105,31 @@
 
         if (promptText) {
             // 1. Previo Local
-            const mPrevHome = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mPrevHome = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
             if (mPrevHome) addScore(parseInt(mPrevHome[1], 10), parseInt(mPrevHome[2], 10), 'Previo Local');
 
             // 2. Previo Visitante
-            const mPrevAway = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mPrevAway = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
             if (mPrevAway) addScore(parseInt(mPrevAway[1], 10), parseInt(mPrevAway[2], 10), 'Previo Visita');
 
             // 3. H2H Estadio
-            const mH2hEstadio = promptText.match(/##\s*Enfrentamiento Directo Estadio[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mH2hEstadio = promptText.match(/##\s*Enfrentamiento Directo Estadio[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
             if (mH2hEstadio) addScore(parseInt(mH2hEstadio[1], 10), parseInt(mH2hEstadio[2], 10), 'H2H Estadio');
 
             // 4. H2H General
-            const mH2hGen = promptText.match(/##\s*Enfrentamiento Directo General[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mH2hGen = promptText.match(/##\s*Enfrentamiento Directo General[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
             if (mH2hGen) addScore(parseInt(mH2hGen[1], 10), parseInt(mH2hGen[2], 10), 'H2H General');
 
             // 5. Espejo Col3
-            const mEspejo = promptText.match(/##\s*Columna 3[^\n]*[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mEspejo = promptText.match(/##\s*Columna 3[^\n]*[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
             if (mEspejo) addScore(parseInt(mEspejo[1], 10), parseInt(mEspejo[2], 10), 'Espejo Col3');
 
             // 6. Indirecta Local
-            const mIndHome = promptText.match(/(?:Indirecta Local|Indirectas[^\n]*Local)[^\n]*?(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mIndHome = promptText.match(/(?:Indirecta Local|Indirectas[^\n]*Local)[^\n]*?(\d+)\s*[:\-]\s*(\d+)/i);
             if (mIndHome) addScore(parseInt(mIndHome[1], 10), parseInt(mIndHome[2], 10), 'Indirecta Local');
 
             // 7. Indirecta Visitante
-            const mIndAway = promptText.match(/(?:Indirecta Visitante|Indirectas[^\n]*Visitante)[^\n]*?(\d+)\s*[:\\-]\s*(\d+)/i);
+            const mIndAway = promptText.match(/(?:Indirecta Visitante|Indirectas[^\n]*Visitante)[^\n]*?(\d+)\s*[:\-]\s*(\d+)/i);
             if (mIndAway) addScore(parseInt(mIndAway[1], 10), parseInt(mIndAway[2], 10), 'Indirecta Visita');
         }
 
@@ -170,10 +170,10 @@
         let awayLostPrev = false;
 
         // Extraer rival previo de Local
-        const mPrevH = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+        const mPrevH = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
         if (mPrevH) {
-            const t1 = mPrevH[1].trim();
-            const t2 = mPrevH[2].trim();
+            const t1 = (mPrevH[1] || '').trim();
+            const t2 = (mPrevH[2] || '').trim();
             const g1 = parseInt(mPrevH[3], 10);
             const g2 = parseInt(mPrevH[4], 10);
             const isT1 = t1.toLowerCase().includes((data.homeName || '').toLowerCase());
@@ -185,10 +185,10 @@
         }
 
         // Extraer rival previo de Visitante
-        const mPrevA = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+        const mPrevA = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:-]\s*(\d+)/i);
         if (mPrevA) {
-            const t1 = mPrevA[1].trim();
-            const t2 = mPrevA[2].trim();
+            const t1 = (mPrevA[1] || '').trim();
+            const t2 = (mPrevA[2] || '').trim();
             const g1 = parseInt(mPrevA[3], 10);
             const g2 = parseInt(mPrevA[4], 10);
             const isT1 = t1.toLowerCase().includes((data.awayName || '').toLowerCase());
@@ -211,7 +211,7 @@
                     if (scAway > scOpp || scAway >= 3) awayWonOrScored3 = true;
                 }
                 if (!awayWonOrScored3 && promptText) {
-                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:\\-]\s*(\d+)`, 'i'));
+                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:-]\s*(\d+)`, 'i'));
                     if (indM) {
                         const g1 = parseInt(indM[1], 10);
                         const g2 = parseInt(indM[2], 10);
@@ -240,7 +240,7 @@
                     if (scHome > scOpp || scHome >= 3) homeWonOrScored3 = true;
                 }
                 if (!homeWonOrScored3 && promptText) {
-                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:\\-]\s*(\d+)`, 'i'));
+                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:-]\s*(\d+)`, 'i'));
                     if (indM) {
                         const g1 = parseInt(indM[1], 10);
                         const g2 = parseInt(indM[2], 10);
@@ -923,9 +923,9 @@
         const leagueName = standingsBtn?.dataset?.leagueName || panel.dataset?.currentLeague || 'Liga';
         const date = standingsBtn?.dataset?.matchDate || '';
         let handicap = standingsBtn?.dataset?.handicap || '0';
-        const hcPromptMatch = promptText.match(/H[aá]ndicap\s+Inicial\\*?\\*?:\s*([0-9.-]+)/i);
+        const hcPromptMatch = promptText.match(/(?:H[aá]ndicap\s+Inicial|\*\*H[aá]ndicap\s+Inicial\*\*)[^\n:]*:\s*([0-9.-]+)/i);
         if (hcPromptMatch) {
-            handicap = hcPromptMatch[1].trim();
+            handicap = (hcPromptMatch[1] || '').trim();
         }
         const goalLine = standingsBtn?.dataset?.goalLine || '2.5';
 
@@ -994,7 +994,7 @@
             }
 
             const corrMatch = block.match(/CORRELACI[OÓ]N:\s*([^·\n]+)/i);
-            if (corrMatch) res.label = corrMatch[1].trim();
+            if (corrMatch && corrMatch[1]) res.label = corrMatch[1].trim();
             return res;
         };
 
@@ -1071,7 +1071,7 @@
         let awayDrawRate = 0.25;
         let localWinsStreak = 0;
 
-        const resumenMatches = [...rawContext.matchAll(/Resumen:\s*V\s*(\d+)\s*\\|\s*E\s*(\d+)\s*\\|\s*D\s*(\d+)/gi)];
+        const resumenMatches = [...rawContext.matchAll(/Resumen:\s*V\s*(\d+)\s*\|\s*E\s*(\d+)\s*\|\s*D\s*(\d+)/gi)];
         if (resumenMatches.length >= 1) {
             const v1 = parseNum(resumenMatches[0][1], 0);
             const e1 = parseNum(resumenMatches[0][2], 0);
@@ -1093,7 +1093,7 @@
             }
         }
 
-        const stdRegex = /\\((?:Stats general|Stats):\s*(\d+)-(\d+)-(\d+)\\)/gi;
+        const stdRegex = /\((?:Stats general|Stats):\s*(\d+)-(\d+)-(\d+)\)/gi;
         const stdMatches = [...promptText.matchAll(stdRegex)];
         if (stdMatches.length >= 1 && resumenMatches.length === 0) {
             const v = parseNum(stdMatches[0][1], 0);
