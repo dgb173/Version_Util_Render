@@ -1,7 +1,8 @@
 /**
- * Motor Cuantitativo Dual Entero-Binario v4.0 (Anti-Sesgos)
- * Implementación determinista basada en Números Enteros (Z) y 12 Compuertas Binarias ({0,1})
- * con 5 Reglas de Bloqueo de Sesgos, Detector de Trampas de la Casa y Corrección de Perspectiva NowGoal.
+ * Motor Cuantitativo Dual Entero-Binario v5.0 (Acoplamiento Cruzado Anti-Sesgos)
+ * Implementación determinista basada en Números Enteros (Z), 12 Compuertas Binarias ({0,1}),
+ * Fusión Ponderada de Hándicaps Similares, Bloqueo Anti-Under por Pleno de Referencias
+ * y Acoplamiento Cruzado Goles -> Hándicap (Techo del Empatador).
  */
 (() => {
     // --- UTILIDADES MATEMÁTICAS Y DE PARSEO ---
@@ -45,7 +46,7 @@
             }
 
             // Formato de fila: YYYY-MM-DD | Liga ID ... | EquipoA 1:2 EquipoB | AH [signo]X.XX
-            const m = line.match(/^(\d{4}-\d{2}-\d{2})\s*\|\s*[^|]+\|\s*([^0-9:]+)\s+(\d+)\s*:\s*(\d+)\s+([^|]+)\|\s*AH\s*([0-9.-]+)/i);
+            const m = line.match(/^(\d{4}-\d{2}-\d{2})\s*\\|\s*[^|]+\\|\s*([^0-9:]+)\s+(\d+)\s*:\s*(\d+)\s+([^|]+)\\|\s*AH\s*([0-9.-]+)/i);
             if (m) {
                 const date = m[1];
                 const t1 = m[2].trim();
@@ -87,6 +88,179 @@
     }
 
     /**
+     * Extrae partidos de referencia del prompt LLM y del contexto para auditar la compuerta g2 y el veto Anti-Under
+     */
+    function extractReferenceMatchesFromPrompt(promptText, rawContext, homeMatches, awayMatches) {
+        const refs = [];
+        const seen = new Set();
+        const addScore = (g1, g2, tag) => {
+            if (Number.isFinite(g1) && Number.isFinite(g2)) {
+                const key = `${tag}_${g1}_${g2}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    refs.push({ g1, g2, total: g1 + g2, tag });
+                }
+            }
+        };
+
+        if (promptText) {
+            // 1. Previo Local
+            const mPrevHome = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mPrevHome) addScore(parseInt(mPrevHome[1], 10), parseInt(mPrevHome[2], 10), 'Previo Local');
+
+            // 2. Previo Visitante
+            const mPrevAway = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mPrevAway) addScore(parseInt(mPrevAway[1], 10), parseInt(mPrevAway[2], 10), 'Previo Visita');
+
+            // 3. H2H Estadio
+            const mH2hEstadio = promptText.match(/##\s*Enfrentamiento Directo Estadio[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mH2hEstadio) addScore(parseInt(mH2hEstadio[1], 10), parseInt(mH2hEstadio[2], 10), 'H2H Estadio');
+
+            // 4. H2H General
+            const mH2hGen = promptText.match(/##\s*Enfrentamiento Directo General[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mH2hGen) addScore(parseInt(mH2hGen[1], 10), parseInt(mH2hGen[2], 10), 'H2H General');
+
+            // 5. Espejo Col3
+            const mEspejo = promptText.match(/##\s*Columna 3[^\n]*[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mEspejo) addScore(parseInt(mEspejo[1], 10), parseInt(mEspejo[2], 10), 'Espejo Col3');
+
+            // 6. Indirecta Local
+            const mIndHome = promptText.match(/(?:Indirecta Local|Indirectas[^\n]*Local)[^\n]*?(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mIndHome) addScore(parseInt(mIndHome[1], 10), parseInt(mIndHome[2], 10), 'Indirecta Local');
+
+            // 7. Indirecta Visitante
+            const mIndAway = promptText.match(/(?:Indirecta Visitante|Indirectas[^\n]*Visitante)[^\n]*?(\d+)\s*[:\\-]\s*(\d+)/i);
+            if (mIndAway) addScore(parseInt(mIndAway[1], 10), parseInt(mIndAway[2], 10), 'Indirecta Visita');
+        }
+
+        // Fallback con partidos recientes de contexto si faltan referencias
+        if (refs.length < 3) {
+            if (homeMatches && homeMatches.length > 0) {
+                addScore(homeMatches[0].gHome, homeMatches[0].gAway, 'Historial Casa');
+            }
+            if (awayMatches && awayMatches.length > 0) {
+                addScore(awayMatches[0].gHome, awayMatches[0].gAway, 'Historial Fuera');
+            }
+        }
+
+        const totalPartidosRef = refs.length;
+        const partidosCon3MasGoles = refs.filter(r => r.total >= 3).length;
+        const sumGoals = refs.reduce((acc, r) => acc + r.total, 0);
+        const mediaGolesRef = totalPartidosRef > 0 ? (sumGoals / totalPartidosRef) : 2.5;
+        const ratio3Mas = totalPartidosRef > 0 ? (partidosCon3MasGoles / totalPartidosRef) : 0;
+
+        return {
+            refs,
+            totalPartidosRef,
+            partidosCon3MasGoles,
+            mediaGolesRef,
+            ratio3Mas,
+            Mz: Math.round(mediaGolesRef * 4)
+        };
+    }
+
+    /**
+     * Paso 6: Comprueba si un equipo perdió su partido previo ante un rival común que el otro equipo venció
+     */
+    function checkCommonOpponentEdge(data, homeMatches, awayMatches) {
+        const promptText = data.promptText || '';
+        let homePrevOpp = null;
+        let homeLostPrev = false;
+        let awayPrevOpp = null;
+        let awayLostPrev = false;
+
+        // Extraer rival previo de Local
+        const mPrevH = promptText.match(/##\s*Partido Previo de[^\n]*\\(Local\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+        if (mPrevH) {
+            const t1 = mPrevH[1].trim();
+            const t2 = mPrevH[2].trim();
+            const g1 = parseInt(mPrevH[3], 10);
+            const g2 = parseInt(mPrevH[4], 10);
+            const isT1 = t1.toLowerCase().includes((data.homeName || '').toLowerCase());
+            homeLostPrev = isT1 ? (g1 < g2) : (g2 < g1);
+            homePrevOpp = isT1 ? t2 : t1;
+        } else if (homeMatches && homeMatches.length > 0) {
+            homeLostPrev = homeMatches[0].gHome < homeMatches[0].gAway;
+            homePrevOpp = homeMatches[0].opponent;
+        }
+
+        // Extraer rival previo de Visitante
+        const mPrevA = promptText.match(/##\s*Partido Previo de[^\n]*\\(Visitante\\)[\s\\S]*?-\s*\\*\\*Encuentro\\*\\*:\s*([^v\n]+)\s+vs\s+([^\n]+)[\s\\S]*?-\s*\\*\\*Resultado\\*\\*:\s*(\d+)\s*[:\\-]\s*(\d+)/i);
+        if (mPrevA) {
+            const t1 = mPrevA[1].trim();
+            const t2 = mPrevA[2].trim();
+            const g1 = parseInt(mPrevA[3], 10);
+            const g2 = parseInt(mPrevA[4], 10);
+            const isT1 = t1.toLowerCase().includes((data.awayName || '').toLowerCase());
+            awayLostPrev = isT1 ? (g1 < g2) : (g2 < g1);
+            awayPrevOpp = isT1 ? t2 : t1;
+        } else if (awayMatches && awayMatches.length > 0) {
+            awayLostPrev = awayMatches[0].gAway < awayMatches[0].gHome;
+            awayPrevOpp = awayMatches[0].opponent;
+        }
+
+        // 1. Caso Anyang/Toyama: Local perdió su previo ante homePrevOpp, y Visitante lo venció o le marcó 3+ goles
+        if (homeLostPrev && homePrevOpp) {
+            const oppClean = homePrevOpp.toLowerCase().replace(/fc|sc|cf|united|city/g, '').trim();
+            if (oppClean.length >= 3) {
+                const awayMatchVsOpp = (awayMatches || []).find(m => m.opponent.toLowerCase().includes(oppClean));
+                let awayWonOrScored3 = false;
+                if (awayMatchVsOpp) {
+                    const scAway = awayMatchVsOpp.gAway;
+                    const scOpp = awayMatchVsOpp.gHome;
+                    if (scAway > scOpp || scAway >= 3) awayWonOrScored3 = true;
+                }
+                if (!awayWonOrScored3 && promptText) {
+                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:\\-]\s*(\d+)`, 'i'));
+                    if (indM) {
+                        const g1 = parseInt(indM[1], 10);
+                        const g2 = parseInt(indM[2], 10);
+                        if (g1 >= 3 || g2 >= 3 || Math.max(g1, g2) > Math.min(g1, g2)) awayWonOrScored3 = true;
+                    }
+                }
+                if (awayWonOrScored3) {
+                    return {
+                        edgeTo: 'away',
+                        opponent: homePrevOpp,
+                        detail: `${data.homeName} perdió su previo contra ${homePrevOpp}, mientras que ${data.awayName} venció o marcó 3+ goles ante ese mismo rival común.`
+                    };
+                }
+            }
+        }
+
+        // 2. Caso inverso: Visitante perdió su previo ante awayPrevOpp, y Local lo venció o le marcó 3+ goles
+        if (awayLostPrev && awayPrevOpp) {
+            const oppClean = awayPrevOpp.toLowerCase().replace(/fc|sc|cf|united|city/g, '').trim();
+            if (oppClean.length >= 3) {
+                const homeMatchVsOpp = (homeMatches || []).find(m => m.opponent.toLowerCase().includes(oppClean));
+                let homeWonOrScored3 = false;
+                if (homeMatchVsOpp) {
+                    const scHome = homeMatchVsOpp.gHome;
+                    const scOpp = homeMatchVsOpp.gAway;
+                    if (scHome > scOpp || scHome >= 3) homeWonOrScored3 = true;
+                }
+                if (!homeWonOrScored3 && promptText) {
+                    const indM = promptText.match(new RegExp(`(?:Indirecta|${oppClean})[^\n]*?(\d+)\s*[:\\-]\s*(\d+)`, 'i'));
+                    if (indM) {
+                        const g1 = parseInt(indM[1], 10);
+                        const g2 = parseInt(indM[2], 10);
+                        if (g1 >= 3 || g2 >= 3 || Math.max(g1, g2) > Math.min(g1, g2)) homeWonOrScored3 = true;
+                    }
+                }
+                if (homeWonOrScored3) {
+                    return {
+                        edgeTo: 'home',
+                        opponent: awayPrevOpp,
+                        detail: `${data.awayName} perdió su previo contra ${awayPrevOpp}, mientras que ${data.homeName} venció o marcó 3+ goles ante ese mismo rival común.`
+                    };
+                }
+            }
+        }
+
+        return { edgeTo: null, opponent: null, detail: null };
+    }
+
+    /**
      * Calcula la triangulación en rivales comunes e indirectas para la compuerta b3
      */
     function calculateTriangulationB3(homeMatches, awayMatches, favoritoRole, absHz) {
@@ -116,11 +290,9 @@
             commonMatches.forEach(pair => {
                 const ahHome = pair.homeMatch.ahEvaluated; // perspectiva Local
                 const ahAway = pair.awayMatch.ahEvaluated; // perspectiva Visitante (ya invertida)
-                // Tasación relativa Local vs Visitante ante este rival común
                 const dAh = (ahHome - ahAway);
                 sumDeltaZ += Math.round(dAh * 4);
 
-                // Rendimiento deportivo ante el rival:
                 const gdHome = pair.homeMatch.gHome - pair.homeMatch.gAway;
                 const gdAway = pair.awayMatch.gAway - pair.awayMatch.gHome;
                 if (favoritoRole === 'home' && gdHome >= gdAway) favSuperiorCount++;
@@ -153,7 +325,7 @@
     }
 
     /**
-     * Motor determinista evaluateMatchV4
+     * Motor determinista evaluateMatchV4 (Actualizado a Especificación v5.0)
      */
     function evaluateMatchV4(data) {
         const homeName = data.homeName || 'Local';
@@ -201,35 +373,221 @@
 
         const homePos = data.homePos !== null ? data.homePos : null;
         const awayPos = data.awayPos !== null ? data.awayPos : null;
-        const homeWinRate = data.homeWinRate || 0; // 0..1
+        const homeWinRate = data.homeWinRate || 0;
         const favEmpatesPct = favoritoRole === 'home' ? (data.homeDrawRate || 0) : (data.awayDrawRate || 0);
 
-        // Trampa 1: Cebo de tabla
-        // El visitante va mucho mejor en tabla (awayPos < homePos con brecha >= 5), el local tiene <= 20% victorias, pero la línea es cortísima (|Hz| <= 1).
         if (homePos !== null && awayPos !== null && (homePos - awayPos >= 5) && homeWinRate <= 0.20 && absHz <= 1) {
             trampaDetectada = 'TRAMPA_CEBO_TABLA';
             trampaDetalle = `El visitante ${awayName} va #${awayPos} en la tabla frente al #${homePos} de ${homeName} (diferencia de ${homePos - awayPos} puestos), pero la casa ofrece una línea cortísima (AH ${rawAh >= 0 ? '+' : ''}${rawAh}), induciendo masivamente al público a apostar al visitante mientras el local se refugia en su condición.`;
-        }
-        // Trampa 2: Falsa racha local
-        else if (data.localWinsStreak >= 2 && data.localAvgShots <= 6 && data.localShotEff >= 0.65) {
+        } else if (data.localWinsStreak >= 2 && data.localAvgShots <= 6 && data.localShotEff >= 0.65) {
             trampaDetectada = 'TRAMPA_FALSA_RACHA_LOCAL';
             trampaDetalle = `${homeName} encadena victorias recientes engañosas promediando apenas ${data.localAvgShots.toFixed(1)} tiros totales y sosteniéndose por una efectividad insostenible (${Math.round(data.localShotEff * 100)}% de gol/tiro a puerta).`;
-        }
-        // Trampa 3: Inflación doble over
-        else if (data.bothHighScoringRecent && Gz >= 11 && data.refGoalsAvg < rawOu) {
+        } else if (data.bothHighScoringRecent && Gz >= 11 && (data.refGoalsAvg || 2.5) < rawOu) {
             trampaDetectada = 'TRAMPA_INFLACION_DOBLE_OVER';
-            trampaDetalle = `Ambos equipos vienen de partidos con marcadores abultados y la casa infla la línea a Gz = ${Gz} (${rawOu} goles, obligando a 4 goles), cuando los enfrentamientos de referencia promedian ${data.refGoalsAvg.toFixed(2)} goles.`;
-        }
-        // Trampa 4: Empate en línea par
-        else if ((absHz === 1 || absHz === 2) && favEmpatesPct >= 0.45) {
+            trampaDetalle = `Ambos equipos vienen de partidos con marcadores abultados y la casa infla la línea a Gz = ${Gz} (${rawOu} goles, obligando a 4 goles), cuando las referencias promedian ${(data.refGoalsAvg || 2.5).toFixed(2)} goles.`;
+        } else if ((absHz === 1 || absHz === 2) && favEmpatesPct >= 0.45) {
             trampaDetectada = 'TRAMPA_EMPATE_LINEA_PAR';
             trampaDetalle = `El Favorito ${favorito} tiene una línea de ${rawAh} (${absHz} cuartos), pero registra un ${Math.round(favEmpatesPct * 100)}% de empates en su condición, haciendo que el empate castigue al apostador del favorito y premie al No-Favorito.`;
         }
 
-        // --- PASO 3: MÓDULO A — LAS 6 COMPUERTAS BINARIAS DE HÁNDICAP (b1..b6) ---
+        // --- PASO 3: PARSEO Y AUDITORÍA DE REFERENCIAS (Filtro Anti-Under Caso Omiya) ---
+        const refAudit = extractReferenceMatchesFromPrompt(data.promptText || '', data.rawContext || '', data.homeMatches, data.awayMatches);
+        const totalPartidosRef = refAudit.totalPartidosRef;
+        const partidosCon3MasGoles = refAudit.partidosCon3MasGoles;
+        const ratio3Mas = refAudit.ratio3Mas;
+        const mediaGolesRef = refAudit.mediaGolesRef;
+        const Mz = refAudit.Mz;
+
+        // --- PASO 4: MÓDULO B — EVALUACIÓN DE LAS 6 COMPUERTAS DE GOLES (g1..g6) ---
+        // (Se ejecuta primero para permitir el acoplamiento cruzado hacia Hándicap)
+        const g = {};
+        const gDet = {};
+
+        // g1: Axioma Entero 1 + 2 = 3
+        const noFavGolesMin1 = (data.noFavMarcaEnCondicionRate || 0) >= 0.75;
+        const noFavMarcoH2H = !data.noFavSeQuedoEnCeroH2H;
+        if (noFavGolesMin1 && noFavMarcoH2H && Gz <= 12) {
+            g.g1 = 1;
+            gDet.g1 = `Axioma 1+2=3 cumplido: ${noFavorito} marca en >=75% de partidos y no se quedó a cero en H2H directo. Piso mínimo de 3 goles.`;
+        } else if ((data.favMarca2PlusRate || 0) >= 0.85 && (data.noFavMarcaRate || 0) >= 0.80) {
+            g.g1 = 1;
+            gDet.g1 = `Favorito marca 2+ goles en >=85% y visitante marca en >=80%.`;
+        } else if (data.algunoPorteriaCero50Pct || data.algunoSinMarcarH2H) {
+            g.g1 = 0;
+            gDet.g1 = `Riesgo de portería a cero (>=50% de partidos o blanco en H2H directo).`;
+        } else {
+            g.g1 = 0;
+            gDet.g1 = `No se garantiza el piso entero de gol del perdedor proyectado.`;
+        }
+
+        // g2: Media Entera en Referencias + LEY DE BLOQUEO ANTI-UNDER (Paso 4)
+        let vetoAntiUnder = false;
+        if (totalPartidosRef >= 3 && ratio3Mas >= 0.80 && Mz >= Gz + 3) {
+            vetoAntiUnder = true;
+            g.g2 = 1;
+            gDet.g2 = `Veto Anti-Under Activado: ${partidosCon3MasGoles} de ${totalPartidosRef} (${Math.round(ratio3Mas * 100)}%) referencias con >= 3 goles. Mz = ${Mz} cuartos (${mediaGolesRef.toFixed(2)} goles) >= Gz + 3 (${Gz + 3}).`;
+        } else if (Mz >= Gz) {
+            g.g2 = 1;
+            gDet.g2 = `Media entera de referencias Mz = ${Mz} cuartos (${mediaGolesRef.toFixed(2)} goles) >= Gz = ${Gz} cuartos (${rawOu}).`;
+        } else {
+            g.g2 = 0;
+            gDet.g2 = `Media entera de referencias Mz = ${Mz} cuartos (${mediaGolesRef.toFixed(2)} goles) < Gz = ${Gz} cuartos (${rawOu}).`;
+        }
+
+        // g3: LEY DE FUSIÓN PONDERADA DE LOS 2 BLOQUES DE HÁNDICAPS SIMILARES (Paso 3)
+        const N1_C = data.similaresActualHomeSamples || 0;
+        const GF1_C = data.similaresGfHomeAvg;
+        const GC1_C = data.similaresGcHomeAvg;
+        const N2_C = data.similaresH2HHomeSamples || 0;
+        const GF2_C = data.similaresH2HGfHomeAvg;
+        const GC2_C = data.similaresH2HGcHomeAvg;
+
+        const N1_F = data.similaresActualAwaySamples || 0;
+        const GF1_F = data.similaresGfAwayAvg;
+        const GC1_F = data.similaresGcAwayAvg;
+        const N2_F = data.similaresH2HAwaySamples || 0;
+        const GF2_F = data.similaresH2HGfAwayAvg;
+        const GC2_F = data.similaresH2HGcAwayAvg;
+
+        let sumGolesCasa = 0;
+        let weightCasa = 0;
+        if (N1_C > 0 && Number.isFinite(GF1_C) && Number.isFinite(GC1_C)) {
+            sumGolesCasa += N1_C * (GF1_C + GC1_C);
+            weightCasa += N1_C;
+        }
+        if (N2_C > 0 && Number.isFinite(GF2_C) && Number.isFinite(GC2_C)) {
+            sumGolesCasa += N2_C * (GF2_C + GC2_C);
+            weightCasa += N2_C;
+        }
+        const golesSimCasa = weightCasa > 0 ? (sumGolesCasa / weightCasa) : (Number.isFinite(GF1_C) && Number.isFinite(GC1_C) ? (GF1_C + GC1_C) : null);
+
+        let sumGolesFuera = 0;
+        let weightFuera = 0;
+        if (N1_F > 0 && Number.isFinite(GF1_F) && Number.isFinite(GC1_F)) {
+            sumGolesFuera += N1_F * (GF1_F + GC1_F);
+            weightFuera += N1_F;
+        }
+        if (N2_F > 0 && Number.isFinite(GF2_F) && Number.isFinite(GC2_F)) {
+            sumGolesFuera += N2_F * (GF2_F + GC2_F);
+            weightFuera += N2_F;
+        }
+        const golesSimFuera = weightFuera > 0 ? (sumGolesFuera / weightFuera) : (Number.isFinite(GF1_F) && Number.isFinite(GC1_F) ? (GF1_F + GC1_F) : null);
+
+        const Sz_Casa = golesSimCasa !== null ? Math.round(golesSimCasa * 4) : null;
+        const Sz_Fuera = golesSimFuera !== null ? Math.round(golesSimFuera * 4) : null;
+
+        if (Sz_Casa !== null && Sz_Fuera !== null) {
+            const avgSz = (Sz_Casa + Sz_Fuera) / 2;
+            if ((Sz_Casa >= Gz && Sz_Fuera >= Gz) || (avgSz >= Gz + 1)) {
+                g.g3 = 1;
+                gDet.g3 = `Fusión Ponderada Similares (${weightCasa + weightFuera} PJ): Sz Casa = ${Sz_Casa} (${golesSimCasa.toFixed(2)} g), Sz Fuera = ${Sz_Fuera} (${golesSimFuera.toFixed(2)} g), Promedio = ${avgSz.toFixed(1)} >= Gz (${Gz}).`;
+            } else {
+                g.g3 = 0;
+                gDet.g3 = `Fusión Ponderada Similares (${weightCasa + weightFuera} PJ): Sz Casa = ${Sz_Casa}, Sz Fuera = ${Sz_Fuera}, Promedio = ${avgSz.toFixed(1)} < Gz (${Gz}).`;
+            }
+        } else if (Sz_Casa !== null || Sz_Fuera !== null) {
+            const validSz = Sz_Casa !== null ? Sz_Casa : Sz_Fuera;
+            if (validSz >= Gz) {
+                g.g3 = 1;
+                gDet.g3 = `Fusión Similares parcial: Lado válido Sz = ${validSz} >= Gz (${Gz}).`;
+            } else {
+                g.g3 = 0;
+                gDet.g3 = `Fusión Similares parcial: Lado válido Sz = ${validSz} < Gz (${Gz}).`;
+            }
+        } else {
+            g.g3 = g.g2;
+            gDet.g3 = `Ambos bloques sin GF/GC numéricos (N/D); hereda de compuerta g2 (${g.g2}).`;
+        }
+
+        // g4: Compuerta Dual de Ruptura (Paliza Unilateral o Intercambio Bilateral)
+        const triPre = data.triangulacionB3 || { deltaZ: 0 };
+        const deltaZ = triPre.deltaZ || 0;
+        const palizaUnilateral = Math.abs(deltaZ) >= Gz;
+        const bttsRate = data.bttsRateRecent || 0;
+        const hasCasaGoals = Number.isFinite(GF1_C) && Number.isFinite(GC1_C);
+        const hasAwayGoals = Number.isFinite(GF1_F) && Number.isFinite(GC1_F);
+        const intercambioBilateral = (hasCasaGoals && hasAwayGoals) &&
+            (((GC1_C >= 1.8 && GF1_F >= 1.8) || (GC1_F >= 1.8 && GF1_C >= 1.8)) && bttsRate >= 0.70);
+
+        if (palizaUnilateral) {
+            g.g4 = 1;
+            gDet.g4 = `Ruptura Unilateral: brecha |deltaZ| (${Math.abs(deltaZ)}) >= Gz (${Gz}). El favorito cubre el Over él solo.`;
+        } else if (intercambioBilateral) {
+            g.g4 = 1;
+            gDet.g4 = `Intercambio Bilateral: ambos conceden >= 1.8 goles en similares y BTTS >= 70%.`;
+        } else {
+            g.g4 = 0;
+            gDet.g4 = `Sin ruptura proyectada (|deltaZ|=${Math.abs(deltaZ)} < Gz=${Gz}).`;
+        }
+
+        // g5: Ritmo Acumulado de Ataques Peligrosos y Tiros a Puerta
+        const apCombined = (data.statsHomeAp || 0) + (data.statsAwayAp || 0);
+        const stCombined = (data.statsHomeTirosPuerta || 0) + (data.statsAwayTirosPuerta || 0);
+
+        if (data.hasDetailedStats && (apCombined > 0 || stCombined > 0)) {
+            if (apCombined >= 85 || stCombined >= 8.5) {
+                g.g5 = 1;
+                gDet.g5 = `Alto volumen ofensivo combinado (${Math.round(apCombined)} AP, ${stCombined.toFixed(1)} Tiros a puerta).`;
+            } else {
+                g.g5 = 0;
+                gDet.g5 = `Volumen de peligro insuficiente (${Math.round(apCombined)} AP, ${stCombined.toFixed(1)} TP < 8.5).`;
+            }
+        } else {
+            // Proxy ofensivo si stats están cerradas
+            const proxyGoalsSum = (golesSimCasa || 2.5) + (golesSimFuera || 2.5);
+            if (proxyGoalsSum >= 5.0) {
+                g.g5 = 1;
+                gDet.g5 = `Proxy ofensivo: Ritmo goleador combinado en similares (${(proxyGoalsSum / 2).toFixed(2)} goles/partido).`;
+            } else {
+                g.g5 = 0;
+                gDet.g5 = `Proxy ofensivo: Ritmo goleador combinado moderado (${(proxyGoalsSum / 2).toFixed(2)} goles/partido).`;
+            }
+        }
+
+        // g6: Densidad de Tiros y Efectividad de Conversión
+        const shCombined = (data.statsHomeTiros || 0) + (data.statsAwayTiros || 0);
+        if (data.hasDetailedStats && shCombined > 0) {
+            if (shCombined >= 20 || (stCombined >= 8 && (data.statsConversionRate || 0.32) >= 0.30)) {
+                g.g6 = 1;
+                gDet.g6 = `Densidad de disparos (${shCombined} Tiros) y alta conversión (${Math.round((data.statsConversionRate || 0.32) * 100)}%).`;
+            } else {
+                g.g6 = 0;
+                gDet.g6 = `Baja densidad de disparos (${shCombined} Tiros totales < 20).`;
+            }
+        } else {
+            if (data.bothHighScoringRecent || (golesSimCasa && golesSimCasa >= 3.0) || (golesSimFuera && golesSimFuera >= 3.0)) {
+                g.g6 = 1;
+                gDet.g6 = `Proxy de efectividad: Precedentes y similares con alta frecuencia de marcadores over.`;
+            } else {
+                g.g6 = 0;
+                gDet.g6 = `Sin densidad ofensiva comprobada.`;
+            }
+        }
+
+        // REGLAS DETERMINISTAS DE DECISIÓN DE GOLES
+        let scoreOu = g.g1 + g.g2 + g.g3 + g.g4 + g.g5 + g.g6;
+        if (vetoAntiUnder) {
+            scoreOu = Math.min(6, scoreOu + 2);
+        }
+
+        let veredictoOu = '';
+        if (vetoAntiUnder) {
+            veredictoOu = `VETO ANTI-UNDER -> ENTRADA OVER ${rawOu} (Pleno de Referencias >= 80% con 3+ goles)`;
+        } else if (g.g1 === 1) {
+            veredictoOu = `AXIOMA 1+2=3 CUMPLIDO -> ENTRADA DIRECTA OVER ${rawOu}`;
+        } else if (scoreOu >= 5) {
+            veredictoOu = `SCORE OU ${scoreOu}/6 -> OVER ${rawOu} LÍNEA PRINCIPAL`;
+        } else if (scoreOu >= 3) {
+            veredictoOu = `SCORE OU ${scoreOu}/6 -> OVER EN VIVO (Min 15-20 con descuento de línea)`;
+        } else {
+            veredictoOu = `SCORE OU ${scoreOu}/6 -> UNDER ${rawOu} (o NO OPERAR)`;
+        }
+
+        // --- PASO 5: MÓDULO A — LAS 6 COMPUERTAS BINARIAS DE HÁNDICAP (b1..b6) ---
         const b = {};
         const bDet = {};
-        // b1: Correlación Actual en Hándicaps Similares (Lectura directa de Correlación oficial)
+
+        // b1: Correlación Actual en Hándicaps Similares
         const favSamplesActual = favoritoRole === 'home' ? (data.similaresActualHomeSamples || 0) : (data.similaresActualAwaySamples || 0);
         const noFavSamplesActual = favoritoRole === 'home' ? (data.similaresActualAwaySamples || 0) : (data.similaresActualHomeSamples || 0);
         const favHasCoverActual = favoritoRole === 'home' ? !!data.similaresActualHomeHasCover : !!data.similaresActualAwayHasCover;
@@ -237,11 +595,8 @@
 
         const coverFavActual = favHasCoverActual ? (favoritoRole === 'home' ? data.similaresActualHomeCover : data.similaresActualAwayCover) : null;
         const coverNoFavActual = noFavHasCoverActual ? (favoritoRole === 'home' ? data.similaresActualAwayCover : data.similaresActualHomeCover) : null;
-        const noFavLossesActual = noFavHasCoverActual ? (favoritoRole === 'home' ? (data.similaresActualAwayLosses || 0) : (data.similaresActualHomeLosses || 0)) : 0;
 
         const ambosSinMuestraActual = !favHasCoverActual && !noFavHasCoverActual;
-
-        // Interpretación de la etiqueta oficial de correlación de la app
         const corrActualTexto = (data.correlacionActualTexto || '').toLowerCase();
         const corrActualFavoreceLocal = corrActualTexto.includes('favorable al local');
         const corrActualFavoreceVis = corrActualTexto.includes('favorable al visitante');
@@ -266,7 +621,6 @@
             b.b1 = coverNoFavActual <= 50 ? 1 : 0;
             bDet.b1 = `Cover No-Fav (${coverNoFavActual}%) en ${noFavSamplesActual} PJ (Fav sin muestra).`;
         } else {
-            // Comparación cuantitativa directa de covers
             if (coverFavActual >= coverNoFavActual) {
                 b.b1 = 1;
                 bDet.b1 = `Cover Favorito (${coverFavActual}%) supera o iguala a No-Favorito (${coverNoFavActual}%).`;
@@ -284,7 +638,6 @@
 
         const coverFavH2H = favHasCoverH2H ? (favoritoRole === 'home' ? data.similaresH2HHomeCover : data.similaresH2HAwayCover) : null;
         const coverNoFavH2H = noFavHasCoverH2H ? (favoritoRole === 'home' ? data.similaresH2HAwayCover : data.similaresH2HHomeCover) : null;
-
         const ambosSinMuestraH2H = !favHasCoverH2H && !noFavHasCoverH2H;
 
         const corrH2HTexto = (data.correlacionH2HTexto || '').toLowerCase();
@@ -303,7 +656,7 @@
             bDet.b2 = `Correlación H2H favorable al No-Favorito [${noFavorito}] (${coverNoFavH2H !== null ? coverNoFavH2H + '%' : 'ventaja H2H'}).`;
         } else if (ambosSinMuestraH2H || corrH2HInsuficiente) {
             b.b2 = 0;
-            bDet.b2 = `Muestra H2H previa insuficiente. No aplica bloqueo.`;
+            bDet.b2 = `Muestra H2H previa insuficiente (< 2 PJ). No aplica bloqueo.`;
         } else if (favHasCoverH2H && !noFavHasCoverH2H) {
             b.b2 = coverFavH2H >= 50 ? 1 : 0;
             bDet.b2 = `Cover H2H Fav (${coverFavH2H}%) en ${favSamplesH2H} PJ.`;
@@ -320,30 +673,45 @@
             }
         }
 
-
-        // b3: Triangulación Entera en Rivales Comunes e Indirectas (Signo Invertido en FUERA)
+        // b3 y b4: PASO 6 — PENALIZACIÓN/BONIFICACIÓN POR RIVAL COMÚN (Caso Anyang / Toyama)
+        const commonEdge = checkCommonOpponentEdge(data, data.homeMatches, data.awayMatches);
         const tri = data.triangulacionB3 || { deltaZ: absHz + 1, favSuperior: true, detail: 'Sin triangulación específica.' };
-        const deltaZ = tri.deltaZ;
-        if (deltaZ >= absHz && tri.favSuperior) {
-            b.b3 = 1;
-            bDet.b3 = `Brecha deltaZ (${deltaZ} cuartos) >= |Hz| (${absHz}) con tasación/rendimiento favorable. [${tri.detail}]`;
+
+        if (commonEdge.edgeTo !== null) {
+            const favHasEdge = commonEdge.edgeTo === favoritoRole;
+            b.b3 = favHasEdge ? 1 : 0;
+            bDet.b3 = favHasEdge
+                ? `Bonificación por rival común (${commonEdge.opponent}): ${commonEdge.detail}`
+                : `Penalización por rival común (${commonEdge.opponent}): ${commonEdge.detail}`;
+
+            b.b4 = favHasEdge ? 1 : 0;
+            bDet.b4 = favHasEdge
+                ? `Momento favorable: ${favorito} superó al rival común ${commonEdge.opponent} ante el que tropezó ${noFavorito}.`
+                : `Momento desfavorable: ${favorito} tropezó ante el rival común ${commonEdge.opponent} que ${noFavorito} superó.`;
         } else {
-            b.b3 = 0;
-            bDet.b3 = `Brecha deltaZ (${deltaZ} cuartos) < |Hz| (${absHz}) o No-Favorito más eficiente. [${tri.detail}]`;
+            // Triangulación matemática estándar b3
+            if (tri.deltaZ >= absHz && tri.favSuperior) {
+                b.b3 = 1;
+                bDet.b3 = `Brecha deltaZ (${tri.deltaZ} cuartos) >= |Hz| (${absHz}) con tasación/rendimiento favorable. [${tri.detail}]`;
+            } else {
+                b.b3 = 0;
+                bDet.b3 = `Brecha deltaZ (${tri.deltaZ} cuartos) < |Hz| (${absHz}) o No-Favorito más eficiente. [${tri.detail}]`;
+            }
+
+            // Memoria H2H y Tabla estándar b4
+            const favGanoH2H = !!data.lastH2HFavWonAndCovered;
+            const favNoInferiorEnTabla = (homePos !== null && awayPos !== null)
+                ? (favoritoRole === 'home' ? (homePos - awayPos <= 2) : (awayPos - homePos <= 2))
+                : true;
+            if (favGanoH2H && favNoInferiorEnTabla) {
+                b.b4 = 1;
+                bDet.b4 = `Favorito cubrió el último H2H directo y mantiene coherencia clasificatoria.`;
+            } else {
+                b.b4 = 0;
+                bDet.b4 = `Favorito no cubrió el último H2H o está por debajo en tabla frente al rival.`;
+            }
         }
 
-        // b4: Memoria H2H Directo y Coherencia Clasificatoria
-        const favGanoH2H = !!data.lastH2HFavWonAndCovered;
-        const favNoInferiorEnTabla = (homePos !== null && awayPos !== null)
-            ? (favoritoRole === 'home' ? (homePos - awayPos <= 2) : (awayPos - homePos <= 2))
-            : true;
-        if (favGanoH2H && favNoInferiorEnTabla) {
-            b.b4 = 1;
-            bDet.b4 = `Favorito cubrió el último H2H directo y mantiene coherencia clasificatoria.`;
-        } else {
-            b.b4 = 0;
-            bDet.b4 = `Favorito no cubrió el último H2H o está por debajo en tabla frente al rival.`;
-        }
         // b5: Volumen Ofensivo Filtrado por Rol y Filiales (Con Proxy de Goles si Stats están cerradas)
         const favTirosPuerta = favoritoRole === 'home' ? (data.statsHomeTirosPuerta || 0) : (data.statsAwayTirosPuerta || 0);
         const noFavTirosPuerta = favoritoRole === 'home' ? (data.statsAwayTirosPuerta || 0) : (data.statsHomeTirosPuerta || 0);
@@ -360,7 +728,6 @@
                 bDet.b5 = `No-Favorito equipara o supera volumen (Fav ${favTirosPuerta.toFixed(1)} TP vs No-Fav ${noFavTirosPuerta.toFixed(1)} TP).`;
             }
         } else {
-            // Si las fichas Stats están cerradas, evaluar con balance de goles en hándicaps similares (Proxy ofensivo)
             const favGf = favoritoRole === 'home' ? (data.similaresGfHomeAvg || 1.3) : (data.similaresGfAwayAvg || 1.3);
             const favGc = favoritoRole === 'home' ? (data.similaresGcHomeAvg || 1.1) : (data.similaresGcAwayAvg || 1.1);
             if (favGf >= favGc) {
@@ -372,10 +739,8 @@
             }
         }
 
-        // b6: Solidez de Victoria y Margen vs Fricción de Empate
+        // b6: Solidez de Victoria Dinámica vs Fricción de Empate
         const favWinRate = favoritoRole === 'home' ? (data.homeWinRate || 0) : (data.awayWinRate || 0);
-        // favEmpatesPct ya declarado arriba
-
         if (favWinRate >= 0.38 && favEmpatesPct <= 0.40) {
             b.b6 = 1;
             bDet.b6 = `Favorito sólido (${Math.round(favWinRate * 100)}% victorias) con baja tasa de empates (${Math.round(favEmpatesPct * 100)}%).`;
@@ -393,7 +758,7 @@
         let veredictoAh = '';
         const muestraValidaParaBloqueo = (favSamplesActual >= 2 || noFavSamplesActual >= 2);
 
-        // Solo activar bloqueo si las DOS correlaciones contradicen de forma manifiesta al favorito con muestra
+        // Bloqueos de correlación estricta
         if (b.b1 === 0 && b.b2 === 0 && corrActualFavoreceNoFav && corrH2HFavoreceNoFav && muestraValidaParaBloqueo) {
             bloqueoAh = 'BLOQUEO POR DOBLE CORRELACIÓN CONTRA FAVORITO';
             veredictoAh = `TRAMPA EN EL FAVORITO -> ENTRADA FUERTE AL NO-FAVORITO (+AH) [${noFavorito}] (${bloqueoAh})`;
@@ -403,169 +768,53 @@
         } else if (b.b1 === 1 && b.b2 === 1 && noFavHasCoverActual && coverNoFavActual <= 33) {
             bloqueoAh = 'BLOQUEO INVERSO PRO-FAVORITO (PROHIBIDO NO-FAVORITO)';
             veredictoAh = `ENTRADA FUERTE AL FAVORITO [${favorito} ${lineDisplay}] (${bloqueoAh})`;
-        } else {
-            // Decisión equilibrada sin sesgo:
+        }
+
+        // --- PASO 6: LEY DE ACOPLAMIENTO CRUZADO GOLES -> HÁNDICAP (Filtro Anti-Gimcheon) ---
+        let rupturaEmpatador = false;
+        let acoplamientoCruzadoEstado = 'Normal';
+
+        const tasaEmpatesNoFav = noFavoritoRole === 'home' ? (data.homeDrawRate || 0) : (data.awayDrawRate || 0);
+        const gfSimFav = favoritoRole === 'home' ? (data.similaresGfHomeAvg || 0) : (data.similaresGfAwayAvg || 0);
+        const gfSimNoFav = noFavoritoRole === 'home' ? (data.similaresGfHomeAvg || 0) : (data.similaresGfAwayAvg || 0);
+
+        // Verificar si No-Favorito perdió su partido previo o tiene Cover 0% en Bloque 2 H2H
+        const noFavPerdioPrevio = commonEdge.edgeTo === favoritoRole;
+        const noFavCoverH2HCero = (coverNoFavH2H !== null && coverNoFavH2H === 0 && noFavSamplesH2H >= 2);
+
+        // Condición de Ruptura del Empatador (Caso Gimcheon 1:2 Daejeon)
+        if (scoreOu >= 5 && gfSimFav >= 2.0 && gfSimNoFav <= 1.35 && (noFavPerdioPrevio || noFavCoverH2HCero || tasaEmpatesNoFav >= 0.45)) {
+            rupturaEmpatador = true;
+            acoplamientoCruzadoEstado = 'Ruptura de Empatador por Techo Goleador';
+            bloqueoAh = null; // Anula veto al favorito
+            scoreAh = Math.min(6, scoreAh + 3); // Bonificación de +3 puntos al favorito
+            veredictoAh = `FAVORITO -0.25 / -0.5 [${favorito} ${lineDisplay}] (Ruptura por Techo Goleador: Rival promedia GF >= 2.0 en partido Over)`;
+        } else if (vetoAntiUnder) {
+            acoplamientoCruzadoEstado = 'Veto Anti-Under por Pleno Ref';
+        }
+
+        if (!rupturaEmpatador && !bloqueoAh) {
             if (b.b1 === 1 || scoreAh >= 3) {
-                // Favorito respaldado por correlación actual o mayoría de compuertas
                 veredictoAh = `ENTRADA AL FAVORITO [${favorito} ${lineDisplay}] en línea principal.`;
             } else {
-                // No-favorito solo si la correlación falla (b1=0) y el score es minoritario (score <= 2)
                 veredictoAh = `VALOR EN EL NO-FAVORITO [${noFavorito} ${lineDisplay}] (+AH).`;
             }
         }
 
-
-        // --- PASO 4: MÓDULO B — LAS 6 COMPUERTAS BINARIAS DE GOLES (g1..g6) ---
-        const g = {};
-        const gDet = {};
-
-        // g1: Axioma Entero 1 + 2 = 3 (Bloqueo de contradicción lógica)
-        const noFavGolesMin1 = (data.noFavMarcaEnCondicionRate || 0) >= 0.75;
-        const noFavMarcoH2H = !data.noFavSeQuedoEnCeroH2H;
-        if (noFavGolesMin1 && noFavMarcoH2H && Gz <= 12) {
-            g.g1 = 1;
-            gDet.g1 = `Axioma 1+2=3 cumplido: ${noFavorito} marca en >=75% de partidos y no se quedó a cero en H2H directo. Piso mínimo de 3 goles.`;
-        } else if ((data.favMarca2PlusRate || 0) >= 0.85 && (data.noFavMarcaRate || 0) >= 0.80) {
-            g.g1 = 1;
-            gDet.g1 = `Favorito marca 2+ goles en >=85% y visitante marca en >=80%.`;
-        } else if (data.algunoPorteriaCero50Pct || data.algunoSinMarcarH2H) {
-            g.g1 = 0;
-            gDet.g1 = `Riesgo de portería a cero (>=50% de partidos o blanco en H2H directo).`;
-        } else {
-            g.g1 = 0;
-            gDet.g1 = `No se garantiza el piso entero de gol del perdedor proyectado.`;
-        }
-
-        // g2: Promedio Entero en Referencias y Rivales Comunes (Mz >= Gz)
-        const refGoalsAvg = data.refGoalsAvg || 2.5;
-        const Mz = Math.round(refGoalsAvg * 4);
-        if (Mz >= Gz) {
-            g.g2 = 1;
-            gDet.g2 = `Media entera de referencias Mz = ${Mz} cuartos (${refGoalsAvg.toFixed(2)} goles) >= Gz = ${Gz} cuartos (${rawOu}).`;
-        } else {
-            g.g2 = 0;
-            gDet.g2 = `Media entera de referencias Mz = ${Mz} cuartos (${refGoalsAvg.toFixed(2)} goles) < Gz = ${Gz} cuartos (${rawOu}).`;
-        }
-
-        // g3: Goles Esperados en Hándicaps Similares (Sz >= Gz) — BLINDADO CONTRA NaN y N/D
-        const gfHome = data.similaresGfHomeAvg;
-        const gcHome = data.similaresGcHomeAvg;
-        const gfAway = data.similaresGfAwayAvg;
-        const gcAway = data.similaresGcAwayAvg;
-
-        const hasCasaGoals = Number.isFinite(gfHome) && Number.isFinite(gcHome);
-        const hasAwayGoals = Number.isFinite(gfAway) && Number.isFinite(gcAway);
-
-        const szCasa = hasCasaGoals ? Math.round((gfHome + gcHome) * 4) : null;
-        const szFuera = hasAwayGoals ? Math.round((gfAway + gcAway) * 4) : null;
-
-        if (hasCasaGoals && hasAwayGoals) {
-            if ((szCasa >= Gz && szFuera >= Gz) || (szCasa >= Gz + 4 && szFuera >= Gz - 1) || (szFuera >= Gz + 4 && szCasa >= Gz - 1)) {
-                g.g3 = 1;
-                gDet.g3 = `Goles en Similares (Sz Casa = ${szCasa}, Sz Fuera = ${szFuera}) superan línea Gz = ${Gz}.`;
-            } else {
-                g.g3 = 0;
-                gDet.g3 = `Fricción en Similares (Sz Casa = ${szCasa}, Sz Fuera = ${szFuera}) por debajo de Gz = ${Gz}.`;
-            }
-        } else if (hasCasaGoals || hasAwayGoals) {
-            const validSz = hasCasaGoals ? szCasa : szFuera;
-            const validSide = hasCasaGoals ? 'Casa' : 'Fuera';
-            if (validSz >= Gz && Mz >= Gz) {
-                g.g3 = 1;
-                gDet.g3 = `Lado válido (${validSide} Sz = ${validSz}) y media Mz (${Mz}) superan Gz = ${Gz} (el otro lado con GF/GC N/D).`;
-            } else {
-                g.g3 = 0;
-                gDet.g3 = `Lado válido (${validSide} Sz = ${validSz}) o media Mz (${Mz}) no superan Gz = ${Gz}.`;
-            }
-        } else {
-            // Ambos lados sin datos numéricos (N/D)
-            g.g3 = g.g2;
-            gDet.g3 = `Ambos lados sin GF/GC en similares (N/D); hereda valor de compuerta g2 (${g.g2}).`;
-        }
-
-        // g4: Compuerta Dual de Ruptura (Paliza Unilateral o Intercambio Bilateral)
-        const palizaUnilateral = Math.abs(deltaZ) >= Gz;
-        const bttsRate = data.bttsRateRecent || 0;
-        const intercambioBilateral = (hasCasaGoals && hasAwayGoals) &&
-            (((gcHome >= 1.8 && gfAway >= 1.8) || (gcAway >= 1.8 && gfHome >= 1.8)) && bttsRate >= 0.70);
-
-        if (palizaUnilateral) {
-            g.g4 = 1;
-            gDet.g4 = `Ruptura Unilateral: brecha |deltaZ| (${Math.abs(deltaZ)}) >= Gz (${Gz}). El favorito cubre el Over él solo.`;
-        } else if (intercambioBilateral) {
-            g.g4 = 1;
-            gDet.g4 = `Ruptura Bilateral: Fragilidad defensiva mutua (GC >= 1.8) con BTTS en el ${Math.round(bttsRate * 100)}% de los partidos.`;
-        } else {
-            g.g4 = 0;
-            gDet.g4 = `Sin ruptura unilateral ni intercambio bilateral abierto de goles.`;
-        }
-
-        // g5: Ritmo de Ataques Peligrosos Combinados (>= 100 AP)
-        const totalApCombinados = (data.statsHomeAp || 0) + (data.statsAwayAp || 0);
-        if (data.hasDetailedStats && totalApCombinados > 0) {
-            if (totalApCombinados >= 100) {
-                g.g5 = 1;
-                gDet.g5 = `Ritmo alto: ${Math.round(totalApCombinados)} Ataques Peligrosos combinados (>= 100 AP). Ida y vuelta constante.`;
-            } else {
-                g.g5 = 0;
-                gDet.g5 = `Ritmo pausado: ${Math.round(totalApCombinados)} Ataques Peligrosos combinados (< 100 AP).`;
-            }
-        } else {
-            g.g5 = g.g2;
-            gDet.g5 = `Sin fichas Stats abiertas; hereda compuerta g2 (${g.g2}). Despliega Stats para auditar los >= 100 AP reales.`;
-        }
-
-        // g6: Volumen de Tiro (>= 22) o Letalidad Estructural (>= 35%)
-        const totalTirosCombinados = (data.statsHomeTiros || 0) + (data.statsAwayTiros || 0);
-        const conversionRate = data.statsConversionRate || 0.30;
-        if (data.hasDetailedStats && totalTirosCombinados > 0) {
-            if (totalTirosCombinados >= 22 || conversionRate >= 0.35) {
-                g.g6 = 1;
-                gDet.g6 = `Volumen de tiro alto (${Math.round(totalTirosCombinados)} tiros) o letalidad (${Math.round(conversionRate * 100)}% >= 35%).`;
-            } else {
-                g.g6 = 0;
-                gDet.g6 = `Volumen de tiro insuficiente (${Math.round(totalTirosCombinados)} tiros < 22) y baja conversión.`;
-            }
-        } else {
-            g.g6 = g.g2;
-            gDet.g6 = `Sin fichas Stats abiertas; hereda compuerta g2 (${g.g2}). Despliega Stats para auditar tiros >= 22.`;
-        }
-
-        // REGLAS DE BLOQUEO DE GOLES
-        let scoreOu = g.g1 + g.g2 + g.g3 + g.g4 + g.g5 + g.g6;
-        let veredictoOu = '';
-
-        if (g.g1 === 1) {
-            veredictoOu = `OVER ASIGNADO POR AXIOMA ENTERO 1+2=3 (PROHIBIDO UNDER). Ir a Over ${rawOu} en pre-partido o esperar línea entera en vivo al min 15.`;
-        } else if (scoreOu >= 5) {
-            veredictoOu = `OVER FUERTE (Línea ${rawOu}). Excelente ritmo ofensivo y ruptura de líneas. Entrar en pre-partido.`;
-        } else if (scoreOu >= 3) {
-            veredictoOu = `TENDENCIA OVER CON RIESGO DE LÍNEA ALTA. Esperar en vivo al min 15-20 para conseguir descuento de 1-2 enteros (ej. over ${Math.max(1.5, rawOu - 0.5)}).`;
-        } else {
-            veredictoOu = `PARTIDO DE BAJO RITMO / UNDER (Línea ${rawOu}). Superioridad defensiva o fricción en hándicaps similares.`;
-        }
-
-        // PREDICCIONES CONCRETAS Y APUESTAS ÓPTIMAS RECOMENDADAS
+        // --- PREDICCIONES OFICIALES Y APUESTAS RECOMENDADAS ---
         const pred = {
-            ah: {
-                pick: '',
-                accion: '',
-                confianza: 'ALTA',
-                confClass: 'conf-alta',
-                razon: ''
-            },
-            ou: {
-                pick: '',
-                accion: '',
-                confianza: 'ALTA',
-                confClass: 'conf-alta',
-                razon: ''
-            }
+            ah: { pick: '', accion: '', confianza: 'ALTA', confClass: 'conf-alta', razon: '' },
+            ou: { pick: '', accion: '', confianza: 'ALTA', confClass: 'conf-alta', razon: '' }
         };
-        // 1. Predicción de Hándicap Asiático (Equilibrada: Favorito vs No-Favorito)
-        // lineDisplay ya declarado arriba
 
-        if (bloqueoAh) {
+        // 1. Predicción de Hándicap Asiático
+        if (rupturaEmpatador) {
+            pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
+            pred.ah.accion = `Entrada Directa al Favorito [${favorito}]`;
+            pred.ah.confianza = 'RUPTURA POR TECHO GOLEADOR (ALTA)';
+            pred.ah.confClass = 'conf-bloqueo';
+            pred.ah.razon = `Score OU ${scoreOu}/6. Ruptura de Empatador: ${noFavorito} (${Math.round(tasaEmpatesNoFav * 100)}% empates, GF ${gfSimNoFav.toFixed(2)}) no puede sostener el partido ante ${favorito} (GF ${gfSimFav.toFixed(2)}). Marcador proyectado: 1:2 o 1:3 a favor de ${favorito}.`;
+        } else if (bloqueoAh) {
             if (bloqueoAh.includes('PRO-FAVORITO')) {
                 pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
                 pred.ah.accion = `Entrada Fuerte al Favorito [${favorito}]`;
@@ -580,14 +829,12 @@
                 pred.ah.razon = `${bloqueoAh}. Todo el valor está en ${noFavorito}.`;
             }
         } else if (b.b1 === 1 || scoreAh >= 3) {
-            // ¡¡¡RECOMENDACIÓN AL FAVORITO CUANDO LA CORRELACIÓN O EL SCORE LO RESPALDAN!!!
             pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
             pred.ah.accion = `Apostar al Favorito [${favorito}]`;
             pred.ah.confianza = scoreAh >= 4 ? 'ALTA' : 'MEDIA-ALTA';
             pred.ah.confClass = 'conf-alta';
             pred.ah.razon = `Score AH ${scoreAh}/6. ${b.b1 === 1 ? 'Correlación favorable al favorito' : 'Mayoría de compuertas a favor'}.`;
         } else {
-            // Solo si score <= 2 y b1 === 0
             pred.ah.pick = `${noFavorito} ${lineDisplay} (No-Favorito)`;
             pred.ah.accion = `Apostar al No-Favorito (+AH) [${noFavorito}]`;
             pred.ah.confianza = 'ALTA';
@@ -595,10 +842,14 @@
             pred.ah.razon = `Score AH ${scoreAh}/6. La correlación y las métricas otorgan el valor al no-favorito.`;
         }
 
-
-
         // 2. Predicción de Goles
-        if (g.g1 === 1) {
+        if (vetoAntiUnder) {
+            pred.ou.pick = `Over ${rawOu} Goles (o Over ${(rawOu - 0.25).toFixed(2)} Live min 15)`;
+            pred.ou.accion = `Entrada Over ${rawOu} / Live min 15`;
+            pred.ou.confianza = 'VETO ANTI-UNDER (ALTA)';
+            pred.ou.confClass = 'conf-bloqueo';
+            pred.ou.razon = `Veto Anti-Under: ${partidosCon3MasGoles} de ${totalPartidosRef} (${Math.round(ratio3Mas * 100)}%) referencias con >= 3 goles. Mz = ${Mz} cuartos (${mediaGolesRef.toFixed(2)} goles) >= Gz + 3 (${Gz + 3}). Prohibido Under.`;
+        } else if (g.g1 === 1) {
             pred.ou.pick = `Over ${rawOu} Goles`;
             pred.ou.accion = `Entrada Over ${rawOu} Pre o Live min 15`;
             pred.ou.confianza = 'AXIOMA 1+2=3 (OBLIGATORIO)';
@@ -609,7 +860,7 @@
             pred.ou.accion = `Entrada Directa a Over ${rawOu}`;
             pred.ou.confianza = 'ALTA';
             pred.ou.confClass = 'conf-alta';
-            pred.ou.razon = 'Score de goles >= 5/6 con alta densidad ofensiva y ruptura.';
+            pred.ou.razon = `Score de goles ${scoreOu}/6 con alta densidad ofensiva y ruptura.`;
         } else if (scoreOu >= 3) {
             const lineDesc = Math.max(1.5, rawOu - 0.5);
             pred.ou.pick = `Over ${lineDesc} Goles (Live min 15-20)`;
@@ -651,6 +902,10 @@
             scoreOu,
             veredictoOu,
             pred,
+            acoplamientoCruzadoEstado,
+            vetoAntiUnder,
+            rupturaEmpatador,
+            refAudit,
             hasDetailedStats: data.hasDetailedStats,
             openStatsCount: data.openStatsCount || 0
         };
@@ -668,7 +923,7 @@
         const leagueName = standingsBtn?.dataset?.leagueName || panel.dataset?.currentLeague || 'Liga';
         const date = standingsBtn?.dataset?.matchDate || '';
         let handicap = standingsBtn?.dataset?.handicap || '0';
-        const hcPromptMatch = promptText.match(/H[aá]ndicap\s+Inicial\*?\*?:\s*([0-9.-]+)/i);
+        const hcPromptMatch = promptText.match(/H[aá]ndicap\s+Inicial\\*?\\*?:\s*([0-9.-]+)/i);
         if (hcPromptMatch) {
             handicap = hcPromptMatch[1].trim();
         }
@@ -696,7 +951,6 @@
             };
             if (!block) return res;
 
-            // Muestras de partidos: ej. "EQUIPO 1 AH +0.5 (±0.25): 3 partidos" o "CASA AH +0.25 (±0.5): 0 partidos"
             const sampleMatches = [...block.matchAll(/(?:CASA|FUERA|EQUIPO\s*\d+)[^:]*:\s*(\d+)\s+partidos/gi)];
             if (sampleMatches.length >= 2) {
                 res.homeSamples = parseNum(sampleMatches[0][1], 0);
@@ -767,9 +1021,7 @@
         openStatsSlots.forEach(slot => {
             if (slot.style.display !== 'none' && slot.innerHTML.trim().length > 30) {
                 openStatsCount++;
-                // Buscar tablas y filas dentro de la ficha de estadísticas
                 slot.querySelectorAll('table tbody tr, .modern-match-stats-card div').forEach(row => {
-                    const text = row.innerText || '';
                     const cells = row.querySelectorAll('td, span');
                     if (cells.length >= 3) {
                         const v1 = parseNum(cells[0].innerText);
@@ -807,19 +1059,19 @@
         // 5. Parsear puestos en la tabla desde prompt
         let homePos = null;
         let awayPos = null;
-        const posHomeMatch = promptText.match(new RegExp(`${homeName}[^:]*:\\s*Puesto\\s*(\\d+)`, 'i'));
+        const posHomeMatch = promptText.match(new RegExp(`${homeName}[^:]*:\s*Puesto\s*(\d+)`, 'i'));
         if (posHomeMatch) homePos = parseNum(posHomeMatch[1]);
-        const posAwayMatch = promptText.match(new RegExp(`${awayName}[^:]*:\\s*Puesto\\s*(\\d+)`, 'i'));
+        const posAwayMatch = promptText.match(new RegExp(`${awayName}[^:]*:\s*Puesto\s*(\d+)`, 'i'));
         if (posAwayMatch) awayPos = parseNum(posAwayMatch[1]);
 
-        // 6. Extracción dinámica real de Victorias y Empates desde el Resumen del historial
+        // 6. Extracción dinámica real de Victorias y Empates
         let homeWinRate = 0.50;
         let awayWinRate = 0.50;
         let homeDrawRate = 0.25;
         let awayDrawRate = 0.25;
         let localWinsStreak = 0;
 
-        const resumenMatches = [...rawContext.matchAll(/Resumen:\s*V\s*(\d+)\s*\|\s*E\s*(\d+)\s*\|\s*D\s*(\d+)/gi)];
+        const resumenMatches = [...rawContext.matchAll(/Resumen:\s*V\s*(\d+)\s*\\|\s*E\s*(\d+)\s*\\|\s*D\s*(\d+)/gi)];
         if (resumenMatches.length >= 1) {
             const v1 = parseNum(resumenMatches[0][1], 0);
             const e1 = parseNum(resumenMatches[0][2], 0);
@@ -841,8 +1093,7 @@
             }
         }
 
-        // Si no hay resumen textual, buscar en el promptText (standings)
-        const stdRegex = /\((?:Stats general|Stats):\s*(\d+)-(\d+)-(\d+)\)/gi;
+        const stdRegex = /\\((?:Stats general|Stats):\s*(\d+)-(\d+)-(\d+)\\)/gi;
         const stdMatches = [...promptText.matchAll(stdRegex)];
         if (stdMatches.length >= 1 && resumenMatches.length === 0) {
             const v = parseNum(stdMatches[0][1], 0);
@@ -901,8 +1152,16 @@
             similaresH2HAwayHasCover: simH2h.hasValidAwayCover,
             similaresH2HHomeSamples: simH2h.homeSamples,
             similaresH2HAwaySamples: simH2h.awaySamples,
+            similaresH2HGfHomeAvg: simH2h.homeGf,
+            similaresH2HGcHomeAvg: simH2h.homeGc,
+            similaresH2HGfAwayAvg: simH2h.awayGf,
+            similaresH2HGcAwayAvg: simH2h.awayGc,
             correlacionH2HTexto: simH2h.label,
             triangulacionB3,
+            homeMatches,
+            awayMatches,
+            promptText,
+            rawContext,
             lastH2HFavWonAndCovered: !rawContext.includes('NO CUBRIÓ'),
             hasDetailedStats,
             openStatsCount,
@@ -925,12 +1184,12 @@
     }
 
     /**
-     * Construye la plantilla de inyección en el prompt LLM con auditoría completa
+     * Construye la plantilla de inyección en el prompt LLM con auditoría completa v5.0
      */
     function buildPromptInjectionTemplate(res) {
         return `
 ========================================================================
-PREDICCIONES OFICIALES DEL MOTOR v4.0 (APUESTAS RECOMENDADAS)
+PREDICCIONES OFICIALES DEL MOTOR v5.0 (APUESTAS RECOMENDADAS)
 ========================================================================
 🎯 PICK HÁNDICAP ASIÁTICO: [${res.pred.ah.pick}]
    * Acción: ${res.pred.ah.accion}
@@ -943,12 +1202,13 @@ PREDICCIONES OFICIALES DEL MOTOR v4.0 (APUESTAS RECOMENDADAS)
    * Fundamento Cuantitativo: ${res.pred.ou.razon}
 
 ========================================================================
-AUDITORÍA MATEMÁTICA DETALLADA — COMPUERTAS BINARIAS (INVIOLABLE)
+AUDITORÍA MATEMÁTICA DETALLADA — MOTOR v5.0 (INVIOLABLE)
 ========================================================================
 - Conversión Entera: Hándicap (Hz) = ${res.Hz} enteros | Línea de Goles (Gz) = ${res.Gz} enteros
 - Favorito de la Línea (NowGoal): ${res.favorito} | No-Favorito (+AH): ${res.noFavorito}
 - Trampa Psicológica Detectada: ${res.trampaDetectada} (${res.trampaDetalle})
-${!res.hasDetailedStats ? '- AVISO: Fichas Stats no abiertas en la tarjeta; compuertas b5, g5 y g6 operan con herencia/resguardo.' : ''}
+- Acoplamiento Cruzado (AH <-> OU): [${res.acoplamientoCruzadoEstado}]
+${!res.hasDetailedStats ? '- AVISO: Fichas Stats no abiertas en la tarjeta; compuertas b5, g5 y g6 operan con proxy/resguardo.' : ''}
 
 [MÓDULO A: HÁNDICAP ASIÁTICO — Score_AH: ${res.scoreAh}/6]
 - b1 (Correlación Actual Similares): [${res.b.b1}] -> ${res.bDet.b1}
@@ -962,18 +1222,18 @@ ${!res.hasDetailedStats ? '- AVISO: Fichas Stats no abiertas en la tarjeta; comp
 [MÓDULO B: LÍNEA DE GOLES O/U — Score_OU: ${res.scoreOu}/6]
 - g1 (Axioma Piso 1+2=3):            [${res.g.g1}] -> ${res.gDet.g1}
 - g2 (Media Entera Referencias Mz):  [${res.g.g2}] -> ${res.gDet.g2}
-- g3 (Goles en Hándicaps Similares): [${res.g.g3}] -> ${res.gDet.g3}
+- g3 (Fusión Ponderada Similares):   [${res.g.g3}] -> ${res.gDet.g3}
 - g4 (Ruptura Unilateral/Bilateral): [${res.g.g4}] -> ${res.gDet.g4}
 - g5 (Ritmo Ataques Peligrosos>=100):[${res.g.g5}] -> ${res.gDet.g5}
 - g6 (Tiros>=22 o Conversión>=35%):  [${res.g.g6}] -> ${res.gDet.g6}
 >>> SEÑAL OBLIGATORIA GOLES: ${res.veredictoOu}
 
 INSTRUCCIÓN ESTRICTA PARA EL LLM:
-Redacta el análisis táctico y matemático de este partido obedeciendo al 100% los resultados de los vectores [b1..b6] y [g1..g6] precalculados arriba. Tienes ESTRICTAMENTE PROHIBIDO contradecir la SEÑAL OBLIGATORIA de Hándicap o de Goles, inventar narrativas que ignoren la Doble Correlación de Hándicaps Similares, o recomendar un Under si la compuerta g1 vale 1. Explica con precisión quirúrgica dónde está el engaño de la casa de apuestas y entrega la orden operativa final (Pre-partido y Live).`;
+Redacta el análisis táctico y matemático de este partido obedeciendo al 100% los resultados de los vectores [b1..b6] y [g1..g6] precalculados arriba por el Motor v5.0. Tienes ESTRICTAMENTE PROHIBIDO contradecir la SEÑAL OBLIGATORIA de Hándicap o de Goles, inventar narrativas que ignoren la Doble Correlación de Hándicaps Similares, o recomendar un Under si la compuerta g1 vale 1 o si rige el Veto Anti-Under por Pleno de Referencias. Explica con precisión quirúrgica dónde está el engaño de la casa de apuestas y entrega la orden operativa final (Pre-partido y Live).`;
     }
 
     /**
-     * Renderiza el Modal / Pop-Up del Motor Cuantitativo v4.0
+     * Renderiza el Modal / Pop-Up del Motor Cuantitativo v5.0
      */
     function showMotorV4Modal(res, combinedPromptText, matchId) {
         let modalEl = document.getElementById('motorV4ModalContainer');
@@ -1005,8 +1265,8 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                             <span class="motor-icon-badge"><i class="fa-solid fa-brain"></i></span>
                             <div class="motor-v4-title">
                                 <div class="motor-v4-title-row">
-                                    <h5 class="motor-v4-match-name">Motor Cuantitativo Dual Entero-Binario v4.0</h5>
-                                    <span class="motor-v4-badge">Anti-Sesgos</span>
+                                    <h5 class="motor-v4-match-name">Motor Cuantitativo Dual Entero-Binario v5.0</h5>
+                                    <span class="motor-v4-badge">Acoplamiento Cruzado Anti-Sesgos</span>
                                 </div>
                                 <div class="motor-v4-meta-sub">
                                     <span><i class="fa-solid fa-futbol me-1 text-info"></i>${esc(res.homeName)} vs ${esc(res.awayName)}</span>
@@ -1014,6 +1274,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                                     <span class="badge bg-secondary">Hz: ${res.Hz} (${res.absHz}/4)</span>
                                     <span class="badge bg-secondary">Gz: ${res.Gz} (${res.Gz}/4)</span>
                                     <span class="badge ${res.favoritoRole === 'home' ? 'bg-primary' : 'bg-info'} text-white">Fav: ${esc(res.favorito)}</span>
+                                    <span class="badge bg-success text-white">Acoplamiento: ${esc(res.acoplamientoCruzadoEstado)}</span>
                                 </div>
                             </div>
                         </div>
@@ -1028,8 +1289,8 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                                     <div>
                                         <i class="fa-solid fa-triangle-exclamation text-warning me-2 fs-5"></i>
-                                        <strong>Fichas de estadísticas Stats cerradas en esta tarjeta:</strong>
-                                        <div class="small text-secondary mt-1">Las compuertas b5, g5 y g6 (Tiros y Ataques Peligrosos) requieren abrir las fichas "Stats" de los partidos para auditar con volumen real.</div>
+                                        <strong>⚠️ Abre primero las fichas verdes de Stats del partido y vuelve a pulsar el botón para incluir Tiros y Ataques Peligrosos</strong>
+                                        <div class="small text-secondary mt-1">Las compuertas b5, g5 y g6 operan actualmente con proxy/resguardo de goles en hándicaps similares.</div>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-warning fw-bold text-dark px-3" onclick="window.autoOpenStatsAndRecalculate(this, '${matchId}')">
                                         <i class="fa-solid fa-bolt me-1"></i> Abrir Stats y Recalcular
@@ -1045,119 +1306,137 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                             <div class="predictions-hero-header">
                                 <span class="predictions-hero-title">
                                     <i class="fa-solid fa-crosshairs text-warning fs-5"></i>
-                                    PREDICCIONES DEL MOTOR v4.0 (APUESTAS RECOMENDADAS)
+                                    PREDICCIONES DEL MOTOR v5.0 (APUESTAS RECOMENDADAS)
                                 </span>
                                 <span class="predictions-hero-badge">Recomendación Oficial</span>
                             </div>
-                            <div class="predictions-grid">
-                                <!-- PICK 1: HANDICAP -->
-                                <div class="prediction-card ah-pick">
-                                    <div class="prediction-market-label">
-                                        <span><i class="fa-solid fa-scale-balanced me-1 text-info"></i> Hándicap Asiático</span>
-                                        <span class="prediction-conf-pill ${res.pred.ah.confClass}">${res.pred.ah.confianza}</span>
+
+                            <div class="predictions-cards-grid">
+                                <!-- TARJETA HÁNDICAP -->
+                                <div class="prediction-card card-ah">
+                                    <div class="pred-card-header">
+                                        <span class="pred-type-label"><i class="fa-solid fa-shield-halved me-1 text-primary"></i>MERCADO HÁNDICAP ASIÁTICO</span>
+                                        <span class="pred-conf-badge ${res.pred.ah.confClass}">${esc(res.pred.ah.confianza)}</span>
                                     </div>
-                                    <div class="prediction-selection">${esc(res.pred.ah.pick)}</div>
-                                    <div class="prediction-action-row">
-                                        <i class="fa-solid fa-arrow-right-long text-info"></i>
-                                        <span>${esc(res.pred.ah.accion)}</span>
+                                    <div class="pred-main-pick">${esc(res.pred.ah.pick)}</div>
+                                    <div class="pred-action-box">
+                                        <span class="action-tag">Orden:</span>
+                                        <strong class="action-text">${esc(res.pred.ah.accion)}</strong>
                                     </div>
-                                    <p class="prediction-reason mb-0">${esc(res.pred.ah.razon)}</p>
+                                    <div class="pred-reason-box">
+                                        <i class="fa-solid fa-brain me-1 text-secondary"></i>
+                                        <span>${esc(res.pred.ah.razon)}</span>
+                                    </div>
                                 </div>
 
-                                <!-- PICK 2: GOLES -->
-                                <div class="prediction-card ou-pick">
-                                    <div class="prediction-market-label">
-                                        <span><i class="fa-solid fa-futbol me-1 text-success"></i> Línea de Goles (O/U)</span>
-                                        <span class="prediction-conf-pill ${res.pred.ou.confClass}">${res.pred.ou.confianza}</span>
+                                <!-- TARJETA GOLES -->
+                                <div class="prediction-card card-ou">
+                                    <div class="pred-card-header">
+                                        <span class="pred-type-label"><i class="fa-solid fa-futbol me-1 text-warning"></i>MERCADO LÍNEA DE GOLES (O/U)</span>
+                                        <span class="pred-conf-badge ${res.pred.ou.confClass}">${esc(res.pred.ou.confianza)}</span>
                                     </div>
-                                    <div class="prediction-selection">${esc(res.pred.ou.pick)}</div>
-                                    <div class="prediction-action-row">
-                                        <i class="fa-solid fa-arrow-right-long text-success"></i>
-                                        <span>${esc(res.pred.ou.accion)}</span>
+                                    <div class="pred-main-pick">${esc(res.pred.ou.pick)}</div>
+                                    <div class="pred-action-box">
+                                        <span class="action-tag">Orden:</span>
+                                        <strong class="action-text">${esc(res.pred.ou.accion)}</strong>
                                     </div>
-                                    <p class="prediction-reason mb-0">${esc(res.pred.ou.razon)}</p>
+                                    <div class="pred-reason-box">
+                                        <i class="fa-solid fa-chart-line me-1 text-secondary"></i>
+                                        <span>${esc(res.pred.ou.razon)}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- TRAMPA DETECTADA BANNER -->
-                        <div class="motor-trap-banner ${res.trampaDetectada !== 'NINGUNA_TRAMPA_EVIDENTE' ? 'trap-detected' : 'trap-safe'}">
-                            <div class="trap-head">
-                                <span><i class="fa-solid fa-shield-halved me-1"></i> TRAMPA DE LA CASA: <strong>${esc(res.trampaDetectada)}</strong></span>
-                                <span class="trap-pill">${res.trampaDetectada !== 'NINGUNA_TRAMPA_EVIDENTE' ? 'ALERTA TRAMPA' : 'LÍNEAS LIMPIAS'}</span>
-                            </div>
-                            <div class="trap-desc">${esc(res.trampaDetalle)}</div>
-                        </div>
-
-                        <!-- GRID MODULO A Y B -->
-                        <div class="motor-modules-grid">
-                            <!-- MODULO A: HANDICAP -->
-                            <div class="motor-module-card ah-card">
-                                <div class="module-title-bar">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="fw-bold"><i class="fa-solid fa-scale-balanced me-1 text-primary"></i> MÓDULO A: HÁNDICAP ASIÁTICO</span>
-                                        <span class="badge bg-primary fs-6">${res.scoreAh} / 6</span>
-                                    </div>
-                                    <div class="module-verdict mt-2">
-                                        <strong>SEÑAL:</strong> ${esc(res.veredictoAh)}
-                                    </div>
-                                </div>
-                                <div class="module-gates-list">
-                                    ${renderGate('b1', res.b.b1, 'Correlación Actual Similares', res.bDet.b1)}
-                                    ${renderGate('b2', res.b.b2, 'Correlación Histórica H2H', res.bDet.b2)}
-                                    ${renderGate('b3', res.b.b3, 'Triangulación Rivales Comunes', res.bDet.b3)}
-                                    ${renderGate('b4', res.b.b4, 'Memoria H2H + Posición Tabla', res.bDet.b4)}
-                                    ${renderGate('b5', res.b.b5, 'Volumen Ofensivo Mismo Rol', res.bDet.b5)}
-                                    ${renderGate('b6', res.b.b6, 'Filtro Empate vs Margen Victoria', res.bDet.b6)}
-                                </div>
-                            </div>
-
-                            <!-- MODULO B: GOLES -->
-                            <div class="motor-module-card ou-card">
-                                <div class="module-title-bar">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="fw-bold"><i class="fa-solid fa-futbol me-1 text-success"></i> MÓDULO B: LÍNEA DE GOLES (O/U)</span>
-                                        <span class="badge bg-success fs-6">${res.scoreOu} / 6</span>
-                                    </div>
-                                    <div class="module-verdict mt-2">
-                                        <strong>SEÑAL:</strong> ${esc(res.veredictoOu)}
-                                    </div>
-                                </div>
-                                <div class="module-gates-list">
-                                    ${renderGate('g1', res.g.g1, 'Axioma Piso 1+2=3 Goles', res.gDet.g1)}
-                                    ${renderGate('g2', res.g.g2, 'Media Referencias Mz >= Gz', res.gDet.g2)}
-                                    ${renderGate('g3', res.g.g3, 'Goles en Hándicaps Similares', res.gDet.g3)}
-                                    ${renderGate('g4', res.g.g4, 'Ruptura Unilateral/Bilateral', res.gDet.g4)}
-                                    ${renderGate('g5', res.g.g5, 'Ritmo Ataques Peligrosos >= 100', res.gDet.g5)}
-                                    ${renderGate('g6', res.g.g6, 'Volumen Tiros >= 22 o Letalidad', res.gDet.g6)}
-                                </div>
+                        <!-- BANNER TRAMPA DE LA CASA -->
+                        <div class="motor-trap-banner ${res.trampaDetectada !== 'NINGUNA_TRAMPA_EVIDENTE' ? 'trap-active' : 'trap-none'}">
+                            <div class="trap-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="trap-content">
+                                <div class="trap-title">Trampa Detectada: <span>${esc(res.trampaDetectada)}</span></div>
+                                <div class="trap-desc">${esc(res.trampaDetalle)}</div>
                             </div>
                         </div>
 
-                        <!-- PLAN OPERATIVO DESTACADO -->
-                        <div class="motor-plan-box">
-                            <div class="plan-header"><i class="fa-solid fa-crosshairs me-1 text-warning"></i> <strong>PLAN OPERATIVO CUANTITATIVO RECOMENDADO</strong></div>
-                            <div class="plan-grid">
+                        <!-- LÍNEA DE ACOPLAMIENTO CRUZADO -->
+                        <div class="motor-summary-banner" style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: #0f172a; border-left: 4px solid #10b981; border-radius: 6px;">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                                 <div>
-                                    <span class="plan-pill pre">PRE-PARTIDO</span>
-                                    <p class="mb-0 mt-1 small">${esc(res.veredictoAh.split('[')[0])} · ${esc(res.veredictoOu.split('(')[0])}</p>
+                                    <strong style="color: #34d399;"><i class="fa-solid fa-link me-2"></i>Acoplamiento Cruzado (AH <-> OU):</strong>
+                                    <span style="color: #f1f5f9; font-weight: 600; margin-left: 0.5rem;">[${esc(res.acoplamientoCruzadoEstado)}]</span>
                                 </div>
-                                <div>
-                                    <span class="plan-pill live">EN VIVO (LIVE)</span>
-                                    <p class="mb-0 mt-1 small">Si el marcador es 0:0 al min 15-20, aprovechar descuento de 1-2 enteros en líneas alternativas.</p>
+                                <div class="small text-secondary">
+                                    Referencias 3+ goles: <strong>${res.refAudit?.partidosCon3MasGoles || 0}/${res.refAudit?.totalPartidosRef || 0}</strong> | Mz = ${res.refAudit?.Mz || 0} vs Gz = ${res.Gz}
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN COMPUERTAS HÁNDICAP -->
+                        <div class="motor-section">
+                            <div class="motor-section-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-shield-halved text-primary"></i>
+                                    <h6 class="mb-0">Módulo A: Compuertas de Hándicap Asiático</h6>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="motor-score-pill">Score AH: ${res.scoreAh} / 6</span>
+                                    ${res.bloqueoAh ? `<span class="badge bg-danger text-white">${esc(res.bloqueoAh)}</span>` : ''}
+                                    ${res.rupturaEmpatador ? `<span class="badge bg-warning text-dark">Ruptura Empatador</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="motor-gates-grid">
+                                ${renderGate('b1', res.b.b1, 'Correlación Actual Similares', res.bDet.b1)}
+                                ${renderGate('b2', res.b.b2, 'Correlación Histórica H2H', res.bDet.b2)}
+                                ${renderGate('b3', res.b.b3, 'Triangulación Rivales Comunes', res.bDet.b3)}
+                                ${renderGate('b4', res.b.b4, 'Memoria H2H + Tabla', res.bDet.b4)}
+                                ${renderGate('b5', res.b.b5, 'Volumen Filtrado Mismo Rol', res.bDet.b5)}
+                                ${renderGate('b6', res.b.b6, 'Filtro Empate / Margen', res.bDet.b6)}
+                            </div>
+                            <div class="motor-verdict-box">
+                                <span class="verdict-label">Dictamen Operativo Hándicap:</span>
+                                <span class="verdict-val">${esc(res.veredictoAh)}</span>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN COMPUERTAS GOLES -->
+                        <div class="motor-section">
+                            <div class="motor-section-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-futbol text-warning"></i>
+                                    <h6 class="mb-0">Módulo B: Compuertas de Línea de Goles (O/U)</h6>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="motor-score-pill">Score O/U: ${res.scoreOu} / 6</span>
+                                    ${res.vetoAntiUnder ? `<span class="badge bg-danger text-white">Veto Anti-Under</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="motor-gates-grid">
+                                ${renderGate('g1', res.g.g1, 'Axioma Piso 1+2=3', res.gDet.g1)}
+                                ${renderGate('g2', res.g.g2, 'Media Entera Referencias Mz', res.gDet.g2)}
+                                ${renderGate('g3', res.g.g3, 'Fusión Ponderada Similares', res.gDet.g3)}
+                                ${renderGate('g4', res.g.g4, 'Ruptura Unilateral/Bilateral', res.gDet.g4)}
+                                ${renderGate('g5', res.g.g5, 'Ritmo Peligro Combinado', res.gDet.g5)}
+                                ${renderGate('g6', res.g.g6, 'Densidad Disparos / Conversión', res.gDet.g6)}
+                            </div>
+                            <div class="motor-verdict-box">
+                                <span class="verdict-label">Dictamen Operativo Goles:</span>
+                                <span class="verdict-val">${esc(res.veredictoOu)}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- FOOTER ACTIONS -->
                     <div class="motor-v4-footer">
-                        <button type="button" class="btn btn-outline-secondary btn-sm fw-bold px-3" onclick="window.closeMotorV4Modal()">
-                            <i class="fa-solid fa-xmark me-1"></i> Cerrar
-                        </button>
-                        <button type="button" class="btn btn-primary btn-sm fw-bold px-3" id="btnCopyMotorV4Prompt" onclick="window.copyMotorV4AuditedPrompt('${matchId}')">
-                            <i class="fa-solid fa-clipboard-check me-1"></i> Copiar Contexto + Prompt LLM Inyectado
-                        </button>
+                        <div class="small text-secondary">
+                            <i class="fa-solid fa-circle-check text-success me-1"></i> Auditoría calculada determinísticamente sin sesgos.
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm fw-bold px-3" onclick="window.closeMotorV4Modal()">
+                                Cerrar
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm fw-bold px-3" id="btnCopyMotorV4Prompt" onclick="window.copyMotorV4AuditedPrompt('${matchId}')">
+                                <i class="fa-regular fa-copy me-1"></i> Copiar Prompt Auditado v5.0
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1189,83 +1468,73 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
 
         const statsButtons = panel.querySelectorAll('.pre-context-stats-btn, .mm-btn-stats');
         statsButtons.forEach(btn => {
-            if (typeof btn.click === 'function') {
+            if (!btn.classList.contains('active') && !btn.classList.contains('btn-success')) {
                 btn.click();
             }
         });
 
-        // Esperar 400ms para permitir renderizado del DOM
-        await new Promise(r => setTimeout(r, 450));
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-        const motorBtn = panel.querySelector('.pre-context-motor-v4-btn');
-        if (motorBtn) {
+        const motorBtn = panel.querySelector('.pre-context-motor-v4-btn') || triggerBtn;
+        if (window.openMotorV4Modal) {
             await window.openMotorV4Modal(motorBtn, matchId);
         }
     };
 
     /**
-     * Copia al portapapeles con recálculo en fresco del estado DOM
+     * Copia al portapapeles el prompt completo auditado
      */
     window.copyMotorV4AuditedPrompt = async function (matchId) {
         const mid = matchId || window._lastMotorV4MatchId;
         let textToCopy = window._lastMotorV4Prompt || '';
+        const btn = document.getElementById('btnCopyMotorV4Prompt');
 
-        // Recálculo en caliente para asegurar que captura cualquier ficha que se haya abierto
-        if (mid) {
-            const panel = document.querySelector(`button[onclick*="${mid}"]`)?.closest('.pre-context-panel') || document;
+        if (!textToCopy && mid) {
+            const panel = document.querySelector(`.pre-context-panel[data-match-id="${mid}"]`) || document;
             const copyBtn = panel.querySelector('.pre-context-copy');
-            const rawContext = decodeURIComponent(copyBtn?.dataset?.context || '');
-            let openCardsText = '';
-            if (typeof extractOpenContextCardsText === 'function') {
-                openCardsText = extractOpenContextCardsText(panel);
-            }
-
+            const encoded = copyBtn?.dataset?.context || '';
+            const contextText = decodeURIComponent(encoded);
+            const openCardsText = typeof window.extractOpenContextCardsText === 'function' ? window.extractOpenContextCardsText(panel) : '';
             const promptText = window._lastBasePromptText || '';
-            const matchData = extractMatchDataFromDOM(panel, mid, promptText);
-            const evaluation = evaluateMatchV4(matchData);
-            const auditTemplate = buildPromptInjectionTemplate(evaluation);
-
             const divider = '='.repeat(72);
-            textToCopy = `${rawContext}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}\n\n${auditTemplate}`;
-            panel._motorV4AuditTemplate = auditTemplate;
-            panel._motorV4AuditedPrompt = textToCopy;
+            textToCopy = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}`;
+            if (panel._motorV4AuditTemplate) {
+                textToCopy += `\n\n${panel._motorV4AuditTemplate}`;
+            }
             window._lastMotorV4Prompt = textToCopy;
         }
 
-        if (!textToCopy) return;
+        if (!textToCopy) {
+            alert('No se encontró el texto del prompt para copiar.');
+            return;
+        }
 
         try {
             await navigator.clipboard.writeText(textToCopy);
-            const btn = document.getElementById('btnCopyMotorV4Prompt');
             if (btn) {
-                const orig = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> ¡Copiado con Éxito!';
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-success');
+                const prev = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> ¡Prompt Copiado!';
+                btn.classList.replace('btn-primary', 'btn-success');
                 setTimeout(() => {
-                    btn.innerHTML = orig;
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-primary');
+                    btn.innerHTML = prev;
+                    btn.classList.replace('btn-success', 'btn-primary');
                 }, 2000);
             }
-        } catch (e) {
-            alert('Error copiando al portapapeles: ' + e.message);
+        } catch (err) {
+            console.error('Error al copiar al portapapeles:', err);
+            prompt('Copia manualmente el prompt auditado:', textToCopy);
         }
     };
 
     /**
-     * Handler activado exclusivamente al hacer click en el botón de un partido
+     * Controlador principal al pulsar el botón "🧠 Motor v5.0"
      */
     window.openMotorV4Modal = async function (button, matchId) {
-        if (!button || !matchId) return;
-
-        const panel = button.closest('.pre-context-panel') || document;
-        const originalHtml = button.innerHTML;
-        button.disabled = true;
-        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Evaluando…';
-
         try {
-            // 1. Obtener prompt exportado del partido
+            const panel = button?.closest('.pre-context-panel') ||
+                          document.querySelector(`.pre-context-panel[data-match-id="${matchId}"]`) ||
+                          document;
+
             let promptText = '';
             try {
                 const res = await fetch(`/api/export_prompt/${encodeURIComponent(matchId)}`);
@@ -1278,36 +1547,29 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                 console.warn('No se pudo cargar /api/export_prompt, continuando con DOM:', e);
             }
 
-            // 2. Extraer datos del DOM en tiempo real
             const matchData = extractMatchDataFromDOM(panel, matchId, promptText);
+            const result = evaluateMatchV4(matchData);
+            const auditTemplate = buildPromptInjectionTemplate(result);
 
-            // 3. Ejecutar algoritmo cuantitativo v4.0 con signos y protecciones corregidas
-            const evaluation = evaluateMatchV4(matchData);
-
-            // 4. Inyectar auditoría en el prompt
-            const auditTemplate = buildPromptInjectionTemplate(evaluation);
-            const copyBtn = panel.querySelector('.pre-context-copy');
-            const rawContext = decodeURIComponent(copyBtn?.dataset?.context || '');
-            let openCardsText = '';
-            if (typeof extractOpenContextCardsText === 'function') {
-                openCardsText = extractOpenContextCardsText(panel);
-            }
-
-            const divider = '='.repeat(72);
-            const combinedPromptWithAudit = `${rawContext}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}\n\n${auditTemplate}`;
-
-            // Almacenar en panel para que si pulsa el botón original de copiar prompt, también lo incluya
             panel._motorV4AuditTemplate = auditTemplate;
-            panel._motorV4AuditedPrompt = combinedPromptWithAudit;
 
-            // 5. Desplegar pop-up modal
-            showMotorV4Modal(evaluation, combinedPromptWithAudit, matchId);
+            const copyBtn = panel.querySelector('.pre-context-copy');
+            const encoded = copyBtn?.dataset?.context || '';
+            const contextText = decodeURIComponent(encoded);
+            const openCardsText = typeof window.extractOpenContextCardsText === 'function' ? window.extractOpenContextCardsText(panel) : '';
+            const divider = '='.repeat(72);
+            const combinedPromptText = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}\n\n${auditTemplate}`;
+
+            showMotorV4Modal(result, combinedPromptText, matchId);
         } catch (err) {
-            console.error('Error ejecutando Motor v4.0:', err);
-            alert('Error en Motor v4.0: ' + err.message);
-        } finally {
-            button.disabled = false;
-            button.innerHTML = originalHtml;
+            console.error('Error ejecutando Motor v5.0:', err);
+            alert('Error en Motor v5.0: ' + err.message);
         }
     };
+
+    // Alias para v5
+    window.openMotorV5Modal = window.openMotorV4Modal;
+    window.evaluateMatchV4 = evaluateMatchV4;
+    window.evaluateMatchV5 = evaluateMatchV4;
+
 })();
