@@ -228,8 +228,7 @@
         // --- PASO 3: MÓDULO A — LAS 6 COMPUERTAS BINARIAS DE HÁNDICAP (b1..b6) ---
         const b = {};
         const bDet = {};
-
-        // b1: Correlación Actual en Hándicaps Similares (Con Protección de Muestra Insuficiente)
+        // b1: Correlación Actual en Hándicaps Similares (Lectura directa de Correlación oficial)
         const favSamplesActual = favoritoRole === 'home' ? (data.similaresActualHomeSamples || 0) : (data.similaresActualAwaySamples || 0);
         const noFavSamplesActual = favoritoRole === 'home' ? (data.similaresActualAwaySamples || 0) : (data.similaresActualHomeSamples || 0);
         const favHasCoverActual = favoritoRole === 'home' ? !!data.similaresActualHomeHasCover : !!data.similaresActualAwayHasCover;
@@ -241,36 +240,38 @@
 
         const ambosSinMuestraActual = !favHasCoverActual && !noFavHasCoverActual;
 
-        if (ambosSinMuestraActual) {
+        // Interpretación de la etiqueta oficial de correlación de la app
+        const corrActualTexto = (data.correlacionActualTexto || '').toLowerCase();
+        const corrActualFavoreceLocal = corrActualTexto.includes('favorable al local');
+        const corrActualFavoreceVis = corrActualTexto.includes('favorable al visitante');
+        const corrActualInsuficiente = corrActualTexto.includes('insuficiente');
+
+        const corrActualFavoreceFav = (favoritoRole === 'home' && corrActualFavoreceLocal) || (favoritoRole === 'away' && corrActualFavoreceVis);
+        const corrActualFavoreceNoFav = (favoritoRole === 'home' && corrActualFavoreceVis) || (favoritoRole === 'away' && corrActualFavoreceLocal);
+
+        if (corrActualFavoreceFav) {
+            b.b1 = 1;
+            bDet.b1 = `Correlación oficial favorable al Favorito [${favorito}] (${coverFavActual !== null ? coverFavActual + '%' : 'ventaja histórica'}).`;
+        } else if (corrActualFavoreceNoFav) {
+            b.b1 = 0;
+            bDet.b1 = `Correlación oficial favorable al No-Favorito [${noFavorito}] (${coverNoFavActual !== null ? coverNoFavActual + '%' : 'ventaja histórica'}).`;
+        } else if (ambosSinMuestraActual || corrActualInsuficiente) {
             b.b1 = 0;
             bDet.b1 = `Muestra insuficiente (< 2 partidos en ambos lados). No aplica bloqueo ni sesgo.`;
         } else if (favHasCoverActual && !noFavHasCoverActual) {
-            if (coverFavActual >= 55) {
-                b.b1 = 1;
-                bDet.b1 = `Cover Favorito (${coverFavActual}%) >= 55% en ${favSamplesActual} PJ (No-Favorito sin muestra suficiente: ${noFavSamplesActual} PJ).`;
-            } else {
-                b.b1 = 0;
-                bDet.b1 = `Cover Favorito (${coverFavActual}%) < 55% en ${favSamplesActual} PJ (No-Favorito sin muestra suficiente).`;
-            }
+            b.b1 = coverFavActual >= 50 ? 1 : 0;
+            bDet.b1 = `Cover Favorito (${coverFavActual}%) en ${favSamplesActual} PJ (No-Fav sin muestra).`;
         } else if (!favHasCoverActual && noFavHasCoverActual) {
-            if (coverNoFavActual >= 60 || (noFavLossesActual === 0 && noFavSamplesActual >= 3)) {
-                b.b1 = 0;
-                bDet.b1 = `Correlación favorece al No-Favorito (${coverNoFavActual}% cover en ${noFavSamplesActual} PJ). Favorito sin muestra.`;
-            } else {
-                b.b1 = 1;
-                bDet.b1 = `No-Favorito no supera el 60% cover (${coverNoFavActual}%). Favorito sin muestra.`;
-            }
+            b.b1 = coverNoFavActual <= 50 ? 1 : 0;
+            bDet.b1 = `Cover No-Fav (${coverNoFavActual}%) en ${noFavSamplesActual} PJ (Fav sin muestra).`;
         } else {
-            // Ambos tienen muestra suficiente
-            if (coverFavActual >= 55 && coverNoFavActual <= 50) {
+            // Comparación cuantitativa directa de covers
+            if (coverFavActual >= coverNoFavActual) {
                 b.b1 = 1;
-                bDet.b1 = `Cover Favorito (${coverFavActual}%) >= 55% y No-Favorito (${coverNoFavActual}%) <= 50%.`;
-            } else if (coverNoFavActual >= 60 || (noFavLossesActual === 0 && noFavSamplesActual >= 3) || (data.correlacionActualTexto || '').toLowerCase().includes(noFavorito.toLowerCase())) {
-                b.b1 = 0;
-                bDet.b1 = `Correlación favorece al No-Favorito (${coverNoFavActual}% cover, ${noFavLossesActual} derrotas en ${noFavSamplesActual} PJ).`;
+                bDet.b1 = `Cover Favorito (${coverFavActual}%) supera o iguala a No-Favorito (${coverNoFavActual}%).`;
             } else {
-                b.b1 = coverFavActual >= coverNoFavActual ? 1 : 0;
-                bDet.b1 = `Cover Fav: ${coverFavActual}% vs No-Fav: ${coverNoFavActual}%.`;
+                b.b1 = 0;
+                bDet.b1 = `Cover No-Favorito (${coverNoFavActual}%) supera a Favorito (${coverFavActual}%).`;
             }
         }
 
@@ -285,27 +286,39 @@
 
         const ambosSinMuestraH2H = !favHasCoverH2H && !noFavHasCoverH2H;
 
-        if (ambosSinMuestraH2H) {
+        const corrH2HTexto = (data.correlacionH2HTexto || '').toLowerCase();
+        const corrH2HFavoreceLocal = corrH2HTexto.includes('favorable al local');
+        const corrH2HFavoreceVis = corrH2HTexto.includes('favorable al visitante');
+        const corrH2HInsuficiente = corrH2HTexto.includes('insuficiente');
+
+        const corrH2HFavoreceFav = (favoritoRole === 'home' && corrH2HFavoreceLocal) || (favoritoRole === 'away' && corrH2HFavoreceVis);
+        const corrH2HFavoreceNoFav = (favoritoRole === 'home' && corrH2HFavoreceVis) || (favoritoRole === 'away' && corrH2HFavoreceLocal);
+
+        if (corrH2HFavoreceFav) {
+            b.b2 = 1;
+            bDet.b2 = `Correlación H2H favorable al Favorito [${favorito}] (${coverFavH2H !== null ? coverFavH2H + '%' : 'ventaja H2H'}).`;
+        } else if (corrH2HFavoreceNoFav) {
             b.b2 = 0;
-            bDet.b2 = `Muestra H2H previa insuficiente (< 2 partidos en ambos lados). No aplica bloqueo.`;
+            bDet.b2 = `Correlación H2H favorable al No-Favorito [${noFavorito}] (${coverNoFavH2H !== null ? coverNoFavH2H + '%' : 'ventaja H2H'}).`;
+        } else if (ambosSinMuestraH2H || corrH2HInsuficiente) {
+            b.b2 = 0;
+            bDet.b2 = `Muestra H2H previa insuficiente. No aplica bloqueo.`;
         } else if (favHasCoverH2H && !noFavHasCoverH2H) {
             b.b2 = coverFavH2H >= 50 ? 1 : 0;
-            bDet.b2 = `Cover H2H Fav (${coverFavH2H}%) en ${favSamplesH2H} PJ (No-Fav sin muestra).`;
+            bDet.b2 = `Cover H2H Fav (${coverFavH2H}%) en ${favSamplesH2H} PJ.`;
         } else if (!favHasCoverH2H && noFavHasCoverH2H) {
-            b.b2 = coverNoFavH2H < 50 ? 1 : 0;
-            bDet.b2 = `Cover H2H No-Fav (${coverNoFavH2H}%) en ${noFavSamplesH2H} PJ (Fav sin muestra).`;
+            b.b2 = coverNoFavH2H <= 50 ? 1 : 0;
+            bDet.b2 = `Cover H2H No-Fav (${coverNoFavH2H}%) en ${noFavSamplesH2H} PJ.`;
         } else {
-            if (coverFavH2H >= 55 && coverNoFavH2H < 50) {
+            if (coverFavH2H >= coverNoFavH2H) {
                 b.b2 = 1;
-                bDet.b2 = `Cover H2H Fav (${coverFavH2H}%) >= 55% y No-Fav (${coverNoFavH2H}%) < 50%.`;
-            } else if ((data.correlacionH2HTexto || '').toLowerCase().includes(favorito.toLowerCase()) && coverFavH2H > coverNoFavH2H) {
-                b.b2 = 1;
-                bDet.b2 = `Correlación H2H favorece al Favorito (${coverFavH2H}% vs ${coverNoFavH2H}%).`;
+                bDet.b2 = `Cover H2H Fav (${coverFavH2H}%) supera o iguala a No-Fav (${coverNoFavH2H}%).`;
             } else {
                 b.b2 = 0;
-                bDet.b2 = `Cover H2H No-Fav (${coverNoFavH2H}%) supera o iguala al Fav (${coverFavH2H}%).`;
+                bDet.b2 = `Cover H2H No-Fav (${coverNoFavH2H}%) supera a Fav (${coverFavH2H}%).`;
             }
         }
+
 
         // b3: Triangulación Entera en Rivales Comunes e Indirectas (Signo Invertido en FUERA)
         const tri = data.triangulacionB3 || { deltaZ: absHz + 1, favSuperior: true, detail: 'Sin triangulación específica.' };
@@ -552,40 +565,29 @@
                 razon: ''
             }
         };
+        // 1. Predicción de Hándicap Asiático (Signos y Notación idéntica a la tabla de la App)
+        const lineDisplay = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
 
-        // 1. Predicción de Hándicap Asiático
         if (bloqueoAh) {
             if (bloqueoAh.includes('PRO-FAVORITO')) {
-                const lineVal = absHz > 0 ? `-${(absHz / 4).toFixed(2)}` : 'AH 0';
-                pred.ah.pick = `${favorito} ${lineVal}`;
+                pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
                 pred.ah.accion = `Entrada Fuerte al Favorito [${favorito}]`;
                 pred.ah.confianza = 'BLOQUEO PRO-FAVORITO';
                 pred.ah.confClass = 'conf-bloqueo';
                 pred.ah.razon = bloqueoAh;
             } else {
-                const lineVal = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
-                pred.ah.pick = `${noFavorito} ${lineVal}`;
+                pred.ah.pick = `${noFavorito} ${lineDisplay} (No-Favorito)`;
                 pred.ah.accion = `Entrada Fuerte al No-Favorito (+AH) [${noFavorito}]`;
                 pred.ah.confianza = 'BLOQUEO ANTI-SESGO';
                 pred.ah.confClass = 'conf-bloqueo';
                 pred.ah.razon = `${bloqueoAh}. Todo el valor está en ${noFavorito}.`;
             }
         } else if (scoreAh >= 5) {
-            if (absHz >= 5 && b.b6 === 0) {
-                const lineAlt = `-${((absHz - 1) / 4).toFixed(2)}`;
-                pred.ah.pick = `${favorito} AH ${lineAlt} (Línea Alternativa)`;
-                pred.ah.accion = 'Bajar 1 entero para blindar victoria por 1 gol';
-                pred.ah.confianza = 'ALTA';
-                pred.ah.confClass = 'conf-alta';
-                pred.ah.razon = 'Favorito sólido pero suele ganar por la mínima. Blindar con -1 entero.';
-            } else {
-                const lineVal = absHz > 0 ? `-${(absHz / 4).toFixed(2)}` : 'AH 0';
-                pred.ah.pick = `${favorito} ${lineVal}`;
-                pred.ah.accion = `Entrada Directa al Favorito [${favorito}]`;
-                pred.ah.confianza = 'ALTA';
-                pred.ah.confClass = 'conf-alta';
-                pred.ah.razon = 'Score AH >= 5/6. Superioridad integral en correlación y métricas.';
-            }
+            pred.ah.pick = `${favorito} ${lineDisplay} (Favorito)`;
+            pred.ah.accion = `Entrada Directa al Favorito [${favorito}]`;
+            pred.ah.confianza = 'ALTA';
+            pred.ah.confClass = 'conf-alta';
+            pred.ah.razon = 'Score AH >= 5/6. Superioridad integral en correlación y métricas.';
         } else if (scoreAh >= 3) {
             const lineAlt = `+${((absHz + 1) / 4).toFixed(2)}`;
             pred.ah.pick = `${noFavorito} ${lineAlt} (o Esperar Live)`;
@@ -594,13 +596,13 @@
             pred.ah.confClass = 'conf-media';
             pred.ah.razon = 'Favorito con alta fricción de empate. El mercado castiga la línea par.';
         } else {
-            const lineVal = absHz > 0 ? `+${(absHz / 4).toFixed(2)}` : 'AH 0';
-            pred.ah.pick = `${noFavorito} ${lineVal}`;
+            pred.ah.pick = `${noFavorito} ${lineDisplay} (No-Favorito)`;
             pred.ah.accion = `Entrada Fuerte al No-Favorito (+AH) [${noFavorito}]`;
             pred.ah.confianza = 'ALTA';
             pred.ah.confClass = 'conf-alta';
             pred.ah.razon = 'Score AH <= 2/6. Trampa en las líneas del favorito; valor en el no-favorito.';
         }
+
 
         // 2. Predicción de Goles
         if (g.g1 === 1) {
@@ -672,7 +674,11 @@
         const awayName = standingsBtn?.dataset?.awayName || panel.querySelector('.highlight-away')?.innerText?.trim() || 'Visitante';
         const leagueName = standingsBtn?.dataset?.leagueName || panel.dataset?.currentLeague || 'Liga';
         const date = standingsBtn?.dataset?.matchDate || '';
-        const handicap = standingsBtn?.dataset?.handicap || '0';
+        let handicap = standingsBtn?.dataset?.handicap || '0';
+        const hcPromptMatch = promptText.match(/H[aá]ndicap\s+Inicial\*?\*?:\s*([0-9.-]+)/i);
+        if (hcPromptMatch) {
+            handicap = hcPromptMatch[1].trim();
+        }
         const goalLine = standingsBtn?.dataset?.goalLine || '2.5';
 
         const rawContext = decodeURIComponent(copyBtn?.dataset?.context || '');
