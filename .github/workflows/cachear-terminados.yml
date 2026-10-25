@@ -24,7 +24,8 @@ on:
         default: '100'
         type: string
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 5 * * *' # 05:00 España todo el año
+      timezone: Europe/Madrid
 
 permissions:
   contents: write

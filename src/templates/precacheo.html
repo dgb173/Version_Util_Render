@@ -4725,6 +4725,12 @@
             return `${p.year}-${p.month}-${p.day}`;
         }
 
+        function getSpainTomorrowDateKey(date) {
+            const p = getSpainParts(date);
+            const calendar = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day) + 1));
+            return calendar.toISOString().slice(0, 10);
+        }
+
         function toScheduleKey(parts) {
             const y = parseInt(parts.year, 10);
             const m = parseInt(parts.month, 10);
@@ -4853,7 +4859,7 @@
         function getMatchScheduleParts(match) {
             if (match && match._schedule_parts) return match._schedule_parts;
 
-            if (match && match.start_time) {
+            if (match && match.start_time && /(?:Z|[+-]\d{2}:\d{2})$/i.test(String(match.start_time))) {
                 const d = new Date(match.start_time);
                 if (!isNaN(d.getTime())) {
                     const p = getSpainParts(d);
@@ -4912,7 +4918,7 @@
 
             const now = new Date();
             const todayKey = getSpainDateKey(now);
-            const tomorrowKey = getSpainDateKey(new Date(now.getTime() + 86400000));
+            const tomorrowKey = getSpainTomorrowDateKey(now);
             const matchKey = `${String(schedule.year).padStart(4, '0')}-${String(schedule.month).padStart(2, '0')}-${String(schedule.day).padStart(2, '0')}`;
             const hh = String(schedule.hour).padStart(2, '0');
             const mm = String(schedule.minute).padStart(2, '0');

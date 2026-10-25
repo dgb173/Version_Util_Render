@@ -28,6 +28,7 @@ on:
 permissions:
   contents: write
 env:
+  TZ: Europe/Madrid
   PYTHONUNBUFFERED: '1'
   DATA_LEGACY_SYNC: '0'
   SQL_BOOTSTRAP_MODE: partial

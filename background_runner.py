@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from modules import data_manager, sql_store  # noqa: E402
 from modules.nowgoal_fetcher import parse_handicap_numeric  # noqa: E402
 from modules.estudio_scraper import analizar_partido_completo  # noqa: E402
+from modules.match_clock import schedule_fields, sync_schedule  # noqa: E402
 
 
 def _load_jobs(job_file: Path):
@@ -111,7 +112,18 @@ def _process_match(match_id: str, job_meta: dict = None, defer_summary_stats: bo
             return False, match_id, "skipped_no_handicap", None
 
         match_data["match_id"] = str(match_id)
-        match_data["precacheo_date"] = datetime.datetime.now().isoformat()
+        if schedule_fields(job_meta or {}):
+            match_data = sync_schedule(match_data, job_meta)
+        else:
+            try:
+                snapshot = sql_store.get_json_state("app_main_page_cache_v1", default={}) or {}
+                for snap_m in snapshot.get("upcoming_matches", []):
+                    if str(snap_m.get("id") or snap_m.get("match_id")) == str(match_id):
+                        match_data = sync_schedule(match_data, snap_m)
+                        break
+            except Exception:
+                pass
+        match_data["precacheo_date"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         data_manager.save_precacheo_match(match_data)
         return True, match_id, "saved", match_data
     except Exception as exc:

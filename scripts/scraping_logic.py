@@ -6,6 +6,7 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 import datetime
+from zoneinfo import ZoneInfo
 import re
 import requests
 from requests.adapters import HTTPAdapter
@@ -15,6 +16,7 @@ from app_utils import normalize_handicap_to_half_bucket_str, _parse_handicap_to_
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / 'src'))
+from modules.match_clock import schedule_fields
 try:
     from modules import nowgoal_fetcher
 except Exception:
@@ -210,9 +212,11 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
     paginated_matches = upcoming_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=1)).strftime('%H:%M')
+        dt_spain = match['time_obj'].replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo('Europe/Madrid'))
+        match['time'] = dt_spain.strftime('%H:%M')
         # Keep time_obj for sorting but convert to string for JSON compatibility
         match['time_obj'] = match['time_obj'].isoformat()
+        match.update(schedule_fields(match))
 
     return paginated_matches
 
@@ -254,13 +258,15 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
             continue
 
         time_cell = row.find('td', {'name': 'timeData'})
-        match_time = datetime.datetime.now()
+        match_time = None
         if time_cell and time_cell.has_attr('data-t'):
             try:
                 match_time = datetime.datetime.strptime(time_cell['data-t'], '%Y-%m-%d %H:%M:%S')
             except (ValueError, IndexError):
                 continue
         
+        if match_time is None:
+            continue
         finished_matches.append({
             "id": match_id,
             "time_obj": match_time,
@@ -292,8 +298,10 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
     paginated_matches = finished_matches[offset:offset+limit]
 
     for match in paginated_matches:
-        match['time'] = (match['time_obj'] + datetime.timedelta(hours=1)).strftime('%d/%m %H:%M')
+        dt_spain = match['time_obj'].replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo('Europe/Madrid'))
+        match['time'] = dt_spain.strftime('%d/%m %H:%M')
         match['time_obj'] = match['time_obj'].isoformat()
+        match.update(schedule_fields(match))
 
     return paginated_matches
 
