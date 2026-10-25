@@ -21,6 +21,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
+from modules.match_clock import record_instant, schedule_fields, sync_schedule
 UTC = dt.timezone.utc
 SPAIN = ZoneInfo('Europe/Madrid')
 VERSION = 3
@@ -56,6 +57,9 @@ def numeric(value):
 
 
 def scheduled(row):
+    instant = record_instant(row)
+    if instant is not None:
+        return instant
     value = row.get('start_time')
     if value:
         try:
@@ -141,6 +145,9 @@ def reusable(old, source, kind):
         return False
     if old.get('cloud_cache_version') != VERSION:
         return False
+    clock = schedule_fields(source)
+    if clock and any(old.get(k) != clock[k] for k in ('start_time', 'time', 'match_date')):
+        return False
     for field in ('handicap', 'goal_line', 'start_time'):
         if source.get(field) is not None and str(source[field]) != str(old.get(field)):
             return False
@@ -160,6 +167,7 @@ def prepare(args):
     now = dt.datetime.now(UTC)
     unique = {}
     for row in rows:
+        row = sync_schedule(row, row)
         date = scheduled(row)
         if not date:
             continue
@@ -206,8 +214,9 @@ def analyze(source, kind, attempts=2):
                 raise ValueError((row or {}).get('error') or 'Empty analysis')
             row['match_id'] = mid(source)
             if source.get('source_verified'):
+                row = sync_schedule(row, source)
                 for key in ('start_time', 'match_date', 'time'):
-                    if source.get(key) is not None:
+                    if not schedule_fields(source) and source.get(key) is not None:
                         row[key] = source[key]
                 if kind == 'finished':
                     row['score'] = row['final_score'] = source['final_score']

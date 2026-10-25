@@ -101,6 +101,13 @@ def _parse_nowgoal_date_to_spain(date_raw: Any) -> Optional[dt.datetime]:
     if not date_raw:
         return None
     text = str(date_raw).strip()
+    # An explicit ISO offset identifies an instant; never strip or reinterpret it.
+    if 'T' in text or text.endswith('Z') or re.search(r'[+-]\d{2}:\d{2}$', text):
+        try:
+            parsed = dt.datetime.fromisoformat(text.replace('Z', '+00:00'))
+            return (parsed.replace(tzinfo=UTC_TZ) if parsed.tzinfo is None else parsed).astimezone(SPAIN_TZ)
+        except ValueError:
+            return None
 
     # Formato estándar 'YYYY-MM-DD HH:MM:SS'
     m_std = re.match(r"^(\d{4})[/-](\d{1,2})[/-](\d{1,2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?", text)
@@ -415,7 +422,7 @@ def parse_matches_from_bf_content(
 
         match_dt = _parse_nowgoal_date_to_spain(row[6] if len(row) > 6 else None)
         if not match_dt:
-            match_dt = now_spain
+            continue
 
         time_str = match_dt.strftime("%H:%M")
         date_str = match_dt.strftime("%m/%d/%Y")
@@ -717,7 +724,9 @@ def fetch_finished_matches_with_playwright() -> List[Dict[str, Any]]:
 
         parsed = []
         for item in rows:
-            match_dt = _parse_nowgoal_date_to_spain(item.get("date_raw")) or dt.datetime.now(SPAIN_TZ)
+            match_dt = _parse_nowgoal_date_to_spain(item.get("date_raw"))
+            if match_dt is None:
+                continue
             score = item.get("score") or "-:-"
             handicap = str(item.get("handicap") or "N/A")
             goal_line = str(item.get("goal_line") or "N/A")

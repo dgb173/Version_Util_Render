@@ -2273,78 +2273,9 @@ def extract_final_score_of(soup):
     return '?:?', '?-?'
 
 def _parse_to_spain_datetime(date_str, time_str, is_utc=True):
-    from datetime import datetime, timedelta
-    
-    # Normalizar AM/PM
-    am_pm = ""
-    time_str = time_str.strip()
-    if time_str.upper().endswith("PM"):
-        am_pm = "PM"
-        time_str = time_str[:-2].strip()
-    elif time_str.upper().endswith("AM"):
-        am_pm = "AM"
-        time_str = time_str[:-2].strip()
-        
-    time_str = time_str.rstrip(":")
-    
-    # Parsear hora y minuto
-    h, m = 12, 0
-    try:
-        parts = time_str.split(":")
-        if len(parts) >= 2:
-            h = int(parts[0])
-            m = int(parts[1])
-    except Exception:
-        pass
-        
-    if am_pm == "PM" and h < 12:
-        h += 12
-    elif am_pm == "AM" and h == 12:
-        h = 0
-        
-    # Parsear fecha
-    year, month, day = 2026, 6, 16
-    try:
-        if "-" in date_str:
-            parts = date_str.split("-")
-            if len(parts) == 3:
-                if len(parts[0]) == 4:
-                    year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
-                else:
-                    day, month, year = int(parts[0]), int(parts[1]), int(parts[2])
-        elif "/" in date_str:
-            parts = date_str.split("/")
-            if len(parts) == 3:
-                p1, p2, p3 = int(parts[0]), int(parts[1]), int(parts[2])
-                if p3 >= 100:
-                    if p1 > 12:
-                        day, month, year = p1, p2, p3
-                    elif p2 > 12:
-                        month, day, year = p1, p2, p3
-                    else:
-                        month, day, year = p1, p2, p3
-                else:
-                    year, month, day = p1, p2, p3
-    except Exception:
-        pass
-        
-    try:
-        dt = datetime(year, month, day, h, m)
-    except Exception:
-        dt = datetime(2026, 6, 16, 12, 0)
-        
-    # Convertir a España
-    if is_utc:
-        # En verano (abril a octubre) España es UTC+2, en invierno (noviembre a marzo) es UTC+1
-        if 4 <= dt.month <= 10:
-            dt_spain = dt + timedelta(hours=2)
-        else:
-            dt_spain = dt + timedelta(hours=1)
-    else:
-        # De Pekín (GMT+8) a España: restamos 7 horas
-        dt_spain = dt - timedelta(hours=7)
-        
-    return dt_spain
+    from .match_clock import source_wall_to_spain
+    return source_wall_to_spain(date_str, time_str, is_utc)
+
 
 def extract_match_datetime_spain(soup):
     """Extrae el datetime del partido convertido a la hora de España."""
@@ -2358,7 +2289,9 @@ def extract_match_datetime_spain(soup):
             full_time = time_span.get("data-t").strip()
             if ' ' in full_time:
                 date_part, time_part = full_time.split(' ', 1)
-                return _parse_to_spain_datetime(date_part, time_part, is_utc=True)
+                parsed = _parse_to_spain_datetime(date_part, time_part, is_utc=True)
+                if parsed is not None:
+                    return parsed
                 
         # 2. Intentar con el script matchInfo (suele estar en GMT+8 o similar)
         scripts = soup.find_all("script")
@@ -2380,9 +2313,8 @@ def extract_match_datetime_spain(soup):
                 date_part, time_part = text.split(' ', 1)
                 return _parse_to_spain_datetime(date_part, time_part, is_utc=True)
             else:
-                from datetime import datetime
-                today_str = datetime.now().strftime("%m/%d/%Y")
-                return _parse_to_spain_datetime(today_str, text, is_utc=True)
+                # A clock without a date cannot identify a historical fixture.
+                return None
 
     except Exception:
         pass
@@ -2659,8 +2591,10 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
         comp_V_vs_UL_H = extract_comparative_match_of(soup_completo, "table_v2", away_name, (last_home_match or {}).get('away_team'), league_id, False, odds_map)
         main_match_odds_data = extract_bet365_initial_odds_of(soup_completo, main_match_id)
         final_score, _ = extract_final_score_of(soup_completo)
-        match_time = extract_match_time_of(soup_completo)
-        match_date = extract_match_date_of(soup_completo)
+        match_dt_spain = extract_match_datetime_spain(soup_completo)
+        match_time = match_dt_spain.strftime("%H:%M") if match_dt_spain else "N/A"
+        match_date = f"{match_dt_spain.month}/{match_dt_spain.day}/{match_dt_spain.year}" if match_dt_spain else "N/A"
+        match_start_time = match_dt_spain.isoformat() if match_dt_spain else None
         details_h2h_col3 = get_h2h_details_for_original_logic_of(
             key_match_id_rival_a, rival_a_id, rival_b_id, rival_a_name, rival_b_name
         )
@@ -2755,6 +2689,7 @@ def _analizar_partido_completo_unlocked(match_id: str, force_refresh: bool = Fal
         "final_score": final_score,
         "time": match_time,
         "match_date": match_date,
+        "start_time": match_start_time,
         "home_standings": home_standings,
         "away_standings": away_standings,
         "home_ou_stats": home_ou_stats,

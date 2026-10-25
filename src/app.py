@@ -194,6 +194,7 @@ _requests_fetch_lock = threading.Lock()
 _EMPTY_DATA_TEMPLATE = {"upcoming_matches": [], "finished_matches": []}
 UTC_TZ = datetime.timezone.utc
 SPAIN_TZ = ZoneInfo("Europe/Madrid")
+CHINA_TZ = ZoneInfo("Asia/Shanghai")
 MAIN_PAGE_CACHE_KEY = "app_main_page_cache_v1"
 _DATA_FILE_CANDIDATES = [
     Path(__file__).resolve().parent / 'data.json',
@@ -1904,7 +1905,7 @@ def _fetch_grandes_ligas_upcoming_matches(limit: int | None = None, max_days: in
     Returns list sorted by start_time asc.
     """
     all_matches = []
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(CHINA_TZ).replace(tzinfo=None)
     max_date = now + datetime.timedelta(days=max_days)
     session = _get_shared_requests_session()
 
@@ -1956,8 +1957,8 @@ def _fetch_grandes_ligas_upcoming_matches(limit: int | None = None, max_days: in
                         home_name = teams.get(home_id, f"Team {home_id}")
                         away_name = teams.get(away_id, f"Team {away_id}")
 
-                        # Source time is GMT+8; convert to Spain (CET/CEST approx by -7h used in existing code).
-                        spain_time = match_time - datetime.timedelta(hours=7)
+                        # Feed de China; conversión por fecha real, incluido el cambio CET/CEST.
+                        spain_time = match_time.replace(tzinfo=CHINA_TZ).astimezone(SPAIN_TZ)
 
                         all_matches.append({
                             'id': match_id,
@@ -2682,7 +2683,7 @@ def api_favoritas_matches():
             })
         
         all_matches = []
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(CHINA_TZ).replace(tzinfo=None)
         max_date = now + datetime.timedelta(days=7)
         
         # Cargar datos ya precacheados
@@ -2808,7 +2809,7 @@ def api_favoritas_matches():
                                 continue
                             
                             # Convertir de GMT+8 a CET (UTC+1)
-                            spain_time = match_time - datetime.timedelta(hours=7)
+                            spain_time = match_time.replace(tzinfo=CHINA_TZ).astimezone(SPAIN_TZ)
                             date_key = spain_time.strftime('%Y-%m-%d')
                             
                             # Buscar si ya tenemos datos de análisis para este partido en el precache
@@ -3039,7 +3040,7 @@ def api_favoritas_precache_start():
             return jsonify({'error': 'No hay ligas favoritas configuradas con ID localizable.'}), 400
         
         all_matches = []
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(CHINA_TZ).replace(tzinfo=None)
         max_date = now + datetime.timedelta(days=7)
         session = _get_shared_requests_session()
         
@@ -3122,7 +3123,7 @@ def api_favoritas_precache_start():
                             clean_score = score.replace("'", "").strip()
                             if clean_score and clean_score != '-' and ':' not in clean_score and '-' in clean_score: continue
                             
-                            spain_time = match_time - datetime.timedelta(hours=7)
+                            spain_time = match_time.replace(tzinfo=CHINA_TZ).astimezone(SPAIN_TZ)
                             all_matches.append({
                                 'id': match_id,
                                 'league': liga_name,
