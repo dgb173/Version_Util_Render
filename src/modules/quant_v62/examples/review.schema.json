@@ -1,0 +1,133 @@
+{
+  "$defs": {
+    "Hypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "statement": {
+          "title": "Statement",
+          "type": "string"
+        },
+        "falsification_test": {
+          "title": "Falsification Test",
+          "type": "string"
+        },
+        "required_data": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Data",
+          "type": "array"
+        }
+      },
+      "required": [
+        "statement",
+        "falsification_test",
+        "required_data"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "Issue": {
+      "additionalProperties": false,
+      "properties": {
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "blocking"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "category": {
+          "enum": [
+            "data",
+            "leakage",
+            "settlement",
+            "statistics",
+            "logic",
+            "implementation"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "statement": {
+          "title": "Statement",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "suggested_test": {
+          "title": "Suggested Test",
+          "type": "string"
+        }
+      },
+      "required": [
+        "severity",
+        "category",
+        "statement",
+        "evidence_refs",
+        "suggested_test"
+      ],
+      "title": "Issue",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "packet_sha256": {
+      "title": "Packet Sha256",
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "insufficient_data",
+        "needs_revision",
+        "ready_for_validation"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "hypotheses": {
+      "items": {
+        "$ref": "#/$defs/Hypothesis"
+      },
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "packet_sha256",
+    "verdict",
+    "summary",
+    "issues",
+    "hypotheses",
+    "limitations"
+  ],
+  "title": "Review",
+  "type": "object"
+}

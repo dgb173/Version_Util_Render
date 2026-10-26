@@ -1,0 +1,256 @@
+[
+  {
+    "case": "dominio",
+    "b": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    "b_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "g": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    "g_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "ah": {
+      "market": "AH_HOME",
+      "line_q": -2,
+      "line": -0.5,
+      "quote_status": "QUOTED",
+      "quote": {
+        "market": "AH_HOME",
+        "line_q": -2,
+        "odds": 1.72,
+        "available_at": "2026-10-26T11:45:36Z",
+        "bookmaker": "FICTICIO",
+        "source_ref": "DEMO:QUOTE_AH"
+      },
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "ou": {
+      "market": "OVER",
+      "line_q": 10,
+      "line": 2.5,
+      "quote_status": "QUOTED",
+      "quote": {
+        "market": "OVER",
+        "line_q": 10,
+        "odds": 1.83,
+        "available_at": "2026-10-26T11:45:36Z",
+        "bookmaker": "FICTICIO",
+        "source_ref": "DEMO:QUOTE_OU"
+      },
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "policies": [
+      "OU_FLOOR_SCENARIO"
+    ]
+  },
+  {
+    "case": "cerrojo",
+    "b": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    "b_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "g": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "g_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "ah": {
+      "market": "AH_HOME",
+      "line_q": -2,
+      "line": -0.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "ou": {
+      "market": "UNDER",
+      "line_q": 12,
+      "line": 3.0,
+      "quote_status": "QUOTED",
+      "quote": {
+        "market": "UNDER",
+        "line_q": 12,
+        "odds": 1.81,
+        "available_at": "2026-10-26T11:45:36Z",
+        "bookmaker": "FICTICIO",
+        "source_ref": "DEMO:QUOTE_UNDER"
+      },
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "policies": [
+      "OU_ACTIVE_LOCK"
+    ]
+  },
+  {
+    "case": "datos_parciales",
+    "b": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    "b_available": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+    ],
+    "g": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "g_available": [
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+    ],
+    "ah": {
+      "market": "AH_HOME",
+      "line_q": -2,
+      "line": -0.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "ou": {
+      "market": "OVER",
+      "line_q": 10,
+      "line": 2.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "policies": [
+      "OU_FLOOR_SCENARIO"
+    ]
+  },
+  {
+    "case": "linea_larga",
+    "b": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+    ],
+    "b_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "g": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    "g_available": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "ah": {
+      "market": "AH_AWAY",
+      "line_q": 6,
+      "line": 1.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "ou": {
+      "market": "OVER",
+      "line_q": 10,
+      "line": 2.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "policies": [
+      "OU_FLOOR_SCENARIO",
+      "AH_LONG_LINE_DRAW_VETO"
+    ]
+  }
+]

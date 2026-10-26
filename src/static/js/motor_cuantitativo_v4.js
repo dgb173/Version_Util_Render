@@ -1451,67 +1451,220 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
             modal.id = 'motorV4ModalContainer';
             document.body.appendChild(modal);
         }
-        const pct = value => Number.isFinite(value) ? (100 * value).toFixed(1) + '%' : 'N/D';
-        const dec = value => Number.isFinite(value) ? value.toFixed(3) : 'N/D';
-        const names = {home: match.home, away: match.away, draw: 'Empate', over: 'Over', under: 'Under'};
-        const selection = result.selections || {};
-        const pickText = m => `${esc(names[m.side])} ${esc(m.market === 'OU' ? Math.abs(m.line) : (m.line > 0 ? '+' + m.line : m.line))}`;
-        const pickCards = ['AH', 'OU'].filter(k => selection[k]).map(k => {
-            const m = selection[k];
-            return `<div class="prediction-card" style="padding:1rem;flex:1;min-width:240px">
-                <strong>${k === 'AH' ? 'PICK HÁNDICAP' : 'PICK GOLES'}</strong>
-                <div class="pred-main-pick">${pickText(m)}</div>
-                <p>P(beneficio): <strong>${pct(m.prob_profit)}</strong> · Cuota: ${dec(m.odds_decimal)} · EV: ${pct(m.ev)}</p>
-                <p>Riesgo: <strong>${esc(m.risk || result.risk)}</strong>.
-                ${result.picks?.[k]?.side === m.side ? 'Candidato de valor en simulación.' : 'Selección del modelo; valor de apuesta sin confirmar.'}</p>
-                <p class="small">${(m.reasons || []).map(esc).join(' ')}</p>
-            </div>`;
-        }).join('');
-        const telemetry = result.telemetry;
-        const statRows = telemetry ? [
-            ['shots', 'Tiros'], ['on_target', 'Tiros a puerta'], ['attacks', 'Ataques'], ['dangerous_attacks', 'Ataques peligrosos']
-        ].map(([key, label]) => `<tr><td>${label}</td>
-            <td>${dec(telemetry.home?.[key + '_for'])} / ${dec(telemetry.home?.[key + '_against'])} (${telemetry.home?.counts?.[key + '_for'] || 0})</td>
-            <td>${dec(telemetry.away?.[key + '_for'])} / ${dec(telemetry.away?.[key + '_against'])} (${telemetry.away?.counts?.[key + '_for'] || 0})</td></tr>`).join('') : '';
-        const rows = (result.markets || []).map(m => `<tr>
-            <td>${esc(m.market)} · ${esc(names[m.side])} ${esc(m.market === 'OU' ? Math.abs(m.line) : (m.line > 0 ? '+' + m.line : m.line))}</td>
-            <td>${pct(m.prob_profit)}</td><td>${dec(m.fair_odds)}</td>
-            <td>${dec(m.odds_decimal)}</td><td>${pct(m.ev)}</td>
-            <td>${selection[m.market]?.side === m.side ? (result.picks?.[m.market]?.side === m.side ? 'Pick · candidato de valor' : 'Pick del modelo') : 'Alternativa'}</td>
-        </tr>`).join('');
-        const probs = result.probabilities_1x2;
-        const validation = result.telemetry?.validation?.heldout_blend || result.validation?.heldout;
-        modal.innerHTML = `<div class="motor-v4-overlay" onclick="if(event.target===this) window.closeMotorV4Modal()">
-            <div class="motor-v4-card" role="dialog" aria-modal="true" aria-label="Pronóstico v6.1 Research">
-                <div class="motor-v4-header"><div><h5>Motor cuantitativo v6.1 RESEARCH + STATS</h5>
-                    <div>${esc(match.home)} vs ${esc(match.away)} · ${esc(match.league)}</div></div>
-                    <button type="button" class="btn btn-outline-secondary" onclick="window.closeMotorV4Modal()">Cerrar</button></div>
-                <div class="motor-v4-body" style="padding:1.25rem;overflow:auto">
-                    <p><strong>${esc(result.status)}</strong> · Pronósticos del modelo, sin garantía de acierto.</p>
-                    <div style="display:flex;gap:1rem;flex-wrap:wrap">${pickCards}</div>
-                    ${result.selection_1x2 && !Object.keys(selection).length ? `<p>Pronóstico 1X2: <strong>${esc(names[result.selection_1x2])}</strong>. Faltan líneas para valorar AH y goles.</p>` : ''}
-                    ${probs ? `<p>Probabilidades 1X2: Local <strong>${pct(probs.home)}</strong> · Empate <strong>${pct(probs.draw)}</strong> · Visitante <strong>${pct(probs.away)}</strong></p>` : ''}
-                    <p>Entrenado hasta: ${esc(result.training_end || 'N/D')}.
-                    Muestra efectiva local / visitante: ${dec(result.evidence?.home?.effective_n)} / ${dec(result.evidence?.away?.effective_n)}.</p>
-                    ${validation ? `<p>Prueba temporal: ${esc(validation.n)} partidos · Log loss ${dec(validation.log_loss_1x2)} · Brier ${dec(validation.brier_1x2)}. ROI sin verificar.</p>` : ''}
-                    ${telemetry ? `<h6>Tiros y ataques históricos</h6>
-                        <p>${telemetry.used_in_prediction ? 'Incluidos numéricamente en la predicción' : 'Disponibles como evidencia; sin efecto numérico en este ajuste'} · ${esc(telemetry.source)}.</p>
-                        <div class="table-responsive"><table class="table table-dark table-sm"><thead><tr><th>Media ponderada</th><th>Local: a favor / en contra (n)</th><th>Visitante: a favor / en contra (n)</th></tr></thead><tbody>${statRows}</tbody></table></div>
-                        <p class="small">Solo encuentros anteriores a la fecha objetivo, deduplicados. N/D significa dato ausente; 0 significa cero observado.</p>` : ''}
-                    <div class="table-responsive"><table class="table table-dark table-sm"><thead><tr>
-                        <th>Mercado</th><th>P(beneficio)</th><th>Cuota justa</th><th>Cuota decimal</th><th>EV/u</th><th>Estado</th>
-                    </tr></thead><tbody>${rows || '<tr><td colspan="6">No hay valoración operativa con los datos disponibles.</td></tr>'}</tbody></table></div>
-                    <p class="small">P(beneficio) incluye media ganancia. La cuota justa y EV integran devolución y medios pagos; EV no equivale a probabilidad de acierto. Los mercados no se combinan multiplicando probabilidades.</p>
-                    <ul>${(result.alerts || []).map(a => `<li>${esc(a)}</li>`).join('')}</ul>
-                    <p class="small">Las estadísticas ausentes conservan estado N/D. La predicción procede del modelo del servidor; no depende de abrir fichas en la página.</p>
-                    <details><summary>Distribución y auditoría JSON</summary><pre style="white-space:pre-wrap">${esc(JSON.stringify(result, null, 2))}</pre></details>
-                </div>
-                <div class="motor-v4-footer"><span class="small">Registro: ${esc(result.run_id || 'N/D')}</span>
-                    <button class="btn btn-primary btn-sm" id="btnCopyMotorV4Prompt" onclick="window.copyMotorV4AuditedPrompt()">Copiar pronóstico auditado</button></div>
-            </div></div>`;
-        window._lastMotorV4Prompt = promptText;
-    }
 
+        const esc = s => String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+        const dec = (v, d = 2) => Number.isFinite(v) ? Number(v).toFixed(d) : 'N/D';
+        const pct = v => Number.isFinite(v) ? (100 * v).toFixed(1) + '%' : 'N/D';
+
+        const matchId = match?.id || window._lastMotorV4MatchId || '';
+        const homeName = match?.home || 'Local';
+        const awayName = match?.away || 'Visitante';
+        const leagueName = match?.league || '';
+
+        // Picks y puntuaciones v6.2
+        const ahPick = result.ah_pick || {};
+        const ouPick = result.ou_pick || {};
+        const scoreAh = result.score_ah || {};
+        const scoreOu = result.score_ou || {};
+        const bGates = result.b || [];
+        const gGates = result.g || [];
+        const patterns = result.patterns || [];
+        const policies = result.policy_trace || [];
+        const shotProj = result.shot_projection || {};
+        const sha256 = result.input_sha256 || '';
+
+        // Formateo del Pick AH
+        let ahTeamText = 'N/D';
+        if (ahPick.market === 'AH_HOME') {
+            ahTeamText = `Local (${homeName})`;
+        } else if (ahPick.market === 'AH_AWAY') {
+            ahTeamText = `Visitante (${awayName})`;
+        }
+        const ahLineText = ahPick.line !== undefined ? (ahPick.line > 0 ? '+' + ahPick.line : ahPick.line) : 'N/D';
+        const ahOddsText = ahPick.quote ? `Cuota @${dec(ahPick.quote.odds, 2)}` : (ahPick.quote_status === 'QUOTED' ? 'Cotizado' : 'Línea objetivo por cotizar');
+
+        // Formateo del Pick O/U
+        const ouSideText = ouPick.market === 'OVER' ? 'OVER (Más de)' : (ouPick.market === 'UNDER' ? 'UNDER (Menos de)' : 'N/D');
+        const ouLineText = ouPick.line !== undefined ? ouPick.line : 'N/D';
+        const ouOddsText = ouPick.quote ? `Cuota @${dec(ouPick.quote.odds, 2)}` : (ouPick.quote_status === 'QUOTED' ? 'Cotizado' : 'Línea objetivo por cotizar');
+
+        // Renderizado de compuertas
+        const gateDescMap = {
+            'b1': 'Apoyo estructural del no favorito',
+            'b2': 'Correlación histórica o favorito invertido',
+            'b3': 'Brecha de mercado y rendimiento en cruces',
+            'b4': 'Último H2H ganado y cubierto',
+            'b5': 'Dominio SOT/AP o efecto presa',
+            'b6': 'Veto por empates o margen de un gol',
+            'g1': 'Escenario 1+2=3 con favorito proyectado',
+            'g2': 'Media de referencias únicas contra la línea',
+            'g3': 'Fusión de bloques o desplazamiento de línea',
+            'g4': 'Ruptura unilateral o bilateral',
+            'g5': 'Suma combinada de ataques peligrosos (AP >= 100)',
+            'g6': '22 tiros combinados o conversión >= 35%'
+        };
+
+        const renderGateList = (gates) => {
+            return gates.map(g => {
+                const bitClass = g.bit === 1 ? 'badge bg-success' : (g.available ? 'badge bg-secondary' : 'badge bg-dark text-muted');
+                const bitLabel = g.bit === 1 ? '1 (Cumple)' : (g.available ? '0 (No cumple)' : '0 (Sin datos)');
+                const desc = gateDescMap[g.id] || g.id;
+                return `
+                    <div style="background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <strong style="color:#e2e8f0; font-size:.82rem;">${g.id.toUpperCase()}: ${esc(desc)}</strong>
+                            <span class="${bitClass}" style="font-size:.72rem;">${bitLabel}</span>
+                        </div>
+                        <div style="color:#94a3b8; font-size:.75rem;">${esc(g.reason)}</div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Telemetría de remates (proyección)
+        let projectionHtml = '';
+        if (shotProj.favorite && shotProj.underdog) {
+            projectionHtml = `
+                <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; margin-top:12px;">
+                    <h6 style="color:#38bdf8; font-size:.85rem; margin-bottom:8px;"><i class="fa-solid fa-calculator me-1"></i> Proyección de Remates y Goles (Regla de Tres)</h6>
+                    <div class="row g-2 text-center" style="font-size:.78rem;">
+                        <div class="col-4">
+                            <div style="color:#94a3b8;">Favorito Proyectado</div>
+                            <div style="font-weight:700; color:#f8fafc; font-size:.9rem;">${dec(shotProj.favorite.goals_proxy, 2)} goles</div>
+                            <div style="color:#64748b; font-size:.7rem;">(${dec(shotProj.favorite.sot, 1)} TP · ${pct(shotProj.favorite.conversion)})</div>
+                        </div>
+                        <div class="col-4">
+                            <div style="color:#94a3b8;">No Favorito Proyectado</div>
+                            <div style="font-weight:700; color:#f8fafc; font-size:.9rem;">${dec(shotProj.underdog.goals_proxy, 2)} goles</div>
+                            <div style="color:#64748b; font-size:.7rem;">(${dec(shotProj.underdog.sot, 1)} TP · ${pct(shotProj.underdog.conversion)})</div>
+                        </div>
+                        <div class="col-4">
+                            <div style="color:#94a3b8;">Total Proyectado / Margen</div>
+                            <div style="font-weight:700; color:#a855f7; font-size:.9rem;">${dec(shotProj.total_proxy, 2)} goles</div>
+                            <div style="color:#64748b; font-size:.7rem;">Margen: ${dec(shotProj.margin_proxy, 2)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Patrones y Políticas Chips
+        const patternChips = patterns.length ? patterns.map(p => `<span class="badge bg-warning text-dark me-1 mb-1" style="font-size:.72rem;">⚠️ ${esc(p)}</span>`).join('') : '<span style="color:#64748b; font-size:.75rem;">Ningún sesgo de fricción activo</span>';
+        const policyChips = policies.length ? policies.map(p => `<span class="badge bg-info text-dark me-1 mb-1" style="font-size:.72rem;">⚖️ ${esc(p)}</span>`).join('') : '<span style="color:#64748b; font-size:.75rem;">Resolución estándar por compuertas</span>';
+
+        modal.innerHTML = `
+            <div class="motor-v4-overlay" onclick="if(event.target===this) window.closeMotorV4Modal()">
+                <div class="motor-v4-card" role="dialog" aria-modal="true" style="max-width:880px; width:95%; background:#0b1120; color:#e2e8f0; border:1px solid #1e293b; border-radius:12px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+                    <div class="motor-v4-header" style="border-bottom:1px solid #1e293b; padding:1rem 1.25rem; display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <h5 style="margin:0; font-weight:800; color:#f8fafc; font-size:1.1rem;"><i class="fa-solid fa-brain" style="color:#7c3aed;"></i> MOTOR DUAL ENTERO-BINARIO v6.2 OPERATIVO</h5>
+                                <span class="badge" style="background:#4338ca; color:#e0e7ff; font-size:.7rem;">12 Compuertas</span>
+                            </div>
+                            <div style="color:#94a3b8; font-size:.82rem; margin-top:4px;">
+                                ${esc(homeName)} vs ${esc(awayName)} · <span style="color:#cbd5e1;">${esc(leagueName)}</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" onclick="window.closeMotorV4Modal()" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="motor-v4-body" style="padding:1.25rem; max-height:calc(85vh - 120px); overflow-y:auto;">
+                        <!-- TARJETAS DE PICKS -->
+                        <div class="row g-3 mb-3">
+                            <!-- PICK AH -->
+                            <div class="col-md-6">
+                                <div style="background:#131c31; border:2px solid #3b82f6; border-radius:10px; padding:14px; position:relative;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-weight:700; color:#93c5fd; font-size:.75rem; text-transform:uppercase; letter-spacing:.5px;">PICK HÁNDICAP ASIÁTICO</span>
+                                        <span class="badge bg-primary" style="font-size:.72rem;">Score: ${dec(scoreAh.of_six, 1)} / 6</span>
+                                    </div>
+                                    <div style="font-size:1.35rem; font-weight:800; color:#ffffff; margin:6px 0 2px 0;">
+                                        ${esc(ahTeamText)} <span style="color:#60a5fa;">${esc(ahLineText)}</span>
+                                    </div>
+                                    <div style="font-size:.78rem; color:#cbd5e1;">
+                                        ${esc(ahOddsText)} · Votos válidos: <strong>${scoreAh.votes || 0}/${scoreAh.valid || 0}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- PICK O/U -->
+                            <div class="col-md-6">
+                                <div style="background:#131c31; border:2px solid #10b981; border-radius:10px; padding:14px; position:relative;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-weight:700; color:#6ee7b7; font-size:.75rem; text-transform:uppercase; letter-spacing:.5px;">PICK TOTALES (GOLES)</span>
+                                        <span class="badge bg-success" style="font-size:.72rem;">Score: ${dec(scoreOu.of_six, 1)} / 6</span>
+                                    </div>
+                                    <div style="font-size:1.35rem; font-weight:800; color:#ffffff; margin:6px 0 2px 0;">
+                                        ${esc(ouSideText)} <span style="color:#34d399;">${esc(ouLineText)}</span>
+                                    </div>
+                                    <div style="font-size:.78rem; color:#cbd5e1;">
+                                        ${esc(ouOddsText)} · Votos válidos: <strong>${scoreOu.votes || 0}/${scoreOu.valid || 0}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PROYECCIÓN DE REMATES -->
+                        ${projectionHtml}
+
+                        <!-- COMPUERTAS BINARIAS (12 COMPUERTAS) -->
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <h6 style="color:#60a5fa; font-size:.85rem; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-list-check me-1"></i> Compuertas AH (b1 … b6)</h6>
+                                ${renderGateList(bGates)}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 style="color:#34d399; font-size:.85rem; font-weight:700; margin-bottom:8px;"><i class="fa-solid fa-futbol me-1"></i> Compuertas Totales (g1 … g6)</h6>
+                                ${renderGateList(gGates)}
+                            </div>
+                        </div>
+
+                        <!-- PATRONES Y POLÍTICAS -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div style="background:#1e293b; border-radius:8px; padding:10px;">
+                                    <div style="color:#cbd5e1; font-size:.78rem; font-weight:700; margin-bottom:6px;">Patrones de Mercado:</div>
+                                    <div>${patternChips}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="background:#1e293b; border-radius:8px; padding:10px;">
+                                    <div style="color:#cbd5e1; font-size:.78rem; font-weight:700; margin-bottom:6px;">Políticas y Ajustes:</div>
+                                    <div>${policyChips}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AUDITORÍA Y GEMINI REVIEW -->
+                        <div style="margin-top:16px; background:#0f172a; border:1px solid #1e293b; border-radius:8px; padding:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-size:.75rem; color:#94a3b8;">
+                                    SHA-256 Inmutable: <code style="color:#a855f7;">${esc(sha256)}</code>
+                                </div>
+                                <button type="button" class="btn btn-outline-info btn-sm py-1" id="btnRequestGeminiAudit" onclick="window.requestGeminiAudit('${esc(matchId)}')">
+                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auditoría Gemini AI
+                                </button>
+                            </div>
+                            <div id="geminiAuditContainer" style="display:none; margin-top:10px; font-size:.78rem;"></div>
+                        </div>
+                    </div>
+
+                    <div class="motor-v4-footer" style="border-top:1px solid #1e293b; padding:.75rem 1.25rem; display:flex; justify-content:space-between; align-items:center;">
+                        <span class="small" style="color:#64748b;">Motor v6.2 Operativo · Determinista FT90</span>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-primary btn-sm" id="btnCopyMotorV4Prompt" onclick="window.copyMotorV4AuditedPrompt('${esc(matchId)}')">
+                                <i class="fa-regular fa-copy me-1"></i> Copiar Análisis v6.2
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="window.closeMotorV4Modal()">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        window._lastMotorV4Prompt = promptText;
+        window._lastMotorV4MatchId = matchId;
+        window._lastMotorV4Result = result;
+    }
     window.closeMotorV4Modal = function () {
         const modalEl = document.getElementById('motorV4ModalContainer');
         if (modalEl) modalEl.innerHTML = '';
@@ -1627,6 +1780,49 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
     };
 
     // Alias para v5
+
+    window.requestGeminiAudit = async function (matchId) {
+        const btn = document.getElementById('btnRequestGeminiAudit');
+        const container = document.getElementById('geminiAuditContainer');
+        if (!container) return;
+
+        container.style.display = 'block';
+        container.innerHTML = '<div style="color:#38bdf8;"><i class="fa-solid fa-spinner fa-spin me-1"></i> Consultando auditoría estructurada con Gemini...</div>';
+        if (btn) btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/quant/gemini/${encodeURIComponent(matchId)}`, { method: 'POST' });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Error en auditoría');
+
+            if (data.live) {
+                const r = data.review;
+                const verdictClass = r.verdict === 'ready_for_validation' ? 'badge bg-success' : 'badge bg-warning text-dark';
+                container.innerHTML = `
+                    <div style="background:#131c31; border:1px solid #3b82f6; border-radius:8px; padding:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <strong style="color:#60a5fa;"><i class="fa-solid fa-check-double me-1"></i> Veredicto Gemini Live</strong>
+                            <span class="${verdictClass}">${r.verdict}</span>
+                        </div>
+                        <p style="margin:0 0 8px 0; color:#e2e8f0;">${r.summary}</p>
+                        ${r.issues?.length ? '<div style="font-weight:700; color:#fbbf24; margin-bottom:4px;">Puntos a revisar:</div><ul>' + r.issues.map(i => `<li><strong>${i.category}:</strong> ${i.statement} <em>(${i.suggested_test})</em></li>`).join('') + '</ul>' : '<div style="color:#34d399;">Sin observaciones bloqueantes.</div>'}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="background:#131c31; border:1px solid #475569; border-radius:8px; padding:10px;">
+                        <div style="color:#94a3b8; margin-bottom:4px;"><i class="fa-solid fa-circle-info me-1"></i> ${data.message}</div>
+                        <div style="font-size:.72rem; color:#cbd5e1;">Esquema de solicitud preparado y validado contra el hash <code style="color:#a855f7;">${data.packet_sha256}</code>. Para revisión real, configure GEMINI_API_KEY en su entorno.</div>
+                    </div>
+                `;
+            }
+        } catch (e) {
+            container.innerHTML = `<div style="color:#f87171;"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${e.message}</div>`;
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    };
+
     window.openMotorV5Modal = window.openMotorV4Modal;
     window.evaluateMatchV4 = evaluateMatchV4;
     window.evaluateMatchV5 = evaluateMatchV4;

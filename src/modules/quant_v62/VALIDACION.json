@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-26",
+  "python": "3.12.14",
+  "pydantic": "2.14.1",
+  "unit_tests_passed": 38,
+  "javascript_syntax_check": "passed",
+  "gemini": "mock_only_no_live_call",
+  "web_adapter": "syntax_checked_runtime_not_installed",
+  "pdf": {
+    "pages": 32,
+    "words": 9056,
+    "bounds_issues": [],
+    "bookmarks": 31,
+    "links": 10,
+    "missing_glyphs": 0
+  },
+  "synthetic_examples": 4,
+  "real_sport_performance_evaluated": false
+}

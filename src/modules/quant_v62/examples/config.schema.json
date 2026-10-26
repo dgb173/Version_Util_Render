@@ -1,0 +1,107 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "default": "6.2.0-binary",
+      "title": "Version",
+      "type": "string"
+    },
+    "active_days": {
+      "default": 21,
+      "minimum": 1,
+      "title": "Active Days",
+      "type": "integer"
+    },
+    "history_days": {
+      "default": 90,
+      "minimum": 1,
+      "title": "History Days",
+      "type": "integer"
+    },
+    "active_n": {
+      "default": 5,
+      "minimum": 1,
+      "title": "Active N",
+      "type": "integer"
+    },
+    "active_weight": {
+      "default": 0.65,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Active Weight",
+      "type": "number"
+    },
+    "role_tolerance_q": {
+      "default": 3,
+      "minimum": 0,
+      "title": "Role Tolerance Q",
+      "type": "integer"
+    },
+    "home_advantage_q": {
+      "default": 2,
+      "minimum": 0,
+      "title": "Home Advantage Q",
+      "type": "number"
+    },
+    "conversion_prior_shots": {
+      "default": 20,
+      "exclusiveMinimum": 0,
+      "title": "Conversion Prior Shots",
+      "type": "number"
+    },
+    "min_active_n": {
+      "default": 3,
+      "minimum": 1,
+      "title": "Min Active N",
+      "type": "integer"
+    },
+    "min_similar_n": {
+      "default": 2,
+      "minimum": 1,
+      "title": "Min Similar N",
+      "type": "integer"
+    },
+    "sot_advantage": {
+      "default": 1.5,
+      "title": "Sot Advantage",
+      "type": "number"
+    },
+    "ap_advantage": {
+      "default": 10,
+      "title": "Ap Advantage",
+      "type": "number"
+    },
+    "ap_total": {
+      "default": 100,
+      "title": "Ap Total",
+      "type": "number"
+    },
+    "shots_total": {
+      "default": 22,
+      "title": "Shots Total",
+      "type": "number"
+    },
+    "conversion_high": {
+      "default": 0.35,
+      "title": "Conversion High",
+      "type": "number"
+    },
+    "bubble_conversion": {
+      "default": 0.6,
+      "title": "Bubble Conversion",
+      "type": "number"
+    },
+    "bubble_max_sot": {
+      "default": 4,
+      "title": "Bubble Max Sot",
+      "type": "number"
+    },
+    "exclude_red_cards": {
+      "default": true,
+      "title": "Exclude Red Cards",
+      "type": "boolean"
+    }
+  },
+  "title": "Config",
+  "type": "object"
+}

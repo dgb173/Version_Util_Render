@@ -1,0 +1,1196 @@
+{
+  "phase": "prematch",
+  "synthetic": true,
+  "snapshot": {
+    "schema_version": "6.2-binary",
+    "event_id": "SYNTHETIC-linea_larga",
+    "home_id": "A",
+    "away_id": "B",
+    "competition_id": "DEMO",
+    "decision_at": "2026-10-26T12:00:00Z",
+    "kickoff": "2026-10-26T18:00:00Z",
+    "raw_home_ah": 1.5,
+    "ou_line": 2.75,
+    "rank_home": 3,
+    "rank_away": 8,
+    "record_home": {
+      "wins": 8,
+      "draws": 2,
+      "losses": 3
+    },
+    "record_away": {
+      "wins": 3,
+      "draws": 3,
+      "losses": 7
+    },
+    "senior_match": true,
+    "synthetic": true,
+    "provider": "SYNTHETIC",
+    "provider_definitions": "90 min; tiros totales incluyen bloqueados; goles de tiro excluyen autogoles",
+    "history": [
+      {
+        "match_id": "A-0",
+        "team_id": "A",
+        "opponent_id": "R0",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-24T12:00:00Z",
+        "available_at": "2026-10-24T16:48:00Z",
+        "source_ref": "DEMO:A-0",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 2,
+        "shot_goals_for": 2,
+        "shot_goals_against": 2,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 7,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-1",
+        "team_id": "A",
+        "opponent_id": "R1",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-21T12:00:00Z",
+        "available_at": "2026-10-21T16:48:00Z",
+        "source_ref": "DEMO:A-1",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 2,
+        "shot_goals_for": 2,
+        "shot_goals_against": 2,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 7,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-2",
+        "team_id": "A",
+        "opponent_id": "R2",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-18T12:00:00Z",
+        "available_at": "2026-10-18T16:48:00Z",
+        "source_ref": "DEMO:A-2",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 2,
+        "shot_goals_for": 2,
+        "shot_goals_against": 2,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 7,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-3",
+        "team_id": "A",
+        "opponent_id": "R3",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-15T12:00:00Z",
+        "available_at": "2026-10-15T16:48:00Z",
+        "source_ref": "DEMO:A-3",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 1,
+        "shot_goals_for": 2,
+        "shot_goals_against": 1,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 7,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-4",
+        "team_id": "A",
+        "opponent_id": "R4",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-12T12:00:00Z",
+        "available_at": "2026-10-12T16:48:00Z",
+        "source_ref": "DEMO:A-4",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 3,
+        "ga": 1,
+        "shot_goals_for": 3,
+        "shot_goals_against": 1,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 7,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-5",
+        "team_id": "A",
+        "opponent_id": "B",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-09-16T12:00:00Z",
+        "available_at": "2026-09-16T16:48:00Z",
+        "source_ref": "DEMO:A-5",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": 0.75,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 0,
+        "shot_goals_for": 1,
+        "shot_goals_against": 0,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 6,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "A-6",
+        "team_id": "A",
+        "opponent_id": "R6",
+        "competition_id": "DEMO",
+        "venue": "home",
+        "opponent_squad": "senior",
+        "kickoff": "2026-09-06T12:00:00Z",
+        "available_at": "2026-09-06T16:48:00Z",
+        "source_ref": "DEMO:A-6",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 1,
+        "shot_goals_for": 2,
+        "shot_goals_against": 1,
+        "shots_for": 16,
+        "shots_against": 9,
+        "sot_for": 6,
+        "sot_against": 3,
+        "attacks_for": 100,
+        "attacks_against": 75,
+        "ap_for": 65,
+        "ap_against": 40,
+        "corners_for": 6,
+        "corners_against": 3,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-0",
+        "team_id": "B",
+        "opponent_id": "R0",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-24T12:00:00Z",
+        "available_at": "2026-10-24T16:48:00Z",
+        "source_ref": "DEMO:B-0",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 2,
+        "shot_goals_for": 1,
+        "shot_goals_against": 2,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 4,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-1",
+        "team_id": "B",
+        "opponent_id": "R1",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-21T12:00:00Z",
+        "available_at": "2026-10-21T16:48:00Z",
+        "source_ref": "DEMO:B-1",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 3,
+        "shot_goals_for": 1,
+        "shot_goals_against": 3,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 4,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-2",
+        "team_id": "B",
+        "opponent_id": "R2",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-18T12:00:00Z",
+        "available_at": "2026-10-18T16:48:00Z",
+        "source_ref": "DEMO:B-2",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 2,
+        "ga": 2,
+        "shot_goals_for": 2,
+        "shot_goals_against": 2,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 4,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-3",
+        "team_id": "B",
+        "opponent_id": "R3",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-15T12:00:00Z",
+        "available_at": "2026-10-15T16:48:00Z",
+        "source_ref": "DEMO:B-3",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 2,
+        "shot_goals_for": 1,
+        "shot_goals_against": 2,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 4,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-4",
+        "team_id": "B",
+        "opponent_id": "R4",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-10-12T12:00:00Z",
+        "available_at": "2026-10-12T16:48:00Z",
+        "source_ref": "DEMO:B-4",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 1,
+        "shot_goals_for": 1,
+        "shot_goals_against": 1,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 4,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-5",
+        "team_id": "B",
+        "opponent_id": "R5",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-09-16T12:00:00Z",
+        "available_at": "2026-09-16T16:48:00Z",
+        "source_ref": "DEMO:B-5",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 2,
+        "shot_goals_for": 1,
+        "shot_goals_against": 2,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 3,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      },
+      {
+        "match_id": "B-6",
+        "team_id": "B",
+        "opponent_id": "R6",
+        "competition_id": "DEMO",
+        "venue": "away",
+        "opponent_squad": "senior",
+        "kickoff": "2026-09-06T12:00:00Z",
+        "available_at": "2026-09-06T16:48:00Z",
+        "source_ref": "DEMO:B-6",
+        "raw_home_ah": 1.5,
+        "raw_home_ah_close": null,
+        "ou_line": 2.5,
+        "gf": 1,
+        "ga": 1,
+        "shot_goals_for": 1,
+        "shot_goals_against": 1,
+        "shots_for": 11,
+        "shots_against": 15,
+        "sot_for": 3,
+        "sot_against": 6,
+        "attacks_for": 80,
+        "attacks_against": 100,
+        "ap_for": 45,
+        "ap_against": 65,
+        "corners_for": 3,
+        "corners_against": 6,
+        "red_card_context": false
+      }
+    ],
+    "similar_current": {
+      "home": {
+        "n": 4,
+        "cover_rate": 0.75,
+        "losses": 1,
+        "gf": 2.25,
+        "ga": 1.25,
+        "sample_ids": [
+          "CURRENT-home-0",
+          "CURRENT-home-1",
+          "CURRENT-home-2",
+          "CURRENT-home-3"
+        ],
+        "cover_definition": "platform_reported"
+      },
+      "away": {
+        "n": 4,
+        "cover_rate": 0.25,
+        "losses": 3,
+        "gf": 1.25,
+        "ga": 2.0,
+        "sample_ids": [
+          "CURRENT-away-0",
+          "CURRENT-away-1",
+          "CURRENT-away-2",
+          "CURRENT-away-3"
+        ],
+        "cover_definition": "platform_reported"
+      },
+      "correlation": "home",
+      "available_at": "2026-10-26T09:36:00Z",
+      "source_ref": "DEMO:CURRENT"
+    },
+    "similar_h2h": {
+      "home": {
+        "n": 4,
+        "cover_rate": 0.75,
+        "losses": 1,
+        "gf": 2.25,
+        "ga": 1.25,
+        "sample_ids": [
+          "HIST-home-0",
+          "HIST-home-1",
+          "HIST-home-2",
+          "HIST-home-3"
+        ],
+        "cover_definition": "platform_reported"
+      },
+      "away": {
+        "n": 4,
+        "cover_rate": 0.25,
+        "losses": 3,
+        "gf": 1.25,
+        "ga": 2.0,
+        "sample_ids": [
+          "HIST-away-0",
+          "HIST-away-1",
+          "HIST-away-2",
+          "HIST-away-3"
+        ],
+        "cover_definition": "platform_reported"
+      },
+      "correlation": "home",
+      "available_at": "2026-10-26T09:36:00Z",
+      "source_ref": "DEMO:HIST"
+    },
+    "references": [
+      {
+        "match_id": "REF0",
+        "total_goals": 3,
+        "kickoff": "2026-10-23T12:00:00Z",
+        "available_at": "2026-10-23T16:48:00Z",
+        "source_ref": "DEMO:REF0"
+      },
+      {
+        "match_id": "REF1",
+        "total_goals": 3,
+        "kickoff": "2026-10-22T12:00:00Z",
+        "available_at": "2026-10-22T16:48:00Z",
+        "source_ref": "DEMO:REF1"
+      },
+      {
+        "match_id": "REF2",
+        "total_goals": 4,
+        "kickoff": "2026-10-21T12:00:00Z",
+        "available_at": "2026-10-21T16:48:00Z",
+        "source_ref": "DEMO:REF2"
+      },
+      {
+        "match_id": "REF3",
+        "total_goals": 2,
+        "kickoff": "2026-10-20T12:00:00Z",
+        "available_at": "2026-10-20T16:48:00Z",
+        "source_ref": "DEMO:REF3"
+      },
+      {
+        "match_id": "REF4",
+        "total_goals": 4,
+        "kickoff": "2026-10-19T12:00:00Z",
+        "available_at": "2026-10-19T16:48:00Z",
+        "source_ref": "DEMO:REF4"
+      },
+      {
+        "match_id": "REF5",
+        "total_goals": 3,
+        "kickoff": "2026-10-18T12:00:00Z",
+        "available_at": "2026-10-18T16:48:00Z",
+        "source_ref": "DEMO:REF5"
+      },
+      {
+        "match_id": "REF6",
+        "total_goals": 3,
+        "kickoff": "2026-10-17T12:00:00Z",
+        "available_at": "2026-10-17T16:48:00Z",
+        "source_ref": "DEMO:REF6"
+      }
+    ],
+    "bridges": [],
+    "quotes": [],
+    "league_sot_per_team": 4.5,
+    "league_conversion": 0.3,
+    "baseline_available_at": "2026-10-25T12:00:00Z",
+    "baseline_source_ref": "DEMO:LEAGUE"
+  },
+  "analysis": {
+    "model_version": "6.2.0-binary",
+    "event_id": "SYNTHETIC-linea_larga",
+    "synthetic": true,
+    "input_sha256": "a3413ca68575d64ee10dddbe743c9629e7afd193492f37a844768c2a45142d2b",
+    "config": {
+      "version": "6.2.0-binary",
+      "active_days": 21,
+      "history_days": 90,
+      "active_n": 5,
+      "active_weight": 0.65,
+      "role_tolerance_q": 3,
+      "home_advantage_q": 2,
+      "conversion_prior_shots": 20,
+      "min_active_n": 3,
+      "min_similar_n": 2,
+      "sot_advantage": 1.5,
+      "ap_advantage": 10,
+      "ap_total": 100,
+      "shots_total": 22,
+      "conversion_high": 0.35,
+      "bubble_conversion": 0.6,
+      "bubble_max_sot": 4,
+      "exclude_red_cards": true
+    },
+    "favorite_side": "home",
+    "favorite_id": "A",
+    "underdog_id": "B",
+    "pickem_anchor": false,
+    "raw_home_ah_q": 6,
+    "canonical_home_line_q": -6,
+    "total_q": 11,
+    "profiles": {
+      "favorite": {
+        "active": {
+          "n": 5,
+          "ids": [
+            "A-0",
+            "A-1",
+            "A-2",
+            "A-3",
+            "A-4"
+          ],
+          "counts": {
+            "gf": 5,
+            "ga": 5,
+            "shots_for": 5,
+            "shots_against": 5,
+            "sot_for": 5,
+            "sot_against": 5,
+            "attacks_for": 5,
+            "attacks_against": 5,
+            "ap_for": 5,
+            "ap_against": 5,
+            "corners_for": 5,
+            "corners_against": 5
+          },
+          "gf": 2.2,
+          "ga": 1.6,
+          "shots_for": 16,
+          "shots_against": 9,
+          "sot_for": 7,
+          "sot_against": 3,
+          "attacks_for": 100,
+          "attacks_against": 75,
+          "ap_for": 65,
+          "ap_against": 40,
+          "corners_for": 6,
+          "corners_against": 3,
+          "clean_sheets": 0,
+          "draws": 3,
+          "btts": 1.0,
+          "scoring_rate": 1.0,
+          "conversion_for": 0.3142857142857143,
+          "conversion_for_counts": {
+            "matches": 5,
+            "sot": 35,
+            "goals": 11
+          },
+          "conversion_for_shrunk": 0.3090909090909091,
+          "conversion_against": 0.5333333333333333,
+          "conversion_against_counts": {
+            "matches": 5,
+            "sot": 15,
+            "goals": 8
+          },
+          "conversion_against_shrunk": 0.4,
+          "sot_share": 0.7,
+          "net_sot": 4,
+          "accuracy": 0.4375
+        },
+        "prior": {
+          "n": 2,
+          "ids": [
+            "A-5",
+            "A-6"
+          ],
+          "counts": {
+            "gf": 2,
+            "ga": 2,
+            "shots_for": 2,
+            "shots_against": 2,
+            "sot_for": 2,
+            "sot_against": 2,
+            "attacks_for": 2,
+            "attacks_against": 2,
+            "ap_for": 2,
+            "ap_against": 2,
+            "corners_for": 2,
+            "corners_against": 2
+          },
+          "gf": 1.5,
+          "ga": 0.5,
+          "shots_for": 16,
+          "shots_against": 9,
+          "sot_for": 6,
+          "sot_against": 3,
+          "attacks_for": 100,
+          "attacks_against": 75,
+          "ap_for": 65,
+          "ap_against": 40,
+          "corners_for": 6,
+          "corners_against": 3,
+          "clean_sheets": 1,
+          "draws": 0,
+          "btts": 0.5,
+          "scoring_rate": 1.0,
+          "conversion_for": 0.25,
+          "conversion_for_counts": {
+            "matches": 2,
+            "sot": 12,
+            "goals": 3
+          },
+          "conversion_for_shrunk": 0.28125,
+          "conversion_against": 0.16666666666666666,
+          "conversion_against_counts": {
+            "matches": 2,
+            "sot": 6,
+            "goals": 1
+          },
+          "conversion_against_shrunk": 0.2692307692307692,
+          "sot_share": 0.6666666666666666,
+          "net_sot": 3,
+          "accuracy": 0.375
+        },
+        "blend": {
+          "values": {
+            "sot_for": 6.6499999999999995,
+            "sot_against": 3.0,
+            "conversion_for_shrunk": 0.2993465909090909,
+            "conversion_against_shrunk": 0.35423076923076924
+          },
+          "actual_active_weights": {
+            "sot_for": 0.65,
+            "sot_against": 0.65,
+            "conversion_for_shrunk": 0.65,
+            "conversion_against_shrunk": 0.65
+          }
+        }
+      },
+      "underdog": {
+        "active": {
+          "n": 5,
+          "ids": [
+            "B-0",
+            "B-1",
+            "B-2",
+            "B-3",
+            "B-4"
+          ],
+          "counts": {
+            "gf": 5,
+            "ga": 5,
+            "shots_for": 5,
+            "shots_against": 5,
+            "sot_for": 5,
+            "sot_against": 5,
+            "attacks_for": 5,
+            "attacks_against": 5,
+            "ap_for": 5,
+            "ap_against": 5,
+            "corners_for": 5,
+            "corners_against": 5
+          },
+          "gf": 1.2,
+          "ga": 2,
+          "shots_for": 11,
+          "shots_against": 15,
+          "sot_for": 4,
+          "sot_against": 6,
+          "attacks_for": 80,
+          "attacks_against": 100,
+          "ap_for": 45,
+          "ap_against": 65,
+          "corners_for": 3,
+          "corners_against": 6,
+          "clean_sheets": 0,
+          "draws": 2,
+          "btts": 1.0,
+          "scoring_rate": 1.0,
+          "conversion_for": 0.3,
+          "conversion_for_counts": {
+            "matches": 5,
+            "sot": 20,
+            "goals": 6
+          },
+          "conversion_for_shrunk": 0.3,
+          "conversion_against": 0.3333333333333333,
+          "conversion_against_counts": {
+            "matches": 5,
+            "sot": 30,
+            "goals": 10
+          },
+          "conversion_against_shrunk": 0.32,
+          "sot_share": 0.4,
+          "net_sot": -2,
+          "accuracy": 0.36363636363636365
+        },
+        "prior": {
+          "n": 2,
+          "ids": [
+            "B-5",
+            "B-6"
+          ],
+          "counts": {
+            "gf": 2,
+            "ga": 2,
+            "shots_for": 2,
+            "shots_against": 2,
+            "sot_for": 2,
+            "sot_against": 2,
+            "attacks_for": 2,
+            "attacks_against": 2,
+            "ap_for": 2,
+            "ap_against": 2,
+            "corners_for": 2,
+            "corners_against": 2
+          },
+          "gf": 1,
+          "ga": 1.5,
+          "shots_for": 11,
+          "shots_against": 15,
+          "sot_for": 3,
+          "sot_against": 6,
+          "attacks_for": 80,
+          "attacks_against": 100,
+          "ap_for": 45,
+          "ap_against": 65,
+          "corners_for": 3,
+          "corners_against": 6,
+          "clean_sheets": 0,
+          "draws": 1,
+          "btts": 1.0,
+          "scoring_rate": 1.0,
+          "conversion_for": 0.3333333333333333,
+          "conversion_for_counts": {
+            "matches": 2,
+            "sot": 6,
+            "goals": 2
+          },
+          "conversion_for_shrunk": 0.3076923076923077,
+          "conversion_against": 0.25,
+          "conversion_against_counts": {
+            "matches": 2,
+            "sot": 12,
+            "goals": 3
+          },
+          "conversion_against_shrunk": 0.28125,
+          "sot_share": 0.3333333333333333,
+          "net_sot": -3,
+          "accuracy": 0.2727272727272727
+        },
+        "blend": {
+          "values": {
+            "sot_for": 3.65,
+            "sot_against": 6.0,
+            "conversion_for_shrunk": 0.3026923076923077,
+            "conversion_against_shrunk": 0.30643750000000003
+          },
+          "actual_active_weights": {
+            "sot_for": 0.65,
+            "sot_against": 0.65,
+            "conversion_for_shrunk": 0.65,
+            "conversion_against_shrunk": 0.65
+          }
+        }
+      }
+    },
+    "exclusions": {
+      "favorite": [],
+      "underdog": []
+    },
+    "shot_projection": {
+      "favorite": {
+        "sot": 8.866666666666667,
+        "conversion": 0.30289204545454546,
+        "goals_proxy": 2.6856428030303032
+      },
+      "underdog": {
+        "sot": 2.433333333333333,
+        "conversion": 0.32846153846153847,
+        "goals_proxy": 0.7992564102564103
+      },
+      "total_proxy": 3.4848992132867136,
+      "margin_proxy": 1.8863863927738929,
+      "kind": "rule_of_three_proxy_not_probability_or_xG"
+    },
+    "b": [
+      {
+        "id": "b1",
+        "bit": 1,
+        "available": true,
+        "reason": "Prioridad al apoyo estructural del no favorito; en otro caso exigir 55%/50%.",
+        "values": {
+          "favorite": {
+            "n": 4,
+            "cover_rate": 0.75,
+            "losses": 1,
+            "gf": 2.25,
+            "ga": 1.25,
+            "sample_ids": [
+              "CURRENT-home-0",
+              "CURRENT-home-1",
+              "CURRENT-home-2",
+              "CURRENT-home-3"
+            ],
+            "cover_definition": "platform_reported"
+          },
+          "underdog": {
+            "n": 4,
+            "cover_rate": 0.25,
+            "losses": 3,
+            "gf": 1.25,
+            "ga": 2.0,
+            "sample_ids": [
+              "CURRENT-away-0",
+              "CURRENT-away-1",
+              "CURRENT-away-2",
+              "CURRENT-away-3"
+            ],
+            "cover_definition": "platform_reported"
+          }
+        }
+      },
+      {
+        "id": "b2",
+        "bit": 1,
+        "available": true,
+        "reason": "Correlación histórica favorable o favorito invertido con 3+ cuartos.",
+        "values": {
+          "correlation": "home",
+          "inverted": false
+        }
+      },
+      {
+        "id": "b3",
+        "bit": 1,
+        "available": true,
+        "reason": "Brecha de mercado ajustada por localía y mejor diferencia de goles en cruces.",
+        "values": {
+          "delta_q": 10,
+          "required_q": 6,
+          "performance_difference": 1.3333333333333333,
+          "pairs": [
+            {
+              "kind": "common_opponent",
+              "opponent": "R0",
+              "favorite_id": "A-0",
+              "underdog_id": "B-0",
+              "delta_q": 10,
+              "goal_margin_difference": 1
+            },
+            {
+              "kind": "common_opponent",
+              "opponent": "R1",
+              "favorite_id": "A-1",
+              "underdog_id": "B-1",
+              "delta_q": 10,
+              "goal_margin_difference": 2
+            },
+            {
+              "kind": "common_opponent",
+              "opponent": "R2",
+              "favorite_id": "A-2",
+              "underdog_id": "B-2",
+              "delta_q": 10,
+              "goal_margin_difference": 0
+            },
+            {
+              "kind": "common_opponent",
+              "opponent": "R3",
+              "favorite_id": "A-3",
+              "underdog_id": "B-3",
+              "delta_q": 10,
+              "goal_margin_difference": 2
+            },
+            {
+              "kind": "common_opponent",
+              "opponent": "R4",
+              "favorite_id": "A-4",
+              "underdog_id": "B-4",
+              "delta_q": 10,
+              "goal_margin_difference": 2
+            },
+            {
+              "kind": "common_opponent",
+              "opponent": "R6",
+              "favorite_id": "A-6",
+              "underdog_id": "B-6",
+              "delta_q": 10,
+              "goal_margin_difference": 1
+            }
+          ]
+        }
+      },
+      {
+        "id": "b4",
+        "bit": 0,
+        "available": true,
+        "reason": "Último H2H ganado y cubierto; el previo en la misma condición no perdió la liquidación.",
+        "values": {
+          "h2h": "A-5",
+          "previous": "A-0",
+          "h2h_raw_open": 1.5,
+          "h2h_raw_close": 0.75,
+          "h2h_age_days": 40.0
+        }
+      },
+      {
+        "id": "b5",
+        "bit": 1,
+        "available": true,
+        "reason": "SOT +1.5 y AP +10, o efecto presa en el último partido activo.",
+        "values": {
+          "sot_f": 7,
+          "sot_d": 4,
+          "ap_f": 65,
+          "ap_d": 45,
+          "presa": false
+        }
+      },
+      {
+        "id": "b6",
+        "bit": 0,
+        "available": true,
+        "reason": "Veto por empates frecuentes o margen de un gol ante exigencia larga.",
+        "values": {
+          "draw_rate_condition": 0.42857142857142855,
+          "active_draws": 3,
+          "one_goal_majority": true
+        }
+      }
+    ],
+    "g": [
+      {
+        "id": "g1",
+        "bit": 1,
+        "available": true,
+        "reason": "Escenario 1+2=3 con favorito proyectado; cerrojo tiene prioridad.",
+        "values": {
+          "dog_scoring_rate": 1.0,
+          "n_condition": 7,
+          "projected_fav_win": true,
+          "locks": {
+            "favorite": false,
+            "underdog": false
+          }
+        }
+      },
+      {
+        "id": "g2",
+        "bit": 1,
+        "available": true,
+        "reason": "Media de referencias únicas contra la línea.",
+        "values": {
+          "mean_q": 12.571428571428571,
+          "n": 7,
+          "share_3plus": 0.8571428571428571
+        }
+      },
+      {
+        "id": "g3",
+        "bit": 1,
+        "available": true,
+        "reason": "Fusión sin doble conteo o desplazamiento de línea respaldado por goles recientes.",
+        "values": {
+          "fused_q": 13.5,
+          "overlap_blocks": false,
+          "historical_q": 10.0,
+          "line_history_n": 14,
+          "shock_q": 1.0,
+          "recent4": {
+            "favorite": true,
+            "underdog": true
+          }
+        }
+      },
+      {
+        "id": "g4",
+        "bit": 0,
+        "available": true,
+        "reason": "Ruptura unilateral alineada con favorito o bilateral en ambos equipos.",
+        "values": {
+          "unilateral": false,
+          "bilateral": false,
+          "delta_q": 10
+        }
+      },
+      {
+        "id": "g5",
+        "bit": 1,
+        "available": true,
+        "reason": "Suma AP a favor, una vez por equipo.",
+        "values": {
+          "combined_ap": 110,
+          "threshold": 100
+        }
+      },
+      {
+        "id": "g6",
+        "bit": 1,
+        "available": true,
+        "reason": "22 tiros combinados o conversión de ambos >=35%.",
+        "values": {
+          "shots": 27,
+          "conversion_f": 0.3142857142857143,
+          "conversion_d": 0.3
+        }
+      }
+    ],
+    "score_ah": {
+      "votes": 4,
+      "valid": 6,
+      "of_six": 4.0,
+      "coverage": 1.0,
+      "is_probability": false
+    },
+    "score_ou": {
+      "votes": 5,
+      "valid": 6,
+      "of_six": 5.0,
+      "coverage": 1.0,
+      "is_probability": false
+    },
+    "initial_direction": {
+      "ah": "favorite",
+      "ou": "OVER"
+    },
+    "policy_trace": [
+      "OU_FLOOR_SCENARIO",
+      "AH_LONG_LINE_DRAW_VETO"
+    ],
+    "patterns": [
+      "FRICCION_EMPATE_MARGEN"
+    ],
+    "ah_pick": {
+      "market": "AH_AWAY",
+      "line_q": 6,
+      "line": 1.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "ou_pick": {
+      "market": "OVER",
+      "line_q": 10,
+      "line": 2.5,
+      "quote_status": "TARGET_UNQUOTED",
+      "quote": null,
+      "expected_value": null,
+      "value_status": "NOT_ESTIMATED_FROM_BINARY_VOTES",
+      "automatic_execution": false
+    },
+    "evidence_refs": [
+      "DEMO:A-0",
+      "DEMO:A-1",
+      "DEMO:A-2",
+      "DEMO:A-3",
+      "DEMO:A-4",
+      "DEMO:A-5",
+      "DEMO:A-6",
+      "DEMO:B-0",
+      "DEMO:B-1",
+      "DEMO:B-2",
+      "DEMO:B-3",
+      "DEMO:B-4",
+      "DEMO:B-5",
+      "DEMO:B-6",
+      "DEMO:CURRENT",
+      "DEMO:HIST",
+      "DEMO:LEAGUE",
+      "DEMO:REF0",
+      "DEMO:REF1",
+      "DEMO:REF2",
+      "DEMO:REF3",
+      "DEMO:REF4",
+      "DEMO:REF5",
+      "DEMO:REF6"
+    ],
+    "notes": [
+      "Los patrones no identifican la intención de la casa.",
+      "Las medias en unidades de cuarto pueden ser fraccionarias.",
+      "65/35 pondera la proyección de forma; no equivale al 65% de seis votos.",
+      "Un cero disponible es condición no cumplida, no prueba de valor del lado contrario."
+    ]
+  },
+  "evidence_refs": [
+    "DEMO:A-0",
+    "DEMO:A-1",
+    "DEMO:A-2",
+    "DEMO:A-3",
+    "DEMO:A-4",
+    "DEMO:A-5",
+    "DEMO:A-6",
+    "DEMO:B-0",
+    "DEMO:B-1",
+    "DEMO:B-2",
+    "DEMO:B-3",
+    "DEMO:B-4",
+    "DEMO:B-5",
+    "DEMO:B-6",
+    "DEMO:CURRENT",
+    "DEMO:HIST",
+    "DEMO:LEAGUE",
+    "DEMO:REF0",
+    "DEMO:REF1",
+    "DEMO:REF2",
+    "DEMO:REF3",
+    "DEMO:REF4",
+    "DEMO:REF5",
+    "DEMO:REF6"
+  ]
+}

@@ -1,0 +1,778 @@
+{
+  "$defs": {
+    "Bridge": {
+      "additionalProperties": false,
+      "properties": {
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "total_goals": {
+          "minimum": 0,
+          "title": "Total Goals",
+          "type": "integer"
+        },
+        "kickoff": {
+          "format": "date-time",
+          "title": "Kickoff",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "home_id": {
+          "title": "Home Id",
+          "type": "string"
+        },
+        "away_id": {
+          "title": "Away Id",
+          "type": "string"
+        },
+        "competition_id": {
+          "title": "Competition Id",
+          "type": "string"
+        },
+        "raw_home_ah": {
+          "title": "Raw Home Ah",
+          "type": "number"
+        },
+        "home_goals": {
+          "minimum": 0,
+          "title": "Home Goals",
+          "type": "integer"
+        },
+        "away_goals": {
+          "minimum": 0,
+          "title": "Away Goals",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "match_id",
+        "total_goals",
+        "kickoff",
+        "available_at",
+        "source_ref",
+        "home_id",
+        "away_id",
+        "competition_id",
+        "raw_home_ah",
+        "home_goals",
+        "away_goals"
+      ],
+      "title": "Bridge",
+      "type": "object"
+    },
+    "LeagueRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "wins": {
+          "minimum": 0,
+          "title": "Wins",
+          "type": "integer"
+        },
+        "draws": {
+          "minimum": 0,
+          "title": "Draws",
+          "type": "integer"
+        },
+        "losses": {
+          "minimum": 0,
+          "title": "Losses",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "wins",
+        "draws",
+        "losses"
+      ],
+      "title": "LeagueRecord",
+      "type": "object"
+    },
+    "PastMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "team_id": {
+          "title": "Team Id",
+          "type": "string"
+        },
+        "opponent_id": {
+          "title": "Opponent Id",
+          "type": "string"
+        },
+        "competition_id": {
+          "title": "Competition Id",
+          "type": "string"
+        },
+        "venue": {
+          "enum": [
+            "home",
+            "away"
+          ],
+          "title": "Venue",
+          "type": "string"
+        },
+        "opponent_squad": {
+          "default": "senior",
+          "enum": [
+            "senior",
+            "reserve",
+            "u20"
+          ],
+          "title": "Opponent Squad",
+          "type": "string"
+        },
+        "kickoff": {
+          "format": "date-time",
+          "title": "Kickoff",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "raw_home_ah": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Home Ah"
+        },
+        "raw_home_ah_close": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Home Ah Close"
+        },
+        "ou_line": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ou Line"
+        },
+        "gf": {
+          "minimum": 0,
+          "title": "Gf",
+          "type": "integer"
+        },
+        "ga": {
+          "minimum": 0,
+          "title": "Ga",
+          "type": "integer"
+        },
+        "shot_goals_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shot Goals For"
+        },
+        "shot_goals_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shot Goals Against"
+        },
+        "shots_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shots For"
+        },
+        "shots_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shots Against"
+        },
+        "sot_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sot For"
+        },
+        "sot_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sot Against"
+        },
+        "attacks_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attacks For"
+        },
+        "attacks_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attacks Against"
+        },
+        "ap_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ap For"
+        },
+        "ap_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ap Against"
+        },
+        "corners_for": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Corners For"
+        },
+        "corners_against": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Corners Against"
+        },
+        "red_card_context": {
+          "default": false,
+          "title": "Red Card Context",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "match_id",
+        "team_id",
+        "opponent_id",
+        "competition_id",
+        "venue",
+        "kickoff",
+        "available_at",
+        "source_ref",
+        "gf",
+        "ga"
+      ],
+      "title": "PastMatch",
+      "type": "object"
+    },
+    "Quote": {
+      "additionalProperties": false,
+      "properties": {
+        "market": {
+          "enum": [
+            "AH_HOME",
+            "AH_AWAY",
+            "OVER",
+            "UNDER"
+          ],
+          "title": "Market",
+          "type": "string"
+        },
+        "line_q": {
+          "title": "Line Q",
+          "type": "integer"
+        },
+        "odds": {
+          "exclusiveMinimum": 1,
+          "title": "Odds",
+          "type": "number"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "bookmaker": {
+          "title": "Bookmaker",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "market",
+        "line_q",
+        "odds",
+        "available_at",
+        "bookmaker",
+        "source_ref"
+      ],
+      "title": "Quote",
+      "type": "object"
+    },
+    "Reference": {
+      "additionalProperties": false,
+      "properties": {
+        "match_id": {
+          "title": "Match Id",
+          "type": "string"
+        },
+        "total_goals": {
+          "minimum": 0,
+          "title": "Total Goals",
+          "type": "integer"
+        },
+        "kickoff": {
+          "format": "date-time",
+          "title": "Kickoff",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "match_id",
+        "total_goals",
+        "kickoff",
+        "available_at",
+        "source_ref"
+      ],
+      "title": "Reference",
+      "type": "object"
+    },
+    "Similar": {
+      "additionalProperties": false,
+      "properties": {
+        "n": {
+          "minimum": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "cover_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cover Rate"
+        },
+        "losses": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Losses"
+        },
+        "gf": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gf"
+        },
+        "ga": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ga"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sample Ids",
+          "type": "array"
+        },
+        "cover_definition": {
+          "default": "platform_reported",
+          "title": "Cover Definition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "n",
+        "sample_ids"
+      ],
+      "title": "Similar",
+      "type": "object"
+    },
+    "SimilarBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "home": {
+          "$ref": "#/$defs/Similar"
+        },
+        "away": {
+          "$ref": "#/$defs/Similar"
+        },
+        "correlation": {
+          "default": "unknown",
+          "enum": [
+            "home",
+            "away",
+            "balanced",
+            "unknown"
+          ],
+          "title": "Correlation",
+          "type": "string"
+        },
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "home",
+        "away",
+        "available_at",
+        "source_ref"
+      ],
+      "title": "SimilarBlock",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "6.2-binary",
+      "default": "6.2-binary",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "event_id": {
+      "title": "Event Id",
+      "type": "string"
+    },
+    "home_id": {
+      "title": "Home Id",
+      "type": "string"
+    },
+    "away_id": {
+      "title": "Away Id",
+      "type": "string"
+    },
+    "competition_id": {
+      "title": "Competition Id",
+      "type": "string"
+    },
+    "decision_at": {
+      "format": "date-time",
+      "title": "Decision At",
+      "type": "string"
+    },
+    "kickoff": {
+      "format": "date-time",
+      "title": "Kickoff",
+      "type": "string"
+    },
+    "raw_home_ah": {
+      "title": "Raw Home Ah",
+      "type": "number"
+    },
+    "ou_line": {
+      "minimum": 0.5,
+      "title": "Ou Line",
+      "type": "number"
+    },
+    "rank_home": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rank Home"
+    },
+    "rank_away": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rank Away"
+    },
+    "record_home": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LeagueRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "record_away": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LeagueRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "senior_match": {
+      "default": true,
+      "title": "Senior Match",
+      "type": "boolean"
+    },
+    "synthetic": {
+      "default": false,
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "provider": {
+      "title": "Provider",
+      "type": "string"
+    },
+    "provider_definitions": {
+      "title": "Provider Definitions",
+      "type": "string"
+    },
+    "history": {
+      "items": {
+        "$ref": "#/$defs/PastMatch"
+      },
+      "title": "History",
+      "type": "array"
+    },
+    "similar_current": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimilarBlock"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "similar_h2h": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SimilarBlock"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "references": {
+      "items": {
+        "$ref": "#/$defs/Reference"
+      },
+      "title": "References",
+      "type": "array"
+    },
+    "bridges": {
+      "items": {
+        "$ref": "#/$defs/Bridge"
+      },
+      "title": "Bridges",
+      "type": "array"
+    },
+    "quotes": {
+      "items": {
+        "$ref": "#/$defs/Quote"
+      },
+      "title": "Quotes",
+      "type": "array"
+    },
+    "league_sot_per_team": {
+      "exclusiveMinimum": 0,
+      "title": "League Sot Per Team",
+      "type": "number"
+    },
+    "league_conversion": {
+      "exclusiveMaximum": 1,
+      "exclusiveMinimum": 0,
+      "title": "League Conversion",
+      "type": "number"
+    },
+    "baseline_available_at": {
+      "format": "date-time",
+      "title": "Baseline Available At",
+      "type": "string"
+    },
+    "baseline_source_ref": {
+      "title": "Baseline Source Ref",
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_id",
+    "home_id",
+    "away_id",
+    "competition_id",
+    "decision_at",
+    "kickoff",
+    "raw_home_ah",
+    "ou_line",
+    "provider",
+    "provider_definitions",
+    "history",
+    "league_sot_per_team",
+    "league_conversion",
+    "baseline_available_at",
+    "baseline_source_ref"
+  ],
+  "title": "Snapshot",
+  "type": "object"
+}

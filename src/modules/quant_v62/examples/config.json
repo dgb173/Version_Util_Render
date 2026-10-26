@@ -1,0 +1,20 @@
+{
+  "version": "6.2.0-binary",
+  "active_days": 21,
+  "history_days": 90,
+  "active_n": 5,
+  "active_weight": 0.65,
+  "role_tolerance_q": 3,
+  "home_advantage_q": 2.0,
+  "conversion_prior_shots": 20.0,
+  "min_active_n": 3,
+  "min_similar_n": 2,
+  "sot_advantage": 1.5,
+  "ap_advantage": 10.0,
+  "ap_total": 100.0,
+  "shots_total": 22.0,
+  "conversion_high": 0.35,
+  "bubble_conversion": 0.6,
+  "bubble_max_sot": 4.0,
+  "exclude_red_cards": true
+}

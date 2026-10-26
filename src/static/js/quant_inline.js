@@ -9,30 +9,60 @@
 
     function render(slot, id, result) {
         if (!slot.isConnected) return;
-        const selections = result.selections || {};
-        const names = {home: result.match?.home, away: result.match?.away, over: 'Over', under: 'Under'};
-        const lines = Object.values(selections).map(p => {
-            const line = p.market === 'OU' ? Math.abs(p.line) : (p.line > 0 ? '+' + p.line : p.line);
-            return `<div><strong>${esc(p.market)}: ${esc(names[p.side])} ${esc(line)}</strong>
-                <span class="small">${pct(p.prob_profit)}</span></div>`;
-        }).join('');
-        const reason = (result.alerts || []).join(' ');
-        slot.innerHTML = `<div class="clave-dicotomica-v7" style="border:1px solid #64748b;border-radius:8px;padding:6px;width:100%;font-size:.68rem" title="${esc(reason)}">
-            <div style="font-size:.55rem;font-weight:800">MODELO v6.1 + STATS</div>
-            ${lines || `<span>${esc(result.alerts?.[0] || 'No hay líneas válidas')}</span>`}
-            ${lines ? `<div class="small">Riesgo ${esc(result.risk)} · Stats ${result.telemetry?.used_in_prediction ? 'incluidas' : 'sin efecto'}</div>` : ''}
-            <button type="button" class="btn btn-outline-primary btn-sm py-0 mt-1" style="font-size:.6rem" data-quant-open="${encodeURIComponent(id)}">Ver fundamento</button>
-        </div>`;
-        const row = slot.closest('tr[data-match-id]');
-        if (row) {
-            row.dataset.hasPick = Object.keys(selections).length ? '1' : '0';
-            row.dataset.hasAhPick = selections.AH ? '1' : '0';
-            row.dataset.hasOuPick = selections.OU ? '1' : '0';
-            row.dataset.pickSideKind = selections.AH && result.favorite_side ?
-                (selections.AH.side === result.favorite_side ? 'FAVORITE' : 'DOG') : '';
-            row.dataset.pickGoals = selections.OU ? selections.OU.side.toUpperCase() : '';
-            row.dataset.pickConfidence = result.risk === 'MEDIO' ? 'MEDIA' : 'BAJA';
+
+        // Soporte v6.2 prioritario
+        if (result.ah_pick || result.ou_pick || result.status === 'OK') {
+            const ah = result.ah_pick;
+            const ou = result.ou_pick;
+            const scoreAh = result.score_ah || {};
+            const scoreOu = result.score_ou || {};
+            const patterns = result.patterns || [];
+
+            let ahLabel = 'N/D';
+            if (ah && ah.market) {
+                const sideName = ah.market === 'AH_HOME' ? 'Loc' : 'Vis';
+                const lineVal = ah.line !== undefined ? (ah.line > 0 ? '+' + ah.line : ah.line) : '';
+                ahLabel = `${sideName} ${lineVal}`;
+            }
+
+            let ouLabel = 'N/D';
+            if (ou && ou.market) {
+                ouLabel = `${ou.market === 'OVER' ? 'Over' : 'Under'} ${ou.line ?? ''}`;
+            }
+
+            const ahScoreText = scoreAh.of_six !== undefined ? Number(scoreAh.of_six).toFixed(1) + '/6' : '';
+            const ouScoreText = scoreOu.of_six !== undefined ? Number(scoreOu.of_six).toFixed(1) + '/6' : '';
+
+            const patternBadge = patterns.length ? `<span class="badge bg-warning text-dark py-0" style="font-size:.55rem">${esc(patterns[0])}</span>` : '';
+
+            slot.innerHTML = `<div class="clave-dicotomica-v7" style="border:1px solid #7c3aed;border-radius:8px;padding:6px;width:100%;font-size:.68rem;background:rgba(124,58,237,0.06)">
+                <div style="font-size:.56rem;font-weight:800;color:#7c3aed;display:flex;justify-content:space-between;align-items:center;">
+                    <span>🧠 MOTOR v6.2</span>
+                    ${patternBadge}
+                </div>
+                <div style="margin:2px 0;line-height:1.2;">
+                    <div style="color:#2563eb;font-weight:700;">AH: ${esc(ahLabel)} <span style="color:#64748b;font-size:.58rem">(${esc(ahScoreText)})</span></div>
+                    <div style="color:#059669;font-weight:700;">Tot: ${esc(ouLabel)} <span style="color:#64748b;font-size:.58rem">(${esc(ouScoreText)})</span></div>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm py-0 mt-1 w-100" style="font-size:.6rem;font-weight:700;" data-quant-open="${encodeURIComponent(id)}">Ver 12 compuertas</button>
+            </div>`;
+
+            const row = slot.closest('tr[data-match-id]');
+            if (row) {
+                row.dataset.hasPick = (ah || ou) ? '1' : '0';
+                row.dataset.hasAhPick = ah ? '1' : '0';
+                row.dataset.hasOuPick = ou ? '1' : '0';
+                row.dataset.pickSideKind = ah?.market === 'AH_HOME' ? 'HOME' : 'AWAY';
+                row.dataset.pickGoals = ou?.market || '';
+            }
+            return;
         }
+
+        // Fallback si no tiene picks
+        slot.innerHTML = `<div class="clave-dicotomica-v7" style="border:1px solid #64748b;border-radius:8px;padding:6px;width:100%;font-size:.68rem">
+            <div style="font-size:.55rem;font-weight:800;color:#64748b;">MOTOR v6.2</div>
+            <span class="text-muted small">${esc(result.message || 'Analiza el partido')}</span>
+        </div>`;
     }
 
     async function hydrate() {

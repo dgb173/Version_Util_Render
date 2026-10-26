@@ -1665,14 +1665,24 @@ def api_export_prompt(match_id):
             return jsonify({"success": False, "error": "Formato de datos invalido en la cache."})
 
         from modules import llm_exporter
-        from modules.quant_features import enrich_prior_stats
-        match_data = enrich_prior_stats(match_data, lambda mid: sql_store.get_match(mid))
         prompt = llm_exporter.generate_llm_prompt(match_data)
-        from modules.quant_research import predict as quant_predict
-        prediction = quant_predict(match_data)
-        summary = {key: value for key, value in prediction.items() if key != 'score_matrix'}
-        prompt += '\n\nMODELO v6.1 RESEARCH: revisión crítica permitida; no garantiza aciertos.\n' + json.dumps(summary, ensure_ascii=False)
-        return jsonify({"success": True, "prompt": prompt, "quant_prediction": prediction})
+        try:
+            from modules.quant_api import run_quant_v62_analysis
+            prediction = run_quant_v62_analysis(match_data)
+            summary = {
+                'model_version': prediction.get('model_version'),
+                'ah_pick': prediction.get('ah_pick'),
+                'ou_pick': prediction.get('ou_pick'),
+                'score_ah': prediction.get('score_ah'),
+                'score_ou': prediction.get('score_ou'),
+                'patterns': prediction.get('patterns'),
+                'policies': prediction.get('policy_trace'),
+                'input_sha256': prediction.get('input_sha256'),
+            }
+            prompt += '\n\nMOTOR DUAL ENTERO-BINARIO v6.2 (12 COMPUERTAS):\n' + json.dumps(summary, ensure_ascii=False)
+            return jsonify({"success": True, "prompt": prompt, "quant_prediction": prediction})
+        except Exception as q_exc:
+            return jsonify({"success": True, "prompt": prompt, "quant_error": str(q_exc)})
     except Exception as e:
         import traceback
         traceback.print_exc()

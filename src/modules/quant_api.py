@@ -1,94 +1,168 @@
-"""Flask integration. Training is an explicit offline operation, never a GET."""
-import hashlib
+"""Integración Flask del Motor dual entero-binario v6.2 OPERATIVO.
+
+Endpoints para análisis pre-partido de 12 compuertas, liquidación,
+auditoría inmutable SHA-256 y feedback estructurado con Gemini.
+"""
+from __future__ import annotations
+
 import json
+import os
+from pathlib import Path
 import sqlite3
-from datetime import datetime, timezone
+from typing import Callable, Dict, Any, Optional
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
-from . import quant_research as quant
-from .quant_features import enrich_prior_stats
+from .quant_v62.adapter import build_snapshot_and_config
+from .quant_v62.engine import analyze as analyze_v62
+from .quant_v62.audit_log import append_record
 
-
-def predict_from_cache(payload, loader):
-    result = quant.predict(payload)
-    if result.get('probabilities_1x2'):
-        payload = enrich_prior_stats(payload, loader)
-        result = quant.predict(payload)
-    return payload, result
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+AUDIT_DB_PATH = PROJECT_ROOT / "data" / "quant_v62_audit.sqlite"
 
 
-def append_audit(event_id, payload, result, db=None):
-    db = db or quant.ROOT / 'data/quant_v61_audit.sqlite'
-    db.parent.mkdir(parents=True, exist_ok=True)
-    packet = json.dumps({'event_id': str(event_id), 'snapshot': payload, 'prediction': result},
-                        sort_keys=True, ensure_ascii=False, allow_nan=False)
-    run_id = hashlib.sha256(packet.encode()).hexdigest()
-    with sqlite3.connect(db) as conn:
-        conn.executescript('''
-            CREATE TABLE IF NOT EXISTS predictions (
-                run_id TEXT PRIMARY KEY, event_id TEXT NOT NULL,
-                packet TEXT NOT NULL, created_at TEXT NOT NULL);
-            CREATE TRIGGER IF NOT EXISTS predictions_no_update BEFORE UPDATE ON predictions
-                BEGIN SELECT RAISE(ABORT, 'append-only'); END;
-            CREATE TRIGGER IF NOT EXISTS predictions_no_delete BEFORE DELETE ON predictions
-                BEGIN SELECT RAISE(ABORT, 'append-only'); END;
-        ''')
-        conn.execute('INSERT OR IGNORE INTO predictions VALUES (?,?,?,?)',
-                     (run_id, str(event_id), packet, datetime.now(timezone.utc).isoformat()))
-    return run_id
+def run_quant_v62_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Ejecuta el análisis v6.2 sobre el payload de la plataforma."""
+    snapshot, cfg = build_snapshot_and_config(payload)
+    result = analyze_v62(snapshot, cfg)
+    return result
 
 
-def create_blueprint(loader):
-    bp = Blueprint('quant_v61', __name__)
+def create_blueprint(loader: Callable[[str], Optional[Dict[str, Any]]]) -> Blueprint:
+    bp = Blueprint("quant_v62", __name__)
 
-    @bp.get('/api/quant/status')
+    @bp.get("/api/quant/status")
     def status():
-        model = quant.load_model()
-        return jsonify({'trained': bool(model), 'version': model.get('version') if model else '6.1 RESEARCH',
-                        'telemetry_trained': bool(model and model.get('telemetry_model')),
-                        'training_end': model.get('training_end') if model else None,
-                        'training_count': model.get('training_count') if model else 0,
-                        'validation': model.get('validation') if model else None})
+        return jsonify({
+            "success": True,
+            "version": "6.2.0-binary",
+            "name": "Motor dual entero-binario v6.2 OPERATIVO",
+            "description": "Motor determinista de 12 compuertas para hándicap asiático y totales FT90",
+            "gates_count": 12,
+            "poisson_model": False,
+            "status": "ready"
+        })
 
-    @bp.get('/api/quant/predict/<match_id>')
-    @bp.post('/api/quant/audit/<match_id>')
-    def prediction(match_id):
-        from flask import request
+    @bp.get("/api/quant/predict/<match_id>")
+    @bp.post("/api/quant/audit/<match_id>")
+    def prediction(match_id: str):
         payload = loader(str(match_id))
         if not isinstance(payload, dict) or not payload:
-            return jsonify({'success': False, 'error': 'Partido no encontrado en la base local'}), 404
-        payload, result = predict_from_cache(payload, loader)
-        if request.method == 'POST':
-            result['run_id'] = append_audit(match_id, payload, result)
-        return jsonify({'success': True, 'prediction': result, 'match': {
-            'home': payload.get('home_name') or payload.get('home_team'),
-            'away': payload.get('away_name') or payload.get('away_team'),
-            'league': payload.get('league_name')}})
+            return jsonify({
+                "success": False,
+                "error": "Partido no encontrado en la base de datos local. Analiza el partido primero."
+            }), 404
 
-    @bp.post('/api/quant/bulk')
+        try:
+            result = run_quant_v62_analysis(payload)
+            if request.method == "POST":
+                AUDIT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+                audit_record = {
+                    "event_id": str(match_id),
+                    "analysis": result,
+                }
+                try:
+                    sha = append_record(AUDIT_DB_PATH, audit_record)
+                    result["audit_ledger_sha256"] = sha
+                except sqlite3.IntegrityError:
+                    from .quant_v62.audit_log import digest
+                    result["audit_ledger_sha256"] = digest(audit_record)
+                    result["audit_already_exists"] = True
+
+            home = payload.get("home_name") or payload.get("home_team")
+            away = payload.get("away_name") or payload.get("away_team")
+            league = payload.get("league_name") or payload.get("league")
+
+            return jsonify({
+                "success": True,
+                "version": "6.2.0-binary",
+                "prediction": result,
+                "match": {
+                    "id": str(match_id),
+                    "home": home,
+                    "away": away,
+                    "league": league,
+                    "handicap": payload.get("handicap"),
+                    "goal_line": payload.get("goal_line"),
+                }
+            })
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                "success": False,
+                "error": f"Error calculando motor v6.2: {exc}"
+            }), 500
+
+    @bp.post("/api/quant/bulk")
     def bulk():
-        from flask import request
         body = request.get_json(silent=True)
-        ids = body.get('match_ids') if isinstance(body, dict) else None
-        if not isinstance(ids, list) or not ids or len(ids) > 50 or not all(isinstance(i, (str, int)) for i in ids):
-            return jsonify(success=False, error='Se requieren entre 1 y 50 IDs de partidos'), 400
+        ids = body.get("match_ids") if isinstance(body, dict) else None
+        if not isinstance(ids, list) or not ids or len(ids) > 60:
+            return jsonify(success=False, error="Se requiere lista de entre 1 y 60 IDs"), 400
+
         results = {}
         for mid in dict.fromkeys(map(str, ids)):
             payload = loader(mid)
             if not isinstance(payload, dict) or not payload:
-                results[mid] = {'status': 'ERROR_DATOS', 'alerts': ['Analiza el partido para obtener datos'], 'selections': {}}
+                results[mid] = {
+                    "status": "SIN_DATOS",
+                    "label": "Sin datos",
+                    "ah_pick": None,
+                    "ou_pick": None,
+                }
                 continue
-            payload, result = predict_from_cache(payload, loader)
-            result.pop('score_matrix', None)
-            result.pop('validation', None)
-            if result.get('telemetry'):
-                # Bulk rows need a compact summary; full evidence stays in the modal.
-                result['telemetry'] = {k: v for k, v in result['telemetry'].items()
-                                       if k not in ('validation', 'home', 'away')}
-            result['match'] = {'home': payload.get('home_name') or payload.get('home_team'),
-                               'away': payload.get('away_name') or payload.get('away_team')}
-            results[mid] = result
-        return jsonify(success=True, predictions=results)
+
+            try:
+                res = run_quant_v62_analysis(payload)
+                results[mid] = {
+                    "status": "OK",
+                    "ah_pick": res.get("ah_pick"),
+                    "ou_pick": res.get("ou_pick"),
+                    "score_ah": res.get("score_ah"),
+                    "score_ou": res.get("score_ou"),
+                    "patterns": res.get("patterns", []),
+                    "policies": res.get("policy_trace", []),
+                    "input_sha256": res.get("input_sha256"),
+                }
+            except Exception as exc:
+                results[mid] = {
+                    "status": "ERROR",
+                    "error": str(exc),
+                    "ah_pick": None,
+                    "ou_pick": None,
+                }
+
+        return jsonify(success=True, predictions=results, version="6.2.0-binary")
+
+    @bp.post("/api/quant/gemini/<match_id>")
+    def gemini_review(match_id: str):
+        payload = loader(str(match_id))
+        if not isinstance(payload, dict) or not payload:
+            return jsonify(success=False, error="Partido no encontrado"), 404
+
+        try:
+            analysis = run_quant_v62_analysis(payload)
+            from .quant_v62.review_gemini import make_request, validate_review, live_review
+
+            api_key = os.getenv("GEMINI_API_KEY")
+            model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+            if api_key:
+                review = live_review(analysis, api_key, model_name)
+                return jsonify(success=True, live=True, review=review.model_dump())
+            else:
+                req_json = make_request(analysis)
+                return jsonify(
+                    success=True,
+                    live=False,
+                    message="GEMINI_API_KEY no configurada. Se devuelve el esquema de petición validado.",
+                    packet_sha256=analysis.get("input_sha256"),
+                    request_spec=req_json,
+                )
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            return jsonify(success=False, error=str(exc)), 500
 
     return bp
