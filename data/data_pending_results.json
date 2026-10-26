@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "id": "EXP_AH_01",
+    "name": "ah_line_exact=+0.50 | raw_ah=FAV_CUBRE | bookie_confirmation=NEUTRAL",
+    "conditions": [
+      {
+        "field": "ah_line_exact",
+        "op": "eq",
+        "value": "+0.50"
+      },
+      {
+        "field": "raw_ah",
+        "op": "eq",
+        "value": "FAV_CUBRE"
+      },
+      {
+        "field": "bookie_confirmation",
+        "op": "eq",
+        "value": "NEUTRAL"
+      }
+    ],
+    "discovery": {
+      "rows": 60,
+      "picks": 60,
+      "coverage": 100.0,
+      "positive": 37,
+      "negative": 23,
+      "pushes": 0,
+      "positive_rate": 61.67,
+      "wilson_lower_95": 49.02,
+      "mean_settlement_even_odds": 0.23333
+    },
+    "validation": {
+      "rows": 12,
+      "picks": 12,
+      "coverage": 100.0,
+      "positive": 10,
+      "negative": 2,
+      "pushes": 0,
+      "positive_rate": 83.33,
+      "wilson_lower_95": 55.2,
+      "mean_settlement_even_odds": 0.66667
+    },
+    "validation_incremental": {
+      "rows": 12,
+      "picks": 12,
+      "coverage": 100.0,
+      "positive": 10,
+      "negative": 2,
+      "pushes": 0,
+      "positive_rate": 83.33,
+      "wilson_lower_95": 55.2,
+      "mean_settlement_even_odds": 0.66667
+    },
+    "final_test": {
+      "rows": 17,
+      "picks": 17,
+      "coverage": 100.0,
+      "positive": 11,
+      "negative": 6,
+      "pushes": 0,
+      "positive_rate": 64.71,
+      "wilson_lower_95": 41.3,
+      "mean_settlement_even_odds": 0.29412
+    },
+    "match_id": "EXP_AH_01"
+  }
+]

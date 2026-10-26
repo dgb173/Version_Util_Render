@@ -475,19 +475,33 @@
             document.getElementById('loading-text').textContent = text;
         }
 
-        // Obtener hora actual de España
-        function getSpainTime() {
-            const now = new Date();
-            // Convertir a hora de España
-            const spainTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
-            return spainTime;
+        // Obtener hora actual de España con Intl
+        function getSpainParts(date) {
+            const parts = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Europe/Madrid',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).formatToParts(date);
+            const out = {};
+            for (const p of parts) {
+                if (p.type !== 'literal') out[p.type] = p.value;
+            }
+            return out;
+        }
+
+        function getSpainTimeString(date) {
+            const p = getSpainParts(date);
+            return `${p.hour}:${p.minute}`;
         }
 
         function updateCurrentTimeDisplay() {
-            const spainTime = getSpainTime();
-            const hours = spainTime.getHours().toString().padStart(2, '0');
-            const minutes = spainTime.getMinutes().toString().padStart(2, '0');
-            document.getElementById('current-time-badge').textContent = `Hora España: ${hours}:${minutes}`;
+            const now = new Date();
+            document.getElementById('current-time-badge').textContent = `Hora España: ${getSpainTimeString(now)}`;
         }
 
         function setViewMode(mode) {
@@ -517,24 +531,24 @@
 
         // Comparar si el partido es futuro respecto a la hora actual de España
         function isMatchUpcoming(match) {
-            const spainTime = getSpainTime();
-
             // Prefer using full ISO start_time if available
             if (match.start_time) {
                 const startTime = new Date(match.start_time);
-                return startTime > spainTime;
+                if (!isNaN(startTime.getTime())) {
+                    return startTime.getTime() > Date.now();
+                }
             }
 
             // Fallback to simple time comparison (only works for same-day assumptions)
-            // This was the buggy legacy behavior, but we keep it just in case
             const matchTimeStr = match.time;
             const matchTime = parseMatchTime(matchTimeStr);
             if (!matchTime) return true;
 
-            const currentMinutes = spainTime.getHours() * 60 + spainTime.getMinutes();
+            const nowParts = getSpainParts(new Date());
+            const currentMinutes = parseInt(nowParts.hour, 10) * 60 + parseInt(nowParts.minute, 10);
             const matchMinutes = matchTime.hours * 60 + matchTime.minutes;
 
-            return matchMinutes > currentMinutes;
+            return currentMinutes < matchMinutes;
         }
 
         // Comparar si el partido ya pasó (es candidato a resultado pendiente)

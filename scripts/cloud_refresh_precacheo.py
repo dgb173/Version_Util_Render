@@ -20,6 +20,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 try:
+    from modules.match_clock import schedule_fields
     from modules.youth_filter import is_unbettable_youth_match
 except Exception:
     is_unbettable_youth_match = lambda m: False
@@ -112,6 +113,7 @@ def _stale_history_jobs(path: Path, days: int) -> list[dict]:
                 "ah": str(match.get("handicap") or main_odds.get("ah_linea") or "N/A"),
                 "season": "stale_history_upgrade",
                 "league_id": "stale_history_upgrade",
+                **schedule_fields(match),
             }
         )
         seen.add(match_id)
@@ -286,6 +288,7 @@ def main() -> int:
                 "partidos y contextos completados correctamente."
             )
 
+        _run((python, "scripts/repair_match_times.py", "--apply"))
         _run((python, "scripts/export_precacheo_json.py", "--include-pending"))
         summary = _validate_outputs(max_json_bytes=max(1, args.max_json_bytes))
 

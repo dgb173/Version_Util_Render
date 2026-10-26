@@ -1,8 +1,6 @@
 /**
- * Motor Cuantitativo Dual Entero-Binario v5.0 (Acoplamiento Cruzado Anti-Sesgos)
- * Implementación determinista basada en Números Enteros (Z), 12 Compuertas Binarias ({0,1}),
- * Fusión Ponderada de Hándicaps Similares, Bloqueo Anti-Under por Pleno de Referencias
- * y Acoplamiento Cruzado Goles -> Hándicap (Techo del Empatador).
+ * Pronóstico v6.1 RESEARCH desde el servidor. Las funciones v5 se conservan
+ * para compatibilidad y regresión; no deciden las predicciones del modal.
  */
 (() => {
     // --- UTILIDADES MATEMÁTICAS Y DE PARSEO ---
@@ -1446,6 +1444,74 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
         window._lastMotorV4MatchId = matchId;
     }
 
+    function showResearchModal(result, match, promptText) {
+        let modal = document.getElementById('motorV4ModalContainer');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'motorV4ModalContainer';
+            document.body.appendChild(modal);
+        }
+        const pct = value => Number.isFinite(value) ? (100 * value).toFixed(1) + '%' : 'N/D';
+        const dec = value => Number.isFinite(value) ? value.toFixed(3) : 'N/D';
+        const names = {home: match.home, away: match.away, draw: 'Empate', over: 'Over', under: 'Under'};
+        const selection = result.selections || {};
+        const pickText = m => `${esc(names[m.side])} ${esc(m.market === 'OU' ? Math.abs(m.line) : (m.line > 0 ? '+' + m.line : m.line))}`;
+        const pickCards = ['AH', 'OU'].filter(k => selection[k]).map(k => {
+            const m = selection[k];
+            return `<div class="prediction-card" style="padding:1rem;flex:1;min-width:240px">
+                <strong>${k === 'AH' ? 'PICK HÁNDICAP' : 'PICK GOLES'}</strong>
+                <div class="pred-main-pick">${pickText(m)}</div>
+                <p>P(beneficio): <strong>${pct(m.prob_profit)}</strong> · Cuota: ${dec(m.odds_decimal)} · EV: ${pct(m.ev)}</p>
+                <p>Riesgo: <strong>${esc(m.risk || result.risk)}</strong>.
+                ${result.picks?.[k]?.side === m.side ? 'Candidato de valor en simulación.' : 'Selección del modelo; valor de apuesta sin confirmar.'}</p>
+                <p class="small">${(m.reasons || []).map(esc).join(' ')}</p>
+            </div>`;
+        }).join('');
+        const telemetry = result.telemetry;
+        const statRows = telemetry ? [
+            ['shots', 'Tiros'], ['on_target', 'Tiros a puerta'], ['attacks', 'Ataques'], ['dangerous_attacks', 'Ataques peligrosos']
+        ].map(([key, label]) => `<tr><td>${label}</td>
+            <td>${dec(telemetry.home?.[key + '_for'])} / ${dec(telemetry.home?.[key + '_against'])} (${telemetry.home?.counts?.[key + '_for'] || 0})</td>
+            <td>${dec(telemetry.away?.[key + '_for'])} / ${dec(telemetry.away?.[key + '_against'])} (${telemetry.away?.counts?.[key + '_for'] || 0})</td></tr>`).join('') : '';
+        const rows = (result.markets || []).map(m => `<tr>
+            <td>${esc(m.market)} · ${esc(names[m.side])} ${esc(m.market === 'OU' ? Math.abs(m.line) : (m.line > 0 ? '+' + m.line : m.line))}</td>
+            <td>${pct(m.prob_profit)}</td><td>${dec(m.fair_odds)}</td>
+            <td>${dec(m.odds_decimal)}</td><td>${pct(m.ev)}</td>
+            <td>${selection[m.market]?.side === m.side ? (result.picks?.[m.market]?.side === m.side ? 'Pick · candidato de valor' : 'Pick del modelo') : 'Alternativa'}</td>
+        </tr>`).join('');
+        const probs = result.probabilities_1x2;
+        const validation = result.telemetry?.validation?.heldout_blend || result.validation?.heldout;
+        modal.innerHTML = `<div class="motor-v4-overlay" onclick="if(event.target===this) window.closeMotorV4Modal()">
+            <div class="motor-v4-card" role="dialog" aria-modal="true" aria-label="Pronóstico v6.1 Research">
+                <div class="motor-v4-header"><div><h5>Motor cuantitativo v6.1 RESEARCH + STATS</h5>
+                    <div>${esc(match.home)} vs ${esc(match.away)} · ${esc(match.league)}</div></div>
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.closeMotorV4Modal()">Cerrar</button></div>
+                <div class="motor-v4-body" style="padding:1.25rem;overflow:auto">
+                    <p><strong>${esc(result.status)}</strong> · Pronósticos del modelo, sin garantía de acierto.</p>
+                    <div style="display:flex;gap:1rem;flex-wrap:wrap">${pickCards}</div>
+                    ${result.selection_1x2 && !Object.keys(selection).length ? `<p>Pronóstico 1X2: <strong>${esc(names[result.selection_1x2])}</strong>. Faltan líneas para valorar AH y goles.</p>` : ''}
+                    ${probs ? `<p>Probabilidades 1X2: Local <strong>${pct(probs.home)}</strong> · Empate <strong>${pct(probs.draw)}</strong> · Visitante <strong>${pct(probs.away)}</strong></p>` : ''}
+                    <p>Entrenado hasta: ${esc(result.training_end || 'N/D')}.
+                    Muestra efectiva local / visitante: ${dec(result.evidence?.home?.effective_n)} / ${dec(result.evidence?.away?.effective_n)}.</p>
+                    ${validation ? `<p>Prueba temporal: ${esc(validation.n)} partidos · Log loss ${dec(validation.log_loss_1x2)} · Brier ${dec(validation.brier_1x2)}. ROI sin verificar.</p>` : ''}
+                    ${telemetry ? `<h6>Tiros y ataques históricos</h6>
+                        <p>${telemetry.used_in_prediction ? 'Incluidos numéricamente en la predicción' : 'Disponibles como evidencia; sin efecto numérico en este ajuste'} · ${esc(telemetry.source)}.</p>
+                        <div class="table-responsive"><table class="table table-dark table-sm"><thead><tr><th>Media ponderada</th><th>Local: a favor / en contra (n)</th><th>Visitante: a favor / en contra (n)</th></tr></thead><tbody>${statRows}</tbody></table></div>
+                        <p class="small">Solo encuentros anteriores a la fecha objetivo, deduplicados. N/D significa dato ausente; 0 significa cero observado.</p>` : ''}
+                    <div class="table-responsive"><table class="table table-dark table-sm"><thead><tr>
+                        <th>Mercado</th><th>P(beneficio)</th><th>Cuota justa</th><th>Cuota decimal</th><th>EV/u</th><th>Estado</th>
+                    </tr></thead><tbody>${rows || '<tr><td colspan="6">No hay valoración operativa con los datos disponibles.</td></tr>'}</tbody></table></div>
+                    <p class="small">P(beneficio) incluye media ganancia. La cuota justa y EV integran devolución y medios pagos; EV no equivale a probabilidad de acierto. Los mercados no se combinan multiplicando probabilidades.</p>
+                    <ul>${(result.alerts || []).map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+                    <p class="small">Las estadísticas ausentes conservan estado N/D. La predicción procede del modelo del servidor; no depende de abrir fichas en la página.</p>
+                    <details><summary>Distribución y auditoría JSON</summary><pre style="white-space:pre-wrap">${esc(JSON.stringify(result, null, 2))}</pre></details>
+                </div>
+                <div class="motor-v4-footer"><span class="small">Registro: ${esc(result.run_id || 'N/D')}</span>
+                    <button class="btn btn-primary btn-sm" id="btnCopyMotorV4Prompt" onclick="window.copyMotorV4AuditedPrompt()">Copiar pronóstico auditado</button></div>
+            </div></div>`;
+        window._lastMotorV4Prompt = promptText;
+    }
+
     window.closeMotorV4Modal = function () {
         const modalEl = document.getElementById('motorV4ModalContainer');
         if (modalEl) modalEl.innerHTML = '';
@@ -1547,23 +1613,16 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                 console.warn('No se pudo cargar /api/export_prompt, continuando con DOM:', e);
             }
 
-            const matchData = extractMatchDataFromDOM(panel, matchId, promptText);
-            const result = evaluateMatchV4(matchData);
-            const auditTemplate = buildPromptInjectionTemplate(result);
-
-            panel._motorV4AuditTemplate = auditTemplate;
-
-            const copyBtn = panel.querySelector('.pre-context-copy');
-            const encoded = copyBtn?.dataset?.context || '';
-            const contextText = decodeURIComponent(encoded);
-            const openCardsText = typeof window.extractOpenContextCardsText === 'function' ? window.extractOpenContextCardsText(panel) : '';
-            const divider = '='.repeat(72);
-            const combinedPromptText = `${contextText}${openCardsText}\n\n${divider}\nPROMPT LLM COMPLETO\n${divider}\n\n${promptText}\n\n${auditTemplate}`;
-
-            showMotorV4Modal(result, combinedPromptText, matchId);
+            const response = await fetch(`/api/quant/audit/${encodeURIComponent(matchId)}`, { method: 'POST' });
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || 'No se pudo consultar el modelo');
+            const result = data.prediction;
+            const auditedText = JSON.stringify(result, null, 2);
+            const combinedPromptText = promptText + '\n\nMODELO v6.1 RESEARCH (revisión crítica permitida; sin garantía de acierto):\n' + auditedText;
+            showResearchModal(result, data.match, combinedPromptText);
         } catch (err) {
-            console.error('Error ejecutando Motor v5.0:', err);
-            alert('Error en Motor v5.0: ' + err.message);
+            console.error('Error ejecutando pronóstico v6.1:', err);
+            alert('Error en pronóstico v6.1: ' + err.message);
         }
     };
 

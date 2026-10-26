@@ -3,6 +3,8 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
+from modules.match_clock import schedule_fields, sync_stored_schedule
 
 
 PRECACHE_BUCKET = "data_precacheo.json"
@@ -220,6 +222,13 @@ def build_jobs(
                 cached = existing_precache.get(mid)
                 if cached:
                     if _can_reuse_precache(match, cached):
+                        needs_sync = False
+                        for time_key, time_value in schedule_fields(match).items():
+                            if cached.get(time_key) != time_value:
+                                cached[time_key] = time_value
+                                needs_sync = True
+                        if needs_sync:
+                            sync_stored_schedule(conn, mid, match, bucket=PRECACHE_BUCKET)
                         skipped_existing += 1
                         continue
                     forced_refresh += 1
@@ -230,6 +239,7 @@ def build_jobs(
                     "ah": str(match.get("handicap", "N/A")),
                     "season": "json_snapshot",
                     "league_id": "json_snapshot",
+                    **schedule_fields(match),
                 }
             )
 
@@ -237,6 +247,7 @@ def build_jobs(
         with out_path.open("w", encoding="utf-8") as fh:
             json.dump(jobs, fh, ensure_ascii=False, indent=2)
 
+        conn.commit()
         total_upcoming = len(seen)
         print(f"Snapshot upcoming: {total_upcoming}")
         if include_existing:

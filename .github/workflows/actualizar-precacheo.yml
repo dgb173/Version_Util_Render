@@ -12,7 +12,7 @@ on:
         default: false
         type: boolean
   schedule:
-    - cron: "10 */3 * * *" # Cada 3 horas (00:10, 03:10, 06:10, 09:10, 12:10, 15:10, 18:10, 21:10 UTC)
+    - cron: "10 */3 * * *" # Cada 3 horas (UTC)
 
 permissions:
   contents: write
@@ -37,6 +37,7 @@ jobs:
       PRECACHEO_HISTORY_UPGRADE_DAYS: "2"
       PRECACHEO_RENDER_URL: "https://nowgoal-app-v8fw.onrender.com"
       PYTHONUNBUFFERED: "1"
+      TZ: Europe/Madrid
 
     steps:
       - name: Descargar la versión de Render
@@ -141,7 +142,7 @@ jobs:
           {
             echo "## Actualización de precacheo"
             echo
-            echo "- Horario automático: **cada 4 horas (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)**"
+            echo "- Horario automático: **00:10, 03:10, 06:10, 09:10, 12:10, 15:10, 18:10 y 21:10 Europe/Madrid (CET/CEST automático)**"
             echo "- Ejecución: **${{ github.event_name }}**"
             echo "- Commit publicado: **${{ steps.publish.outputs.published || 'false' }}**"
             echo "- Contexto previo: **incremental, caché de 8 horas**"

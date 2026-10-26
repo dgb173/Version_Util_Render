@@ -4725,6 +4725,12 @@
             return `${p.year}-${p.month}-${p.day}`;
         }
 
+        function getSpainTomorrowDateKey(date) {
+            const p = getSpainParts(date);
+            const calendar = new Date(Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day) + 1));
+            return calendar.toISOString().slice(0, 10);
+        }
+
         function toScheduleKey(parts) {
             const y = parseInt(parts.year, 10);
             const m = parseInt(parts.month, 10);
@@ -4853,7 +4859,7 @@
         function getMatchScheduleParts(match) {
             if (match && match._schedule_parts) return match._schedule_parts;
 
-            if (match && match.start_time) {
+            if (match && match.start_time && /(?:Z|[+-]\d{2}:\d{2})$/i.test(String(match.start_time))) {
                 const d = new Date(match.start_time);
                 if (!isNaN(d.getTime())) {
                     const p = getSpainParts(d);
@@ -4912,7 +4918,7 @@
 
             const now = new Date();
             const todayKey = getSpainDateKey(now);
-            const tomorrowKey = getSpainDateKey(new Date(now.getTime() + 86400000));
+            const tomorrowKey = getSpainTomorrowDateKey(now);
             const matchKey = `${String(schedule.year).padStart(4, '0')}-${String(schedule.month).padStart(2, '0')}-${String(schedule.day).padStart(2, '0')}`;
             const hh = String(schedule.hour).padStart(2, '0');
             const mm = String(schedule.minute).padStart(2, '0');
@@ -9813,7 +9819,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                         <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                         <button type="button" class="pre-context-odds-btn" onclick="toggleMainMatchOddsMovement(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ver movimiento de cuotas Bet365 del partido actual (Initial vs Live: AH, O/U, 1X2)" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center;"><i class="fa-solid fa-chart-line me-1" style="color:#15803d;"></i>📈 Cuotas Bet365</button>
-                        <button type="button" class="pre-context-motor-v4-btn" onclick="openMotorV4Modal(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ejecutar Motor Cuantitativo Dual Entero-Binario v5.0 (Acoplamiento Cruzado Anti-Sesgos)"><i class="fa-solid fa-brain me-1" style="color:#7c3aed;"></i><span>🧠 Motor v5.0</span></button>
+                        <button type="button" class="pre-context-motor-v4-btn" onclick="openMotorV4Modal(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Picks AH y goles: forma, tiros, ataques peligrosos, probabilidades y cuotas"><i class="fa-solid fa-brain me-1" style="color:#7c3aed;"></i><span>🧠 Pronóstico v6.1 + Stats</span></button>
                     </div>
                 </div>
                 <div class="main-match-odds-container" style="display:none; margin:8px 0 12px 0;"></div>
@@ -14909,7 +14915,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 };
                 const pickHtml = `
                     <div class="d-flex flex-column align-items-center gap-1" style="width: 100%; max-width: 180px; margin: 0 auto;">
-                        ${renderClaveDicotomicaV7(pickSource)}
+                        ${isScraped ? `<div class="quant-inline-forecast" data-quant-match-id="${encodeURIComponent(String(matchId))}" style="width:100%;font-size:.68rem">Calculando pick del modelo…</div>` : '<span class="small text-muted">Analiza el partido para calcular el pick</span>'}
                     </div>
                 `;
 
@@ -19722,6 +19728,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
     <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
     <script defer src="{{ url_for('static', filename='js/motor_cuantitativo_v4.js') }}?v={{ range(1000, 9999) | random }}"></script>
+    <script defer src="{{ url_for('static', filename='js/quant_inline.js') }}?v={{ range(1000, 9999) | random }}"></script>
 
     <script>
         (() => {

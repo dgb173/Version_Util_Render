@@ -225,6 +225,14 @@ def _parse_date(value: Any) -> Optional[Tuple[int, int, int]]:
 
 
 def _scheduled_at_utc(match: Dict[str, Any]) -> Optional[dt.datetime]:
+    try:
+        from .match_clock import record_instant
+        instant = record_instant(match)
+        if instant is not None:
+            return instant
+    except Exception:
+        pass
+
     start_time = match.get("start_time")
     if start_time:
         candidate = str(start_time).strip()
@@ -233,7 +241,7 @@ def _scheduled_at_utc(match: Dict[str, Any]) -> Optional[dt.datetime]:
         try:
             parsed = dt.datetime.fromisoformat(candidate)
             if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=UTC)
+                parsed = parsed.replace(tzinfo=SPAIN_TZ)
             return parsed.astimezone(UTC)
         except ValueError:
             pass
