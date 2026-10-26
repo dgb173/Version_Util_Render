@@ -125,6 +125,14 @@ def analyze(data, config=None):
         eligible,active,prior,excluded = select_history(s,team,cfg)
         pa,pb = profile(active,cfg,s.league_conversion),profile(prior,cfg,s.league_conversion)
         profiles[label] = {'active':pa,'prior':pb,'blend':blend(pa,pb,cfg)}
+        venue = 'home' if team == s.home_id else 'away'
+        # Exact chronological windows, independent of the comparable-role sample.
+        real = sorted((r for r in s.history if r.team_id == team), key=lambda r:r.kickoff, reverse=True)
+        condition = [r for r in real if r.venue == venue]
+        profiles[label].update(last_five=profile(real[:5],cfg,s.league_conversion),
+                               last_five_same_venue=profile(condition[:5],cfg,s.league_conversion),
+                               last_same_venue=profile(condition[:1],cfg,s.league_conversion),
+                               venue=venue)
         selected[label] = {'all':eligible,'active':active,'prior':prior}
         exclusions[label] = excluded
     fa,da = profiles['favorite']['active'],profiles['underdog']['active']
@@ -199,12 +207,20 @@ def analyze(data, config=None):
               {'h2h':h2h.match_id if h2h else None,'previous':prev.match_id if prev else None,
                'h2h_raw_open':h2h.raw_home_ah if h2h else None,'h2h_raw_close':h2h.raw_home_ah_close if h2h else None,
                'h2h_age_days':(s.decision_at-h2h.kickoff).total_seconds()/86400 if h2h else None})
-    previous_active = selected['favorite']['active'][0] if selected['favorite']['active'] else None
+    previous_active = prev
     presa = previous_active is not None and previous_active.sot_for is not None and previous_active.ap_for is not None and previous_active.sot_for>=10 and previous_active.ap_for>=55 and previous_active.gf<=1
     b5ok = presa or (usable(fa,'sot_for','ap_for',n=cfg.min_active_n) and usable(da,'sot_for','ap_for',n=cfg.min_active_n))
     dominance = b5ok and not presa and fa['sot_for']-da['sot_for'] >= cfg.sot_advantage and fa['ap_for']-da['ap_for'] >= cfg.ap_advantage
-    b5 = gate('b5',presa or dominance,b5ok,'SOT +1.5 y AP +10, o efecto presa en el último partido activo.',
-              {'sot_f':fa['sot_for'],'sot_d':da['sot_for'],'ap_f':fa['ap_for'],'ap_d':da['ap_for'],'presa':presa})
+    venue_f = profiles['favorite']['last_same_venue']
+    venue_d = profiles['underdog']['last_same_venue']
+    venue_available = all(usable(p,'sot_for','sot_against','ap_for','ap_against',n=1) for p in (venue_f,venue_d))
+    venue_conflict = venue_available and (venue_f['sot_for']-venue_f['sot_against'] < venue_d['sot_for']-venue_d['sot_against']
+                                          and venue_f['ap_for']-venue_f['ap_against'] < venue_d['ap_for']-venue_d['ap_against'])
+    b5 = gate('b5',presa or (dominance and not venue_conflict),b5ok,
+              'SOT +1.5 y AP +10; contrastar el último partido en la misma condición. Presa en esa condición.',
+              {'sot_f':fa['sot_for'],'sot_d':da['sot_for'],'ap_f':fa['ap_for'],'ap_d':da['ap_for'],'presa':presa,
+               'last_venue_available':venue_available,'last_venue_conflict':venue_conflict,
+               'last_venue_favorite':venue_f,'last_venue_underdog':venue_d})
     samevenue = [r for r in selected['favorite']['all'] if r.venue==fav_side][:10]
     drawrate = ratio(sum(r.gf==r.ga for r in samevenue),len(samevenue))
     wins = [r.gf-r.ga for r in selected['favorite']['all'] if r.gf>r.ga]

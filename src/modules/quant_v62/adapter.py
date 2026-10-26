@@ -79,7 +79,7 @@ def _extract_score(score_str: Any) -> Tuple[Optional[int], Optional[int]]:
     return None, None
 
 
-def _extract_stats_from_rows(stats_rows: List[Dict[str, Any]], is_home: bool) -> Dict[str, Optional[int]]:
+def _extract_stats_from_rows(stats_data: Any, is_home: bool) -> Dict[str, Optional[int]]:
     out = {
         "shots_for": None, "shots_against": None,
         "sot_for": None, "sot_against": None,
@@ -87,30 +87,51 @@ def _extract_stats_from_rows(stats_rows: List[Dict[str, Any]], is_home: bool) ->
         "ap_for": None, "ap_against": None,
         "corners_for": None, "corners_against": None,
     }
-    if not isinstance(stats_rows, list):
+    if not stats_data:
         return out
 
-    for row in stats_rows:
+    if isinstance(stats_data, dict):
+        rows = []
+        for k, v in stats_data.items():
+            if isinstance(v, dict):
+                rows.append({"label": k, **v})
+            elif isinstance(v, (list, tuple)) and len(v) >= 2:
+                rows.append({"label": k, "home": v[0], "away": v[1]})
+    elif isinstance(stats_data, list):
+        rows = stats_data
+    else:
+        return out
+
+    for row in rows:
         if not isinstance(row, dict):
             continue
         label = _norm_str(row.get("label") or row.get("name") or "")
-        h_val = _parse_int(row.get("home"))
-        a_val = _parse_int(row.get("away"))
+
+        h_raw = row.get("home") if row.get("home") is not None else row.get("h") if row.get("h") is not None else row.get("Home")
+        a_raw = row.get("away") if row.get("away") is not None else row.get("a") if row.get("a") is not None else row.get("Away")
+
+        h_val = _parse_int(h_raw)
+        a_val = _parse_int(a_raw)
         if h_val is None or a_val is None or h_val < 0 or a_val < 0:
             continue
 
         val_for = h_val if is_home else a_val
         val_against = a_val if is_home else h_val
 
-        if "tiros a puerta" in label or "shots on target" in label or label == "sot":
-            out["sot_for"], out["sot_against"] = min(val_for, 50), min(val_against, 50)
-        elif "tiros" in label or "shots" in label or label == "remates":
-            out["shots_for"], out["shots_against"] = min(val_for, 80), min(val_against, 80)
-        elif "ataques peligrosos" in label or "dangerous attacks" in label or label == "ap":
+        # Ataques Peligrosos (AP / DA)
+        if "peligros" in label or "dangerous" in label or label in ("ap", "da", "ataques_peligrosos", "dangerous_attacks"):
             out["ap_for"], out["ap_against"] = min(val_for, 200), min(val_against, 200)
-        elif "ataques" in label or "attacks" in label:
+        # Tiros a Puerta (SOT)
+        elif "puerta" in label or "target" in label or label in ("sot", "tiros_a_puerta", "shots_on_target", "on_target"):
+            out["sot_for"], out["sot_against"] = min(val_for, 50), min(val_against, 50)
+        # Tiros Totales (Shots)
+        elif "tiro" in label or "shot" in label or "remate" in label or "disparo" in label:
+            out["shots_for"], out["shots_against"] = min(val_for, 80), min(val_against, 80)
+        # Ataques Totales (Attacks)
+        elif "ataque" in label or "attack" in label:
             out["attacks_for"], out["attacks_against"] = min(val_for, 300), min(val_against, 300)
-        elif "corner" in label or "corners" in label or "saques de esquina" in label:
+        # Córners
+        elif "corner" in label or "corners" in label or "saques de esquina" in label or "esquina" in label:
             out["corners_for"], out["corners_against"] = min(val_for, 30), min(val_against, 30)
 
     # Coherencia estricta: sot <= shots
@@ -120,6 +141,41 @@ def _extract_stats_from_rows(stats_rows: List[Dict[str, Any]], is_home: bool) ->
             out[f"shots_{side}"] = sot
 
     return out
+
+
+_STATS_RESOLVE_CACHE = {}
+
+def _resolve_stats_for_match(m: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Resuelve telemetría detallada de ataques peligrosos y tiros bajo demanda."""
+    existing = m.get("stats_rows") or m.get("stats") or m.get("statistics")
+    if existing:
+        return existing if isinstance(existing, list) else [existing]
+
+    raw_mid = str(m.get("match_id") or m.get("matchIndex") or m.get("id") or "").strip()
+    digits = "".join(filter(str.isdigit, raw_mid))
+    if not digits:
+        return []
+
+    if digits in _STATS_RESOLVE_CACHE:
+        return _STATS_RESOLVE_CACHE[digits]
+
+    try:
+        from ..last_general_context import _get_stats_rows
+    except Exception:
+        try:
+            from modules.last_general_context import _get_stats_rows
+        except Exception:
+            _get_stats_rows = None
+
+    if _get_stats_rows:
+        try:
+            rows = _get_stats_rows(digits) or []
+            _STATS_RESOLVE_CACHE[digits] = rows
+            return rows
+        except Exception:
+            pass
+
+    return []
 
 
 def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[datetime] = None) -> Tuple[Snapshot, Config]:
@@ -199,18 +255,22 @@ def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[dat
     # Historial de partidos
     history_matches: List[PastMatch] = []
     seen_history_keys = set()
+    min_age_seen = float('inf')
     max_age_seen = 21.0
     max_role_diff_seen = 0.0
     current_home_strength = quarters(raw_home_ah)
 
     def process_match_list(matches: List[Dict[str, Any]], target_team_id: str, is_target_home: bool):
-        nonlocal max_age_seen, max_role_diff_seen
+        nonlocal min_age_seen, max_age_seen, max_role_diff_seen
         if not isinstance(matches, list):
             return
         for idx, m in enumerate(matches):
             if not isinstance(m, dict):
                 continue
-            raw_mid = str(m.get("match_id") or m.get("matchIndex") or m.get("id") or f"idx_{idx}").strip()
+            if m.get("is_different_league"):
+                continue  # ignorar partidos de otra competición para mantener muestra homogénea
+            raw_mid = str(m.get("match_id") or m.get("matchIndex") or m.get("id") or
+                          f"{m.get('date')}_{m.get('home_team')}_{m.get('away_team')}").strip()
             if raw_mid == event_id:
                 continue
 
@@ -222,6 +282,8 @@ def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[dat
             age_days = (decision_at - m_dt).total_seconds() / 86400.0
             if age_days > max_age_seen:
                 max_age_seen = age_days
+            if age_days < min_age_seen:
+                min_age_seen = age_days
 
             avail_dt = min(decision_at, m_dt + timedelta(hours=2))
             if not m_dt < avail_dt <= decision_at:
@@ -236,18 +298,15 @@ def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[dat
             if score_gf is None or score_ga is None:
                 continue
 
-            venue = "home" if is_target_home else "away"
-            if m_home and m_away:
-                if home_name and _norm_str(home_name) in _norm_str(m_home):
-                    venue = "home"
-                elif home_name and _norm_str(home_name) in _norm_str(m_away):
-                    venue = "away"
-                elif away_name and _norm_str(away_name) in _norm_str(m_home):
-                    venue = "home"
-                elif away_name and _norm_str(away_name) in _norm_str(m_away):
-                    venue = "away"
-
-            opp_id = f"OPP_{raw_mid}"
+            target_name = home_name if target_team_id == home_id else away_name
+            if _norm_str(target_name) == _norm_str(m_home):
+                venue, opponent = "home", m_away
+            elif _norm_str(target_name) == _norm_str(m_away):
+                venue, opponent = "away", m_home
+            else:
+                continue
+            opp_id = (home_id if _norm_str(opponent) == _norm_str(home_name) else
+                      away_id if _norm_str(opponent) == _norm_str(away_name) else _norm_str(opponent))
             if venue == "home":
                 gf, ga = score_gf, score_ga
             else:
@@ -267,8 +326,11 @@ def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[dat
             hist_ou = _parse_float(m.get("ouLine") or m.get("ouLine_raw") or m.get("over_under_line_raw"))
             hist_ou_line = _round_to_quarter(hist_ou) if (hist_ou is not None and hist_ou >= 0.5) else ou_line
 
-            # Telemetría de remates
-            stats = _extract_stats_from_rows(m.get("stats_rows") or [], is_home=(venue == "home"))
+            # Telemetría de remates y ataques peligrosos
+            raw_stats = m.get("stats_rows") or m.get("stats") or m.get("statistics")
+            if not raw_stats and raw_mid and age_days <= 25:
+                raw_stats = _resolve_stats_for_match(m)
+            stats = _extract_stats_from_rows(raw_stats, is_home=(venue == "home"))
 
             # ID con espacio de nombres por equipo para evitar colisiones entre perspectivas
             scoped_mid = f"{target_team_id}_{raw_mid}"
@@ -305,50 +367,48 @@ def build_snapshot_and_config(payload: Dict[str, Any], decision_at: Optional[dat
             history_matches.append(pm)
             seen_history_keys.add(key)
 
-    # Procesar listas de partidos recientes
-    home_sources = (
-        payload.get("recent_home_matches_same_league_specific")
-        or payload.get("recent_home_matches")
-        or payload.get("recent_home_matches_all")
-        or []
-    )
-    away_sources = (
-        payload.get("recent_away_matches_same_league_specific")
-        or payload.get("recent_away_matches")
-        or payload.get("recent_away_matches_all")
-        or []
-    )
-    process_match_list(home_sources, home_id, is_target_home=True)
-    process_match_list(away_sources, away_id, is_target_home=False)
+    # Merge every real source before deduplication so a summary cannot hide telemetry.
+    for side, team in (("home", home_id), ("away", away_id)):
+        merged = {}
+        last_m = payload.get(f"last_{side}_match")
+        if isinstance(last_m, dict) and not (last_m.get("stats_rows") or last_m.get("stats")):
+            resolved_last = _resolve_stats_for_match(last_m)
+            if resolved_last:
+                last_m["stats_rows"] = resolved_last
+        sources = [last_m] + [payload.get(f"recent_{side}_matches{suffix}") for suffix in
+                   ("", "_all", "_same_league_general", "_same_league_specific")]
+        for source in sources:
+            source_items = source if isinstance(source, list) else [source]
+            for row in source_items:
+                if not isinstance(row, dict):
+                    continue
 
-    # Asegurar que ambos equipos tengan al menos una fila elegible reciente
-    for team, v, opp in [(home_id, "home", away_id), (away_id, "away", home_id)]:
-        if not any(r.team_id == team for r in history_matches):
-            dummy_mid = f"PREV_{team}_{event_id}"
-            k_dummy = decision_at - timedelta(days=7)
-            pm_dummy = PastMatch(
-                match_id=dummy_mid,
-                team_id=team,
-                opponent_id=f"OPP_{dummy_mid}",
-                competition_id=comp_id,
-                venue=v,
-                opponent_squad="senior",
-                kickoff=k_dummy,
-                available_at=k_dummy + timedelta(hours=2),
-                source_ref=f"NowGoal:{dummy_mid}",
-                raw_home_ah=raw_home_ah,
-                ou_line=ou_line,
-                gf=1,
-                ga=1,
-            )
-            history_matches.append(pm_dummy)
+                key = (str(row.get("date") or row.get("match_date")),
+                       _norm_str(row.get("home_team") or row.get("home")),
+                       _norm_str(row.get("away_team") or row.get("away")))
+                old = merged.get(key, {})
+                stats = {_norm_str(x.get("label") or x.get("name")): x
+                         for x in (old.get("stats_rows") or []) + (row.get("stats_rows") or [])
+                         if isinstance(x, dict) and _parse_int(x.get("home")) is not None
+                         and _parse_int(x.get("away")) is not None}
+                merged[key] = {**old, **{k:v for k,v in row.items() if v is not None},
+                               "stats_rows": list(stats.values())}
+        process_match_list(list(merged.values()), team, is_target_home=(side == "home"))
 
     # Ajustar configuración adaptativa para abarcar el historial real sin violar las reglas
     history_days_needed = max(90, int(max_age_seen + 7))
     role_tol_needed = max(3, int(max_role_diff_seen + 2))
+
+    # Si la competición tiene parón o el último partido fue hace > 18 días,
+    # expandir active_days para abarcar la ventana activa del equipo
+    if min_age_seen < float('inf') and min_age_seen > 18:
+        active_days_needed = int(min_age_seen + 35)
+    else:
+        active_days_needed = 21
+
     cfg = Config(
         version="6.2.0-binary",
-        active_days=max(21, int(min(history_days_needed, 60))),
+        active_days=max(21, min(history_days_needed, active_days_needed)),
         history_days=history_days_needed,
         active_n=5,
         role_tolerance_q=role_tol_needed,

@@ -1509,6 +1509,20 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                 const bitClass = g.bit === 1 ? 'badge bg-success' : (g.available ? 'badge bg-secondary' : 'badge bg-dark text-muted');
                 const bitLabel = g.bit === 1 ? '1 (Cumple)' : (g.available ? '0 (No cumple)' : '0 (Sin datos)');
                 const desc = gateDescMap[g.id] || g.id;
+                let extraValuesHtml = '';
+                if (g.id === 'b5' && g.values) {
+                    const apF = g.values.ap_f !== null && g.values.ap_f !== undefined ? dec(g.values.ap_f, 1) : '-';
+                    const apD = g.values.ap_d !== null && g.values.ap_d !== undefined ? dec(g.values.ap_d, 1) : '-';
+                    const sotF = g.values.sot_f !== null && g.values.sot_f !== undefined ? dec(g.values.sot_f, 1) : '-';
+                    const sotD = g.values.sot_d !== null && g.values.sot_d !== undefined ? dec(g.values.sot_d, 1) : '-';
+                    extraValuesHtml = `<div style="font-size:.73rem; color:#38bdf8; margin-top:4px; font-weight:600;">📊 Ataques Peligrosos: Fav <strong>${apF}</strong> vs Und <strong>${apD}</strong> · Tiros Puerta: Fav <strong>${sotF}</strong> vs Und <strong>${sotD}</strong></div>`;
+                } else if (g.id === 'g5' && g.values) {
+                    const combAp = g.values.combined_ap !== null && g.values.combined_ap !== undefined ? dec(g.values.combined_ap, 1) : '-';
+                    extraValuesHtml = `<div style="font-size:.73rem; color:#34d399; margin-top:4px; font-weight:600;">🔥 AP Combinados: <strong>${combAp}</strong> / Umbral: <strong>${g.values.threshold || 100}</strong></div>`;
+                } else if (g.id === 'g6' && g.values) {
+                    const sh = g.values.shots !== null && g.values.shots !== undefined ? dec(g.values.shots, 1) : '-';
+                    extraValuesHtml = `<div style="font-size:.73rem; color:#a78bfa; margin-top:4px; font-weight:600;">🎯 Tiros Combinados: <strong>${sh}</strong> / Umbral: <strong>22</strong></div>`;
+                }
                 return `
                     <div style="background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1516,6 +1530,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                             <span class="${bitClass}" style="font-size:.72rem;">${bitLabel}</span>
                         </div>
                         <div style="color:#94a3b8; font-size:.75rem;">${esc(g.reason)}</div>
+                        ${extraValuesHtml}
                     </div>
                 `;
             }).join('');

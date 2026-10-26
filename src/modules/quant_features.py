@@ -28,7 +28,10 @@ def enrich_prior_stats(payload, lookup):
         return payload
     snapshot = copy.deepcopy(payload)
     indirect = snapshot.get('comparativas_indirectas') or {}
-    cards = [snapshot.get(k) for k in ('last_home_match', 'last_away_match')]
+    cards = []
+    for key in SOURCE_KEYS:
+        value = snapshot.get(key)
+        cards.extend(value if isinstance(value, list) else [value])
     if isinstance(indirect, dict):
         cards.extend((indirect.get('left'), indirect.get('right')))
     evidence = []

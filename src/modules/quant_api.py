@@ -30,6 +30,12 @@ def run_quant_v62_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def create_blueprint(loader: Callable[[str], Optional[Dict[str, Any]]]) -> Blueprint:
     bp = Blueprint("quant_v62", __name__)
+    original_loader = loader
+
+    def loader(mid):
+        from .quant_features import enrich_prior_stats
+        payload = original_loader(mid)
+        return enrich_prior_stats(payload, original_loader) if isinstance(payload, dict) else payload
 
     @bp.get("/api/quant/status")
     def status():
@@ -124,6 +130,10 @@ def create_blueprint(loader: Callable[[str], Optional[Dict[str, Any]]]) -> Bluep
                     "patterns": res.get("patterns", []),
                     "policies": res.get("policy_trace", []),
                     "input_sha256": res.get("input_sha256"),
+                    "recent_context": {("home" if res.get("favorite_side") == "home" else "away") if label == "favorite"
+                                       else ("away" if res.get("favorite_side") == "home" else "home"):
+                                       {key: profile.get(key) for key in ("last_five", "last_five_same_venue", "last_same_venue")}
+                                       for label, profile in res.get("profiles", {}).items()},
                 }
             except Exception as exc:
                 results[mid] = {

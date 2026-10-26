@@ -17,6 +17,17 @@
             const scoreAh = result.score_ah || {};
             const scoreOu = result.score_ou || {};
             const patterns = result.patterns || [];
+            const context = result.recent_context || {};
+            const statValue = value => Number.isFinite(value) ? value.toFixed(1) : 'N/D';
+            const contextHtml = Object.entries(context).map(([side, windows]) => {
+                const rows = [['last_five', 'Últimos 5'], ['last_five_same_venue', side === 'home' ? '5 en casa' : '5 fuera'],
+                              ['last_same_venue', side === 'home' ? 'Último en casa' : 'Último fuera']];
+                return `<strong>${side === 'home' ? 'Local' : 'Visitante'}</strong>` + rows.map(([key, label]) => {
+                    const p = windows[key] || {};
+                    return `<div>${label} (${p.n || 0}): ` + ['shots', 'sot', 'attacks', 'ap'].map((s, i) =>
+                        `${['Tiros', 'Puerta', 'Ataques', 'Peligrosos'][i]} ${statValue(p[s + '_for'])}/${statValue(p[s + '_against'])} [${p.counts?.[s + '_for'] || 0}]`).join(' · ') + '</div>';
+                }).join('');
+            }).join('');
 
             let ahLabel = 'N/D';
             if (ah && ah.market) {
@@ -45,6 +56,7 @@
                     <div style="color:#059669;font-weight:700;">Tot: ${esc(ouLabel)} <span style="color:#64748b;font-size:.58rem">(${esc(ouScoreText)})</span></div>
                 </div>
                 <button type="button" class="btn btn-outline-primary btn-sm py-0 mt-1 w-100" style="font-size:.6rem;font-weight:700;" data-quant-open="${encodeURIComponent(id)}">Ver 12 compuertas</button>
+                <details style="margin-top:4px"><summary>Stats recientes · casa/fuera</summary><div>A favor / en contra · [partidos con dato]</div>${contextHtml}</details>
             </div>`;
 
             const row = slot.closest('tr[data-match-id]');
