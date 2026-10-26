@@ -28212,7 +28212,7 @@
                 "score": "0:2",
                 "historical_line": -0.25,
                 "line_difference": 0.0,
-                "cover": "COVER"
+                "cover": "FAIL"
               },
               {
                 "date": "2026-04-26",
@@ -31369,8 +31369,8 @@
             ]
           },
           "correlation": {
-            "status": "HOME",
-            "label": "Correlación favorable al local",
+            "status": "BALANCED",
+            "label": "Correlación equilibrada o contradictoria",
             "confidence": "ORIENTATIVA",
             "gap": 27.0,
             "home_strength": 67.0,
@@ -31673,6 +31673,7 @@
       "is_different_league": false,
       "stats_rows": []
     },
+    "last_home_match": null,
     "last_away_match": {
       "date": "2026-10-18",
       "home_team": "Launsdorf",
@@ -31869,7 +31870,7 @@
         "score_raw": "6-0",
         "ahLine": "0.5",
         "ahLine_raw": "0.5",
-        "ouLine": "3.25",
+        "ouLine": "3",
         "ou_result": "OVER",
         "matchIndex": "2782993",
         "vs": "1",
