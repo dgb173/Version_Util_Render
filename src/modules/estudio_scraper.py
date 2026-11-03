@@ -1339,9 +1339,10 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
 
     df = pd.DataFrame(table_rows)
     df = df.set_index("Estadistica_EN") if not df.empty else df
-    cache_value = df.copy(deep=True) if df is not None and not df.empty else _STATS_NOT_FOUND
-    _write_cache(_stats_cache, match_id, cache_value, _stats_cache_lock)
-    return df if not df.empty else None
+    if df is not None and not df.empty:
+        _write_cache(_stats_cache, match_id, df.copy(deep=True), _stats_cache_lock)
+        return df
+    return None
 
 def get_rival_a_for_original_h2h_of(soup, league_id=None):
     if not soup or not (table := soup.find("table", id="table_v1")): return None, None, None, False

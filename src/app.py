@@ -6370,40 +6370,49 @@ def api_match_stats(match_id=None):
         if not clean_id:
             return jsonify({'status': 'error', 'error': 'No se pudo identificar el ID del partido'}), 400
 
-        from modules.last_general_context import _get_stats_rows
-        stats = _get_stats_rows(clean_id)
-        if not stats and existing_cached_stats:
+        existing_match = sql_store.get_match(clean_id)
+        if existing_match and existing_match.get('stats_rows'):
+            stats = existing_match.get('stats_rows')
+        elif existing_cached_stats:
             stats = existing_cached_stats
+        else:
+            from modules.last_general_context import _get_stats_rows
+            stats = _get_stats_rows(clean_id)
+            if not stats and existing_cached_stats:
+                stats = existing_cached_stats
+            if stats and existing_match:
+                try:
+                    payload_to_save = {**existing_match, 'stats_rows': stats}
+                    bucket = 'data_uefa_qualifying.json' if existing_match.get('uefa_qualifying_catalogue') else 'data.json'
+                    sql_store.upsert_match(payload_to_save, bucket=bucket, state='historical')
+                except Exception:
+                    pass
 
-        ou_line = None
-        ah_line = None
-        try:
-            from modules.estudio_scraper import get_match_odds_movement_of
-            odds_res = get_match_odds_movement_of(clean_id)
-            if odds_res and odds_res.get('status') == 'success':
-                cand_ou = (odds_res.get('ou') or {}).get('initial', {}).get('line')
-                if not cand_ou or cand_ou in ('-', 'N/A'):
-                    cand_ou = (odds_res.get('ou') or {}).get('live', {}).get('line')
-                if cand_ou and cand_ou not in ('-', 'N/A'):
-                    ou_line = cand_ou
+        row_ou = str(payload.get('row_ou') or '').strip()
+        ou_line = row_ou if row_ou and row_ou not in ('-', 'N/A', 'undefined', 'null') else None
 
-                cand_ah = (odds_res.get('ah') or {}).get('initial', {}).get('line')
-                if not cand_ah or cand_ah in ('-', 'N/A'):
-                    cand_ah = (odds_res.get('ah') or {}).get('live', {}).get('line')
-                if cand_ah and cand_ah not in ('-', 'N/A'):
-                    ah_line = cand_ah
-        except Exception as err:
-            logging.warning("Error consultando cuotas en api_match_stats (%s): %s", clean_id, err)
+        row_ah = str(payload.get('row_ah') or '').strip()
+        ah_line = row_ah if row_ah and row_ah not in ('-', 'N/A', 'undefined', 'null') else None
 
-        if not ou_line:
-            row_ou = str(payload.get('row_ou') or '').strip()
-            if row_ou and row_ou not in ('-', 'N/A', 'undefined', 'null'):
-                ou_line = row_ou
-
-        if not ah_line:
-            row_ah = str(payload.get('row_ah') or '').strip()
-            if row_ah and row_ah not in ('-', 'N/A', 'undefined', 'null'):
-                ah_line = row_ah
+        if not ou_line or not ah_line:
+            try:
+                from modules.estudio_scraper import get_match_odds_movement_of
+                odds_res = get_match_odds_movement_of(clean_id)
+                if odds_res and odds_res.get('status') == 'success':
+                    if not ou_line:
+                        cand_ou = (odds_res.get('ou') or {}).get('initial', {}).get('line')
+                        if not cand_ou or cand_ou in ('-', 'N/A'):
+                            cand_ou = (odds_res.get('ou') or {}).get('live', {}).get('line')
+                        if cand_ou and cand_ou not in ('-', 'N/A'):
+                            ou_line = cand_ou
+                    if not ah_line:
+                        cand_ah = (odds_res.get('ah') or {}).get('initial', {}).get('line')
+                        if not cand_ah or cand_ah in ('-', 'N/A'):
+                            cand_ah = (odds_res.get('ah') or {}).get('live', {}).get('line')
+                        if cand_ah and cand_ah not in ('-', 'N/A'):
+                            ah_line = cand_ah
+            except Exception as err:
+                logging.warning("Error consultando cuotas en api_match_stats (%s): %s", clean_id, err)
 
         return jsonify({
             'status': 'success',

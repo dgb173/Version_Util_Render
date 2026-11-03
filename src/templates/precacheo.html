@@ -10953,7 +10953,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             </div>
                             <button type="button" class="btn btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
                         </div>
-                        <span>Sin stats en NowGoal</span>
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <span>Sin stats en NowGoal</span>
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size:0.48rem; line-height:1.2;" onclick="const b=this.closest('.cell-stats-btn-wrap').querySelector('.pre-cell-quick-stats-btn'); if(b){ const s=this.closest('.cell-inline-stats-slot'); if(s) { s.dataset.loaded='0'; s.style.display='none'; } toggleCellInlineStats(b, event); }" title="Reintentar consultar estadísticas">🔄 Reintentar</button>
+                        </div>
                     </div>
                 `;
             }
@@ -11070,12 +11073,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 const stats = data.stats || [];
                 const finalOu = (data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : ou;
-                window._quickMatchStatsCache = window._quickMatchStatsCache || {};
-                const cacheObj = { stats: stats, ou: finalOu };
-                window._quickMatchStatsCache[cacheKey] = cacheObj;
-                if (data.match_id && !matchId) {
-                    btn.dataset.matchId = data.match_id;
-                    window._quickMatchStatsCache[`id_${data.match_id}`] = cacheObj;
+                if (stats.length > 0) {
+                    window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+                    const cacheObj = { stats: stats, ou: finalOu };
+                    window._quickMatchStatsCache[cacheKey] = cacheObj;
+                    if (data.match_id && !matchId) {
+                        btn.dataset.matchId = data.match_id;
+                        window._quickMatchStatsCache[`id_${data.match_id}`] = cacheObj;
+                    }
+                    slot.dataset.loaded = '1';
+                } else {
+                    slot.dataset.loaded = '0';
                 }
                 btn.dataset.ou = finalOu;
                 const btnRow = btn.closest('.cell-stats-btn-row');
@@ -11086,7 +11094,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
 
                 slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah, finalOu);
-                slot.dataset.loaded = '1';
             } catch (err) {
                 slot.innerHTML = `
                     <div style="font-size:0.52rem; color:#94a3b8; text-align:center; padding:3px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; margin-top:3px;">
