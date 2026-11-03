@@ -5857,12 +5857,14 @@ def api_precacheo_context_fast():
         if not match_id:
             return jsonify({'error': 'Falta match_id'}), 400
 
+        force_refresh = bool(payload.get('force_refresh') or payload.get('refresh'))
         existing = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id) or {}
-        if not force_refresh and existing.get('pre_match_context'):
-            pre_match_ctx = existing.get('pre_match_context')
+        is_cached = bool(not force_refresh and existing.get('pre_match_context'))
+        if is_cached:
+            context = existing.get('pre_match_context')
         else:
             main_odds = existing.get('main_match_odds') or {}
-            pre_match_ctx = analizar_contexto_previo_rapido(
+            context = analizar_contexto_previo_rapido(
                 match_id,
                 current_ah=main_odds.get('ah_linea') or existing.get('handicap'),
                 current_goal_line=main_odds.get('goals_linea') or existing.get('goal_line'),
@@ -5885,7 +5887,7 @@ def api_precacheo_context_fast():
         return jsonify({
             'status': 'success',
             'context': context,
-            'cached': False,
+            'cached': is_cached,
             'elapsed_seconds': context.get('elapsed_seconds'),
         })
     except Exception as exc:
