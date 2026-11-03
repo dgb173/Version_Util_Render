@@ -15961,8 +15961,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
 
 
-        // Buscar patrones similares en histórico
-        async function searchPatterns_explorerRedirect(matchId, btnElement) {
+        // Buscar patrones similares en histórico - abre Explorador con filtros predefinidos
+        async function searchPatterns(matchId, btnElement) {
             const pc = precacheoData ? precacheoData[matchId] : null;
             if (!pc) return;
 
@@ -15976,99 +15976,43 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             params.set('auto_search', '1');
             params.set('source_match_id', String(matchId));
 
+            // 1. Mismo Handicap del partido actual
             if (!isNaN(currentAh)) {
-                // 1. Handicap del partido actual
                 const currentAhBucket = toExplorerBucketValue(currentAh);
                 if (currentAhBucket) {
                     params.set('handicap', currentAhBucket);
                 }
+            }
 
-                // 2. Cubierto o no del favorito
-                const favIsHome = currentAh > 0;
-
-                // Contexto real del último partido del favorito: su AH, liquidación y movimiento.
-                const favPrev = favIsHome ? ((pc || {}).last_home_match || {}) : ((pc || {}).last_away_match || {});
-                const favTeamName = (favIsHome
-                    ? ((pc || {}).home_team || (pc || {}).home_name || '')
-                    : ((pc || {}).away_team || (pc || {}).away_name || '')
-                ).toLowerCase().trim();
-
-                const favPrevAhRaw = favPrev.handicap_line_raw ?? favPrev.ah ?? favPrev.handicap;
-                const favPrevAh = parseFloat(String(favPrevAhRaw ?? '').replace(',', '.'));
-                let favPlayedHomeInPrev = favPrev.subject_is_home;
-                if (typeof favPlayedHomeInPrev !== 'boolean') favPlayedHomeInPrev = favIsHome;
-
-                const prevHomeTeam = (favPrev.home_team || '').toLowerCase().trim();
-                const prevAwayTeam = (favPrev.away_team || '').toLowerCase().trim();
-                if (prevHomeTeam && favTeamName) {
-                    if (prevHomeTeam.includes(favTeamName) || favTeamName.includes(prevHomeTeam)) {
-                        favPlayedHomeInPrev = true;
-                    } else if (prevAwayTeam && (prevAwayTeam.includes(favTeamName) || favTeamName.includes(prevAwayTeam))) {
-                        favPlayedHomeInPrev = false;
-                    }
+            // 2. Previo Local (Home): mismo handicap previo y si cubrió o no
+            const lhm = pc.last_home_match;
+            if (lhm) {
+                const lhmAhRaw = lhm.handicap_line_raw ?? lhm.ah ?? lhm.handicap;
+                const lhmAhBucket = toExplorerBucketValue(lhmAhRaw);
+                if (lhmAhBucket) {
+                    params.set('prev_home_ah', lhmAhBucket);
                 }
-
-                const prevFavoriteMarketLine = !isNaN(favPrevAh)
-                    ? (favPlayedHomeInPrev ? favPrevAh : -favPrevAh)
-                    : NaN;
-                if (!isNaN(prevFavoriteMarketLine)) {
-                    const previousBucket = toExplorerBucketValue(prevFavoriteMarketLine);
-                    if (previousBucket) params.set('prev_fav_ah', previousBucket);
-                    if (favPlayedHomeInPrev === favIsHome) {
-                        const visiblePreviousBucket = toExplorerBucketValue(favPrevAh);
-                        if (visiblePreviousBucket) {
-                            params.set(favIsHome ? 'prev_home_ah' : 'prev_away_ah', visiblePreviousBucket);
-                        }
-                    }
-                    const previousStrengthBucket = normalizeToHandicapBucket(prevFavoriteMarketLine);
-                    const currentStrengthBucket = normalizeToHandicapBucket(Math.abs(currentAh));
-                    if (previousStrengthBucket !== null && currentStrengthBucket !== null) {
-                        const movement = Math.abs(previousStrengthBucket - currentStrengthBucket) < 0.01
-                            ? 'SAME'
-                            : (currentStrengthBucket > previousStrengthBucket ? 'UP' : 'DOWN');
-                        params.set('prev_fav_mov', movement);
-                    }
-                }
-
-                if (favPrev && favPrev.score && favPrev.score !== '?:?' && favPrev.score !== '??') {
-                    const scoreParts = String(favPrev.score).replace('-', ':').split(':');
-                    if (scoreParts.length === 2) {
-                        const gh = parseInt(scoreParts[0], 10);
-                        const ga = parseInt(scoreParts[1], 10);
-                        if (!isNaN(gh) && !isNaN(ga)) {
-                            const subjectBettingAh = -prevFavoriteMarketLine;
-                            const coverResult = calculateWDL(favPrev.score, subjectBettingAh, favPlayedHomeInPrev);
-                            let coverWdl = 'PUSH';
-                            if (coverResult === 'HOME_WIN') coverWdl = 'COVER';
-                            else if (coverResult === 'AWAY_WIN') coverWdl = 'NO_COVER';
-                            else coverWdl = 'PUSH';
-                            if (!isNaN(subjectBettingAh)) {
-                                params.set('prev_fav_res', coverWdl);
-                                params.set(favIsHome ? 'prev_home_res' : 'prev_away_res', coverWdl);
-                            }
-                        }
-                    }
+                if (lhm.score && lhm.score !== '?:?' && lhm.score !== '??') {
+                    const homeWdl = getPrevHomeWdl(lhm.score, currentAh);
+                    if (homeWdl === 'WIN') params.set('prev_home_res', 'COVER');
+                    else if (homeWdl === 'LOSS') params.set('prev_home_res', 'NO_COVER');
+                    else if (homeWdl === 'DRAW') params.set('prev_home_res', 'PUSH');
                 }
             }
 
-            const marketData = ((pc || {}).market_analysis_data || {});
-            const stadiumData = marketData.stadium || {};
-
-            // 3. H2H Estadio: solo si subió o bajó (mov) y si cubrió o no (res)
-            if (stadiumData && stadiumData.movement && stadiumData.movement !== 'N/A') {
-                const score = stadiumData.result || stadiumData.score;
-                if (score && score !== '?:?' && score !== '??' && !isNaN(currentAh)) {
-                    const stadiumCov = calculateH2HResult(score, currentAh, false);
-                    if (stadiumCov) {
-                        params.set('h2h_stadium_res', stadiumCov);
-                    }
+            // 3. Previo Visitante (Away): mismo handicap previo y si cubrió o no
+            const lam = pc.last_away_match;
+            if (lam) {
+                const lamAhRaw = lam.handicap_line_raw ?? lam.ah ?? lam.handicap;
+                const lamAhBucket = toExplorerBucketValue(lamAhRaw);
+                if (lamAhBucket) {
+                    params.set('prev_away_ah', lamAhBucket);
                 }
-                const movStad = parseH2HMovement(stadiumData.movement);
-                if (movStad.start !== null && movStad.end !== null) {
-                    let stadDir = 'SAME';
-                    if (movStad.end > movStad.start) stadDir = 'UP';
-                    else if (movStad.end < movStad.start) stadDir = 'DOWN';
-                    params.set('h2h_stadium_mov', stadDir);
+                if (lam.score && lam.score !== '?:?' && lam.score !== '??') {
+                    const awayWdl = getPrevAwayWdl(lam.score, currentAh);
+                    if (awayWdl === 'WIN') params.set('prev_away_res', 'COVER');
+                    else if (awayWdl === 'LOSS') params.set('prev_away_res', 'NO_COVER');
+                    else if (awayWdl === 'DRAW') params.set('prev_away_res', 'PUSH');
                 }
             }
 
@@ -16077,241 +16021,6 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 return;
             }
             window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
-        }
-
-        // ==================== APARTADO DE COMPARAR PATRONES ====================
-        // Muestra exclusivamente: mismo handicap del partido, mismo handicap de favorito y visitante, y si cubre o no
-        async function searchPatterns(matchId, btnElement) {
-            // Toggle: si ya existe la fila expandible, ocultarla
-            const existingRow = document.getElementById(`patterns-row-${matchId}`);
-            if (existingRow) {
-                existingRow.remove();
-                if (btnElement) btnElement.classList.remove('active');
-                return;
-            }
-
-            // Mostrar spinner
-            const originalHtml = btnElement ? btnElement.innerHTML : '';
-            if (btnElement) {
-                btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                btnElement.disabled = true;
-            }
-
-            try {
-                const res = await fetch('/api/precacheo_pattern_search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ match_id: matchId })
-                });
-                const data = await res.json();
-
-                if (btnElement) {
-                    btnElement.innerHTML = originalHtml;
-                    btnElement.disabled = false;
-                }
-
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    return;
-                }
-
-                const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
-                if (!matchRow) return;
-
-                const expandRow = document.createElement('tr');
-                expandRow.id = `patterns-row-${matchId}`;
-                expandRow.className = 'patterns-expand-row';
-
-                const info = data.match_info || {};
-                const results = data.results || [];
-
-                let resultsHtml = '';
-                if (results.length === 0) {
-                    resultsHtml = `
-                        <div class="text-muted text-center py-3" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-circle-info me-1"></i>No se encontraron patrones históricos con el mismo hándicap (AH ${info.ah_actual ?? '-'}).
-                        </div>
-                    `;
-                } else {
-                    const coveredCount = results.filter(r => r.covered === 'COVER').length;
-                    const notCoveredCount = results.filter(r => r.covered === 'NO_COVER').length;
-                    const pushCount = results.filter(r => r.covered === 'PUSH').length;
-                    const validCount = coveredCount + notCoveredCount;
-                    const coverPct = validCount > 0 ? Math.round((coveredCount / validCount) * 100) : 0;
-
-                    const renderCoverBadge = (status) => {
-                        if (status === 'COVER') {
-                            return `<span class="badge bg-success" style="font-size:0.72rem; padding:3px 7px;"><i class="fa-solid fa-check me-1"></i>CUBIERTO</span>`;
-                        } else if (status === 'NO_COVER') {
-                            return `<span class="badge bg-danger" style="font-size:0.72rem; padding:3px 7px;"><i class="fa-solid fa-xmark me-1"></i>NO CUBRE</span>`;
-                        } else if (status === 'PUSH') {
-                            return `<span class="badge bg-secondary" style="font-size:0.72rem; padding:3px 7px;">PUSH</span>`;
-                        }
-                        return `<span class="text-muted">-</span>`;
-                    };
-
-                    const renderPrevCell = (team, ah, score, covered) => {
-                        const cleanAh = (ah !== undefined && ah !== null && ah !== '' && ah !== '-') ? ah : null;
-                        const cleanScore = (score && score !== '-' && score !== '?:?') ? score : null;
-                        if (!cleanAh && !cleanScore) return '<span class="text-muted">-</span>';
-
-                        let badgeHtml = '';
-                        if (covered === 'COVER') {
-                            badgeHtml = `<span class="badge bg-success ms-1" style="font-size:0.62rem; padding:2px 5px;">✓ Cubrió</span>`;
-                        } else if (covered === 'NO_COVER') {
-                            badgeHtml = `<span class="badge bg-danger ms-1" style="font-size:0.62rem; padding:2px 5px;">✗ No cubrió</span>`;
-                        } else if (covered === 'PUSH') {
-                            badgeHtml = `<span class="badge bg-secondary ms-1" style="font-size:0.62rem; padding:2px 5px;">Push</span>`;
-                        }
-
-                        return `
-                            <div class="d-flex flex-column">
-                                <div class="d-flex align-items-center flex-wrap">
-                                    <span class="fw-bold" style="font-size:0.74rem;">AH ${cleanAh ?? '-'}</span>
-                                    ${cleanScore ? `<span class="text-dark small ms-1" style="font-size:0.70rem;">(${cleanScore})</span>` : ''}
-                                    ${badgeHtml}
-                                </div>
-                                ${team ? `<div class="text-muted text-truncate" style="font-size:0.58rem; max-width:140px;">${team}</div>` : ''}
-                            </div>
-                        `;
-                    };
-
-                    resultsHtml = `
-                        <div class="patterns-container p-2" style="background:#ffffff; border-radius:8px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                            <!-- Barra superior de resumen -->
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom">
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <span class="badge bg-warning text-dark fw-bold" style="font-size:0.75rem;">
-                                        <i class="fa-solid fa-compass me-1"></i>PATRONES MISMO HÁNDICAP
-                                    </span>
-                                    <span class="fw-bold text-dark" style="font-size:0.80rem;">
-                                        AH ${info.ah_actual ?? '-'}
-                                    </span>
-                                    <span class="text-muted small">(${results.length} partidos encontrados)</span>
-                                </div>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <span class="badge bg-success" style="font-size:0.72rem; padding:3px 8px;">
-                                        ✓ Cubiertos: ${coveredCount} (${coverPct}%)
-                                    </span>
-                                    <span class="badge bg-danger" style="font-size:0.72rem; padding:3px 8px;">
-                                        ✗ No cubiertos: ${notCoveredCount}
-                                    </span>
-                                    ${pushCount ? `<span class="badge bg-secondary" style="font-size:0.72rem; padding:3px 8px;">Push: ${pushCount}</span>` : ''}
-                                    <div class="btn-group btn-group-sm ms-2" role="group">
-                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 active" onclick="filterSimplePatterns('${matchId}', 'ALL', this)" style="font-size:0.65rem;">Todos</button>
-                                        <button type="button" class="btn btn-outline-success btn-sm py-0" onclick="filterSimplePatterns('${matchId}', 'COVER', this)" style="font-size:0.65rem;">Solo Cubiertos</button>
-                                        <button type="button" class="btn btn-outline-danger btn-sm py-0" onclick="filterSimplePatterns('${matchId}', 'NO_COVER', this)" style="font-size:0.65rem;">Solo No Cubiertos</button>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-2" onclick="closePatternRow('${matchId}')" title="Cerrar patrones" style="font-size:0.70rem;">
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Tabla limpia de 8 columnas: Fecha, Local, Visitante, AH Partido, FT, ¿Cubre?, Previo Favorito, Previo Visitante -->
-                            <div class="table-responsive" style="max-height:480px; overflow-y:auto;">
-                                <table class="table table-sm table-bordered table-hover mb-0" id="patterns-table-${matchId}" style="font-size:0.72rem;">
-                                    <thead class="table-light sticky-top">
-                                        <tr>
-                                            <th style="width:85px; text-align:center;">Fecha</th>
-                                            <th>Local</th>
-                                            <th>Visitante</th>
-                                            <th class="text-center" style="background:#f0fdf4; color:#166534; width:90px;">AH Partido</th>
-                                            <th class="text-center" style="width:65px;">FT</th>
-                                            <th class="text-center" style="width:105px;">¿Cubre?</th>
-                                            <th style="background:#eff6ff; color:#1e40af; width:160px;">Previo Favorito</th>
-                                            <th style="background:#fef2f2; color:#991b1b; width:160px;">Previo Visitante</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${results.map(r => {
-                                            const favAh = r.fav_prev_ah ?? (r.prev_home ? r.prev_home.ah : '-');
-                                            const favScore = r.fav_prev_score ?? (r.prev_home ? r.prev_home.score : '-');
-                                            const favCover = r.fav_prev_covered ?? (r.prev_home ? r.prev_home.covered : 'N/A');
-                                            const favTeam = r.fav_team ?? (r.prev_home ? r.prev_home.home_team : '');
-
-                                            const visAh = r.vis_prev_ah ?? (r.prev_away ? r.prev_away.ah : '-');
-                                            const visScore = r.vis_prev_score ?? (r.prev_away ? r.prev_away.score : '-');
-                                            const visCover = r.vis_prev_covered ?? (r.prev_away ? r.prev_away.covered : 'N/A');
-                                            const visTeam = r.vis_team ?? (r.prev_away ? r.prev_away.away_team : r.away);
-
-                                            return `
-                                                <tr data-cover="${r.covered || ''}">
-                                                    <td class="text-center text-muted" style="font-size:0.68rem; vertical-align:middle;">
-                                                        ${APP_PRECACHEO_ONLY
-                                                            ? (r.date || '-')
-                                                            : `<a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none text-dark" title="Abrir análisis">${r.date || '-'} 🔗</a>`
-                                                        }
-                                                    </td>
-                                                    <td class="text-primary fw-bold" style="vertical-align:middle;">${r.home || '-'}</td>
-                                                    <td class="text-danger fw-bold" style="vertical-align:middle;">${r.away || '-'}</td>
-                                                    <td class="text-center fw-bold" style="background:#f0fdf4; color:#15803d; vertical-align:middle; font-size:0.75rem;">
-                                                        AH ${r.ah || '-'}
-                                                    </td>
-                                                    <td class="text-center fw-bold" style="vertical-align:middle; font-size:0.78rem;">${r.score || '-'}</td>
-                                                    <td class="text-center" style="vertical-align:middle;">
-                                                        ${renderCoverBadge(r.covered)}
-                                                    </td>
-                                                    <td style="background:#f8fafc; vertical-align:middle;">
-                                                        ${renderPrevCell(favTeam, favAh, favScore, favCover)}
-                                                    </td>
-                                                    <td style="background:#fffafa; vertical-align:middle;">
-                                                        ${renderPrevCell(visTeam, visAh, visScore, visCover)}
-                                                    </td>
-                                                </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                expandRow.innerHTML = `
-                    <td colspan="14" style="background: #f8fafc; padding: 8px 12px; border-left: 4px solid #f59e0b;">
-                        ${resultsHtml}
-                    </td>
-                `;
-
-                matchRow.insertAdjacentElement('afterend', expandRow);
-                if (btnElement) btnElement.classList.add('active');
-
-            } catch (err) {
-                if (btnElement) {
-                    btnElement.innerHTML = originalHtml;
-                    btnElement.disabled = false;
-                }
-                alert('Error al buscar patrones: ' + err.message);
-            }
-        }
-
-        function closePatternRow(matchId) {
-            const row = document.getElementById(`patterns-row-${matchId}`);
-            if (row) row.remove();
-            const btn = document.querySelector(`button[onclick*="searchPatterns('${matchId}'"]`);
-            if (btn) btn.classList.remove('active');
-        }
-
-        function filterSimplePatterns(matchId, mode, btn) {
-            const table = document.getElementById(`patterns-table-${matchId}`);
-            if (!table) return;
-            const btnGroup = btn ? btn.parentElement : null;
-            if (btnGroup) {
-                btnGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                if (btn) btn.classList.add('active');
-            }
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(r => {
-                const cover = r.dataset.cover;
-                if (mode === 'ALL') {
-                    r.style.display = '';
-                } else if (mode === 'COVER') {
-                    r.style.display = cover === 'COVER' ? '' : 'none';
-                } else if (mode === 'NO_COVER') {
-                    r.style.display = cover === 'NO_COVER' ? '' : 'none';
-                }
-            });
         }
 
 
