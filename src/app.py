@@ -5020,6 +5020,11 @@ def api_match_progression_stats(match_id):
     if not str(match_id).isdigit():
         return jsonify({'error': 'ID de partido no valido'}), 400
     try:
+        force = request.args.get('refresh') == '1' or request.args.get('force') == '1'
+        existing = sql_store.get_match(str(match_id))
+        if not force and existing and existing.get('stats_rows'):
+            return jsonify({'match_id': str(match_id), 'stats_rows': existing.get('stats_rows')})
+
         stats_rows = _df_to_rows(get_match_progression_stats_data(str(match_id)))
         existing = sql_store.get_match(str(match_id))
         if existing and stats_rows:

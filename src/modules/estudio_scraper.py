@@ -1253,7 +1253,7 @@ def get_requests_session_of():
     with _requests_session_lock:
         if _requests_session is None:
             session = requests.Session()
-            retries = Retry(total=3, backoff_factor=0.4, status_forcelist=[500, 502, 503, 504])
+            retries = Retry(total=2, connect=2, read=False, status=2, backoff_factor=0.3, status_forcelist=[500, 502, 503, 504], raise_on_status=False)
             adapter = HTTPAdapter(max_retries=retries, pool_connections=32, pool_maxsize=32)
             session.mount("https://", adapter)
             session.mount("http://", adapter)
@@ -1286,7 +1286,7 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
     # 1. Consulta AJAX directa a NowGoal (type=15 sirve tT_f)
     try:
         ajax_url = f"{BASE_URL_OF}/Ajax/SoccerAjax?type=15&id={match_id}"
-        resp_ajax = session.get(ajax_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        resp_ajax = session.get(ajax_url, timeout=(3.0, 4.0), verify=False)
         if resp_ajax.status_code == 200:
             dj = resp_ajax.json() if resp_ajax.text.startswith("{") else {}
             raw_text = dj.get("Data", "") if isinstance(dj, dict) else resp_ajax.text
@@ -1317,7 +1317,7 @@ def get_match_progression_stats_data(match_id: str) -> pd.DataFrame | None:
     if not collected:
         url = f"{BASE_URL_OF}/match/live-{match_id}"
         try:
-            response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+            response = session.get(url, timeout=(5.0, 18.0), verify=False)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'lxml')
                 team_tech_div = soup.find('div', id='teamTechDiv_detail')
@@ -1394,7 +1394,7 @@ def get_h2h_details_for_original_logic_of(key_match_id, rival_a_id, rival_b_id, 
     url = f"{BASE_URL_OF}/match/h2h-{key_match_id}"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        response = session.get(url, timeout=(5.0, 18.0), verify=False)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "lxml")
         
@@ -1926,7 +1926,7 @@ def fetch_odds_from_bf_data(match_id):
     url = f"{BASE_URL_OF}/gf/data/bf_en-idn.js"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        response = session.get(url, timeout=(5.0, 18.0), verify=False)
         response.raise_for_status()
         content = response.text
         
@@ -1987,7 +1987,7 @@ def fetch_odds_from_ajax(match_id):
     url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
     try:
         session = get_requests_session_of()
-        response = session.get(url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+        response = session.get(url, timeout=(5.0, 18.0), verify=False)
         if response.status_code != 200:
             return None
             

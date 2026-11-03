@@ -4,6 +4,30 @@ import datetime
 from pathlib import Path
 import re
 
+def _extract_ou_line(node):
+    """Extrae y normaliza la linea de Over/Under de cualquier nodo o partido historico."""
+    if not node or not isinstance(node, dict):
+        return None
+    raw = (
+        node.get('ou') or
+        node.get('ou_line') or
+        node.get('ouLine') or
+        node.get('ouLine_raw') or
+        node.get('over_under_line') or
+        node.get('over_under_line_raw') or
+        node.get('goal_line') or
+        node.get('goals_linea') or
+        (node.get('main_match_odds') or {}).get('goals_linea') or
+        (node.get('odds') or {}).get('goals_linea')
+    )
+    if raw is None:
+        return None
+    val_str = str(raw).strip()
+    if not val_str or val_str in ('-', 'N/A', '?', 'None', 'null', 'undefined'):
+        return None
+    return val_str
+
+
 # --- A) Normalización de AH (Bucket) ---
 def normalize_ah_bucket(ah: float) -> float:
     """
