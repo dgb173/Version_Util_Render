@@ -1780,6 +1780,127 @@ def api_export_context_prompts_txt():
         logging.exception('Error exportando contexto + prompts TXT')
         return jsonify({"success": False, "error": str(exc)}), 500
 
+
+@app.route('/api/export_gemini_dossier_pdf', methods=['POST'])
+def api_export_gemini_dossier_pdf():
+    """Genera y descarga un Dossier en PDF con los últimos 5 partidos y stats para Gemini."""
+    try:
+        payload = request.json or {}
+        raw_ids = payload.get('match_ids', [])
+        mode = payload.get('mode', 'precacheo')
+
+        if not isinstance(raw_ids, list) or not raw_ids:
+            return jsonify({"success": False, "error": "Selecciona al menos un partido"}), 400
+
+        match_ids = []
+        seen = set()
+        for raw_id in raw_ids:
+            clean = ''.join(filter(str.isdigit, str(raw_id or '')))
+            if clean and clean not in seen:
+                seen.add(clean)
+                match_ids.append(clean)
+            if len(match_ids) >= 100:
+                break
+
+        if not match_ids:
+            return jsonify({"success": False, "error": "No hay IDs de partido válidos"}), 400
+
+        from modules import gemini_pdf_exporter
+
+        matches = []
+        precache_list_cache = None
+        for mid in match_ids:
+            stored = sql_store.get_match(mid) or data_manager.get_precacheo_match(mid)
+            if not stored:
+                if precache_list_cache is None:
+                    precache_list_cache = data_manager.load_precacheo_matches() or []
+                for pm in precache_list_cache:
+                    if str(pm.get('id') or pm.get('match_id')) == str(mid):
+                        stored = pm
+                        break
+            if not stored:
+                try:
+                    stored = analizar_partido_completo(mid, force_refresh=False)
+                    if isinstance(stored, tuple):
+                        stored = stored[0]
+                except Exception:
+                    stored = None
+            if isinstance(stored, dict) and 'error' not in stored:
+                matches.append(stored)
+
+        if not matches:
+            return jsonify({"success": False, "error": "No se pudieron cargar datos para los partidos seleccionados"}), 400
+
+        pdf_bytes = gemini_pdf_exporter.generate_gemini_pdf_dossier(matches, mode=mode)
+        now_str = datetime.datetime.now().strftime('%Y%m%d_%H%M')
+        filename = f"Dossier_Gemini_{mode.capitalize()}_{len(matches)}_Partidos_{now_str}.pdf"
+
+        response = app.response_class(pdf_bytes, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Exported-Matches'] = str(len(matches))
+        return response
+    except Exception as exc:
+        logging.exception('Error generando Dossier PDF para Gemini')
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@app.route('/api/export_gemini_dossier_prompt', methods=['POST'])
+def api_export_gemini_dossier_prompt():
+    """Genera la versión en texto estructurado / Markdown para copiar al portapapeles."""
+    try:
+        payload = request.json or {}
+        raw_ids = payload.get('match_ids', [])
+        mode = payload.get('mode', 'precacheo')
+
+        if not isinstance(raw_ids, list) or not raw_ids:
+            return jsonify({"success": False, "error": "Selecciona al menos un partido"}), 400
+
+        match_ids = []
+        seen = set()
+        for raw_id in raw_ids:
+            clean = ''.join(filter(str.isdigit, str(raw_id or '')))
+            if clean and clean not in seen:
+                seen.add(clean)
+                match_ids.append(clean)
+            if len(match_ids) >= 100:
+                break
+
+        if not match_ids:
+            return jsonify({"success": False, "error": "No hay IDs válidos"}), 400
+
+        from modules import gemini_pdf_exporter
+
+        matches = []
+        precache_list_cache = None
+        for mid in match_ids:
+            stored = sql_store.get_match(mid) or data_manager.get_precacheo_match(mid)
+            if not stored:
+                if precache_list_cache is None:
+                    precache_list_cache = data_manager.load_precacheo_matches() or []
+                for pm in precache_list_cache:
+                    if str(pm.get('id') or pm.get('match_id')) == str(mid):
+                        stored = pm
+                        break
+            if not stored:
+                try:
+                    stored = analizar_partido_completo(mid, force_refresh=False)
+                    if isinstance(stored, tuple):
+                        stored = stored[0]
+                except Exception:
+                    stored = None
+            if isinstance(stored, dict) and 'error' not in stored:
+                matches.append(stored)
+
+        if not matches:
+            return jsonify({"success": False, "error": "No se encontraron datos de los partidos"}), 400
+
+        prompt_text = gemini_pdf_exporter.generate_gemini_text_prompt(matches, mode=mode)
+        return jsonify({"success": True, "prompt": prompt_text, "total": len(matches)})
+    except Exception as exc:
+        logging.exception('Error generando Prompt Gemini Dossier')
+        return jsonify({"success": False, "error": str(exc)}), 500
+
 @app.route('/api/matches')
 def api_matches():
     try:
@@ -6113,13 +6234,70 @@ def api_match_stats(match_id=None):
         clean_id = "".join(filter(str.isdigit, str(match_id or payload.get('match_id') or '')))
         parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
 
+        existing_cached_stats = None
+
         # Si no viene clean_id directamente, resolverlo usando parent_match_id y metadatos de la fila
         if not clean_id and parent_match_id:
             parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
             parent = parent or {}
             pre_context = parent.get('pre_match_context') or {}
             current_context = pre_context.get('current') or pre_context
+            
+            # Recopilar todos los grupos posibles, incluyendo H2H y precedentes
+            h2h_data = parent.get('h2h_data') or {}
+            h2h_stadium = parent.get('h2h_stadium') or {}
+            h2h_general = parent.get('h2h_general') or {}
+            stadium_struct = (parent.get('market_analysis_data') or {}).get('stadium') or {}
+            general_struct = (parent.get('market_analysis_data') or {}).get('general') or {}
+            comp_ind = parent.get('comparativas_indirectas') or {}
+
+            # Filas individuales con metadatos específicos
+            special_candidates = []
+            
+            # 1. H2H Estadio
+            st_id = stadium_struct.get('match_id') or h2h_stadium.get('match1_id') or h2h_stadium.get('match_id') or h2h_data.get('match1_id')
+            if st_id:
+                special_candidates.append({
+                    'match_id': st_id,
+                    'date': stadium_struct.get('date') or h2h_stadium.get('date1') or h2h_data.get('date1'),
+                    'score': stadium_struct.get('result') or h2h_stadium.get('res1_raw') or h2h_stadium.get('res1') or h2h_data.get('res1_raw'),
+                    'home': stadium_struct.get('home') or parent.get('home') or parent.get('home_team'),
+                    'away': stadium_struct.get('away') or parent.get('away') or parent.get('away_team'),
+                    'stats_rows': h2h_stadium.get('stats_rows')
+                })
+
+            # 2. H2H General
+            gen_id = general_struct.get('match_id') or h2h_general.get('match6_id') or h2h_general.get('match_id') or h2h_data.get('match6_id')
+            if gen_id:
+                special_candidates.append({
+                    'match_id': gen_id,
+                    'date': general_struct.get('date') or h2h_general.get('date6') or h2h_data.get('date6'),
+                    'score': general_struct.get('result') or h2h_general.get('res6_raw') or h2h_general.get('res6') or h2h_data.get('res6_raw'),
+                    'home': general_struct.get('home') or h2h_data.get('h2h_gen_home') or parent.get('home'),
+                    'away': general_struct.get('away') or h2h_data.get('h2h_gen_away') or parent.get('away'),
+                    'stats_rows': h2h_general.get('stats_rows')
+                })
+
+            # 3. Last Home Match & Last Away Match
+            if parent.get('last_home_match'):
+                special_candidates.append(parent.get('last_home_match'))
+            if parent.get('last_away_match'):
+                special_candidates.append(parent.get('last_away_match'))
+
+            # 4. H2H Col3 & Indirectas
+            if parent.get('h2h_col3'):
+                special_candidates.append(parent.get('h2h_col3'))
+            if comp_ind.get('left'):
+                special_candidates.append(comp_ind.get('left'))
+            if comp_ind.get('right'):
+                special_candidates.append(comp_ind.get('right'))
+
+            # 5. Lista completa de H2H si existe
+            all_h2h = h2h_data.get('all_matches') or []
+
             candidate_groups = (
+                special_candidates,
+                all_h2h,
                 current_context.get('home_matches'),
                 current_context.get('away_matches'),
                 current_context.get('home_matches_all'),
@@ -6143,7 +6321,7 @@ def api_match_stats(match_id=None):
                     row_date = str(row.get('date') or row.get('match_date') or row.get('date_txt') or '').strip()
                     row_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
                     row_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
-                    row_score = str(row.get('score') or row.get('score_raw') or '').replace('-', ':').strip()
+                    row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
 
                     if target_date and row_date and target_date != row_date:
                         continue
@@ -6159,19 +6337,73 @@ def api_match_stats(match_id=None):
                     )))
                     if found_id:
                         clean_id = found_id
+                        if row.get('stats_rows'):
+                            existing_cached_stats = row.get('stats_rows')
                         break
                 if clean_id:
                     break
+
+            # Fallback secundario: si no coincidieron todos los campos (por diferencias de nombre de equipo), probar solo fecha y marcador con precedentes
+            if not clean_id and (target_date or target_score):
+                for row in special_candidates + all_h2h:
+                    if not isinstance(row, dict):
+                        continue
+                    row_date = str(row.get('date') or row.get('match_date') or '').strip()
+                    row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
+                    date_matches = bool(target_date and row_date and target_date == row_date)
+                    score_matches = bool(target_score and row_score and target_score == row_score)
+                    if (target_date and target_score and date_matches and score_matches) or (target_date and not target_score and date_matches) or (target_score and not target_date and score_matches):
+                        found_id = "".join(filter(str.isdigit, str(row.get('matchIndex') or row.get('match_id') or row.get('id') or '')))
+                        if found_id:
+                            clean_id = found_id
+                            if row.get('stats_rows'):
+                                existing_cached_stats = row.get('stats_rows')
+                            break
 
         if not clean_id:
             return jsonify({'status': 'error', 'error': 'No se pudo identificar el ID del partido'}), 400
 
         from modules.last_general_context import _get_stats_rows
         stats = _get_stats_rows(clean_id)
+        if not stats and existing_cached_stats:
+            stats = existing_cached_stats
+
+        ou_line = None
+        ah_line = None
+        try:
+            from modules.estudio_scraper import get_match_odds_movement_of
+            odds_res = get_match_odds_movement_of(clean_id)
+            if odds_res and odds_res.get('status') == 'success':
+                cand_ou = (odds_res.get('ou') or {}).get('initial', {}).get('line')
+                if not cand_ou or cand_ou in ('-', 'N/A'):
+                    cand_ou = (odds_res.get('ou') or {}).get('live', {}).get('line')
+                if cand_ou and cand_ou not in ('-', 'N/A'):
+                    ou_line = cand_ou
+
+                cand_ah = (odds_res.get('ah') or {}).get('initial', {}).get('line')
+                if not cand_ah or cand_ah in ('-', 'N/A'):
+                    cand_ah = (odds_res.get('ah') or {}).get('live', {}).get('line')
+                if cand_ah and cand_ah not in ('-', 'N/A'):
+                    ah_line = cand_ah
+        except Exception as err:
+            logging.warning("Error consultando cuotas en api_match_stats (%s): %s", clean_id, err)
+
+        if not ou_line:
+            row_ou = str(payload.get('row_ou') or '').strip()
+            if row_ou and row_ou not in ('-', 'N/A', 'undefined', 'null'):
+                ou_line = row_ou
+
+        if not ah_line:
+            row_ah = str(payload.get('row_ah') or '').strip()
+            if row_ah and row_ah not in ('-', 'N/A', 'undefined', 'null'):
+                ah_line = row_ah
+
         return jsonify({
             'status': 'success',
             'match_id': clean_id,
-            'stats': stats or []
+            'stats': stats or [],
+            'ou_line': ou_line or '-',
+            'ah_line': ah_line or '-'
         })
     except Exception as exc:
         logging.exception("Error en /api/match_stats")
@@ -7965,150 +8197,141 @@ def api_precacheo_pattern_search():
             'favorito': current_home if is_home_favorite else (current_away if is_away_favorite else 'Neutro')
         }
         
-        # ===== BÚSQUEDA DE PATRONES SIMILARES =====
-        # Buscar todos los partidos con AH similar al actual
-        similar_matches = []
+        # ===== BÚSQUEDA DE PATRONES CON EL MISMO HANDICAP DEL PARTIDO =====
+        # Buscar partidos que tengan el mismo hándicap (tolerancia 0.05)
+        exact_matches = []
+        close_matches = []
         target_bucket = get_ah_bucket(current_ah)
         
         for m in matches:
-            if m.get('match_id') == match_id:
+            m_id = str(m.get('match_id') or m.get('id') or '')
+            if m_id == str(match_id):
                 continue  # Skip current match
             
-            m_ah = m.get('main_match_odds', {}).get('ah_linea')
-            if not m_ah:
+            m_odds = m.get('main_match_odds', {}) or m.get('odds', {})
+            m_ah_raw = m_odds.get('ah_linea') or m.get('ah_line') or m.get('handicap')
+            if m_ah_raw is None or m_ah_raw == '':
                 continue
             
-            m_bucket = get_ah_bucket(float(m_ah))
-            
-            # Solo incluir partidos con AH en mismo bucket (±0.5)
-            if abs(abs(m_bucket) - abs(target_bucket)) > 0.5:
+            try:
+                m_ah_num = float(m_ah_raw)
+            except (ValueError, TypeError):
                 continue
             
-            similar_matches.append(m)
+            diff = abs(m_ah_num - float(current_ah))
+            if diff <= 0.05:
+                exact_matches.append(m)
+            elif diff <= 0.26:
+                close_matches.append(m)
         
-        # ===== FORMATEAR RESULTADOS CON TODOS LOS DATOS =====
+        # Priorizar siempre los partidos con el mismo hándicap del partido
+        similar_matches = exact_matches if len(exact_matches) >= 3 else (exact_matches + close_matches)
+        
+        # ===== FORMATEAR RESULTADOS: MISMO HANDICAP, PREVIO FAV, PREVIO VIS Y COVER =====
+        def calc_match_cover(score_val, ah_val):
+            if not score_val or score_val in ('?:?', '?-?', '-'):
+                return 'N/A'
+            try:
+                parts = str(score_val).replace(' ', '').replace('-', ':').split(':')
+                if len(parts) == 2:
+                    h_goals = int(parts[0])
+                    a_goals = int(parts[1])
+                    diff_score = (h_goals - a_goals) + float(ah_val)
+                    if diff_score > 0.01:
+                        return 'COVER'
+                    elif diff_score < -0.01:
+                        return 'NO_COVER'
+                    else:
+                        return 'PUSH'
+            except Exception:
+                pass
+            return 'N/A'
+
         def format_match_data(match):
-            """Formatea un partido con TODOS los datos necesarios"""
-            m_home = match.get('home_name') or match.get('home_team')
-            m_away = match.get('away_name') or match.get('away_team')
-            m_odds = match.get('main_match_odds', {})
+            """Formatea un partido enfocándose en: AH del partido, cobertura, y previos de favorito y visitante"""
+            m_home = match.get('home_name') or match.get('home_team') or 'Local'
+            m_away = match.get('away_name') or match.get('away_team') or 'Visitante'
+            m_odds = match.get('main_match_odds', {}) or match.get('odds', {})
             m_ah = m_odds.get('ah_linea', 0)
+            try:
+                m_ah_float = float(m_ah)
+            except (ValueError, TypeError):
+                m_ah_float = 0.0
             m_score = match.get('score') or match.get('final_score')
             m_date = match.get('date', '')
             
-            # Calcular cobertura
-            covered = 'N/A'
-            if m_score:
-                try:
-                    parts = m_score.replace('-', ':').split(':')
-                    if len(parts) == 2:
-                        h_goals = int(parts[0])
-                        a_goals = int(parts[1])
-                        diff = h_goals - a_goals + float(m_ah)
-                        if diff > 0.01:
-                            covered = 'COVER'
-                        elif diff < -0.01:
-                            covered = 'NO_COVER'
-                        else:
-                            covered = 'PUSH'
-                except:
-                    pass
+            # Calcular si cubre el partido actual
+            covered = calc_match_cover(m_score, m_ah_float)
             
-            # Prev Home - con filtro por ROL
+            # Determinar si el favorito es local o visitante
+            is_home_fav = m_ah_float > 0.01
+            is_away_fav = m_ah_float < -0.01
+            
             prev_h_data = match.get('last_home_match') or {}
-            # Asegurar que es un dict
             if not isinstance(prev_h_data, dict):
                 prev_h_data = {}
             
-            m_is_home_fav = float(m_ah) > 0.01
-            
-            # Prev Away - con filtro por ROL  
             prev_a_data = match.get('last_away_match') or {}
-            # Asegurar que es un dict
             if not isinstance(prev_a_data, dict):
                 prev_a_data = {}
             
-            m_is_away_fav = float(m_ah) < -0.01
-            
-            # H2H Col3 con MEJORA
-            h2h_col3 = match.get('h2h_col3') or {}
-            if not isinstance(h2h_col3, dict):
-                h2h_col3 = {}
-            
-            h2h_mejora = 'N/A'
-            
-            if h2h_col3.get('status') == 'found':
-                h2h_ah_raw = h2h_col3.get('ah')
-                h2h_score = h2h_col3.get('score', '')
-                h2h_covered = False
+            # Previo del Favorito
+            if is_away_fav:
+                fav_team = m_away
+                fav_prev_data = prev_a_data
+            else:
+                fav_team = m_home
+                fav_prev_data = prev_h_data
                 
-                # Calcular si cubrió en H2H
-                if h2h_ah_raw and h2h_score:
-                    try:
-                        parts = h2h_score.replace('-', ':').split(':')
-                        if len(parts) == 2:
-                            h_g = int(parts[0])
-                            a_g = int(parts[1])
-                            diff = h_g - a_g + float(h2h_ah_raw)
-                            h2h_covered = diff > 0.01
-                    except:
-                        pass
-                
-                # Calcular MEJORA
-                if h2h_ah_raw:
-                    h2h_bucket = get_ah_bucket(float(h2h_ah_raw))
-                    current_bucket = get_ah_bucket(float(m_ah))
-                    
-                    if abs(h2h_bucket) > abs(current_bucket) and h2h_covered:
-                        h2h_mejora = 'MEJORA'
-                    elif abs(h2h_bucket) == abs(current_bucket) and h2h_covered:
-                        h2h_mejora = 'IGUALA'
-                    elif abs(h2h_bucket) == abs(current_bucket) and not h2h_covered:
-                        h2h_mejora = 'IGUALA'
-                    else:
-                        h2h_mejora = 'EMPEORA'
-                
-                h2h_col3['cover_status'] = h2h_mejora
+            fav_ah = fav_prev_data.get('handicap_line_raw') or fav_prev_data.get('ah') or '-'
+            fav_score = fav_prev_data.get('score') or '-'
+            fav_covered = calc_match_cover(fav_score, fav_ah) if fav_ah != '-' else 'N/A'
             
-            # Indirectas
-            ind_local = match.get('ind_local') or {}
-            if not isinstance(ind_local, dict):
-                ind_local = {}
-                
-            ind_visitante = match.get('ind_visitante') or {}
-            if not isinstance(ind_visitante, dict):
-                ind_visitante = {}
+            # Previo del Visitante
+            vis_team = m_away
+            vis_ah = prev_a_data.get('handicap_line_raw') or prev_a_data.get('ah') or '-'
+            vis_score = prev_a_data.get('score') or '-'
+            vis_covered = calc_match_cover(vis_score, vis_ah) if vis_ah != '-' else 'N/A'
             
+            # Previo Local
+            home_ah = prev_h_data.get('handicap_line_raw') or prev_h_data.get('ah') or '-'
+            home_score = prev_h_data.get('score') or '-'
+            home_covered = calc_match_cover(home_score, home_ah) if home_ah != '-' else 'N/A'
             
             return {
-                'match_id': match.get('match_id'),
+                'match_id': match.get('match_id') or match.get('id'),
                 'date': m_date,
                 'home': m_home,
                 'away': m_away,
                 'ah': m_ah,
                 'score': m_score,
                 'covered': covered,
+                'fav_team': fav_team,
+                'fav_prev_ah': fav_ah,
+                'fav_prev_score': fav_score,
+                'fav_prev_covered': fav_covered,
+                'vis_team': vis_team,
+                'vis_prev_ah': vis_ah,
+                'vis_prev_score': vis_score,
+                'vis_prev_covered': vis_covered,
                 'prev_home': {
-                    'score': prev_h_data.get('score'),
-                    'ah': prev_h_data.get('handicap_line_raw') or prev_h_data.get('ah'),
-                    'home_team': prev_h_data.get('home_team'),
-                    'away_team': prev_h_data.get('away_team'),
+                    'score': home_score,
+                    'ah': home_ah,
+                    'covered': home_covered,
+                    'home_team': prev_h_data.get('home_team') or m_home,
+                    'away_team': prev_h_data.get('away_team') or '',
                     'date': prev_h_data.get('date'),
-                    'stats': prev_h_data.get('stats_rows', [])
+                    'match_id': prev_h_data.get('match_id')
                 },
                 'prev_away': {
-                    'score': prev_a_data.get('score'),
-                    'ah': prev_a_data.get('handicap_line_raw') or prev_a_data.get('ah'),
-                    'home_team': prev_a_data.get('home_team'),
-                    'away_team': prev_a_data.get('away_team'),
+                    'score': vis_score,
+                    'ah': vis_ah,
+                    'covered': vis_covered,
+                    'home_team': prev_a_data.get('home_team') or '',
+                    'away_team': prev_a_data.get('away_team') or m_away,
                     'date': prev_a_data.get('date'),
-                    'stats': prev_a_data.get('stats_rows', [])
-                },
-                'h2h_stadium': match.get('h2h_stadium', {}),
-                'h2h_general': match.get('h2h_general', {}),
-                'h2h_col3': h2h_col3,
-                'ind_local': ind_local,
-                'ind_visitante': ind_visitante
+                    'match_id': prev_a_data.get('match_id')
+                }
             }
         
         results = [format_match_data(m) for m in similar_matches[:100]]  # Limitar a 100

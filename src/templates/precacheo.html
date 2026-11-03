@@ -3191,6 +3191,12 @@
             </div>
             <div class="precache-action-toolbar d-flex gap-2 align-items-center flex-wrap">
                 <div id="scraping-status" class="d-none"></div>
+                <button class="btn btn-outline-success btn-sm" id="btn-download-all-cards" onclick="downloadSelectedOrPageCards(this)"
+                    title="Descargar fichas de partidos seleccionados con checkbox (o de toda la página si no hay ninguno marcado)">
+                    <i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas Página
+                    <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>
+                </button>
+                <span class="small text-muted" id="download-cards-status"></span>
                 <button class="btn btn-outline-success btn-sm" id="btn-import-github-precache" onclick="importFinishedFromGithub(this)"
                     title="Sincronizar e importar los últimos partidos analizados por GitHub a tu SQLite local">
                     <i class="fa-solid fa-cloud-arrow-down me-1"></i> Cachear Terminados
@@ -3230,6 +3236,9 @@
             <table class="table table-bordered table-sm excel-table" id="results-table">
                 <thead>
                     <tr>
+                        <th style="width: 36px; text-align: center; vertical-align: middle;" title="Seleccionar todos los partidos para descargar fichas">
+                            <input type="checkbox" id="select-all-cards-checkbox" onchange="toggleSelectAllCardCheckboxes(this)">
+                        </th>
                         <th style="width: 115px;">
                             Fecha
                             <div class="multiselect-container mt-1" id="container-filter-league">
@@ -8250,7 +8259,7 @@
             if (visibleCount === 0) {
                 const noResultsRow = document.createElement('tr');
                 noResultsRow.id = 'no-results-row';
-                noResultsRow.innerHTML = `<td colspan="13" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
+                noResultsRow.innerHTML = `<td colspan="14" class="text-center py-4 text-muted">No hay partidos que coincidan con los filtros</td>`;
                 const existing = document.getElementById('no-results-row');
                 if (existing) existing.remove();
                 tbody.appendChild(noResultsRow);
@@ -8959,23 +8968,24 @@
             if (!panel) return '';
             const openSections = [];
 
-            // 1. Estadisticas de partidos abiertas (.match-stats-slot)
-            const openStatsSlots = panel.querySelectorAll('.match-stats-slot');
+            // 1. Estadisticas de partidos abiertas (.match-stats-slot y .cell-inline-stats-slot)
+            const openStatsSlots = panel.querySelectorAll('.match-stats-slot, .cell-inline-stats-slot');
             const seenMatchKeys = new Set();
             openStatsSlots.forEach(slot => {
                 if (slot.style.display === 'none' || !slot.innerHTML.trim()) return;
                 const parentTr = slot.closest('tr');
                 const prevTr = parentTr ? parentTr.previousElementSibling : null;
                 const mobileCard = slot.closest('.mismarcadores-match-card');
-                const btn = prevTr?.querySelector('.pre-context-stats-btn') || mobileCard?.querySelector('.pre-context-stats-btn');
+                const btn = prevTr?.querySelector('.pre-context-stats-btn') || mobileCard?.querySelector('.pre-context-stats-btn') || parentTr?.querySelector('.pre-cell-quick-stats-btn') || slot.parentElement?.querySelector('.pre-cell-quick-stats-btn');
                 const cardEl = slot.querySelector('.modern-match-stats-card');
 
                 const rowDate = btn?.dataset?.rowDate || cardEl?.dataset?.date || slot.querySelector('span[style*="color:#64748b"]')?.innerText?.replace(/[📅\s]+/g, ' ').trim() || '';
                 const rowLeague = btn?.dataset?.leagueId || cardEl?.dataset?.league || slot.querySelector('span[style*="background:#0284c7"]')?.innerText?.replace(/^LIGA\s*/i, '').trim() || '';
-                const rowHome = btn?.dataset?.rowHome || cardEl?.dataset?.home || slot.querySelector('.modern-match-stats-card div[title]:first-child span')?.innerText?.trim() || '';
-                const rowAway = btn?.dataset?.rowAway || cardEl?.dataset?.away || slot.querySelector('.modern-match-stats-card div[title]:last-child span')?.innerText?.trim() || '';
-                const rowScore = btn?.dataset?.rowScore || cardEl?.dataset?.score || slot.querySelector('.modern-match-stats-card div[style*="letter-spacing"]')?.innerText?.trim() || '';
-                const rawAh = btn?.dataset?.rowAh || cardEl?.dataset?.ah || slot.querySelector('.modern-match-stats-card div[style*="font-size:0.52rem"]')?.innerText?.trim() || '';
+                const rowHome = btn?.dataset?.rowHome || btn?.dataset?.home || cardEl?.dataset?.home || slot.querySelector('.modern-match-stats-card div[title]:first-child span')?.innerText?.trim() || '';
+                const rowAway = btn?.dataset?.rowAway || btn?.dataset?.away || cardEl?.dataset?.away || slot.querySelector('.modern-match-stats-card div[title]:last-child span')?.innerText?.trim() || '';
+                const rowScore = btn?.dataset?.rowScore || btn?.dataset?.score || cardEl?.dataset?.score || slot.querySelector('.modern-match-stats-card div[style*="letter-spacing"]')?.innerText?.trim() || '';
+                const rawAh = btn?.dataset?.rowAh || btn?.dataset?.ah || cardEl?.dataset?.ah || slot.querySelector('.modern-match-stats-card div[style*="font-size:0.52rem"]')?.innerText?.trim() || '';
+                const rawOu = btn?.dataset?.rowOu || btn?.dataset?.ou || cardEl?.dataset?.ou || slot.querySelector('.subtle-goal-line-badge div')?.innerText?.trim() || '';
 
                 const matchKey = `${rowDate}_${rowHome}_${rowAway}_${rowScore}`;
                 if (matchKey !== '___' && seenMatchKeys.has(matchKey)) return;
@@ -8983,10 +8993,12 @@
 
                 const cleanScore = rowScore ? rowScore.replace(':', ' - ') : '-';
                 const cleanAh = (rawAh && rawAh !== '-' && rawAh !== 'N/A') ? (String(rawAh).startsWith('AH') ? rawAh : `AH ${rawAh}`) : '';
+                const cleanOu = (rawOu && rawOu !== '-' && rawOu !== 'N/A' && rawOu !== 'undefined' && rawOu !== 'null') ? (String(rawOu).startsWith('O/U') ? rawOu : `O/U ${rawOu}`) : '';
                 const ahPart = cleanAh ? ` | ${cleanAh}` : '';
+                const ouPart = cleanOu ? ` | ${cleanOu}` : '';
                 const leaguePart = (rowLeague && rowLeague !== '-') ? `Liga ${rowLeague} | ` : '';
                 const datePart = rowDate ? `${rowDate} | ` : '';
-                const matchup = (rowHome && rowAway) ? `${rowHome} ${cleanScore} ${rowAway}${ahPart}` : '';
+                const matchup = (rowHome && rowAway) ? `${rowHome} ${cleanScore} ${rowAway}${ahPart}${ouPart}` : '';
 
                 let block = `📊 [ESTADÍSTICAS DEL PARTIDO] ${datePart}${leaguePart}${matchup}`.trim();
                 const statRows = extractContainerStatsRows(slot);
@@ -9102,10 +9114,48 @@
 
         async function copyPreMatchContext(button, matchId) {
             const encoded = button?.dataset?.context || '';
-            const contextText = decodeURIComponent(encoded);
+            let contextText = decodeURIComponent(encoded);
             if (!contextText || !matchId) return;
 
             const panel = button.closest('.pre-context-panel');
+
+            // Enriquecer contextText con los O/U descargados únicamente para partidos donde se pulsó stats
+            if (panel) {
+                const downloadedStats = [];
+                panel.querySelectorAll('.pre-context-stats-btn[data-loaded="1"], .pre-cell-quick-stats-btn[data-loaded="1"]').forEach(b => {
+                    const ou = b.dataset.rowOu || b.dataset.ou;
+                    const home = (b.dataset.rowHome || b.dataset.home || '').toLowerCase().trim();
+                    const away = (b.dataset.rowAway || b.dataset.away || '').toLowerCase().trim();
+                    if (ou && ou !== '-' && ou !== 'N/A' && (home || away)) {
+                        downloadedStats.push({
+                            home,
+                            away,
+                            ou: String(ou).replace(/^(?:O\/U|OU|Goles|Goals)\s*/i, '').trim()
+                        });
+                    }
+                });
+
+                if (downloadedStats.length > 0) {
+                    const lines = contextText.split('\n');
+                    const updatedLines = lines.map(line => {
+                        const lineLower = line.toLowerCase();
+                        for (const st of downloadedStats) {
+                            const matchHome = st.home && lineLower.includes(st.home);
+                            const matchAway = st.away && lineLower.includes(st.away);
+                            if (matchHome && matchAway) {
+                                if (!line.includes('O/U')) {
+                                    return `${line} | O/U ${st.ou}`;
+                                } else {
+                                    return line.replace(/\|\s*O\/U\s*[^|\n]*/, `| O/U ${st.ou}`);
+                                }
+                            }
+                        }
+                        return line;
+                    });
+                    contextText = updatedLines.join('\n');
+                }
+            }
+
             const openCardsText = extractOpenContextCardsText(panel);
 
             const original = button.innerHTML;
@@ -9357,6 +9407,7 @@
             const resolvedLeague = resolveLeagueId(pc);
             const currentLeagueId = resolvedLeague;
             const parentMatchId = String(pc?.match_id ?? pc?.id ?? current?.match_id ?? '').replace(/\D/g, '');
+            if (parentMatchId && pc) { window._preMatchContextMap = window._preMatchContextMap || {}; window._preMatchContextMap[parentMatchId] = pc; }
             const parentCurrentAh = pc?.handicap ?? pc?.main_match_odds?.ah_linea ?? current?.ah_line ?? '';
 
             const rawH2h = pc?.h2h_general || pc?.h2h_stadium || {};
@@ -9816,13 +9867,18 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <button type="button" class="league-table-trigger pre-context-standings-btn" data-home-name="${esc(current.home_name || currentHome)}" data-away-name="${esc(current.away_name || currentAway)}" data-league-name="${esc(current.league_name || pc?.league_name || pc?.league || '')}" data-nowgoal-league-id="${esc(current.league_id || pc?.league_id || currentLeagueId)}" data-match-date="${esc(current.date || pc?.match_date || pc?.date || '')}" data-match-id="${esc(parentMatchId)}" data-handicap="${esc(parentCurrentAh)}" data-goal-line="${esc(pc?.main_match_odds?.goals_linea || pc?.goal_line || pc?.ou_line || '2.5')}" aria-expanded="false"><i class="fa-solid fa-ranking-star"></i><span>Ver tabla</span></button>
                         <label class="pre-context-league-filter" title="${currentNeutral ? 'Liga neutral: se muestran automáticamente los últimos 10 partidos de todas las localías' : 'Mostrar los últimos 5 partidos recientes'}"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)" ${currentNeutral ? 'checked disabled' : ''}> Últimos ${currentNeutral ? 10 : 5}</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
+                        <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap actual"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
+                        <button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${esc(summaryBoxesId)}', this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-layer-group me-1"></i>Fichas Resumen</button>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                         <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                         <button type="button" class="pre-context-odds-btn" onclick="toggleMainMatchOddsMovement(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ver movimiento de cuotas Bet365 del partido actual (Initial vs Live: AH, O/U, 1X2)" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center;"><i class="fa-solid fa-chart-line me-1" style="color:#15803d;"></i>📈 Cuotas Bet365</button>
                         <button type="button" class="pre-context-motor-v4-btn" onclick="openMotorV4Modal(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Motor dual entero-binario v6.2: 12 compuertas, remates, AH y totales FT90"><i class="fa-solid fa-brain me-1" style="color:#7c3aed;"></i><span>🧠 Motor v6.2</span></button>
+                        <button type="button" class="pre-context-triangulacion-ou-btn" onclick="toggleOuTriangulationPanel(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Triangulación completa Over/Under: cruce de 4 nodos, goles vs línea y balance del circuito"><i class="fa-solid fa-draw-polygon me-1" style="color:#0284c7;"></i><span>📐 Triangulación O/U</span></button>
                     </div>
                 </div>
                 <div class="main-match-odds-container" style="display:none; margin:8px 0 12px 0;"></div>
+                <div class="ou-triangulation-container" style="display:none; margin:8px 0 12px 0;"></div>
+                ${summaryBoxesHtml || ''}
                 <div class="pre-context-moments hide-previous">
                     ${renderMoment('Partido actual', current)}
                     ${hasPrevious ? renderMoment('Último enfrentamiento entre ellos', previous, true) : ''}
@@ -10527,6 +10583,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             data-col3-date="${escapePreContextCol3(col3.date || '')}"
                             data-col3-score="${escapePreContextCol3(score || '')}"
                             data-col3-ah="${escapePreContextCol3(col3.handicap ?? col3.ah ?? '')}"
+                            data-col3-ou="${escapePreContextCol3(col3.over_under_line_raw || col3.ou_line || col3.ou || col3.goals_line || col3.ouLine || (col3.main_match_odds && col3.main_match_odds.goals_linea) || '')}"
                             data-col3-league="${escapePreContextCol3(col3.league_id || '')}"
                             onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || '')}')" 
                             title="Descargar y ver Ataques Peligrosos, Tiros, Corners...">
@@ -10811,7 +10868,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 if (data.match_id) {
                     button.dataset.matchId = data.match_id;
                 }
+                const finalOu = (data && data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : (rowOu || '');
                 button.dataset.loaded = '1';
+                if (finalOu) {
+                    button.dataset.rowOu = finalOu;
+                    button.dataset.ou = finalOu;
+                    ctx.statsSlot.dataset.ou = finalOu;
+                }
                 ctx.statsSlot.classList.add('is-card');
                 ctx.statsSlot.innerHTML = buildModernStatsCardHtml({
                     statsList: stats,
@@ -10820,7 +10883,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     date: rowDate,
                     score: rowScore,
                     ah: rowAh,
-                    ou: rowOu || data.ou_line || '',
+                    ou: finalOu,
                     leagueId: leagueId,
                     showHideBtn: false
                 });
@@ -10834,7 +10897,19 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
         window._quickMatchStatsCache = window._quickMatchStatsCache || {};
 
-        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '') {
+        function formatSubtleGoalBadge(ouVal) {
+            if (!ouVal || ouVal === '-' || ouVal === 'N/A' || ouVal === 'undefined' || ouVal === 'null') return '';
+            const clean = String(ouVal).trim();
+            if (!clean || clean === '-' || clean === 'N/A') return '';
+            return `
+                <div class="subtle-goal-line-badge" style="background:#f0fdf4; border-radius:4px; padding:1px 4px; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #bbf7d0; min-width:28px; line-height:1;" title="Línea de Goles Inicial de este partido (Over/Under)">
+                    <span style="font-size:0.44rem; font-weight:800; color:#166534; text-transform:uppercase; line-height:1;">GOLES</span>
+                    <div style="font-weight:800; font-size:0.62rem; color:#15803d; line-height:1.1; margin-top:1px;">${clean}</div>
+                </div>
+            `;
+        }
+
+        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '', ou = '') {
             const parseVal = (v) => {
                 if (v === undefined || v === null || v === '') return 0;
                 const m = String(v).match(/(\d+)/);
@@ -10865,12 +10940,20 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 });
             }
 
+            const goalBadgeHtml = formatSubtleGoalBadge(ou);
+
             const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks);
             if (!hasStats) {
                 return `
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:5px; padding:3px; margin-top:3px; text-align:center; font-size:0.52rem; color:#94a3b8;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <span style="font-weight:700; color:#64748b; font-size:0.58rem;">STATS</span>
+                                ${goalBadgeHtml}
+                            </div>
+                            <button type="button" class="btn btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
+                        </div>
                         <span>Sin stats en NowGoal</span>
-                        <button type="button" class="btn btn-link p-0 ms-1 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
                     </div>
                 `;
             }
@@ -10906,7 +10989,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             return `
                 <div style="background:#ffffff; border:1px solid #10b981; border-radius:6px; padding:3px 5px; margin-top:3px; box-shadow:0 1px 4px rgba(0,0,0,0.06); width:100%; box-sizing:border-box;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:2px; margin-bottom:3px;">
-                        <span style="font-size:0.62rem; font-weight:800; color:#15803d; letter-spacing:0.3px;"><i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> STATS</span>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:0.62rem; font-weight:800; color:#15803d; letter-spacing:0.3px;"><i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> STATS</span>
+                            ${goalBadgeHtml}
+                        </div>
                         <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.65rem; text-decoration:none; font-weight:700; line-height:1; cursor:pointer;" title="Ocultar">✕</button>
                     </div>
                     ${renderRow('⚽', 'Tiros totales', stH, stA)}
@@ -10944,12 +11030,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const score = btn.dataset.score || '';
             const ah = btn.dataset.ah || '';
             const date = btn.dataset.date || '';
+            const ou = btn.dataset.ou || '';
 
             const cacheKey = matchId ? `id_${matchId}` : `${homeTeam}_${awayTeam}_${date}`;
 
             if (window._quickMatchStatsCache && window._quickMatchStatsCache[cacheKey]) {
-                const cachedStats = window._quickMatchStatsCache[cacheKey];
-                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah);
+                const cached = window._quickMatchStatsCache[cacheKey];
+                const cachedStats = Array.isArray(cached) ? cached : (cached ? cached.stats : []);
+                const cachedOu = (!Array.isArray(cached) && cached && cached.ou) ? cached.ou : ou;
+                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah, cachedOu);
                 slot.dataset.loaded = '1';
                 return;
             }
@@ -10971,7 +11060,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         row_away: awayTeam,
                         row_date: date,
                         row_score: score,
-                        row_ah: ah
+                        row_ah: ah,
+                        row_ou: ou
                     })
                 });
                 const data = await response.json();
@@ -10979,14 +11069,23 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     throw new Error(data.error || 'No se pudieron descargar las estadísticas');
                 }
                 const stats = data.stats || [];
+                const finalOu = (data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : ou;
                 window._quickMatchStatsCache = window._quickMatchStatsCache || {};
-                window._quickMatchStatsCache[cacheKey] = stats;
+                const cacheObj = { stats: stats, ou: finalOu };
+                window._quickMatchStatsCache[cacheKey] = cacheObj;
                 if (data.match_id && !matchId) {
                     btn.dataset.matchId = data.match_id;
-                    window._quickMatchStatsCache[`id_${data.match_id}`] = stats;
+                    window._quickMatchStatsCache[`id_${data.match_id}`] = cacheObj;
+                }
+                btn.dataset.ou = finalOu;
+                const btnRow = btn.closest('.cell-stats-btn-row');
+                if (btnRow && !btnRow.querySelector('.subtle-goal-line-badge') && finalOu && btn.dataset.hideCellBadge !== '1') {
+                    const badgeElem = document.createElement('div');
+                    badgeElem.innerHTML = formatSubtleGoalBadge(finalOu).trim();
+                    if (badgeElem.firstElementChild) btnRow.appendChild(badgeElem.firstElementChild);
                 }
 
-                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah);
+                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah, finalOu);
                 slot.dataset.loaded = '1';
             } catch (err) {
                 slot.innerHTML = `
@@ -11092,6 +11191,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const rowDate = btn.dataset.col3Date || '';
             const rowScore = btn.dataset.col3Score || '';
             const rowAh = btn.dataset.col3Ah || '';
+            const rowOu = btn.dataset.col3Ou || '';
             const rowLeague = btn.dataset.col3League || '';
 
             if (!cleanId && !parentMatchId && (!rowHome || !rowAway)) {
@@ -11116,6 +11216,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         row_away: rowAway,
                         row_score: rowScore,
                         row_ah: rowAh,
+                        row_ou: rowOu,
                         league_id: rowLeague
                     })
                 });
@@ -11130,12 +11231,15 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 } else {
                     const customHome = rowHome ? { name: rowHome, color: btn.dataset.col3HomeColor || '#6d28d9' } : null;
                     const customAway = rowAway ? { name: rowAway, color: btn.dataset.col3AwayColor || '#b45309' } : null;
+                    const finalOu = (data && data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : (rowOu || '');
+                    btn.dataset.col3Ou = finalOu;
                     const meta = {
                         home: rowHome,
                         away: rowAway,
                         date: rowDate,
                         score: rowScore,
                         ah: rowAh,
+                        ou: finalOu,
                         leagueId: rowLeague
                     };
                     container.innerHTML = formatStatsTableHtml(stats, customHome, customAway, meta);
@@ -11453,6 +11557,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         data-col3-date="${escapePreContextCol3(col3.date || '')}"
                         data-col3-score="${escapePreContextCol3(score || '')}"
                         data-col3-ah="${escapePreContextCol3(col3.handicap ?? col3.ah ?? '')}"
+                            data-col3-ou="${escapePreContextCol3(col3.over_under_line_raw || col3.ou_line || col3.ou || col3.goals_line || col3.ouLine || (col3.main_match_odds && col3.main_match_odds.goals_linea) || '')}"
                         data-col3-league="${escapePreContextCol3(col3.league_id || '')}"
                         onclick="toggleCardStats(this, event, '${escapePreContextCol3(col3.match_id || col3.matchIndex || button.dataset.matchId || '')}')" 
                         title="Descargar y ver Ataques Peligrosos, Tiros, Córners...">
@@ -11539,6 +11644,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             data-col3-date="${escapePreContextCol3(dateStr)}"
                             data-col3-score="${escapePreContextCol3(scoreStr)}"
                             data-col3-ah="${escapePreContextCol3(String(ahStr))}"
+                            data-col3-ou="${escapePreContextCol3(item.over_under_line_raw || item.ou_line || item.ou || item.goals_line || item.ouLine || (item.main_match_odds && item.main_match_odds.goals_linea) || '')}"
                             data-parent-match-id="${escapePreContextCol3(button.dataset.parentMatchId || button.dataset.matchId || '')}"
                             onclick="toggleCardStats(this, event, '${escapePreContextCol3(item.match_id || '')}')" 
                             title="Descargar y ver estadísticas...">
@@ -13759,7 +13865,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             tbody.innerHTML = '';
 
             if (!matches || matches.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4">No hay partidos próximos</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" class="text-center py-4">No hay partidos próximos</td></tr>`;
                 return;
             }
 
@@ -13911,24 +14017,32 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 let ftHtml = '<span class="text-muted">-</span>';
                 const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-                const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '' }) => {
+                const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '', ou = '', showCellBadge = true }) => {
                     if (!score || score === '-' || score === '?:?' || score === '?-?' || score === '??') return '';
+                    const safeOu = String(ou || '').trim();
+                    const cleanOu = (safeOu && safeOu !== '-' && safeOu !== 'N/A' && safeOu !== 'null' && safeOu !== 'undefined') ? safeOu : '';
+                    const cellBadgeHtml = (showCellBadge && cleanOu) ? formatSubtleGoalBadge(cleanOu) : '';
                     return `
                         <div class="mt-1 d-flex flex-column align-items-center cell-stats-btn-wrap" style="width:100%;">
-                            <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
-                                data-match-id="${escAttr(matchId)}"
-                                data-parent-match-id="${escAttr(parentMatchId)}"
-                                data-home="${escAttr(home)}"
-                                data-away="${escAttr(away)}"
-                                data-score="${escAttr(score)}"
-                                data-ah="${escAttr(ah)}"
-                                data-date="${escAttr(date)}"
-                                data-league="${escAttr(league)}"
-                                onclick="toggleCellInlineStats(this, event)"
-                                style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
-                                title="Ver estadísticas en esta celda">
-                                <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
-                            </button>
+                            <div class="d-flex align-items-center justify-content-center gap-1 cell-stats-btn-row">
+                                <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
+                                    data-match-id="${escAttr(matchId)}"
+                                    data-parent-match-id="${escAttr(parentMatchId)}"
+                                    data-home="${escAttr(home)}"
+                                    data-away="${escAttr(away)}"
+                                    data-score="${escAttr(score)}"
+                                    data-ah="${escAttr(ah)}"
+                                    data-ou="${escAttr(cleanOu)}"
+                                    data-hide-cell-badge="${showCellBadge ? '0' : '1'}"
+                                    data-date="${escAttr(date)}"
+                                    data-league="${escAttr(league)}"
+                                    onclick="toggleCellInlineStats(this, event)"
+                                    style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
+                                    title="Ver estadísticas en esta celda${(showCellBadge && cleanOu) ? ` · Línea de goles: ${cleanOu}` : ''}">
+                                    <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
+                                </button>
+                                ${cellBadgeHtml}
+                            </div>
                             <div class="cell-inline-stats-slot" style="display:none; width:100%;"></div>
                         </div>
                     `;
@@ -13944,7 +14058,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         score: cleanScoreVal,
                         ah: formatAh(ah) || '',
                         date: m.date || '',
-                        league: m.league_id || ''
+                        league: m.league_id || '',
+                        ou: (pc && (pc.ou_line || pc.goal_line || (pc.main_match_odds && pc.main_match_odds.goals_linea))) || (m && (m.ou_line || m.over_under)) || '',
+                        showCellBadge: false
                     });
                     ftHtml = `
                         <div class="d-flex flex-column align-items-center">
@@ -13962,7 +14078,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         score: cleanFinalScore,
                         ah: formatAh(ah) || '',
                         date: m.date || '',
-                        league: m.league_id || ''
+                        league: m.league_id || '',
+                        ou: (pc && (pc.ou_line || pc.goal_line || (pc.main_match_odds && pc.main_match_odds.goals_linea))) || (m && (m.ou_line || m.over_under)) || '',
+                        showCellBadge: false
                     });
                     ftHtml = `
                         <div class="d-flex flex-column align-items-center">
@@ -14018,7 +14136,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         score: lhm.score || '',
                         ah: ahVal || '',
                         date: lhmDate || '',
-                        league: lhm.league_id_hist || lhm.league_id || ''
+                        league: lhm.league_id_hist || lhm.league_id || '',
+                        ou: lhm.over_under_line_raw || lhm.ou_line || lhm.ou || lhm.ouLine || ''
                     });
 
                     prevHomeHtml = `
@@ -14076,7 +14195,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         score: lam.score || '',
                         ah: ahVal || '',
                         date: lamDate || '',
-                        league: lam.league_id_hist || lam.league_id || ''
+                        league: lam.league_id_hist || lam.league_id || '',
+                        ou: lam.over_under_line_raw || lam.ou_line || lam.ou || lam.ouLine || ''
                     });
 
                     prevAwayHtml = `
@@ -14130,8 +14250,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             score: st.result,
                             ah: st.movement || '',
                             date: st.date || '',
-                            league: m.league_id || ''
-                        }) : '';
+                            league: m.league_id || '',
+                        ou: st.over_under_line_raw || st.ou_line || st.ou || ''
+                    }) : '';
 
                         h2hStadiumHtml = `
                             <div class="d-flex flex-column">
@@ -14186,8 +14307,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             score: gen.result,
                             ah: gen.movement || '',
                             date: gen.date || '',
-                            league: m.league_id || ''
-                        }) : '';
+                            league: m.league_id || '',
+                        ou: gen.over_under_line_raw || gen.ou_line || gen.ou || ''
+                    }) : '';
 
                         h2hGeneralHtml = `
                             <div class="d-flex flex-column">
@@ -14426,8 +14548,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             score: mirrorScore,
                             ah: mirrorAhRaw || '',
                             date: date || '',
-                            league: col3.league_id || ''
-                        }) : '';
+                            league: col3.league_id || '',
+                        ou: col3.over_under_line_raw || col3.ou_line || col3.ou || ''
+                    }) : '';
 
                         h2hCol3Html = `
                             <div class="d-flex flex-column">
@@ -14497,8 +14620,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             score: score,
                             ah: ahLine || '',
                             date: l.date || '',
-                            league: l.league_id || ''
-                        }) : '';
+                            league: l.league_id || '',
+                        ou: l.over_under_line_raw || l.ou_line || l.ou || ''
+                    }) : '';
 
                         indLeftHtml = `
                             <div class="d-flex flex-column">
@@ -14559,8 +14683,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             score: score,
                             ah: ahLine || '',
                             date: r.date || '',
-                            league: r.league_id || ''
-                        }) : '';
+                            league: r.league_id || '',
+                        ou: r.over_under_line_raw || r.ou_line || r.ou || ''
+                    }) : '';
 
                         indRightHtml = `
                             <div class="d-flex flex-column">
@@ -14951,6 +15076,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
 
                 tr.innerHTML = `
+                    <td class="text-center" style="vertical-align: middle;">
+                        <input type="checkbox" class="match-card-checkbox" data-match-id="${matchId}" onchange="updateDownloadCardsBadge()">
+                    </td>
                     <td class="text-center">
                         <span class="badge bg-secondary">${fecha}</span>
                         ${league ? `
@@ -15126,7 +15254,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     const collapseTr = document.createElement('tr');
                     collapseTr.className = 'stats-collapse-row';
                     collapseTr.innerHTML = `
-                        <td colspan="13" class="p-0">
+                        <td colspan="14" class="p-0">
                             <div class="collapse" id="${globalStatsId}">
                                 <div class="py-2 px-2" style="background: linear-gradient(to right, #f8f9fa, #fff, #f8f9fa); border-top: 1px solid #dee2e6;">
                                     <div class="mobile-detail-toolbar">
@@ -15170,6 +15298,119 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             // MultiSelects estáticos garantizados
             initStaticMultiSelectFilters();
 
+            // Sincronizar checkbox maestro y contador de selección
+            const selectAllCb = document.getElementById('select-all-cards-checkbox');
+            if (selectAllCb) selectAllCb.checked = false;
+            updateDownloadCardsBadge();
+        }
+
+        function toggleSelectAllCardCheckboxes(masterCb) {
+            const isChecked = !!masterCb?.checked;
+            const visibleBoxes = Array.from(document.querySelectorAll('#table-body tr:not([style*="display: none"]) .match-card-checkbox'));
+            visibleBoxes.forEach(cb => { cb.checked = isChecked; });
+            updateDownloadCardsBadge();
+        }
+
+        function updateDownloadCardsBadge() {
+            const checkedBoxes = Array.from(document.querySelectorAll('#table-body .match-card-checkbox:checked'));
+            const count = checkedBoxes.length;
+            const badge = document.getElementById('download-cards-badge');
+            const btn = document.getElementById('btn-download-all-cards');
+            if (!btn) return;
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }
+            if (count > 0) {
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas <span id="download-cards-badge" class="badge bg-success ms-1">${count}</span>`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas Página <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>`;
+            }
+        }
+
+        async function downloadSelectedOrPageCards(btn) {
+            const checkedBoxes = Array.from(document.querySelectorAll('#table-body .match-card-checkbox:checked'));
+            let ids = [];
+            if (checkedBoxes.length > 0) {
+                ids = Array.from(new Set(checkedBoxes.map(cb => String(cb.dataset.matchId || '').trim()).filter(Boolean)));
+            } else {
+                const visibleRows = Array.from(document.querySelectorAll('#table-body tr[data-match-id]'))
+                    .filter(row => row.style.display !== 'none');
+                ids = Array.from(new Set(visibleRows.map(row => String(row.dataset.matchId || '').trim()).filter(Boolean)));
+            }
+
+            if (!ids.length) {
+                alert('No hay partidos seleccionados ni visibles para descargar fichas.');
+                return;
+            }
+
+            const originalContent = btn ? btn.innerHTML : '';
+            const statusEl = document.getElementById('download-cards-status');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Descargando (0/${ids.length})`;
+            }
+            if (statusEl) {
+                statusEl.textContent = `Descargando 0/${ids.length}...`;
+                statusEl.className = 'small text-primary fw-bold';
+            }
+
+            let completed = 0;
+            let errors = 0;
+            const batchSize = 3;
+
+            for (let i = 0; i < ids.length; i += batchSize) {
+                const batch = ids.slice(i, i + batchSize);
+                await Promise.allSettled(batch.map(async (mId) => {
+                    try {
+                        const response = await fetch('/api/precacheo_context_fast', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ match_id: mId })
+                        });
+                        const data = await response.json();
+                        if (data && data.context) {
+                            mergePrecacheoRow(mId, {
+                                id: String(mId),
+                                match_id: String(mId),
+                                pre_match_context: data.context,
+                                context_scraped_at: data.context?.generated_at,
+                            });
+                        }
+                        completed++;
+                    } catch (err) {
+                        console.warn(`Error descargando ficha de ${mId}:`, err);
+                        errors++;
+                    }
+                }));
+
+                const doneCount = Math.min(i + batchSize, ids.length);
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Descargando (${doneCount}/${ids.length})`;
+                if (statusEl) statusEl.textContent = `Descargando ${doneCount}/${ids.length}...`;
+            }
+
+            renderTableWithPagination();
+
+            if (statusEl) {
+                statusEl.textContent = `¡Listo! ${completed}/${ids.length} fichas descargadas`;
+                statusEl.className = 'small text-success fw-bold';
+                setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 4500);
+            }
+            if (btn) {
+                btn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Descargadas (${completed})`;
+                btn.classList.remove('btn-outline-success');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                    updateDownloadCardsBadge();
+                }, 2500);
+            }
         }
 
         // Background scraping - doesn't block UI
@@ -15720,8 +15961,8 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
 
 
-        // Buscar patrones similares en histórico - abre Explorador en una pestaña nueva
-        async function searchPatterns(matchId, btnElement) {
+        // Buscar patrones similares en histórico
+        async function searchPatterns_explorerRedirect(matchId, btnElement) {
             const pc = precacheoData ? precacheoData[matchId] : null;
             if (!pc) return;
 
@@ -15838,20 +16079,23 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             window.open(`/explorador?${params.toString()}`, '_blank', 'noopener');
         }
 
-        // Función legacy para mantener compatibilidad (ya no se usa)
-        async function searchPatterns_legacy(matchId, btnElement) {
+        // ==================== APARTADO DE COMPARAR PATRONES ====================
+        // Muestra exclusivamente: mismo handicap del partido, mismo handicap de favorito y visitante, y si cubre o no
+        async function searchPatterns(matchId, btnElement) {
             // Toggle: si ya existe la fila expandible, ocultarla
             const existingRow = document.getElementById(`patterns-row-${matchId}`);
             if (existingRow) {
                 existingRow.remove();
-                btnElement.classList.remove('active');
+                if (btnElement) btnElement.classList.remove('active');
                 return;
             }
 
             // Mostrar spinner
-            const originalHtml = btnElement.innerHTML;
-            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btnElement.disabled = true;
+            const originalHtml = btnElement ? btnElement.innerHTML : '';
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btnElement.disabled = true;
+            }
 
             try {
                 const res = await fetch('/api/precacheo_pattern_search', {
@@ -15861,15 +16105,16 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 });
                 const data = await res.json();
 
-                btnElement.innerHTML = originalHtml;
-                btnElement.disabled = false;
+                if (btnElement) {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                }
 
                 if (data.error) {
                     alert('Error: ' + data.error);
                     return;
                 }
 
-                // Crear fila expandible
                 const matchRow = document.querySelector(`tr[data-match-id="${matchId}"]`);
                 if (!matchRow) return;
 
@@ -15882,765 +16127,193 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
                 let resultsHtml = '';
                 if (results.length === 0) {
-                    resultsHtml = '<div class="text-muted text-center py-2">No se encontraron patrones similares</div>';
-                } else {
-                    const covered = results.filter(r => r.covered === 'COVER').length;
-                    const notCovered = results.filter(r => r.covered === 'NO_COVER').length;
-
-                    // Filtrar automáticamente según WDL del partido previo del favorito
-                    // WDL = Win/Draw/Loss del resultado real (no del cover de handicap)
-                    const prevFavWdl = info.prev_fav_wdl; // 'WIN', 'DRAW', 'LOSS', or null
-                    const prevFavCovered = info.prev_fav_covered; // Para mostrar info
-                    let filteredResults = results;
-
-                    if (prevFavWdl) {
-                        filteredResults = results.filter(r => {
-                            const patAH = parseFloat(r.ah);
-                            let targetPrev = null;
-                            let teamWasHome = false;
-
-                            // Determinar cuál es el previo del favorito del patrón
-                            // Perspectiva: Positivo = Local Favorito, Negativo = Visitante Favorito
-                            if (patAH > 0) {
-                                targetPrev = r.prev_home; // Local es favorito, jugó de LOCAL en su previo
-                                teamWasHome = true;
-                            } else if (patAH < 0) {
-                                targetPrev = r.prev_away; // Visitante es favorito, jugó de VISITANTE en su previo
-                                teamWasHome = false;
-                            } else {
-                                // AH = 0: No hay favorito claro, incluir SI AMBOS previos coinciden en WDL
-                                // Comparar prev_home con WDL del partido
-                                const homeWdl = r.prev_home?.wdl;
-                                const awayWdl = r.prev_away?.wdl;
-                                // Incluir si al menos uno de los previos coincide con el WDL actual
-                                return homeWdl === prevFavWdl || awayWdl === prevFavWdl;
-                            }
-
-                            if (!targetPrev || !targetPrev.score) return false;
-
-                            // Parsear el score - formato "home:away" del partido previo
-                            const scoreParts = targetPrev.score.split(':');
-                            if (scoreParts.length !== 2) return false;
-
-                            const homeGoals = parseInt(scoreParts[0]);
-                            const awayGoals = parseInt(scoreParts[1]);
-
-                            if (isNaN(homeGoals) || isNaN(awayGoals)) return false;
-
-                            // Calcular WDL desde la perspectiva del equipo rastreado
-                            let patternWdl = null;
-                            if (teamWasHome) {
-                                // El equipo jugó de LOCAL: sus goles son homeGoals
-                                if (homeGoals > awayGoals) patternWdl = 'WIN';
-                                else if (homeGoals < awayGoals) patternWdl = 'LOSS';
-                                else patternWdl = 'DRAW';
-                            } else {
-                                // El equipo jugó de VISITANTE: sus goles son awayGoals
-                                if (awayGoals > homeGoals) patternWdl = 'WIN';
-                                else if (awayGoals < homeGoals) patternWdl = 'LOSS';
-                                else patternWdl = 'DRAW';
-                            }
-
-                            // Solo mostrar patrones donde el WDL coincide
-                            return patternWdl === prevFavWdl;
-                        });
-                    }
-
-                    const filteredCovered = filteredResults.filter(r => r.covered === 'COVER').length;
-                    const filteredNotCovered = filteredResults.filter(r => r.covered === 'NO_COVER').length;
-
-                    // Mostrar info de WDL en español
-                    const wdlText = prevFavWdl === 'WIN' ? 'GANÓ' : (prevFavWdl === 'DRAW' ? 'EMPATÓ' : (prevFavWdl === 'LOSS' ? 'PERDIÓ' : ''));
-                    const wdlClass = prevFavWdl === 'WIN' ? 'text-success' : (prevFavWdl === 'DRAW' ? 'text-warning' : 'text-danger');
-
                     resultsHtml = `
-                        <div class="d-flex flex-column gap-2 mb-2">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="small">
-                                    <strong>Patrones:</strong> ${data.total_found} 
-                                    | <strong>AH:</strong> ${info.ah_actual} 
-                                    | <strong>Fav:</strong> ${info.favorito}
-                                    ${info.prev_ah_favorito !== null ? `| <strong>Prev AH:</strong> ${info.prev_ah_favorito}` : ''}
-                                    ${prevFavWdl ? `| <strong class="${wdlClass}">Fav ${wdlText}</strong>` : ''}
-                                </div>
-                            </div>
+                        <div class="text-muted text-center py-3" style="font-size:0.8rem;">
+                            <i class="fa-solid fa-circle-info me-1"></i>No se encontraron patrones históricos con el mismo hándicap (AH ${info.ah_actual ?? '-'}).
                         </div>
-                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        <table class="table table-sm table-bordered mb-0" style="font-size: 0.68rem;" id="patterns-table-${matchId}">
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Local</th>
-                                    <th>Visitante</th>
-                                    <th>AH</th>
-                                    <th>FT</th>
-                                    <th>Cover</th>
-                                    <th>Prev Home
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-ah" style="font-size:0.55rem;width:55px;">
-                                                <option value="">AH</option>
-                                                <option value="0">0</option>
-                                                <option value="0.5">+0.5</option>
-                                                <option value="1">+1</option>
-                                                <option value="1.5">+1.5</option>
-                                                <option value="2">+2+</option>
-                                                <option value="-0.5">-0.5</option>
-                                                <option value="-1">-1</option>
-                                                <option value="-1.5">-1.5</option>
-                                                <option value="-2">-2+</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-home-res" style="font-size:0.55rem;width:40px;">
-                                                <option value="">Res</option>
-                                                <option value="COVER">✓</option>
-                                                <option value="PUSH">P</option>
-                                                <option value="NO_COVER">✗</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th>Prev Away
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-ah" style="font-size:0.55rem;width:55px;">
-                                                <option value="">AH</option>
-                                                <option value="0">0</option>
-                                                <option value="0.5">+0.5</option>
-                                                <option value="1">+1</option>
-                                                <option value="1.5">+1.5</option>
-                                                <option value="2">+2+</option>
-                                                <option value="-0.5">-0.5</option>
-                                                <option value="-1">-1</option>
-                                                <option value="-1.5">-1.5</option>
-                                                <option value="-2">-2+</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-prev-away-res" style="font-size:0.55rem;width:40px;">
-                                                <option value="">Res</option>
-                                                <option value="COVER">✓</option>
-                                                <option value="PUSH">P</option>
-                                                <option value="NO_COVER">✗</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#e3f2fd;">H2H Estadio
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-stadium-mov" style="font-size:0.5rem;width:45px;">
-                                                <option value="">Mov</option>
-                                                <option value="UP">↑</option>
-                                                <option value="DOWN">↓</option>
-                                                <option value="SAME">=</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-stadium-cover" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Cov</option>
-                                                <option value="COVER">✓</option>
-                                                <option value="NO_COVER">✗</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#e3f2fd;">H2H General
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-general-mov" style="font-size:0.5rem;width:45px;">
-                                                <option value="">Mov</option>
-                                                <option value="UP">↑</option>
-                                                <option value="DOWN">↓</option>
-                                                <option value="SAME">=</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-general-cover" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Cov</option>
-                                                <option value="COVER">✓</option>
-                                                <option value="NO_COVER">✗</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#ffe4ec;">H2H Col3
-                                        <div class="d-flex flex-column gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-col3-espejo" style="font-size:0.5rem;width:60px;">
-                                                <option value="">Espejo</option>
-                                                <option value="directa">Dir</option>
-                                                <option value="inversa">Inv</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-h2h-col3-cover" style="font-size:0.5rem;width:60px;">
-                                                <option value="">Cover</option>
-                                                <option value="MEJORA">Mejora</option>
-                                                <option value="IGUALA">Iguala</option>
-                                                <option value="EMPEORA">Empeora</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#fff3e0;">Ind. Local
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-local-res" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Res</option>
-                                                <option value="W">W</option>
-                                                <option value="D">D</option>
-                                                <option value="L">L</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-local-loc" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Loc</option>
-                                                <option value="H">H</option>
-                                                <option value="A">A</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#fff3e0;">Ind. Visitante
-                                        <div class="d-flex gap-1">
-                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-visitante-res" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Res</option>
-                                                <option value="W">W</option>
-                                                <option value="D">D</option>
-                                                <option value="L">L</option>
-                                            </select>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-ind-visitante-loc" style="font-size:0.5rem;width:35px;">
-                                                <option value="">Loc</option>
-                                                <option value="H">H</option>
-                                                <option value="A">A</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                    <th style="background:#d4edda;">
-                                        <div class="d-flex flex-column gap-1">
-                                            <div class="d-flex gap-1">
-                                                <button class="btn btn-sm btn-success py-0 px-2" style="font-size:0.55rem;" onclick="applyPatternFilters('${matchId}')">
-                                                    <i class="fa-solid fa-filter"></i> Aplicar
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.55rem;" onclick="clearPatternFilters('${matchId}')" title="Limpiar filtros">
-                                                    <i class="fa-solid fa-times"></i>
-                                                </button>
-                                            </div>
-                                            <select class="form-select form-select-sm py-0 pattern-filter-cover" style="font-size:0.5rem;width:70px;">
-                                                <option value="">Todo</option>
-                                                <option value="COVER">✓ Cover</option>
-                                                <option value="NO_COVER">✗ No Cov</option>
-                                            </select>
-                                        </div>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredResults.map(r => {
-                        // Función para calcular WDL REAL basado en goles
-                        const calcRealWdl = (score, isHome) => {
-                            if (!score) return null;
-                            const parts = (score || '').replace(' ', '').replace('-', ':').split(':');
-                            if (parts.length !== 2) return null;
-                            const hg = parseInt(parts[0]);
-                            const ag = parseInt(parts[1]);
-                            if (isNaN(hg) || isNaN(ag)) return null;
-                            const diff = isHome ? (hg - ag) : (ag - hg);
-                            if (diff > 0) return 'WIN';
-                            if (diff < 0) return 'LOSS';
-                            return 'DRAW';
-                        };
+                    `;
+                } else {
+                    const coveredCount = results.filter(r => r.covered === 'COVER').length;
+                    const notCoveredCount = results.filter(r => r.covered === 'NO_COVER').length;
+                    const pushCount = results.filter(r => r.covered === 'PUSH').length;
+                    const validCount = coveredCount + notCoveredCount;
+                    const coverPct = validCount > 0 ? Math.round((coveredCount / validCount) * 100) : 0;
 
-                        const realWdlClass = (wdl) => wdl === 'WIN' ? 'text-success' : (wdl === 'LOSS' ? 'text-danger' : 'text-dark');
-                        const realWdlLetter = (wdl) => wdl === 'WIN' ? 'W' : (wdl === 'LOSS' ? 'L' : 'D');
-
-                        // Calcular Cover/WDL para Prev Home
-                        const rCurrentAh = parseFloat(r.ah !== undefined && r.ah !== null ? r.ah : (r.candidate ? r.candidate.ah_real : NaN));
-                        let phCoverStatus = '';
-                        let prevHomeColorClass = realWdlClass(prevHomeRealWdl);
-                        if (!isNaN(rCurrentAh) && r.prev_home && r.prev_home.score) {
-                            const res = calculateWDL(r.prev_home.score, -rCurrentAh, true);
-                            phCoverStatus = res === 'HOME_WIN' ? 'COVER' : (res === 'AWAY_WIN' ? 'NO_COVER' : (res === 'DRAW' ? 'PUSH' : ''));
-                            prevHomeColorClass = res === 'HOME_WIN' ? 'text-success' : (res === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
+                    const renderCoverBadge = (status) => {
+                        if (status === 'COVER') {
+                            return `<span class="badge bg-success" style="font-size:0.72rem; padding:3px 7px;"><i class="fa-solid fa-check me-1"></i>CUBIERTO</span>`;
+                        } else if (status === 'NO_COVER') {
+                            return `<span class="badge bg-danger" style="font-size:0.72rem; padding:3px 7px;"><i class="fa-solid fa-xmark me-1"></i>NO CUBRE</span>`;
+                        } else if (status === 'PUSH') {
+                            return `<span class="badge bg-secondary" style="font-size:0.72rem; padding:3px 7px;">PUSH</span>`;
                         }
-                        const prevHomeStatsHtml = (r.prev_home && (r.prev_home.da !== null || r.prev_home.sot !== null)) ?
-                            `<div style="font-size:0.45rem;color:#2196f3;margin-top:2px;">` +
-                            `${r.prev_home.da !== null ? `⚡${r.prev_home.da}` : ''}` +
-                            `${r.prev_home.sot !== null ? ` 🎯${r.prev_home.sot}` : ''}` +
-                            `</div>` : '';
-                        const prevHomeBtn = (r.prev_home && r.prev_home.score) ? `
-                            <div class="mt-1 d-flex justify-content-center">
-                                <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
-                                    data-match-id="${escAttr(r.prev_home.match_id || '')}"
-                                    data-parent-match-id="${escAttr(r.match_id || '')}"
-                                    data-home="${escAttr(r.prev_home.home_team || r.home || '')}"
-                                    data-away="${escAttr(r.prev_home.away_team || r.prev_home.rival || '')}"
-                                    data-score="${escAttr(r.prev_home.score || '')}"
-                                    data-ah="${escAttr(r.prev_home.ah || '')}"
-                                    data-date="${escAttr(r.prev_home.date || '')}"
-                                    data-league="${escAttr(r.prev_home.league_id || '')}"
-                                    onclick="openQuickMatchStatsModal(this, event)"
-                                    style="font-size: 0.56rem; font-weight: 700; padding: 1px 5px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 2px; cursor: pointer; line-height: 1.1;"
-                                    title="Ver estadísticas del partido">
-                                    <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.54rem;"></i> Stats
-                                </button>
-                            </div>` : '';
-                        const prevHomeHtml = r.prev_home ?
-                            `<div><span class="fw-bold">${r.prev_home.ah || '-'}</span> <span class="${prevHomeColorClass}">${r.prev_home.score || '-'}</span></div>${r.prev_home.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_home.movement}</div>` : ''}${prevHomeStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_home.rival || ''}</div>${prevHomeBtn}` :
-                            '<span class="text-muted">-</span>';
+                        return `<span class="text-muted">-</span>`;
+                    };
 
-                        // Calcular Cover/WDL para Prev Away
-                        let paCoverStatus = '';
-                        let prevAwayColorClass = realWdlClass(prevAwayRealWdl);
-                        if (!isNaN(rCurrentAh) && r.prev_away && r.prev_away.score) {
-                            const res = calculateWDL(r.prev_away.score, rCurrentAh, false);
-                            paCoverStatus = res === 'HOME_WIN' ? 'COVER' : (res === 'AWAY_WIN' ? 'NO_COVER' : (res === 'DRAW' ? 'PUSH' : ''));
-                            prevAwayColorClass = res === 'HOME_WIN' ? 'text-success' : (res === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
-                        }
-                        const prevAwayStatsHtml = (r.prev_away && (r.prev_away.da !== null || r.prev_away.sot !== null)) ?
-                            `<div style="font-size:0.45rem;color:#e91e63;margin-top:2px;">` +
-                            `${r.prev_away.da !== null ? `⚡${r.prev_away.da}` : ''}` +
-                            `${r.prev_away.sot !== null ? ` 🎯${r.prev_away.sot}` : ''}` +
-                            `</div>` : '';
-                        const prevAwayBtn = (r.prev_away && r.prev_away.score) ? `
-                            <div class="mt-1 d-flex justify-content-center">
-                                <button type="button" class="btn btn-sm pre-cell-quick-stats-btn"
-                                    data-match-id="${escAttr(r.prev_away.match_id || '')}"
-                                    data-parent-match-id="${escAttr(r.match_id || '')}"
-                                    data-home="${escAttr(r.prev_away.home_team || '')}"
-                                    data-away="${escAttr(r.prev_away.away_team || r.prev_away.rival || r.away || '')}"
-                                    data-score="${escAttr(r.prev_away.score || '')}"
-                                    data-ah="${escAttr(r.prev_away.ah || '')}"
-                                    data-date="${escAttr(r.prev_away.date || '')}"
-                                    data-league="${escAttr(r.prev_away.league_id || '')}"
-                                    onclick="openQuickMatchStatsModal(this, event)"
-                                    style="font-size: 0.56rem; font-weight: 700; padding: 1px 5px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 2px; cursor: pointer; line-height: 1.1;"
-                                    title="Ver estadísticas del partido">
-                                    <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.54rem;"></i> Stats
-                                </button>
-                            </div>` : '';
-                        const prevAwayHtml = r.prev_away ?
-                            `<div><span class="fw-bold">${r.prev_away.ah || '-'}</span> <span class="${prevAwayColorClass}">${r.prev_away.score || '-'}</span></div>${r.prev_away.movement ? `<div style="font-size:0.5rem;color:#666;">${r.prev_away.movement}</div>` : ''}${prevAwayStatsHtml}<div class="text-muted" style="font-size:0.5rem;">${r.prev_away.rival || ''}</div>${prevAwayBtn}` :
-                            '<span class="text-muted">-</span>';
+                    const renderPrevCell = (team, ah, score, covered) => {
+                        const cleanAh = (ah !== undefined && ah !== null && ah !== '' && ah !== '-') ? ah : null;
+                        const cleanScore = (score && score !== '-' && score !== '?:?') ? score : null;
+                        if (!cleanAh && !cleanScore) return '<span class="text-muted">-</span>';
 
-
-                        // Helper para obtener clase de color basado en WDL simulado (cover del favorito)
-                        // HOME_WIN = el favorito cubrió (verde), AWAY_WIN = no cubrió (rojo), DRAW = push (negro)
-                        const simWdlClass = (wdl) => wdl === 'HOME_WIN' ? 'text-success' : (wdl === 'AWAY_WIN' ? 'text-danger' : 'text-dark');
-
-                        const h2hStadiumHtml = r.h2h_stadium && r.h2h_stadium.movement && r.h2h_stadium.movement !== 'N/A' ?
-                            `<div class="fw-bold">${r.h2h_stadium.movement}</div><div class="${simWdlClass(r.h2h_stadium.wdl)}">${r.h2h_stadium.score || '-'}</div>` :
-                            '<span class="text-muted">-</span>';
-
-                        const h2hGeneralHtml = r.h2h_general && r.h2h_general.movement && r.h2h_general.movement !== 'N/A' ?
-                            `<div class="fw-bold">${r.h2h_general.movement}</div><div class="${simWdlClass(r.h2h_general.wdl)}">${r.h2h_general.score || '-'}</div>` :
-                            '<span class="text-muted">-</span>';
-
-                        const h2hCol3Html = r.h2h_col3 ?
-                            `<div><span class="fw-bold">${r.h2h_col3.ah || '-'}</span> ${r.h2h_col3.score || '-'}</div><div style="font-size:0.5rem;"><span class="text-primary">${r.h2h_col3.home_team || ''}</span> vs <span class="text-danger">${r.h2h_col3.away_team || ''}</span></div>` :
-                            '<span class="text-muted">-</span>';
-
-                        // Helper para calcular WDL real de comparativas indirectas
-                        const calcIndWdl = (ind) => {
-                            if (!ind || !ind.score) return null;
-                            const score = (ind.score || '').replace(' : ', ':').replace('-', ':');
-                            const parts = score.split(':');
-                            if (parts.length !== 2) return null;
-                            const hg = parseInt(parts[0]);
-                            const ag = parseInt(parts[1]);
-                            if (isNaN(hg) || isNaN(ag)) return null;
-                            // Comparativa indirecta: el equipo analizado jugó de local o visitante según 'localia'
-                            const wasHome = (ind.localia || '').toLowerCase().includes('loc') || (ind.localia || '').toLowerCase().includes('home');
-                            const diff = wasHome ? (hg - ag) : (ag - hg);
-                            if (diff > 0) return 'WIN';
-                            if (diff < 0) return 'LOSS';
-                            return 'DRAW';
-                        };
-
-                        // Ind. Local - con colores y datos completos
-                        const indLocalWdl = calcIndWdl(r.ind_local);
-                        const indLocalAh = r.ind_local ? (r.ind_local.ah || r.ind_local.ah_line || r.ind_local.handicap || '-') : '-';
-                        const indLocalHtml = r.ind_local && (r.ind_local.score || indLocalAh !== '-') ?
-                            `<div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${indLocalAh}</span>
-                                <span class="fw-bold ${realWdlClass(indLocalWdl)}">${r.ind_local.score || r.ind_local.resultado || '-'}</span>
-                            </div>
-                            ${(r.ind_local.home_team || r.ind_local.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_local.home_team || ''} vs ${r.ind_local.away_team || ''}</div>` : ''}
-                            ${r.ind_local.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_local.localia}</div>` : ''}` :
-                            '';
-
-                        // Ind. Visitante - con colores y datos completos
-                        const indVisitanteWdl = calcIndWdl(r.ind_visitante);
-                        const indVisitanteAh = r.ind_visitante ? (r.ind_visitante.ah || r.ind_visitante.ah_line || r.ind_visitante.handicap || '-') : '-';
-                        const indVisitanteHtml = r.ind_visitante && (r.ind_visitante.score || indVisitanteAh !== '-') ?
-                            `<div class="d-flex justify-content-between">
-                                <span class="fw-bold small">${indVisitanteAh}</span>
-                                <span class="fw-bold ${realWdlClass(indVisitanteWdl)}">${r.ind_visitante.score || r.ind_visitante.resultado || '-'}</span>
-                            </div>
-                            ${(r.ind_visitante.home_team || r.ind_visitante.away_team) ? `<div style="font-size:0.5rem;" class="text-muted">${r.ind_visitante.home_team || ''} vs ${r.ind_visitante.away_team || ''}</div>` : ''}
-                            ${r.ind_visitante.localia ? `<div style="font-size:0.45rem; color:#888;">Loc: ${r.ind_visitante.localia}</div>` : ''}` :
-                            '';
-
-                        const prevHomeWdl = phCoverStatus || (r.prev_home ? realWdlLetter(prevHomeRealWdl) : '');
-                        const prevAwayWdl = paCoverStatus || (r.prev_away ? realWdlLetter(prevAwayRealWdl) : '');
-                        const prevHomeAh = r.prev_home && r.prev_home.ah != null ? Math.abs(parseFloat(r.prev_home.ah)) : '';
-                        const prevAwayAh = r.prev_away && r.prev_away.ah != null ? Math.abs(parseFloat(r.prev_away.ah)) : '';
-
-                        // Determinar si hay datos en las columnas ind para el fondo
-                        const hasIndLocal = r.ind_local && (r.ind_local.score || r.ind_local.ah);
-                        const hasIndVisitante = r.ind_visitante && (r.ind_visitante.score || r.ind_visitante.ah);
-                        const hasH2hCol3 = r.h2h_col3 && (r.h2h_col3.score || r.h2h_col3.ah);
-
-                        // Calcular Espejo H2H Col3 (directa/inversa)
-                        let h2hCol3Espejo = '';
-                        if (r.h2h_col3 && r.h2h_col3.home_team && r.home) {
-                            const homeNorm = (r.home || '').toLowerCase().trim();
-                            const c3HomeNorm = (r.h2h_col3.home_team || '').toLowerCase().trim();
-                            h2hCol3Espejo = (homeNorm === c3HomeNorm) ? 'directa' : 'inversa';
-                        }
-
-                        // Calcular Cover H2H Col3 (MEJORA/IGUALA/EMPEORA)
-                        let h2hCol3Cover = '';
-                        if (r.h2h_col3 && r.h2h_col3.ah != null && r.ah != null) {
-                            const col3Ah = parseFloat(r.h2h_col3.ah);
-                            const currentAh = parseFloat(r.ah);
-                            if (!isNaN(col3Ah) && !isNaN(currentAh)) {
-                                const effectiveCol3Ah = (h2hCol3Espejo === 'inversa') ? -col3Ah : col3Ah;
-                                if (currentAh > effectiveCol3Ah + 0.01) h2hCol3Cover = 'MEJORA';
-                                else if (currentAh < effectiveCol3Ah - 0.01) h2hCol3Cover = 'EMPEORA';
-                                else h2hCol3Cover = 'IGUALA';
-                            }
+                        let badgeHtml = '';
+                        if (covered === 'COVER') {
+                            badgeHtml = `<span class="badge bg-success ms-1" style="font-size:0.62rem; padding:2px 5px;">✓ Cubrió</span>`;
+                        } else if (covered === 'NO_COVER') {
+                            badgeHtml = `<span class="badge bg-danger ms-1" style="font-size:0.62rem; padding:2px 5px;">✗ No cubrió</span>`;
+                        } else if (covered === 'PUSH') {
+                            badgeHtml = `<span class="badge bg-secondary ms-1" style="font-size:0.62rem; padding:2px 5px;">Push</span>`;
                         }
 
                         return `
-                                    <tr data-cover="${r.covered}" data-prev-home="${prevHomeWdl}" data-prev-away="${prevAwayWdl}" data-prev-home-ah="${prevHomeAh}" data-prev-away-ah="${prevAwayAh}" data-h2h-col3-espejo="${h2hCol3Espejo}" data-h2h-col3-cover="${h2hCol3Cover}">
-                                        <td>${APP_PRECACHEO_ONLY
-                                            ? (r.date || '-')
-                                            : `<a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none" title="Abrir análisis">${r.date || '-'} 🔗</a>`
-                                        }</td>
-                                        <td class="text-primary" style="font-size:0.65rem;">${r.home || '-'}</td>
-                                        <td class="text-danger" style="font-size:0.65rem;">${r.away || '-'}</td>
-                                        <td class="fw-bold text-center" style="background:#e8f5e9;">${r.ah || '-'}${r.ou ? `<div style="font-size:0.5rem;color:#888;">${r.ou}</div>` : ''}</td>
-                                        <td class="fw-bold text-center">${r.score || '-'}</td>
-                                        <td class="${r.covered === 'COVER' ? 'bg-success text-white' : (r.covered === 'NO_COVER' ? 'bg-danger text-white' : 'text-muted')} fw-bold text-center">
-                                            ${r.covered === 'COVER' ? '✓' : (r.covered === 'NO_COVER' ? '✗' : '-')}
-                                        </td>
-                                        <td>${prevHomeHtml}</td>
-                                        <td>${prevAwayHtml}</td>
-                                        <td style="background:#e3f2fd;">${h2hStadiumHtml}</td>
-                                        <td style="background:#e3f2fd;">${h2hGeneralHtml}</td>
-                                        <td style="background:${hasH2hCol3 ? '#ffe4ec' : '#ffcdd2'};">${h2hCol3Html || '<span class="text-muted">-</span>'}</td>
-                                        <td style="background:${hasIndLocal ? '#fff3e0' : '#ffcdd2'};">${indLocalHtml || '<span class="text-muted">-</span>'}</td>
-                                        <td style="background:${hasIndVisitante ? '#fff3e0' : '#ffcdd2'};">${indVisitanteHtml || '<span class="text-muted">-</span>'}</td>
-                                    </tr>
-                                `}).join('')}
-                            </tbody>
-                        </table>
-                        </div>
-                        <div class="d-flex justify-content-between mt-2 small">
-                            <span class="text-muted">Mostrando ${filteredResults.length} de ${data.total_found}</span>
-                            <span><strong class="text-success">✓ ${filteredCovered}</strong> cubiertos | <strong class="text-danger">✗ ${filteredNotCovered}</strong> no cubiertos | Ratio: <strong>${filteredCovered > 0 ? ((filteredCovered / (filteredCovered + filteredNotCovered)) * 100).toFixed(0) : 0}%</strong></span>
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <span class="fw-bold" style="font-size:0.74rem;">AH ${cleanAh ?? '-'}</span>
+                                    ${cleanScore ? `<span class="text-dark small ms-1" style="font-size:0.70rem;">(${cleanScore})</span>` : ''}
+                                    ${badgeHtml}
+                                </div>
+                                ${team ? `<div class="text-muted text-truncate" style="font-size:0.58rem; max-width:140px;">${team}</div>` : ''}
+                            </div>
+                        `;
+                    };
+
+                    resultsHtml = `
+                        <div class="patterns-container p-2" style="background:#ffffff; border-radius:8px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                            <!-- Barra superior de resumen -->
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 pb-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-warning text-dark fw-bold" style="font-size:0.75rem;">
+                                        <i class="fa-solid fa-compass me-1"></i>PATRONES MISMO HÁNDICAP
+                                    </span>
+                                    <span class="fw-bold text-dark" style="font-size:0.80rem;">
+                                        AH ${info.ah_actual ?? '-'}
+                                    </span>
+                                    <span class="text-muted small">(${results.length} partidos encontrados)</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-success" style="font-size:0.72rem; padding:3px 8px;">
+                                        ✓ Cubiertos: ${coveredCount} (${coverPct}%)
+                                    </span>
+                                    <span class="badge bg-danger" style="font-size:0.72rem; padding:3px 8px;">
+                                        ✗ No cubiertos: ${notCoveredCount}
+                                    </span>
+                                    ${pushCount ? `<span class="badge bg-secondary" style="font-size:0.72rem; padding:3px 8px;">Push: ${pushCount}</span>` : ''}
+                                    <div class="btn-group btn-group-sm ms-2" role="group">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm py-0 active" onclick="filterSimplePatterns('${matchId}', 'ALL', this)" style="font-size:0.65rem;">Todos</button>
+                                        <button type="button" class="btn btn-outline-success btn-sm py-0" onclick="filterSimplePatterns('${matchId}', 'COVER', this)" style="font-size:0.65rem;">Solo Cubiertos</button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm py-0" onclick="filterSimplePatterns('${matchId}', 'NO_COVER', this)" style="font-size:0.65rem;">Solo No Cubiertos</button>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-2" onclick="closePatternRow('${matchId}')" title="Cerrar patrones" style="font-size:0.70rem;">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tabla limpia de 8 columnas: Fecha, Local, Visitante, AH Partido, FT, ¿Cubre?, Previo Favorito, Previo Visitante -->
+                            <div class="table-responsive" style="max-height:480px; overflow-y:auto;">
+                                <table class="table table-sm table-bordered table-hover mb-0" id="patterns-table-${matchId}" style="font-size:0.72rem;">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th style="width:85px; text-align:center;">Fecha</th>
+                                            <th>Local</th>
+                                            <th>Visitante</th>
+                                            <th class="text-center" style="background:#f0fdf4; color:#166534; width:90px;">AH Partido</th>
+                                            <th class="text-center" style="width:65px;">FT</th>
+                                            <th class="text-center" style="width:105px;">¿Cubre?</th>
+                                            <th style="background:#eff6ff; color:#1e40af; width:160px;">Previo Favorito</th>
+                                            <th style="background:#fef2f2; color:#991b1b; width:160px;">Previo Visitante</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${results.map(r => {
+                                            const favAh = r.fav_prev_ah ?? (r.prev_home ? r.prev_home.ah : '-');
+                                            const favScore = r.fav_prev_score ?? (r.prev_home ? r.prev_home.score : '-');
+                                            const favCover = r.fav_prev_covered ?? (r.prev_home ? r.prev_home.covered : 'N/A');
+                                            const favTeam = r.fav_team ?? (r.prev_home ? r.prev_home.home_team : '');
+
+                                            const visAh = r.vis_prev_ah ?? (r.prev_away ? r.prev_away.ah : '-');
+                                            const visScore = r.vis_prev_score ?? (r.prev_away ? r.prev_away.score : '-');
+                                            const visCover = r.vis_prev_covered ?? (r.prev_away ? r.prev_away.covered : 'N/A');
+                                            const visTeam = r.vis_team ?? (r.prev_away ? r.prev_away.away_team : r.away);
+
+                                            return `
+                                                <tr data-cover="${r.covered || ''}">
+                                                    <td class="text-center text-muted" style="font-size:0.68rem; vertical-align:middle;">
+                                                        ${APP_PRECACHEO_ONLY
+                                                            ? (r.date || '-')
+                                                            : `<a href="/estudio?match_id=${r.match_id}" target="_blank" class="text-decoration-none text-dark" title="Abrir análisis">${r.date || '-'} 🔗</a>`
+                                                        }
+                                                    </td>
+                                                    <td class="text-primary fw-bold" style="vertical-align:middle;">${r.home || '-'}</td>
+                                                    <td class="text-danger fw-bold" style="vertical-align:middle;">${r.away || '-'}</td>
+                                                    <td class="text-center fw-bold" style="background:#f0fdf4; color:#15803d; vertical-align:middle; font-size:0.75rem;">
+                                                        AH ${r.ah || '-'}
+                                                    </td>
+                                                    <td class="text-center fw-bold" style="vertical-align:middle; font-size:0.78rem;">${r.score || '-'}</td>
+                                                    <td class="text-center" style="vertical-align:middle;">
+                                                        ${renderCoverBadge(r.covered)}
+                                                    </td>
+                                                    <td style="background:#f8fafc; vertical-align:middle;">
+                                                        ${renderPrevCell(favTeam, favAh, favScore, favCover)}
+                                                    </td>
+                                                    <td style="background:#fffafa; vertical-align:middle;">
+                                                        ${renderPrevCell(visTeam, visAh, visScore, visCover)}
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     `;
                 }
 
                 expandRow.innerHTML = `
-                    <td colspan="20" style="background: #f8f9fa; border-left: 3px solid #ffc107; padding: 10px;">
+                    <td colspan="14" style="background: #f8fafc; padding: 8px 12px; border-left: 4px solid #f59e0b;">
                         ${resultsHtml}
                     </td>
                 `;
 
-                // Insertar después de la fila del partido
                 matchRow.insertAdjacentElement('afterend', expandRow);
-                btnElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
 
             } catch (err) {
-                btnElement.innerHTML = originalHtml;
-                btnElement.disabled = false;
-                alert('Error de red: ' + err.message);
+                if (btnElement) {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                }
+                alert('Error al buscar patrones: ' + err.message);
             }
         }
 
-        // Filtrar filas de la tabla de patrones por cover status
-        function filterPatterns(matchId, filterType) {
+        function closePatternRow(matchId) {
+            const row = document.getElementById(`patterns-row-${matchId}`);
+            if (row) row.remove();
+            const btn = document.querySelector(`button[onclick*="searchPatterns('${matchId}'"]`);
+            if (btn) btn.classList.remove('active');
+        }
+
+        function filterSimplePatterns(matchId, mode, btn) {
             const table = document.getElementById(`patterns-table-${matchId}`);
             if (!table) return;
-
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const cover = row.getAttribute('data-cover');
-                if (filterType === 'all') {
-                    row.style.display = '';
-                } else if (filterType === 'cover') {
-                    row.style.display = cover === 'COVER' ? '' : 'none';
-                } else if (filterType === 'nocover') {
-                    row.style.display = cover === 'NO_COVER' ? '' : 'none';
-                }
-            });
-
-            // Update button states
-            const btnGroup = table.closest('td').querySelector('.btn-group');
+            const btnGroup = btn ? btn.parentElement : null;
             if (btnGroup) {
-                btnGroup.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
-                if (filterType === 'all') btnGroup.querySelector('.btn-outline-secondary').classList.add('active');
-                else if (filterType === 'cover') btnGroup.querySelector('.btn-outline-success').classList.add('active');
-                else if (filterType === 'nocover') btnGroup.querySelector('.btn-outline-danger').classList.add('active');
+                btnGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
             }
-        }
-
-        // Aplicar todos los filtros de patrones a la vez (botón "Aplicar")
-        function applyPatternFilters(matchId) {
-            const table = document.getElementById(`patterns-table-${matchId}`);
-            if (!table) return;
-
-            const container = table.closest('td');
-
-            // Leer valores de los filtros Prev Home/Away
-            const prevHomeAhFilter = container.querySelector('.pattern-filter-prev-home-ah')?.value || '';
-            const prevHomeResFilter = container.querySelector('.pattern-filter-prev-home-res')?.value || '';
-            const prevAwayAhFilter = container.querySelector('.pattern-filter-prev-away-ah')?.value || '';
-            const prevAwayResFilter = container.querySelector('.pattern-filter-prev-away-res')?.value || '';
-
-            // Leer valores de los nuevos filtros H2H
-            const h2hStadiumMovFilter = container.querySelector('.pattern-filter-h2h-stadium-mov')?.value || '';
-            const h2hStadiumCoverFilter = container.querySelector('.pattern-filter-h2h-stadium-cover')?.value || '';
-            const h2hGeneralMovFilter = container.querySelector('.pattern-filter-h2h-general-mov')?.value || '';
-            const h2hGeneralCoverFilter = container.querySelector('.pattern-filter-h2h-general-cover')?.value || '';
-            const h2hCol3EspejoFilter = container.querySelector('.pattern-filter-h2h-col3-espejo')?.value || '';
-            const h2hCol3CoverFilter = container.querySelector('.pattern-filter-h2h-col3-cover')?.value || '';
-
-
-            // Leer valores de los filtros Ind Local/Visitante
-            const indLocalResFilter = container.querySelector('.pattern-filter-ind-local-res')?.value || '';
-            const indLocalLocFilter = container.querySelector('.pattern-filter-ind-local-loc')?.value || '';
-            const indVisitanteResFilter = container.querySelector('.pattern-filter-ind-visitante-res')?.value || '';
-            const indVisitanteLocFilter = container.querySelector('.pattern-filter-ind-visitante-loc')?.value || '';
-
-            // Leer filtro de Cover
-            const coverFilter = container.querySelector('.pattern-filter-cover')?.value || '';
-
-            // Función para comprobar rango de AH
-            function matchesAhRange(ahVal, filterVal) {
-                if (!filterVal) return true;
-                const f = parseFloat(filterVal);
-                const v = parseFloat(ahVal);
-                if (isNaN(v)) return false;
-
-                if (f < 0) {
-                    if (f <= -2.5) return v <= -2.5;
-                    return Math.abs(v - f) <= 0.26;
-                }
-
-                if (f >= 2.5) return v >= 2.5;
-                if (f === 0) return Math.abs(v) <= 0.01;
-                return Math.abs(v - f) <= 0.26;
-            }
-
-            // Función para extraer WDL de contenido de celda (parsear HTML)
-            function extractWdlFromCell(cellIndex, row) {
-                const cells = row.querySelectorAll('td');
-                if (!cells[cellIndex]) return '';
-                const text = cells[cellIndex].innerText || '';
-                if (text.includes('W') || text.match(/\d+-\d+.*W/i) || (text.match(/(\d+):(\d+)/) && (() => {
-                    const m = text.match(/(\d+):(\d+)/);
-                    return m && parseInt(m[1]) > parseInt(m[2]);
-                })())) return 'W';
-                if (text.includes('L') || (text.match(/(\d+):(\d+)/) && (() => {
-                    const m = text.match(/(\d+):(\d+)/);
-                    return m && parseInt(m[1]) < parseInt(m[2]);
-                })())) return 'L';
-                if (text.includes('D') || (text.match(/(\d+):(\d+)/) && (() => {
-                    const m = text.match(/(\d+):(\d+)/);
-                    return m && parseInt(m[1]) === parseInt(m[2]);
-                })())) return 'D';
-                return '';
-            }
-
-            // Función para extraer Mov de celda H2H
-            function extractMovFromCell(cellIndex, row) {
-                const cells = row.querySelectorAll('td');
-                if (!cells[cellIndex]) return '';
-                const text = cells[cellIndex].innerText || '';
-                if (text.includes('SUBI') || text.includes('↑')) return 'UP';
-                if (text.includes('BAJA') || text.includes('↓')) return 'DOWN';
-                if (text.includes('IGUAL') || text.includes('=')) return 'SAME';
-                return '';
-            }
-
-            // Función para extraer Cover de celda H2H
-            function extractCoverFromCell(cellIndex, row) {
-                const cells = row.querySelectorAll('td');
-                if (!cells[cellIndex]) return '';
-                const cell = cells[cellIndex];
-                if (cell.classList.contains('text-success') || cell.innerHTML.includes('text-success')) return 'COVER';
-                if (cell.classList.contains('text-danger') || cell.innerHTML.includes('text-danger')) return 'NO_COVER';
-                return '';
-            }
-
-            // Función para extraer Loc de celda Ind
-            function extractLocFromCell(cellIndex, row) {
-                const cells = row.querySelectorAll('td');
-                if (!cells[cellIndex]) return '';
-                const text = cells[cellIndex].innerText || '';
-                if (text.toLowerCase().includes('loc:') || text.toLowerCase().includes('home') || text.includes('(L)')) return 'H';
-                if (text.toLowerCase().includes('vis') || text.toLowerCase().includes('away') || text.includes('(V)') || text.includes('(A)')) return 'A';
-                return '';
-            }
-
             const rows = table.querySelectorAll('tbody tr');
-            let visibleCount = 0;
-            let coverCount = 0;
-            let noCoverCount = 0;
-
-            rows.forEach(row => {
-                const prevHomeWdl = row.getAttribute('data-prev-home') || '';
-                const prevAwayWdl = row.getAttribute('data-prev-away') || '';
-                const prevHomeAh = row.getAttribute('data-prev-home-ah') || '';
-                const prevAwayAh = row.getAttribute('data-prev-away-ah') || '';
-                const cover = row.getAttribute('data-cover') || '';
-
-                // Para H2H e Ind, intentar leer data-attributes o parsear celdas
-                const h2hStadiumMov = row.getAttribute('data-h2h-stadium-mov') || extractMovFromCell(8, row);
-                const h2hStadiumCover = row.getAttribute('data-h2h-stadium-cover') || extractCoverFromCell(8, row);
-                const h2hGeneralMov = row.getAttribute('data-h2h-general-mov') || extractMovFromCell(9, row);
-                const h2hGeneralCover = row.getAttribute('data-h2h-general-cover') || extractCoverFromCell(9, row);
-                const h2hCol3Espejo = row.getAttribute('data-h2h-col3-espejo') || '';
-                const indLocalRes = row.getAttribute('data-ind-local-res') || extractWdlFromCell(11, row);
-                const indLocalLoc = row.getAttribute('data-ind-local-loc') || extractLocFromCell(11, row);
-                const indVisitanteRes = row.getAttribute('data-ind-visitante-res') || extractWdlFromCell(12, row);
-                const indVisitanteLoc = row.getAttribute('data-ind-visitante-loc') || extractLocFromCell(12, row);
-
-                let show = true;
-
-                // Filtros Prev Home/Away
-                if (prevHomeAhFilter && !matchesAhRange(prevHomeAh, prevHomeAhFilter)) show = false;
-                if (show && prevHomeResFilter) {
-                    const isCoverMatch = (prevHomeResFilter === 'COVER' && (prevHomeWdl === 'COVER' || prevHomeWdl === 'W')) ||
-                                         (prevHomeResFilter === 'NO_COVER' && (prevHomeWdl === 'NO_COVER' || prevHomeWdl === 'L')) ||
-                                         (prevHomeResFilter === 'PUSH' && (prevHomeWdl === 'PUSH' || prevHomeWdl === 'D')) ||
-                                         prevHomeWdl === prevHomeResFilter;
-                    if (!isCoverMatch) show = false;
-                }
-                if (show && prevAwayAhFilter && !matchesAhRange(prevAwayAh, prevAwayAhFilter)) show = false;
-                if (show && prevAwayResFilter) {
-                    const isCoverMatch = (prevAwayResFilter === 'COVER' && (prevAwayWdl === 'COVER' || prevAwayWdl === 'W')) ||
-                                         (prevAwayResFilter === 'NO_COVER' && (prevAwayWdl === 'NO_COVER' || prevAwayWdl === 'L')) ||
-                                         (prevAwayResFilter === 'PUSH' && (prevAwayWdl === 'PUSH' || prevAwayWdl === 'D')) ||
-                                         prevAwayWdl === prevAwayResFilter;
-                    if (!isCoverMatch) show = false;
-                }
-
-                // Filtro Cover
-                if (show && coverFilter && cover !== coverFilter) show = false;
-
-                // Filtros H2H Estadio
-                if (show && h2hStadiumMovFilter && h2hStadiumMov !== h2hStadiumMovFilter) show = false;
-                if (show && h2hStadiumCoverFilter && h2hStadiumCover !== h2hStadiumCoverFilter) show = false;
-
-                // Filtros H2H General
-                if (show && h2hGeneralMovFilter && h2hGeneralMov !== h2hGeneralMovFilter) show = false;
-                if (show && h2hGeneralCoverFilter && h2hGeneralCover !== h2hGeneralCoverFilter) show = false;
-
-                // Filtro H2H Col3 Espejo
-                if (show && h2hCol3EspejoFilter && h2hCol3Espejo !== h2hCol3EspejoFilter) show = false;
-
-                // Filtro H2H Col3 Cover (MEJORA/IGUALA/EMPEORA)
-                if (show && h2hCol3CoverFilter) {
-                    const h2hCol3Cover = row.getAttribute('data-h2h-col3-cover') || '';
-                    if (h2hCol3Cover !== h2hCol3CoverFilter) show = false;
-                }
-
-                // Filtros Ind Local
-                if (show && indLocalResFilter && indLocalRes !== indLocalResFilter) show = false;
-                if (show && indLocalLocFilter && indLocalLoc !== indLocalLocFilter) show = false;
-
-                // Filtros Ind Visitante
-                if (show && indVisitanteResFilter && indVisitanteRes !== indVisitanteResFilter) show = false;
-                if (show && indVisitanteLocFilter && indVisitanteLoc !== indVisitanteLocFilter) show = false;
-
-                row.style.display = show ? '' : 'none';
-                if (show) {
-                    visibleCount++;
-                    if (cover === 'COVER') coverCount++;
-                    if (cover === 'NO_COVER') noCoverCount++;
+            rows.forEach(r => {
+                const cover = r.dataset.cover;
+                if (mode === 'ALL') {
+                    r.style.display = '';
+                } else if (mode === 'COVER') {
+                    r.style.display = cover === 'COVER' ? '' : 'none';
+                } else if (mode === 'NO_COVER') {
+                    r.style.display = cover === 'NO_COVER' ? '' : 'none';
                 }
             });
-
-            console.log(`Filtros aplicados: ${visibleCount} filas visibles de ${rows.length} (Cover: ${coverCount}, No Cover: ${noCoverCount})`);
         }
 
-        // Limpiar todos los filtros de la tabla de patrones
-        function clearPatternFilters(matchId) {
-            const table = document.getElementById(`patterns-table-${matchId}`);
-            if (!table) return;
-
-            const container = table.closest('td');
-
-            // Resetear todos los selects de filtros
-            const selects = container.querySelectorAll('select');
-            selects.forEach(select => select.value = '');
-
-            // Mostrar todas las filas
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => row.style.display = '');
-
-            console.log(`Filtros limpiados: ${rows.length} filas visibles`);
-        }
-
-        // Filtrar filas por columna (Prev Home/Away W/D/L y AH)
-        function filterPatternsCol(matchId, colName, filterValue) {
-            const table = document.getElementById(`patterns-table-${matchId}`);
-            if (!table) return;
-
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                // Si hay filtro de cover activo, respetarlo
-                const coverFilter = table.closest('td').querySelector('.btn-group .active');
-                const activeCoverFilter = coverFilter ? coverFilter.textContent.includes('Cubiertos') ? (coverFilter.textContent.includes('No') ? 'nocover' : 'cover') : 'all' : 'all';
-
-                let showByCover = true;
-                if (activeCoverFilter === 'cover') showByCover = row.getAttribute('data-cover') === 'COVER';
-                else if (activeCoverFilter === 'nocover') showByCover = row.getAttribute('data-cover') === 'NO_COVER';
-
-                // Filtros de W/D/L
-                const prevHomeWdl = row.getAttribute('data-prev-home');
-                const prevAwayWdl = row.getAttribute('data-prev-away');
-
-                // Filtros de AH
-                const prevHomeAh = parseFloat(row.getAttribute('data-prev-home-ah')) || 0;
-                const prevAwayAh = parseFloat(row.getAttribute('data-prev-away-ah')) || 0;
-
-                // Obtener valores de todos los filtros activos
-                const container = table.closest('td');
-                const selects = container.querySelectorAll('select');
-                let prevHomeWdlFilter = '', prevAwayWdlFilter = '', prevHomeAhFilter = '', prevAwayAhFilter = '';
-                selects.forEach(sel => {
-                    const onChange = sel.getAttribute('onchange') || '';
-                    if (onChange.includes('prev-home-ah')) prevHomeAhFilter = sel.value;
-                    else if (onChange.includes('prev-away-ah')) prevAwayAhFilter = sel.value;
-                    else if (onChange.includes("prev-home'")) prevHomeWdlFilter = sel.value;
-                    else if (onChange.includes("prev-away'")) prevAwayWdlFilter = sel.value;
-                });
-
-                // Función para comprobar rango de AH
-                function matchesAhRange(ahVal, filterVal) {
-                    if (!filterVal) return true;
-                    const f = parseFloat(filterVal);
-                    if (f === 0.5) return ahVal >= 0.25 && ahVal <= 0.75;
-                    if (f === 1) return ahVal >= 0.75 && ahVal <= 1.25;
-                    if (f === 1.5) return ahVal >= 1.25 && ahVal <= 1.75;
-                    if (f === 2) return ahVal >= 1.75;
-                    return true;
-                }
-
-                let showByCol = true;
-
-                // Aplicar filtro actual
-                if (colName === 'prev-home' && filterValue) {
-                    showByCol = showByCol && prevHomeWdl === filterValue;
-                } else if (colName === 'prev-away' && filterValue) {
-                    showByCol = showByCol && prevAwayWdl === filterValue;
-                } else if (colName === 'prev-home-ah' && filterValue) {
-                    showByCol = showByCol && matchesAhRange(prevHomeAh, filterValue);
-                } else if (colName === 'prev-away-ah' && filterValue) {
-                    showByCol = showByCol && matchesAhRange(prevAwayAh, filterValue);
-                }
-
-                // También respetar otros filtros activos
-                if (colName !== 'prev-home' && prevHomeWdlFilter) {
-                    showByCol = showByCol && prevHomeWdl === prevHomeWdlFilter;
-                }
-                if (colName !== 'prev-away' && prevAwayWdlFilter) {
-                    showByCol = showByCol && prevAwayWdl === prevAwayWdlFilter;
-                }
-                if (colName !== 'prev-home-ah' && prevHomeAhFilter) {
-                    showByCol = showByCol && matchesAhRange(prevHomeAh, prevHomeAhFilter);
-                }
-                if (colName !== 'prev-away-ah' && prevAwayAhFilter) {
-                    showByCol = showByCol && matchesAhRange(prevAwayAh, prevAwayAhFilter);
-                }
-
-                row.style.display = (showByCover && showByCol) ? '' : 'none';
-            });
-        }
 
         async function scrapeResultsPending() {
             if (!confirm('¿Buscar resultados finales de partidos que empezaron hace +2 horas?\nSe actualizarán los que encuentren resultado.')) return;
@@ -18546,13 +18219,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
-        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
+        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main', ou = '') {
             const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
             const m = (activeData?.matches && typeof idx === 'number') ? activeData.matches[idx] : null;
             const effectiveDate = date || (m && m.date) || '';
             const effectiveScore = score || (m && m.score) || '';
             const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((m && m.ah) || '-');
             const effectiveLeague = leagueId || (m && m.league_id) || '';
+            const effectiveOu = (ou && ou !== '-' && ou !== 'N/A') ? ou : ((m && (m.ou || m.ou_line || m.ouLine || m.goals_line || m.over_under)) || '');
 
             return buildModernStatsCardHtml({
                 statsList,
@@ -18561,6 +18235,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 date: effectiveDate,
                 score: effectiveScore,
                 ah: effectiveAh,
+                ou: effectiveOu,
                 leagueId: effectiveLeague,
                 showHideBtn: true,
                 hideBtnOnClick: 'toggleTeamHistoryRowStats(this, event)'
@@ -18624,6 +18299,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     score = btn.dataset.score || '';
                     ah = btn.dataset.ah || '';
                     leagueId = btn.dataset.leagueId || '';
+                    ou = btn.dataset.ou || '';
                     panelPrefix = btn.dataset.panelPrefix || 'main';
                 }
             } else if (typeof targetEl === 'number') {
@@ -18682,6 +18358,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((matchObj && matchObj.ah) || '');
                 const effectiveLeague = leagueId || (matchObj && matchObj.league_id) || '';
                 const effectiveMatchId = String(matchId || (matchObj && matchObj.match_id) || '').replace(/\D/g, '');
+                const effectiveOu = (btn && btn.dataset && btn.dataset.ou) || (matchObj && (matchObj.ou || matchObj.ou_line || matchObj.ouLine || matchObj.goals_line || matchObj.over_under)) || '';
 
                 const response = await fetch('/api/match_stats', {
                     method: 'POST',
@@ -18693,6 +18370,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         row_date: effectiveDate,
                         row_score: effectiveScore,
                         row_ah: effectiveAh,
+                        row_ou: effectiveOu,
                         parent_match_id: window._currentTeamHistoryParentMatchId || '',
                     })
                 });
@@ -18701,8 +18379,11 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     throw new Error(data.error || 'No se pudieron descargar las estadísticas');
                 }
                 const stats = data.stats || [];
+                const finalOu = (data && data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : effectiveOu;
+                if (btn) btn.dataset.ou = finalOu;
+                if (matchObj && finalOu) matchObj.ou = finalOu;
                 cell.dataset.loaded = '1';
-                cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
+                cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix, finalOu);
             } catch (err) {
                 cell.dataset.loaded = '0';
                 cell.innerHTML = `
@@ -19461,6 +19142,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             data-date="${escapeTeamHistoryHtml(m.date || '')}"
                             data-score="${escapeTeamHistoryHtml(m.score || '')}"
                             data-ah="${escapeTeamHistoryHtml(m.ah || '')}"
+                            data-ou="${escapeTeamHistoryHtml(m.ou || m.ou_line || m.ouLine || m.goals_line || m.over_under || '')}"
                             data-league-id="${escapeTeamHistoryHtml(m.league_id || '')}"
                             data-panel-prefix="${prefix}"
                             style="padding:0 3px; font-size:.54rem; font-weight:800; line-height:1.2; height:18px;"

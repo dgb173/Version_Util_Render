@@ -850,6 +850,8 @@ def explore_matches(datajson, filters=None):
         for key, rows in idx.items():
             rows.sort(key=lambda x: x[0], reverse=True)
 
+
+
     def _indexed_previous_match(team_norm, current_date, required_venue=None):
         if not team_norm or not current_date:
             return None
@@ -877,11 +879,14 @@ def explore_matches(datajson, filters=None):
                 'ah': ah,
                 'home_team': m.get('home_name') or m.get('home_team'),
                 'away_team': m.get('away_name') or m.get('away_team'),
+                'ou': _extract_ou_line(m),
                 'stats': m.get('stats_rows', []) if include_stats else []
             }
         return None
 
     target_ah_values = _as_filter_values(filters.get('handicap'))
+
+
             
     target_result = filters.get('result')
     target_team = filters.get('team')
@@ -1105,6 +1110,7 @@ def explore_matches(datajson, filters=None):
                 'date': lhm.get('date'),
                 'home_team': lhm.get('home_team') or home_team,
                 'away_team': lhm.get('away_team'),
+                'ou': _extract_ou_line(lhm),
                 'stats_rows': lhm.get('stats_rows', []) if include_stats else []
             }
         
@@ -1147,6 +1153,7 @@ def explore_matches(datajson, filters=None):
                     'date': ph_entry['date'].strftime('%Y-%m-%d') if hasattr(ph_entry.get('date'), 'strftime') else str(ph_entry.get('date', '')),
                     'home_team': pm.get('home_name') or pm.get('home_team'),
                     'away_team': pm.get('away_name') or pm.get('away_team'),
+                    'ou': _extract_ou_line(pm),
                     'stats_rows': pm.get('stats_rows', []) if include_stats else []
                 }
             
@@ -1184,6 +1191,7 @@ def explore_matches(datajson, filters=None):
                 'date': lam.get('date'),
                 'home_team': lam.get('home_team'),
                 'away_team': lam.get('away_team') or away_team,
+                'ou': _extract_ou_line(lam),
                 'stats_rows': lam.get('stats_rows', []) if include_stats else []
             }
 
@@ -1226,6 +1234,7 @@ def explore_matches(datajson, filters=None):
                     'date': pa_entry['date'].strftime('%Y-%m-%d') if hasattr(pa_entry.get('date'), 'strftime') else str(pa_entry.get('date', '')),
                     'home_team': pm.get('home_name') or pm.get('home_team'),
                     'away_team': pm.get('away_name') or pm.get('away_team'),
+                    'ou': _extract_ou_line(pm),
                     'stats_rows': pm.get('stats_rows', []) if include_stats else []
                 }
 
@@ -1391,7 +1400,8 @@ def explore_matches(datajson, filters=None):
                     'wdl': sim_wdl_stadium,
                     'mov_direction': mov_dir_stadium,
                     'real_wdl': real_wdl_stadium,
-                    'date': stadium_node.get('date')
+                    'date': stadium_node.get('date'),
+                    'ou': _extract_ou_line(stadium_node) or _extract_ou_line(match.get('h2h_stadium'))
                 }
             
             general_node = market_data.get('general')
@@ -1407,7 +1417,8 @@ def explore_matches(datajson, filters=None):
                     'wdl': sim_wdl_general,
                     'mov_direction': mov_dir_general,
                     'real_wdl': real_wdl_general,
-                    'date': general_node.get('date')
+                    'date': general_node.get('date'),
+                    'ou': _extract_ou_line(general_node) or _extract_ou_line(match.get('h2h_general'))
                 }
                 
         else:
@@ -1467,7 +1478,8 @@ def explore_matches(datajson, filters=None):
                         'wdl': get_simulated_wdl(h2h_res['score'], hist_ah, True),
                         'mov_direction': mov_dir,
                         'real_wdl': get_real_wdl_helper(h2h_res['score'], hist_ah, False),
-                        'date': h2h_res['date']
+                        'date': h2h_res['date'],
+                        'ou': h2h_res.get('ou')
                     }
         
         if not h2h_general_data and fallback_h2h_res:
@@ -1500,7 +1512,8 @@ def explore_matches(datajson, filters=None):
                     'home_team': h2h_res.get('home_team'),
                     'away_team': h2h_res.get('away_team'),
                     'is_reversed': is_reversed_h2h,
-                    'historical_ah': h2h_ah_raw
+                    'historical_ah': h2h_ah_raw,
+                    'ou': h2h_res.get('ou')
                 }
 
         # --- 6. Filtros de Previos ---
@@ -1613,7 +1626,8 @@ def explore_matches(datajson, filters=None):
                 'date': pre_h2h.get('date'),
                 'ah': pre_h2h.get('handicap'),
                 'home_team': pre_h2h.get('h2h_home_team_name'),
-                'away_team': pre_h2h.get('h2h_away_team_name')
+                'away_team': pre_h2h.get('h2h_away_team_name'),
+                'ou': _extract_ou_line(pre_h2h)
             }
         
         if not h2h_col3_data:
@@ -1640,6 +1654,14 @@ def explore_matches(datajson, filters=None):
 
         ind_local = match.get('comparativas_indirectas', {}).get('left') if match.get('comparativas_indirectas') else None
         ind_visitante = match.get('comparativas_indirectas', {}).get('right') if match.get('comparativas_indirectas') else None
+        if isinstance(ind_local, dict):
+            ind_local = dict(ind_local)
+            if 'ou' not in ind_local:
+                ind_local['ou'] = _extract_ou_line(ind_local)
+        if isinstance(ind_visitante, dict):
+            ind_visitante = dict(ind_visitante)
+            if 'ou' not in ind_visitante:
+                ind_visitante['ou'] = _extract_ou_line(ind_visitante)
         if filters.get('ind_local_ah'):
             if not ind_local:
                 continue
@@ -1672,7 +1694,7 @@ def explore_matches(datajson, filters=None):
                 'ah_real': hist_ah,
                 'favorite_side': match_favorite_side,
                 'favorite_result': get_favorite_cover_result(score, hist_ah, False),
-                'ou_line': odds.get('goals_linea'),
+                'ou_line': odds.get('goals_linea') or _extract_ou_line(match),
                 'bucket': hist_bucket
             },
             'evaluation': {

@@ -1842,4 +1842,511 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
     window.evaluateMatchV4 = evaluateMatchV4;
     window.evaluateMatchV5 = evaluateMatchV4;
 
+    /* ==========================================================================
+       TRIANGULACIÓN OVER / UNDER AVANZADA
+       (Últimos 5 + Repetición Estadio/Fuera + Rivales Comunes Col3 + Precarga Stats)
+       ========================================================================== */
+    window.toggleOuTriangulationPanel = async function (btn, matchId) {
+        if (!btn) return;
+        const panel = btn.closest('.pre-context-panel') || document;
+        let container = panel.querySelector('.ou-triangulation-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'ou-triangulation-container';
+            container.style.display = 'none';
+            container.style.margin = '8px 0 12px 0';
+            const head = btn.closest('.pre-context-head');
+            if (head && head.nextElementSibling) {
+                head.parentElement.insertBefore(container, head.nextElementSibling);
+            } else if (btn.parentElement) {
+                btn.parentElement.after(container);
+            }
+        }
+
+        if (container.style.display !== 'none') {
+            container.style.display = 'none';
+            btn.classList.remove('is-active');
+            return;
+        }
+
+        const cleanId = String(matchId || '').replace(/\D/g, '');
+        let pc = (window._preMatchContextMap && window._preMatchContextMap[cleanId])
+            || (typeof precacheoData !== 'undefined' && (precacheoData[cleanId] || precacheoData[matchId]))
+            || (Array.isArray(window.upcomingMatches) ? window.upcomingMatches.find(m => String(m.match_id || m.id || '').replace(/\D/g, '') === cleanId) : null)
+            || (Array.isArray(window._allMatches) ? window._allMatches.find(m => String(m.match_id || m.id || '').replace(/\D/g, '') === cleanId) : null)
+            || {};
+
+        if (!pc.last_home_match && !pc.last_away_match && typeof precacheoData !== 'undefined') {
+            for (const k in precacheoData) {
+                if (String(k).replace(/\D/g, '') === cleanId) {
+                    pc = precacheoData[k];
+                    break;
+                }
+            }
+        }
+
+        // Renderizado inmediato
+        container.innerHTML = window.renderOuTriangulationHtml(pc, cleanId);
+        container.dataset.loaded = '1';
+        container.style.display = 'block';
+        btn.classList.add('is-active');
+
+        // Precarga de estadísticas en segundo plano para los últimos 5
+        window.preloadOuRecentStats(pc, cleanId, container);
+    };
+
+    window.preloadOuRecentStats = async function(pc, cleanId, container) {
+        const homeMatches = (pc?.pre_match_context?.current?.home_matches) || pc?.recent_home_matches_all || pc?.recent_home_matches || [];
+        const awayMatches = (pc?.pre_match_context?.current?.away_matches) || pc?.recent_away_matches_all || pc?.recent_away_matches || [];
+        const targets = [...homeMatches.slice(0, 5), ...awayMatches.slice(0, 5)];
+        
+        let needRefresh = false;
+        window._quickMatchStatsCache = window._quickMatchStatsCache || {};
+
+        const fetchPromises = targets.map(async (m) => {
+            const mId = String(m.matchIndex || m.match_id || m.id || '').replace(/\D/g, '');
+            const h = m.home || m.home_team || '';
+            const a = m.away || m.away_team || '';
+            const d = m.date || '';
+            const cacheKey = mId ? `id_${mId}` : `${h}_${a}_${d}`;
+
+            if (window._quickMatchStatsCache[cacheKey]) return;
+
+            try {
+                const res = await fetch('/api/match_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        match_id: mId,
+                        parent_match_id: cleanId,
+                        row_home: h,
+                        row_away: a,
+                        row_date: d,
+                        row_score: m.score || m.result || '',
+                        row_ah: m.ahLine || m.ah || '',
+                        row_ou: m.ouLine || m.ou || ''
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    const cacheObj = { stats: data.stats || [], ou: data.ou_line || m.ouLine || '' };
+                    window._quickMatchStatsCache[cacheKey] = cacheObj;
+                    if (data.match_id) window._quickMatchStatsCache[`id_${data.match_id}`] = cacheObj;
+                    if (m) m.ouLine = cacheObj.ou;
+                    needRefresh = true;
+                }
+            } catch(e) {}
+        });
+
+        await Promise.all(fetchPromises);
+        if (needRefresh && container && container.style.display !== 'none') {
+            container.innerHTML = window.renderOuTriangulationHtml(pc, cleanId);
+        }
+    };
+
+    window.renderOuTriangulationHtml = function (pc, matchId) {
+        const esc = value => String(value ?? '')
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        const cleanId = String(matchId || '').replace(/\D/g, '');
+        
+        const current = pc?.pre_match_context?.current || pc?.current || {};
+        const home = current.home_name || pc?.home_name || pc?.home_team || pc?.home || 'Local';
+        const away = current.away_name || pc?.away_name || pc?.away_team || pc?.away || 'Visitante';
+        const goalLineRaw = pc?.main_match_odds?.goals_linea || pc?.goal_line || pc?.ou_line || current?.goal_line || '2.5';
+        const currentGoalLine = parseFloat(String(goalLineRaw).replace(',', '.')) || 2.5;
+        const currentAh = pc?.main_match_odds?.ah_linea || pc?.handicap || pc?.ah || '-';
+
+        const parseScoreGoals = (scoreStr) => {
+            if (!scoreStr) return null;
+            const parts = String(scoreStr).trim().split(/[:\-\s]+/);
+            if (parts.length >= 2) {
+                const g1 = parseInt(parts[0], 10);
+                const g2 = parseInt(parts[1], 10);
+                if (!isNaN(g1) && !isNaN(g2)) return g1 + g2;
+            }
+            return null;
+        };
+
+        const parseLine = (lineVal) => {
+            if (!lineVal || lineVal === '-' || lineVal === 'N/A') return null;
+            const val = parseFloat(String(lineVal).trim().replace(',', '.'));
+            return isNaN(val) ? null : val;
+        };
+
+        const checkSameTeam = (t1, t2) => {
+            if (!t1 || !t2) return false;
+            if (typeof window.sameTeamName === 'function') return window.sameTeamName(t1, t2);
+            return String(t1).trim().toLowerCase() === String(t2).trim().toLowerCase();
+        };
+
+        const getMatchStats = (m) => {
+            if (!m) return null;
+            const mId = String(m.matchIndex || m.match_id || m.id || '').replace(/\D/g, '');
+            const h = m.home || m.home_team || '';
+            const a = m.away || m.away_team || '';
+            const d = m.date || '';
+            const cache = window._quickMatchStatsCache || {};
+            const item = (mId && cache[`id_${mId}`]) || cache[`${h}_${a}_${d}`] || null;
+            if (!item || !Array.isArray(item.stats) || !item.stats.length) return null;
+
+            // Extraer remates, tiros a puerta y ataques peligrosos
+            let shots = null, onTarget = null, dangerAttacks = null;
+            for (const s of item.stats) {
+                const title = String(s.title || s.name || '').toLowerCase();
+                if (title.includes('remate') || title.includes('tiro') || title.includes('shot')) {
+                    if (title.includes('puerta') || title.includes('arco') || title.includes('target')) {
+                        onTarget = `${s.home ?? s.home_val ?? '-'}-${s.away ?? s.away_val ?? '-'}`;
+                    } else if (!shots) {
+                        shots = `${s.home ?? s.home_val ?? '-'}-${s.away ?? s.away_val ?? '-'}`;
+                    }
+                }
+                if (title.includes('peligroso') || title.includes('danger')) {
+                    dangerAttacks = `${s.home ?? s.home_val ?? '-'}-${s.away ?? s.away_val ?? '-'}`;
+                }
+            }
+            return { shots, onTarget, dangerAttacks, ouLine: item.ou };
+        };
+
+        // --- 1. ÚLTIMOS 5 PARTIDOS DE LOCAL Y VISITANTE ---
+        const rawHomeMatches = (pc?.pre_match_context?.current?.home_matches) || pc?.recent_home_matches_all || pc?.recent_home_matches || [];
+        const rawAwayMatches = (pc?.pre_match_context?.current?.away_matches) || pc?.recent_away_matches_all || pc?.recent_away_matches || [];
+        const home5 = rawHomeMatches.slice(0, 5);
+        const away5 = rawAwayMatches.slice(0, 5);
+
+        let homeOverCount = 0, homeUnderCount = 0, homePushCount = 0, homeGoalsSum = 0;
+        let awayOverCount = 0, awayUnderCount = 0, awayPushCount = 0, awayGoalsSum = 0;
+
+        const processRecentList = (matches, isHomeList) => {
+            return matches.map((m, idx) => {
+                const score = m.score || m.score_raw || m.result || '';
+                const goals = parseScoreGoals(score);
+                const statsInfo = getMatchStats(m);
+                const lineRaw = statsInfo?.ouLine || m.ouLine || m.ou || m.goal_line || '';
+                const lineVal = parseLine(lineRaw) ?? currentGoalLine;
+                const mHome = m.home || m.home_team || '';
+                const mAway = m.away || m.away_team || '';
+                const isSubjectHome = checkSameTeam(mHome, isHomeList ? home : away);
+                const rival = isSubjectHome ? mAway : mHome;
+                const venueLabel = isSubjectHome ? 'C' : 'F';
+
+                let diff = null;
+                let deltaBadge = '<span style="color:#94a3b8; font-size:.62rem;">-</span>';
+                if (goals !== null) {
+                    if (isHomeList) homeGoalsSum += goals;
+                    else awayGoalsSum += goals;
+
+                    diff = goals - lineVal;
+                    if (diff > 0.01) {
+                        if (isHomeList) homeOverCount++; else awayOverCount++;
+                        deltaBadge = `<span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">O (${diff > 0 ? '+' : ''}${diff.toFixed(2)})</span>`;
+                    } else if (diff < -0.01) {
+                        if (isHomeList) homeUnderCount++; else awayUnderCount++;
+                        deltaBadge = `<span style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">U (${diff.toFixed(2)})</span>`;
+                    } else {
+                        if (isHomeList) homePushCount++; else awayPushCount++;
+                        deltaBadge = `<span style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:1px 5px; border-radius:3px; font-weight:800; font-size:.62rem;">PUSH</span>`;
+                    }
+                }
+
+                let statsSummary = '';
+                if (statsInfo?.shots) {
+                    statsSummary = `<span style="background:#ecfdf5; border:1px solid #a7f3d0; color:#047857; padding:1px 4px; border-radius:3px; font-size:.56rem; font-weight:700;" title="Remates totales (Tiros a puerta: ${statsInfo.onTarget || '-'})">🎯 ${statsInfo.shots} ${statsInfo.onTarget ? `(${statsInfo.onTarget})` : ''}</span>`;
+                }
+
+                const isHighVolume = goals !== null && goals >= 5;
+
+                return `
+                    <tr style="border-bottom:1px solid #f1f5f9; font-size:.66rem; background:${isHighVolume ? '#f0fdf4' : 'transparent'};">
+                        <td style="padding:4px 6px; color:#64748b; font-size:.60rem;">${esc(m.date || '')}</td>
+                        <td style="padding:4px 6px;">
+                            <span style="font-weight:700; color:#1e293b;">${esc(rival || '-')}</span>
+                            <span style="font-size:.56rem; font-weight:800; padding:1px 3px; border-radius:2px; background:${venueLabel === 'C' ? '#e0f2fe' : '#fef3c7'}; color:${venueLabel === 'C' ? '#0369a1' : '#b45309'};">${venueLabel}</span>
+                        </td>
+                        <td style="padding:4px 6px; text-align:center; font-weight:800; color:${isHighVolume ? '#15803d' : '#0f172a'}; font-size:.72rem;">
+                            ${esc(score || '-')}
+                            ${goals !== null ? `<span style="font-size:.56rem; font-weight:700; color:${isHighVolume ? '#15803d' : '#64748b'};">(${goals}G)</span>` : ''}
+                        </td>
+                        <td style="padding:4px 6px; text-align:center; font-weight:700; color:#475569;">
+                            ${lineRaw ? `G ${lineRaw}` : `<span style="color:#94a3b8;">Ref ${currentGoalLine}</span>`}
+                        </td>
+                        <td style="padding:4px 6px; text-align:center;">
+                            ${deltaBadge}
+                        </td>
+                        <td style="padding:4px 6px; text-align:right;">
+                            ${statsSummary || '<span style="color:#cbd5e1; font-size:.56rem;">Sin stats</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        const homeRowsHtml = processRecentList(home5, true);
+        const awayRowsHtml = processRecentList(away5, false);
+
+        const homeAvgGoals = home5.length ? (homeGoalsSum / home5.length).toFixed(2) : '-';
+        const awayAvgGoals = away5.length ? (awayGoalsSum / away5.length).toFixed(2) : '-';
+        const combinedRecentAvg = (home5.length && away5.length) ? (((homeGoalsSum / home5.length) + (awayGoalsSum / away5.length)) / 2).toFixed(2) : null;
+
+        // --- 2. REPETICIÓN O MOVIMIENTO DE LÍNEA: ESTADIO vs FUERA vs HOY ---
+        // Último de Local en Casa (en este estadio)
+        const lastHomeAtStadium = rawHomeMatches.find(m => checkSameTeam(m.home || m.home_team, home)) || pc?.last_home_match;
+        const lastHomeStadiumScore = lastHomeAtStadium?.score || lastHomeAtStadium?.result || '-';
+        const lastHomeStadiumRival = checkSameTeam(lastHomeAtStadium?.home || lastHomeAtStadium?.home_team, home) ? (lastHomeAtStadium?.away || lastHomeAtStadium?.away_team) : (lastHomeAtStadium?.home || lastHomeAtStadium?.home_team);
+        const lastHomeStadiumStats = getMatchStats(lastHomeAtStadium);
+        const lastHomeStadiumOu = lastHomeStadiumStats?.ouLine || lastHomeAtStadium?.ouLine || lastHomeAtStadium?.ou || lastHomeAtStadium?.ou_line || lastHomeAtStadium?.goal_line || '2.5';
+        const lastHomeStadiumAh = lastHomeAtStadium?.ahLine || lastHomeAtStadium?.ah || lastHomeAtStadium?.handicap_line_raw || '-';
+
+        // Último de Visitante Fuera
+        const lastAwayAtVenue = rawAwayMatches.find(m => checkSameTeam(m.away || m.away_team, away)) || pc?.last_away_match;
+        const lastAwayVenueScore = lastAwayAtVenue?.score || lastAwayAtVenue?.result || '-';
+        const lastAwayVenueRival = checkSameTeam(lastAwayAtVenue?.away || lastAwayAtVenue?.away_team, away) ? (lastAwayAtVenue?.home || lastAwayAtVenue?.home_team) : (lastAwayAtVenue?.away || lastAwayAtVenue?.away_team);
+        const lastAwayVenueStats = getMatchStats(lastAwayAtVenue);
+        const lastAwayVenueOu = lastAwayVenueStats?.ouLine || lastAwayAtVenue?.ouLine || lastAwayAtVenue?.ou || lastAwayAtVenue?.ou_line || lastAwayAtVenue?.goal_line || '2.5';
+        const lastAwayVenueAh = lastAwayAtVenue?.ahLine || lastAwayAtVenue?.ah || lastAwayAtVenue?.handicap_line_raw || '-';
+
+        const lineValStadium = parseLine(lastHomeStadiumOu) ?? 2.5;
+        const lineValVenue = parseLine(lastAwayVenueOu) ?? 2.5;
+        const diffVsStadium = currentGoalLine - lineValStadium;
+        const diffVsVenue = currentGoalLine - lineValVenue;
+
+        let lineMovementBadge = '';
+        if (Math.abs(diffVsStadium) < 0.01 && Math.abs(diffVsVenue) < 0.01) {
+            lineMovementBadge = `<span style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:2px 7px; border-radius:4px; font-weight:800; font-size:.65rem;">= LÍNEA SE REPITE (${currentGoalLine})</span>`;
+        } else if (diffVsStadium > 0 || diffVsVenue > 0) {
+            lineMovementBadge = `<span style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:2px 7px; border-radius:4px; font-weight:800; font-size:.65rem;">↑ LÍNEA SUBE (+${Math.max(diffVsStadium, diffVsVenue).toFixed(2)})</span>`;
+        } else {
+            lineMovementBadge = `<span style="background:#dcfce7; color:#15803d; border:1px solid #86efac; padding:2px 7px; border-radius:4px; font-weight:800; font-size:.65rem;">↓ LÍNEA BAJA (${Math.min(diffVsStadium, diffVsVenue).toFixed(2)})</span>`;
+        }
+
+        // --- 3. RIVALES COMUNES EN LOS ÚLTIMOS 5 (TRIANGULACIÓN COL3) ---
+        const commonRivalsMap = new Map();
+        home5.forEach(hm => {
+            const hHome = hm.home || hm.home_team || '';
+            const hAway = hm.away || hm.away_team || '';
+            const rName = checkSameTeam(hHome, home) ? hAway : hHome;
+            if (!rName) return;
+
+            const matchingAway = away5.find(am => {
+                const aHome = am.home || am.home_team || '';
+                const aAway = am.away || am.away_team || '';
+                const aRival = checkSameTeam(aAway, away) ? aHome : aAway;
+                return checkSameTeam(rName, aRival);
+            });
+
+            if (matchingAway && !commonRivalsMap.has(rName.toLowerCase())) {
+                commonRivalsMap.set(rName.toLowerCase(), {
+                    rivalName: rName,
+                    homeMatch: hm,
+                    awayMatch: matchingAway
+                });
+            }
+        });
+
+        let commonRivalsHtml = '';
+        if (commonRivalsMap.size > 0) {
+            commonRivalsHtml = Array.from(commonRivalsMap.values()).map(cr => {
+                const hScore = cr.homeMatch.score || cr.homeMatch.result || '-';
+                const aScore = cr.awayMatch.score || cr.awayMatch.result || '-';
+                const hGoals = parseScoreGoals(hScore);
+                const aGoals = parseScoreGoals(aScore);
+                const hAh = cr.homeMatch.ahLine || cr.homeMatch.ah || '-';
+                const aAh = cr.awayMatch.ahLine || cr.awayMatch.ah || '-';
+                const hStats = getMatchStats(cr.homeMatch);
+                const aStats = getMatchStats(cr.awayMatch);
+
+                return `
+                    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:7px 10px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; border-bottom:1px solid #f1f5f9; padding-bottom:3px;">
+                            <span style="font-weight:900; font-size:.72rem; color:#0f172a;"><i class="fa-solid fa-code-compare me-1 text-primary"></i>Rival Común: ${esc(cr.rivalName)}</span>
+                            <span style="font-size:.62rem; color:#64748b; font-weight:700;">Tot Goles: Local (${hGoals ?? '-'}) | Visitante (${aGoals ?? '-'})</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:.65rem;">
+                            <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:4px; padding:4px 6px;">
+                                <div style="font-weight:800; color:#0369a1;">${esc(home)} vs ${esc(cr.rivalName)}: <b>${esc(hScore)}</b> (AH ${esc(hAh)})</div>
+                                ${hStats?.shots ? `<div style="font-size:.58rem; color:#0284c7; margin-top:2px;">🎯 Remates: ${hStats.shots} (A puerta: ${hStats.onTarget || '-'}) ${hStats.dangerAttacks ? `· Peligro: ${hStats.dangerAttacks}` : ''}</div>` : ''}
+                            </div>
+                            <div style="background:#fefce8; border:1px solid #fef08a; border-radius:4px; padding:4px 6px;">
+                                <div style="font-weight:800; color:#854d0e;">${esc(away)} vs ${esc(cr.rivalName)}: <b>${esc(aScore)}</b> (AH ${esc(aAh)})</div>
+                                ${aStats?.shots ? `<div style="font-size:.58rem; color:#a16207; margin-top:2px;">🎯 Remates: ${aStats.shots} (A puerta: ${aStats.onTarget || '-'}) ${aStats.dangerAttacks ? `· Peligro: ${aStats.dangerAttacks}` : ''}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            commonRivalsHtml = `<div style="font-size:.65rem; color:#94a3b8; text-align:center; padding:6px; background:#f8fafc; border-radius:4px;">No se detectaron rivales comunes en los últimos 5 partidos directos.</div>`;
+        }
+
+        // --- 4. VEREDICTO INTEGRADO ---
+        let finalVerdictTitle = '';
+        let finalVerdictBg = '';
+        let finalVerdictBorder = '';
+        let finalVerdictColor = '';
+        let finalVerdictExplanation = '';
+
+        const hasRecentExplosion = (homeGoalsSum >= 14 || awayGoalsSum >= 14 || homeOverCount >= 3);
+        const combinedOverTrend = combinedRecentAvg !== null && parseFloat(combinedRecentAvg) >= currentGoalLine;
+
+        if (hasRecentExplosion || combinedOverTrend) {
+            finalVerdictTitle = '🟢 ALTO POTENCIAL OVER (VOLUMEN OCULTO)';
+            finalVerdictBg = '#f0fdf4';
+            finalVerdictBorder = '#86efac';
+            finalVerdictColor = '#15803d';
+            finalVerdictExplanation = `Pese a que el último partido del local en casa fue ${lastHomeStadiumScore}, en sus últimos 5 promedia <b>${homeAvgGoals} goles/partido</b> (con partidos de alta producción) y el visitante promedia <b>${awayAvgGoals} G/p</b>. Media combinada de <b>${combinedRecentAvg || '-'} G/p</b> que supera la línea exigida (${currentGoalLine}). La subida de línea por la bookie refleja este flujo ofensivo.`;
+        } else if (homeUnderCount >= 3 && awayUnderCount >= 3) {
+            finalVerdictTitle = '🔻 SESGO UNDER / RITMO CONTROLADO';
+            finalVerdictBg = '#fef2f2';
+            finalVerdictBorder = '#fca5a5';
+            finalVerdictColor = '#b91c1c';
+            finalVerdictExplanation = `Ambos equipos registran mayoría de partidos Under en los últimos 5 (Local: ${homeUnderCount}/5, Visitante: ${awayUnderCount}/5). Promedio combinado de ${combinedRecentAvg || '-'} G/p inferior a la línea (${currentGoalLine}).`;
+        } else {
+            finalVerdictTitle = '⚖️ LÍNEA EQUILIBRADA';
+            finalVerdictBg = '#fffbeb';
+            finalVerdictBorder = '#fde68a';
+            finalVerdictColor = '#b45309';
+            finalVerdictExplanation = `Promedio conjunto de ${combinedRecentAvg || '-'} G/p acorde a la línea fijada de ${currentGoalLine}.`;
+        }
+
+        return `
+            <div style="background:#ffffff; border:1.5px solid #0284c7; border-radius:8px; padding:12px 14px; box-shadow:0 4px 16px rgba(2,132,199,0.10); font-family:inherit;">
+                <!-- CABECERA -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1.5px solid #e0f2fe; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; font-size:.66rem; font-weight:900; padding:3px 9px; border-radius:4px; letter-spacing:0.3px;">
+                            <i class="fa-solid fa-draw-polygon me-1"></i>TRIANGULACIÓN OVER / UNDER AVANZADA
+                        </span>
+                        <span style="font-size:.80rem; font-weight:900; color:#0f172a;">
+                            ${esc(home)} <span style="font-weight:400; color:#64748b;">vs</span> ${esc(away)}
+                        </span>
+                        <span style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; font-size:.68rem; font-weight:800; padding:2px 8px; border-radius:4px;">
+                            ⚽ Línea Hoy: <b>${currentGoalLine}</b>
+                        </span>
+                        <span style="background:#f8fafc; border:1px solid #cbd5e1; color:#334155; font-size:.68rem; font-weight:800; padding:2px 8px; border-radius:4px;">
+                            AH Hoy: <b>${esc(currentAh)}</b>
+                        </span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="background:${finalVerdictBg}; border:1px solid ${finalVerdictBorder}; color:${finalVerdictColor}; font-size:.70rem; font-weight:900; padding:3px 10px; border-radius:4px;">
+                            ${finalVerdictTitle}
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:.65rem; height:22px; font-weight:700;" onclick="this.closest('.ou-triangulation-container').style.display='none'; const b = this.closest('.pre-context-panel')?.querySelector('.pre-context-triangulacion-ou-btn'); if (b) b.classList.remove('is-active');" title="Cerrar panel">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 1: REPETICIÓN O MOVIMIENTO DE LÍNEA -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                        <span style="font-size:.68rem; font-weight:900; color:#1e293b;">
+                            <i class="fa-solid fa-arrows-split-up-and-left me-1 text-primary"></i>Repetición de Línea: Último Partido en este Estadio vs Último Fuera vs Hoy
+                        </span>
+                        ${lineMovementBadge}
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:8px;">
+                        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px 8px;">
+                            <div style="font-size:.60rem; color:#64748b; font-weight:700;">🏠 ÚLTIMO EN ESTE ESTADIO (${esc(home)})</div>
+                            <div style="font-weight:900; font-size:.74rem; color:#0f172a; margin:1px 0;">vs ${esc(lastHomeStadiumRival || 'Rival')}: <b>${esc(lastHomeStadiumScore)}</b></div>
+                            <div style="font-size:.62rem; color:#475569;">Línea Goles: <b>${lastHomeStadiumOu}</b> · AH: <b>${lastHomeStadiumAh}</b></div>
+                            ${lastHomeStadiumStats?.shots ? `<div style="font-size:.58rem; color:#059669; font-weight:700; margin-top:2px;">🎯 Rem: ${lastHomeStadiumStats.shots} (Puerta: ${lastHomeStadiumStats.onTarget || '-'}) ${lastHomeStadiumStats.dangerAttacks ? `· Peligro: ${lastHomeStadiumStats.dangerAttacks}` : ''}</div>` : ''}
+                        </div>
+                        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:4px; padding:6px 8px;">
+                            <div style="font-size:.60rem; color:#64748b; font-weight:700;">✈️ ÚLTIMO FUERA (${esc(away)})</div>
+                            <div style="font-weight:900; font-size:.74rem; color:#0f172a; margin:1px 0;">vs ${esc(lastAwayVenueRival || 'Rival')}: <b>${esc(lastAwayVenueScore)}</b></div>
+                            <div style="font-size:.62rem; color:#475569;">Línea Goles: <b>${lastAwayVenueOu}</b> · AH: <b>${lastAwayVenueAh}</b></div>
+                            ${lastAwayVenueStats?.shots ? `<div style="font-size:.58rem; color:#059669; font-weight:700; margin-top:2px;">🎯 Rem: ${lastAwayVenueStats.shots} (Puerta: ${lastAwayVenueStats.onTarget || '-'})</div>` : ''}
+                        </div>
+                        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:4px; padding:6px 8px;">
+                            <div style="font-size:.60rem; color:#15803d; font-weight:800;">⚽ PARTIDO DE HOY</div>
+                            <div style="font-weight:900; font-size:.74rem; color:#15803d; margin:1px 0;">Línea de Goles: <b>${currentGoalLine}</b></div>
+                            <div style="font-size:.62rem; color:#166534;">Handicap Asiático: <b>${esc(currentAh)}</b></div>
+                            <div style="font-size:.58rem; color:#15803d; margin-top:2px;">
+                                ${diffVsStadium > 0 ? `Exige <b>+${diffVsStadium.toFixed(2)}</b> más que el último en casa` : (diffVsStadium < 0 ? `Línea recortada en ${diffVsStadium.toFixed(2)}` : 'Misma línea que último en casa')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 2: RIVALES COMUNES DETECTADOS EN LOS ÚLTIMOS 5 -->
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:.68rem; font-weight:900; color:#1e293b; margin-bottom:5px;">
+                        <i class="fa-solid fa-code-compare me-1 text-primary"></i>Triangulación por Rivales Comunes Recientes (Col3)
+                    </div>
+                    ${commonRivalsHtml}
+                </div>
+
+                <!-- MÓDULO 3: ÚLTIMOS 5 PARTIDOS Y LÍNEAS DE CADA EQUIPO -->
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:.68rem; font-weight:900; color:#1e293b;">
+                            <i class="fa-solid fa-table-list me-1 text-primary"></i>Historial de Líneas y Goles (Últimos 5 Partidos de Cada Uno)
+                        </span>
+                        <span style="font-size:.62rem; font-weight:800; color:#0369a1; background:#e0f2fe; padding:2px 7px; border-radius:3px;">
+                            Media Combinada: ${combinedRecentAvg || '-'} Goles / Partido
+                        </span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <!-- Columna Local -->
+                        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
+                            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:5px 8px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:900; font-size:.68rem; color:#0369a1;">${esc(home)} (Local)</span>
+                                <span style="font-size:.60rem; font-weight:800; color:#15803d;">${homeOverCount} Over · ${homeUnderCount} Under · Media: ${homeAvgGoals} G/p</span>
+                            </div>
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#f1f5f9; font-size:.58rem; color:#64748b; text-transform:uppercase;">
+                                        <th style="padding:3px 6px; text-align:left;">Fecha</th>
+                                        <th style="padding:3px 6px; text-align:left;">Rival</th>
+                                        <th style="padding:3px 6px; text-align:center;">Res</th>
+                                        <th style="padding:3px 6px; text-align:center;">Línea</th>
+                                        <th style="padding:3px 6px; text-align:center;">Δ</th>
+                                        <th style="padding:3px 6px; text-align:right;">Stats</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${homeRowsHtml || '<tr><td colspan="6" style="text-align:center; padding:8px; color:#94a3b8;">Sin partidos</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Columna Visitante -->
+                        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
+                            <div style="background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:5px 8px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:900; font-size:.68rem; color:#b45309;">${esc(away)} (Visitante)</span>
+                                <span style="font-size:.60rem; font-weight:800; color:#15803d;">${awayOverCount} Over · ${awayUnderCount} Under · Media: ${awayAvgGoals} G/p</span>
+                            </div>
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#f1f5f9; font-size:.58rem; color:#64748b; text-transform:uppercase;">
+                                        <th style="padding:3px 6px; text-align:left;">Fecha</th>
+                                        <th style="padding:3px 6px; text-align:left;">Rival</th>
+                                        <th style="padding:3px 6px; text-align:center;">Res</th>
+                                        <th style="padding:3px 6px; text-align:center;">Línea</th>
+                                        <th style="padding:3px 6px; text-align:center;">Δ</th>
+                                        <th style="padding:3px 6px; text-align:right;">Stats</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${awayRowsHtml || '<tr><td colspan="6" style="text-align:center; padding:8px; color:#94a3b8;">Sin partidos</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 4: DIAGNÓSTICO INTEGRADO -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:9px 12px;">
+                    <div style="font-size:.64rem; font-weight:900; color:#1e293b; text-transform:uppercase; margin-bottom:3px;">
+                        💡 Diagnóstico Cuantitativo del Mercado y Triangulación
+                    </div>
+                    <div style="font-size:.68rem; color:#334155; line-height:1.4;">
+                        ${finalVerdictExplanation}
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
 })();

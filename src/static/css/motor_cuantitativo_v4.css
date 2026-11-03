@@ -38,6 +38,46 @@
     transform: none;
 }
 
+/* Botón disparador de Triangulación Over/Under */
+.pre-context-triangulacion-ou-btn {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #7dd3fc;
+    color: #0369a1;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.08);
+}
+.pre-context-triangulacion-ou-btn:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    border-color: #38bdf8;
+    color: #0c4a6e;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.15);
+}
+.pre-context-triangulacion-ou-btn:active {
+    transform: translateY(0);
+}
+.pre-context-triangulacion-ou-btn.is-active {
+    background: #0284c7 !important;
+    border-color: #0369a1 !important;
+    color: #ffffff !important;
+}
+.pre-context-triangulacion-ou-btn.is-active i {
+    color: #ffffff !important;
+}
+.pre-context-triangulacion-ou-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Overlay general */
 .motor-v4-overlay {
     position: fixed;

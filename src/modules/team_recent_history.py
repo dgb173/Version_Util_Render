@@ -273,17 +273,45 @@ def resolve_team_id(
             for a in soup.find_all("a"):
                 t = a.get_text(strip=True)
                 if t and _same_team(t, team_clean):
-                    onclick = a.get("onclick", "") + " " + a.get("href", "")
-                    m = re.search(r'(?:team|openFbTeam)\((\d+)\)', onclick)
+                    onclick = (a.get("onclick") or "") + " " + (a.get("href") or "")
+                    m = re.search(r'(?:team|openFbTeam)\s*\(\s*(\d+)\s*\)', onclick, re.IGNORECASE)
                     if m:
                         return m.group(1).strip()
-                    m2 = re.search(r'/team/summary/(\d+)', onclick)
+                    m2 = re.search(r'/team/(?:summary/)?(\d+)', onclick, re.IGNORECASE)
                     if m2:
                         return m2.group(1).strip()
         except Exception as exc:
             LOGGER.debug("Error resolviendo team_id en soup de match %s: %s", mid, exc)
 
     return None
+
+
+def fetch_live_team_matches_via_h2h(team_name: str, match_id: Optional[str] = None, parent_match_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Extrae los partidos recientes de un equipo y sus cuotas AH directamente de NowGoal mediante H2H."""
+    mids_to_try = []
+    if match_id:
+        mids_to_try.append("".join(filter(str.isdigit, str(match_id))))
+    if parent_match_id:
+        p_clean = "".join(filter(str.isdigit, str(parent_match_id)))
+        if p_clean and p_clean not in mids_to_try:
+            mids_to_try.append(p_clean)
+
+    for mid in mids_to_try:
+        if not mid:
+            continue
+        try:
+            soup = es._load_main_match_soup(mid)
+            if not soup:
+                continue
+            odds_map = es.extract_vs_market_odds(soup)
+            m1 = es.extract_recent_matches(soup, "table_v1", team_name, None, False, odds_map, limit=100, is_neutral_venue=True)
+            m2 = es.extract_recent_matches(soup, "table_v2", team_name, None, False, odds_map, limit=100, is_neutral_venue=True)
+            candidate = m1 if len(m1) >= len(m2) else m2
+            if candidate and len(candidate) > 0:
+                return candidate
+        except Exception as exc:
+            LOGGER.warning("Error extrayendo matches live para %s desde H2H %s: %s", team_name, mid, exc)
+    return []
 
 
 def fetch_live_team_matches(team_name: str, team_id: str) -> List[Dict[str, Any]]:
@@ -332,7 +360,7 @@ def fetch_live_team_matches(team_name: str, team_id: str) -> List[Dict[str, Any]
         try:
             soup = es._load_main_match_soup(recent_id)
             if soup:
-                odds_map = es.extract_vs_odds(soup)
+                odds_map = es.extract_vs_market_odds(soup)
                 m1 = es.extract_recent_matches(soup, "table_v1", team_name, None, False, odds_map, limit=40, is_neutral_venue=True)
                 m2 = es.extract_recent_matches(soup, "table_v2", team_name, None, False, odds_map, limit=40, is_neutral_venue=True)
                 h2h_matches = m1 if len(m1) >= len(m2) else m2
@@ -461,53 +489,57 @@ def get_team_recent_history(
 
     opponent_name = clean_opp
 
-    # 1. Si el equipo analizado pertenece al partido padre (local o visitante),
-    # los partidos precacheados del parent_data tienen maxima fidelidad y prioridad absoluta.
+    # 1. Si no es live/refresh forzado, intentar recuperar de parent_data si el equipo pertenece al partido padre
     p_home = str(parent_data.get("home_name") or parent_data.get("home") or "").strip() if parent_data else ""
     p_away = str(parent_data.get("away_name") or parent_data.get("away") or "").strip() if parent_data else ""
     is_parent_home = bool(parent_data and _same_team(clean_team, p_home))
     is_parent_away = bool(parent_data and _same_team(clean_team, p_away))
 
-    if is_parent_home:
-        raw_matches = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
-    elif is_parent_away:
-        raw_matches = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
-
-    # 2. Si se solicita en vivo (force_live) explícitamente, consultar NowGoal directamente
-    resolved_team_id = team_id
-    is_live_loaded = False
-    if force_live:
-        if not resolved_team_id:
-            resolved_team_id = resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)
-        if resolved_team_id:
-            try:
-                live_matches = fetch_live_team_matches(clean_team, resolved_team_id)
-                if live_matches:
-                    raw_matches = live_matches
-                    is_live_loaded = True
-            except Exception as exc:
-                LOGGER.warning("Error obteniendo partidos en vivo para %s (ID %s): %s", clean_team, resolved_team_id, exc)
-
-    # 3. Intentar scrapear directamente desde el match_id indicado solo si no es un equipo del partido padre
-    if not raw_matches and clean_mid and not (is_parent_home or is_parent_away):
-        try:
-            soup = es._load_main_match_soup(clean_mid)
-            if soup:
-                odds_map = es.extract_vs_odds(soup)
-                m1 = es.extract_recent_matches(soup, "table_v1", clean_team, None, False, odds_map, limit=100, is_neutral_venue=True)
-                m2 = es.extract_recent_matches(soup, "table_v2", clean_team, None, False, odds_map, limit=100, is_neutral_venue=True)
-                raw_matches = m1 if len(m1) >= len(m2) else m2
-        except Exception as exc:
-            LOGGER.warning("Error extrayendo partidos para %s con match_id %s: %s", clean_team, clean_mid, exc)
-
-    # 4. Respaldo adicional con parent_data si no se cargó previamente
-    if not raw_matches and parent_data:
-        if _same_team(clean_team, p_home):
+    if not force_live and not force_refresh:
+        if is_parent_home:
             raw_matches = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
-        elif _same_team(clean_team, p_away):
+        elif is_parent_away:
             raw_matches = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
 
-    # 3. Formatear y enriquecer los partidos
+    # 2. Verificar si tenemos cuotas AH en los partidos obtenidos
+    has_any_ah = any(
+        str(m.get("ahLine") or m.get("ah_line") or m.get("ahLine_raw") or "").strip() not in ("", "-", "N/A", "?")
+        for m in (raw_matches or [])
+    )
+
+    should_fetch_live = force_live or force_refresh or not raw_matches or not has_any_ah
+    is_live_loaded = False
+    resolved_team_id = team_id
+
+    if should_fetch_live:
+        # Intentar consultar directamente NowGoal mediante H2H de clean_mid o lookup_parent_id
+        live_matches = fetch_live_team_matches_via_h2h(clean_team, match_id=clean_mid, parent_match_id=lookup_parent_id)
+        if live_matches:
+            raw_matches = live_matches
+            is_live_loaded = True
+        elif force_live:
+            if not resolved_team_id:
+                resolved_team_id = resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)
+            if resolved_team_id:
+                try:
+                    fallback_matches = fetch_live_team_matches(clean_team, resolved_team_id)
+                    if fallback_matches:
+                        raw_matches = fallback_matches
+                        is_live_loaded = True
+                except Exception as exc:
+                    LOGGER.warning("Error en fetch_live_team_matches fallback para %s: %s", clean_team, exc)
+
+    # 3. Respaldo adicional con parent_data si no se cargó nada en vivo
+    if not raw_matches and parent_data:
+        if is_parent_home or _same_team(clean_team, p_home):
+            raw_matches = parent_data.get("recent_home_matches_all") or parent_data.get("recent_home_matches") or []
+        elif is_parent_away or _same_team(clean_team, p_away):
+            raw_matches = parent_data.get("recent_away_matches_all") or parent_data.get("recent_away_matches") or []
+
+    if not resolved_team_id:
+        resolved_team_id = resolve_team_id(clean_team, parent_match_id=lookup_parent_id, parent_data=parent_data, match_id=clean_mid)
+
+    # 4. Formatear y enriquecer los partidos
     formatted_matches = []
     seen_keys = set()
 
@@ -521,7 +553,8 @@ def get_team_recent_history(
         m_score = str(item.get("score") or item.get("score_raw") or item.get("result") or "").replace("-", ":").strip()
         m_id = "".join(filter(str.isdigit, str(item.get("matchIndex") or item.get("match_id") or item.get("id") or "")))
         m_lid = str(item.get("league_id_hist") or item.get("league_id") or item.get("league") or "").strip()
-        m_ah = str(item.get("ahLine") or item.get("ahLine_raw") or item.get("ah_line") or item.get("ah") or "-").strip()
+        raw_ah = item.get("ahLine") or item.get("ahLine_raw") or item.get("ah_line") or item.get("ah") or "-"
+        m_ah = str(raw_ah).strip() if raw_ah not in (None, "", "N/A", "?") else "-"
 
         dedup_key = f"{m_date}:{m_home}:{m_away}"
         if dedup_key in seen_keys:
@@ -569,6 +602,9 @@ def get_team_recent_history(
             )
             has_common_rival = comparative_match is not None
 
+        raw_ou = item.get("ouLine") or item.get("ou_line") or item.get("ou") or item.get("goals_line") or "-"
+        m_ou = str(raw_ou).strip() if raw_ou not in (None, "", "N/A") else "-"
+
         formatted_matches.append({
             "match_id": m_id,
             "date": m_date,
@@ -582,6 +618,7 @@ def get_team_recent_history(
             "wdl": wdl,
             "res_letter": res_letter,
             "ah": m_ah,
+            "ou": m_ou,
             "ah_eval": ah_eval,
             "comparative_match": comparative_match,
             "has_common_rival": has_common_rival,

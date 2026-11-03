@@ -796,18 +796,28 @@ def generar_analisis_completo_mercado(main_odds, h2h_data, home_name, away_name,
     
     structured_data = {
         "stadium": {
+            "match_id": h2h_data.get('match1_id'),
             "movement": sintesis_ah_estadio_data.get("movement"),
             "result": sintesis_ah_estadio_data.get("result"),
             "evaluation": sintesis_ah_estadio_data.get("evaluation"),
             "is_covered": sintesis_ah_estadio_data.get("is_covered"),
-            "date": h2h_data.get('date1')
+            "date": h2h_data.get('date1'),
+            "home": home_name,
+            "away": away_name,
+            "home_red": h2h_data.get('home_red_stadium'),
+            "away_red": h2h_data.get('away_red_stadium'),
         },
         "general": {
+            "match_id": precedente_general_id if 'sintesis_ah_general_data' in locals() else (precedente_estadio['match_id'] if precedente_estadio['match_id'] == precedente_general_id else None),
             "movement": sintesis_ah_general_data.get("movement") if 'sintesis_ah_general_data' in locals() else (sintesis_ah_estadio_data.get("movement") if precedente_estadio['match_id'] == precedente_general_id else "N/A"),
             "result": sintesis_ah_general_data.get("result") if 'sintesis_ah_general_data' in locals() else (sintesis_ah_estadio_data.get("result") if precedente_estadio['match_id'] == precedente_general_id else "N/A"),
             "evaluation": sintesis_ah_general_data.get("evaluation") if 'sintesis_ah_general_data' in locals() else (sintesis_ah_estadio_data.get("evaluation") if precedente_estadio['match_id'] == precedente_general_id else "N/A"),
             "is_covered": sintesis_ah_general_data.get("is_covered") if 'sintesis_ah_general_data' in locals() else (sintesis_ah_estadio_data.get("is_covered") if precedente_estadio['match_id'] == precedente_general_id else None),
-            "date": h2h_data.get('date6') if 'sintesis_ah_general_data' in locals() else (h2h_data.get('date1') if precedente_estadio['match_id'] == precedente_general_id else "N/A")
+            "date": h2h_data.get('date6') if 'sintesis_ah_general_data' in locals() else (h2h_data.get('date1') if precedente_estadio['match_id'] == precedente_general_id else "N/A"),
+            "home": h2h_data.get('h2h_gen_home') if 'sintesis_ah_general_data' in locals() else (home_name if precedente_estadio['match_id'] == precedente_general_id else None),
+            "away": h2h_data.get('h2h_gen_away') if 'sintesis_ah_general_data' in locals() else (away_name if precedente_estadio['match_id'] == precedente_general_id else None),
+            "home_red": h2h_data.get('home_red_gen') if 'sintesis_ah_general_data' in locals() else (h2h_data.get('home_red_stadium') if precedente_estadio['match_id'] == precedente_general_id else None),
+            "away_red": h2h_data.get('away_red_gen') if 'sintesis_ah_general_data' in locals() else (h2h_data.get('away_red_stadium') if precedente_estadio['match_id'] == precedente_general_id else None),
         },
         "triangulacion": triangulacion_data
     }
@@ -1066,20 +1076,34 @@ def extract_vs_market_odds(soup):
                     continue
                 mid = str(row[0])
                 bookie = row[1]
+                
+                ah_init = str(row[3]) if row[3] not in (None, "", "null") else "N/A"
+                ah_fin = str(row[6]) if row[6] not in (None, "", "null") else "N/A"
+                ou_init = str(row[8]) if row[8] not in (None, "", "null") else "N/A"
+                ou_fin = str(row[9]) if row[9] not in (None, "", "null") else "N/A"
+
+                if ah_init in ("N/A", "", "-") and ah_fin not in ("N/A", "", "-"):
+                    ah_init = ah_fin
+                if ou_init in ("N/A", "", "-") and ou_fin not in ("N/A", "", "-"):
+                    ou_init = ou_fin
+
                 temp_map.setdefault(mid, {})[bookie] = {
                     "bookmaker_id": bookie,
-                    "ah_initial": str(row[3]) if row[3] not in (None, "") else "N/A",
-                    "ah_final": str(row[6]) if row[6] not in (None, "") else "N/A",
-                    "ou_initial": str(row[8]) if row[8] not in (None, "") else "N/A",
-                    "ou_final": str(row[9]) if row[9] not in (None, "") else "N/A",
+                    "ah_initial": ah_init,
+                    "ah_final": ah_fin,
+                    "ou_initial": ou_init,
+                    "ou_final": ou_fin,
                 }
 
             for mid, bookies in temp_map.items():
-                selected = bookies.get(8) or bookies.get(3)
+                selected = bookies.get(8) or bookies.get("8") or bookies.get(3) or bookies.get("3")
                 if selected is None and bookies:
                     selected = next(iter(bookies.values()))
                 if selected:
                     odds_map[mid] = selected
+                    clean_m = "".join(filter(str.isdigit, str(mid)))
+                    if clean_m and clean_m != mid:
+                        odds_map[clean_m] = selected
                     
     except Exception as e:
         print(f"Error parsing Vs_hOdds: {e}")
@@ -1163,28 +1187,42 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
                             break
                 if match_index:
                     break
-        market_odds = (odds_map or {}).get(match_index)
+        clean_match_index = "".join(filter(str.isdigit, str(match_index or '')))
+        market_odds = (
+            (odds_map or {}).get(match_index)
+            or (odds_map or {}).get(clean_match_index)
+            or {}
+        )
         mapped_ah = (
             market_odds.get('ah_initial')
             if isinstance(market_odds, dict)
             else market_odds
         )
+        if mapped_ah in (None, '', '-', 'N/A') and isinstance(market_odds, dict):
+            mapped_ah = market_odds.get('ah_final')
         
         # Fallback usando odds_map si está disponible y el dato está vacío
-        if ah_line_raw in {'', '-', 'N/A'} and mapped_ah not in (None, '', '-', 'N/A'):
+        if ah_line_raw in {'', '-', 'N/A', '?'} and mapped_ah not in (None, '', '-', 'N/A', '?'):
             ah_line_raw = str(mapped_ah)
 
         ah_line_fmt = (
             format_ah_as_decimal_string_of(ah_line_raw)
-            if ah_line_raw not in ['', '-', 'N/A']
-            else 'N/A'
+            if ah_line_raw not in ['', '-', 'N/A', '?']
+            else '-'
         )
+
+        final_ah_line = ah_line_fmt if ah_line_fmt not in ('', 'N/A') else (ah_line_raw if ah_line_raw not in ('', 'N/A') else '-')
 
         ou_line_raw = (
             str(market_odds.get('ou_initial'))
             if isinstance(market_odds, dict)
             and market_odds.get('ou_initial') not in (None, '', '-', 'N/A')
-            else 'N/A'
+            else (
+                str(market_odds.get('ou_final'))
+                if isinstance(market_odds, dict)
+                and market_odds.get('ou_final') not in (None, '', '-', 'N/A')
+                else 'N/A'
+            )
         )
         ou_result = 'N/A'
         ou_line_number = parse_ah_to_number_of(ou_line_raw)
@@ -1199,9 +1237,10 @@ def get_match_details_from_row_of(row_element, score_class_selector='score', sou
 
         return {
             'date': date_txt, 'home': home, 'away': away, 'score': score_fmt,
-            'score_raw': score_raw, 'ahLine': ah_line_fmt, 'ahLine_raw': ah_line_raw or '-',
-            'ouLine': ou_line_raw, 'ou_result': ou_result,
-            'matchIndex': match_index, 'vs': row_element.get('vs'),
+            'score_raw': score_raw, 'ahLine': final_ah_line, 'ahLine_raw': ah_line_raw or '-',
+            'ouLine': ou_line_raw if ou_line_raw not in ('', 'N/A') else '-',
+            'ou_result': ou_result,
+            'matchIndex': clean_match_index or match_index, 'vs': row_element.get('vs'),
             'league_id_hist': row_element.get('title') or row_element.get('name'), # Usar title como nombre de liga si existe
             'home_id': home_id, 'away_id': away_id,
             'home_red': home_red, 'away_red': away_red
@@ -2412,6 +2451,7 @@ def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=Non
             })
             break
             
+    results['all_matches'] = all_matches
     return results
 
 def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id, is_home_table, odds_map=None):
@@ -2790,11 +2830,18 @@ def analizar_partido_completo(match_id: str, force_refresh: bool = False, check_
         )
 
 
+_match_odds_movement_cache = {}
+_match_odds_movement_lock = threading.Lock()
+
+
 def get_match_odds_movement_of(match_id: str) -> dict:
     """Extrae las cuotas Initial vs Live (AH, O/U, 1X2) de Bet365/Crown para el partido actual analizable."""
     if not match_id or not str(match_id).isdigit():
         return {"status": "error", "error": "ID de partido inválido"}
     match_id = str(match_id)
+    with _match_odds_movement_lock:
+        if match_id in _match_odds_movement_cache:
+            return copy.deepcopy(_match_odds_movement_cache[match_id])
     url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
     try:
         session = get_requests_session_of()
@@ -2872,9 +2919,15 @@ def get_match_odds_movement_of(match_id: str) -> dict:
 
         ou_init_fmt = fmt_ah(init_p[12])
         ou_live_fmt = fmt_ah(live_p[12])
+        if ou_init_fmt in ('-', 'N/A') and ou_live_fmt not in ('-', 'N/A'):
+            ou_init_fmt = ou_live_fmt
         ou_mov, ou_diff = calc_mov(ou_init_fmt, ou_live_fmt)
 
-        return {
+        if ah_init_fmt in ('-', 'N/A') and ah_live_fmt not in ('-', 'N/A'):
+            ah_init_fmt = ah_live_fmt
+        ah_mov, ah_diff = calc_mov(ah_init_fmt, ah_live_fmt)
+
+        res = {
             "status": "success",
             "match_id": match_id,
             "bookmaker_name": found_name,
@@ -2896,6 +2949,9 @@ def get_match_odds_movement_of(match_id: str) -> dict:
                 "live": {"home": live_p[0], "draw": live_p[1], "away": live_p[2]},
             }
         }
+        with _match_odds_movement_lock:
+            _match_odds_movement_cache[match_id] = res
+        return res
     except Exception as exc:
         LOGGER.exception("Error en get_match_odds_movement_of: %s", exc)
         return {"status": "error", "error": str(exc)}
