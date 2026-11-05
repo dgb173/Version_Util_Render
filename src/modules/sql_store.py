@@ -482,6 +482,8 @@ def _compact_context_matches(raw: Any) -> List[Dict[str, Any]]:
             "score_raw": row.get("score_raw") or row.get("score") or "",
             "ahLine": row.get("ahLine") or row.get("ahLine_raw") or row.get("ah_line") or row.get("ah") or "-",
             "ahLine_raw": row.get("ahLine_raw") or row.get("ahLine") or row.get("ah_line") or "-",
+            "ouLine": row.get("ouLine") or row.get("ou_line") or row.get("goal_line") or row.get("goals_linea") or "-",
+            "stats_rows": row.get("stats_rows") if isinstance(row.get("stats_rows"), list) else [],
             "league_id_hist": row.get("league_id_hist") or row.get("league_id") or row.get("name") or row.get("title") or "-",
             "matchIndex": str(row.get("matchIndex") or row.get("match_id") or row.get("id") or ""),
             "home_id": row.get("home_id") or "",

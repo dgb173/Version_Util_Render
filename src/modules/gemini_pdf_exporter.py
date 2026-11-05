@@ -70,7 +70,7 @@ def extract_last_5_matches_with_stats(team_name: str, matches_list: List[Dict], 
         mid = m.get('matchIndex') or m.get('match_id') or m.get('id')
         score = _clean_str(m.get('score') or m.get('score_raw'))
         ah_line = _clean_str(m.get('ahLine') or m.get('ahLine_raw') or m.get('handicap') or m.get('handicap_line_raw'))
-        ou_line = _clean_str(m.get('ouLine') or m.get('goal_line') or m.get('goals_linea'))
+        ou_line = _clean_str(m.get('ouLine') or m.get('ou_line') or m.get('goal_line') or m.get('goals_linea'))
         date = _clean_str(m.get('date') or m.get('match_date'))
 
         # Calcular si cubrió hándicap
@@ -95,6 +95,8 @@ def extract_last_5_matches_with_stats(team_name: str, matches_list: List[Dict], 
         red_fav, red_con = 0, 0
 
         for s in stats_rows:
+            if not isinstance(s, dict):
+                continue
             label = str(s.get('name') or s.get('label') or '').lower().strip()
             h_val = _parse_num(s.get('home'))
             a_val = _parse_num(s.get('away'))
@@ -120,8 +122,8 @@ def extract_last_5_matches_with_stats(team_name: str, matches_list: List[Dict], 
 
         # Fallback para rojas desde las propiedades directas del partido si existen
         if red_fav == 0 and red_con == 0:
-            rh = int(m.get('home_red') or 0)
-            ra = int(m.get('away_red') or 0)
+            rh = int(_parse_num(m.get('home_red')))
+            ra = int(_parse_num(m.get('away_red')))
             red_fav = rh if is_subject_home else ra
             red_con = ra if is_subject_home else rh
 
@@ -312,10 +314,10 @@ def render_match_html_page(dossier: Dict[str, Any]) -> str:
     # Estilos de badges para cobertura
     def badge_cov(cov: str) -> str:
         if not cov: return "-"
-        if "CUBRIÓ" in cov:
-            return '<span style="background-color:#dcfce7; color:#15803d; font-weight:bold; padding:1px 4px; border-radius:3px;">CUBRIÓ</span>'
         if "NO CUBRIÓ" in cov:
             return '<span style="background-color:#fee2e2; color:#991b1b; font-weight:bold; padding:1px 4px; border-radius:3px;">NO CUBRIÓ</span>'
+        if "CUBRIÓ" in cov:
+            return '<span style="background-color:#dcfce7; color:#15803d; font-weight:bold; padding:1px 4px; border-radius:3px;">CUBRIÓ</span>'
         if "PUSH" in cov:
             return '<span style="background-color:#f1f5f9; color:#475569; font-weight:bold; padding:1px 4px; border-radius:3px;">PUSH</span>'
         return cov
@@ -323,9 +325,13 @@ def render_match_html_page(dossier: Dict[str, Any]) -> str:
     # Render filas de 5 partidos
     def render_rows(matches: List[Dict], team_label: str) -> str:
         if not matches:
-            return '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:6px;">Sin historial reciente disponible</td></tr>'
+            return '<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:6px;">Sin historial reciente disponible</td></tr>'
         html_rows = []
         for m in matches:
+            has_stats = m.get('has_full_stats')
+            shots = f"{m['sot_fav']}:{m['sot_con']} ({m['shots_fav']}:{m['shots_con']})" if has_stats else 'Sin stats'
+            attacks = f"{m['att_fav']}:{m['att_con']}" if has_stats else '-'
+            dangerous = f"{m['dang_fav']}:{m['dang_con']}" if has_stats else '-'
             red_badge = f' <span style="background-color:#ef4444; color:#fff; font-size:7pt; padding:1px 3px; border-radius:2px; font-weight:bold;">🟥 {m["red_fav"]}</span>' if m.get('red_fav', 0) > 0 else ''
             opp_red = f' <span style="background-color:#ef4444; color:#fff; font-size:7pt; padding:1px 3px; border-radius:2px; font-weight:bold;">🟥 {m["red_con"]}</span>' if m.get('red_con', 0) > 0 else ''
             cov = badge_cov(m.get('cover_status', ''))
@@ -336,8 +342,10 @@ def render_match_html_page(dossier: Dict[str, Any]) -> str:
                 <td style="padding: 3px 4px; text-align: center; font-size: 8pt; font-weight: bold;">{m['score']}{red_badge}</td>
                 <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt;">{m['ah_line']}</td>
                 <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt;">{cov}</td>
-                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt; font-weight:bold;">{m['sot_fav']}:{m['sot_con']} <span style="font-weight:normal; font-size:6.5pt; color:#64748b;">({m['shots_fav']}:{m['shots_con']})</span></td>
-                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt; font-weight:bold; color:#047857;">{m['dang_fav']}:{m['dang_con']}</td>
+                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt; font-weight:bold;">{shots}</td>
+                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt;">{m['ou_line']}</td>
+                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt;">{attacks}</td>
+                <td style="padding: 3px 4px; text-align: center; font-size: 7.5pt; font-weight:bold; color:#047857;">{dangerous}</td>
             </tr>
             """)
         return "".join(html_rows)
@@ -408,6 +416,8 @@ def render_match_html_page(dossier: Dict[str, Any]) -> str:
                         <th style="padding: 2px 4px; text-align: center; width: 44px;">Línea AH</th>
                         <th style="padding: 2px 4px; text-align: center; width: 64px;">Cobertura</th>
                         <th style="padding: 2px 4px; text-align: center; width: 85px;">Tiros Pta (Tot)</th>
+                        <th style="padding: 2px 4px; text-align: center; width: 34px;">O/U</th>
+                        <th style="padding: 2px 4px; text-align: center; width: 55px;">Ataques</th>
                         <th style="padding: 2px 4px; text-align: center; width: 80px;">Atq. Peligrosos</th>
                     </tr>
                 </thead>
@@ -436,6 +446,8 @@ def render_match_html_page(dossier: Dict[str, Any]) -> str:
                         <th style="padding: 2px 4px; text-align: center; width: 44px;">Línea AH</th>
                         <th style="padding: 2px 4px; text-align: center; width: 64px;">Cobertura</th>
                         <th style="padding: 2px 4px; text-align: center; width: 85px;">Tiros Pta (Tot)</th>
+                        <th style="padding: 2px 4px; text-align: center; width: 34px;">O/U</th>
+                        <th style="padding: 2px 4px; text-align: center; width: 55px;">Ataques</th>
                         <th style="padding: 2px 4px; text-align: center; width: 80px;">Atq. Peligrosos</th>
                     </tr>
                 </thead>
@@ -512,13 +524,13 @@ def generate_gemini_text_prompt(matches_data_list: List[Dict], mode: str = 'prec
         lines.append(f"\n### 🏠 {d['home_name']} - Balance 5 Partidos: {hs['wdl']} | Goles: {hs['goals']} | Cobertura AH: {hs['cover_summary']}")
         lines.append(f"  * Promedios 5 partidos: {hs['avg_sot_fav']}:{hs['avg_sot_con']} Tiros Puerta | {hs['avg_dang_fav']}:{hs['avg_dang_con']} Ataques Peligrosos")
         for m in d['home_5']:
-            lines.append(f"  - [{m['date']}] vs {m['rival']} ({m['location']}): {m['score']} (AH {m['ah_line']}: {m['cover_status']}) | Tiros: {m['shots_fav']}:{m['shots_con']} (Puerta: {m['sot_fav']}:{m['sot_con']}) | Atq.Peligrosos: {m['dang_fav']}:{m['dang_con']} | Rojas: {m['red_fav']}:{m['red_con']}")
+            lines.append(f"  - [{m['date']}] vs {m['rival']} ({m['location']}): {m['score']} (AH {m['ah_line']}: {m['cover_status']}; O/U {m['ou_line']}) | Tiros: {m['shots_fav']}:{m['shots_con']} (Puerta: {m['sot_fav']}:{m['sot_con']}) | Ataques: {m['att_fav']}:{m['att_con']} | Atq.Peligrosos: {m['dang_fav']}:{m['dang_con']} | Rojas: {m['red_fav']}:{m['red_con']}")
 
         asum = d['away_summary']
         lines.append(f"\n### ✈️ {d['away_name']} - Balance 5 Partidos: {asum['wdl']} | Goles: {asum['goals']} | Cobertura AH: {asum['cover_summary']}")
         lines.append(f"  * Promedios 5 partidos: {asum['avg_sot_fav']}:{asum['avg_sot_con']} Tiros Puerta | {asum['avg_dang_fav']}:{asum['avg_dang_con']} Ataques Peligrosos")
         for m in d['away_5']:
-            lines.append(f"  - [{m['date']}] vs {m['rival']} ({m['location']}): {m['score']} (AH {m['ah_line']}: {m['cover_status']}) | Tiros: {m['shots_fav']}:{m['shots_con']} (Puerta: {m['sot_fav']}:{m['sot_con']}) | Atq.Peligrosos: {m['dang_fav']}:{m['dang_con']} | Rojas: {m['red_fav']}:{m['red_con']}")
+            lines.append(f"  - [{m['date']}] vs {m['rival']} ({m['location']}): {m['score']} (AH {m['ah_line']}: {m['cover_status']}; O/U {m['ou_line']}) | Tiros: {m['shots_fav']}:{m['shots_con']} (Puerta: {m['sot_fav']}:{m['sot_con']}) | Ataques: {m['att_fav']}:{m['att_con']} | Atq.Peligrosos: {m['dang_fav']}:{m['dang_con']} | Rojas: {m['red_fav']}:{m['red_con']}")
 
         lines.append(f"\n### 🏟️ H2H Directo:")
         lines.append(f"- Estadio: {d['h2h_stadium']['date']} | Marcador: {d['h2h_stadium']['score']} | AH: {d['h2h_stadium']['ah']} ({d['h2h_stadium']['eval']})")

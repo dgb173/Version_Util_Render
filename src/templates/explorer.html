@@ -3088,8 +3088,8 @@
                     <i class="fa-solid fa-brain me-1"></i> Último General Página
                 </button>
                 <span class="small text-muted" id="last-general-status"></span>
-                <button class="btn btn-sm btn-outline-success" id="btn-download-all-cards" onclick="downloadAllExplorerCards(this)" style="font-size: 0.8rem; padding: 2px 8px;" title="Descargar fichas de los partidos seleccionados con checkbox (o de toda la página si no hay ninguno marcado)">
-                    <i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas Página
+                <button class="btn btn-sm btn-outline-success" id="btn-download-all-cards" onclick="downloadMatchDossierPdf('explorer', this)" style="font-size: 0.8rem; padding: 2px 8px;" title="Descargar PDF con los últimos 5 partidos y estadísticas de cada equipo">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Descargar PDF Página
                     <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>
                 </button>
                 <span class="small text-muted" id="download-cards-status"></span>
@@ -6617,7 +6617,7 @@
             function isValidValue(val) { return val !== undefined && val !== null && val !== "undefined" && val !== ""; }
             const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-            const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '', ou = '', showCellBadge = true }) => {
+            const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '', ou = '', showCellBadge = false }) => {
                 if (!score || score === '-' || score === '?:?' || score === '?-?' || score === '??') return '';
                 const safeOu = String(ou || '').trim();
                 const cleanOu = (safeOu && safeOu !== '-' && safeOu !== 'N/A' && safeOu !== 'null' && safeOu !== 'undefined') ? safeOu : '';
@@ -6638,7 +6638,7 @@
                                 data-league="${escAttr(league)}"
                                 onclick="toggleCellInlineStats(this, event)"
                                 style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
-                                title="Ver estadísticas en esta celda${(showCellBadge && cleanOu) ? ` · Línea de goles: ${cleanOu}` : ''}">
+                                title="Ver estadísticas en esta celda${cleanOu ? ` · Línea de goles: ${cleanOu}` : ''}">
                                 <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
                             </button>
                             ${cellBadgeHtml}
@@ -11045,9 +11045,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
             }
             if (count > 0) {
-                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas <span id="download-cards-badge" class="badge bg-success ms-1">${count}</span>`;
+                btn.innerHTML = `<i class="fa-solid fa-file-pdf me-1"></i> Descargar PDF <span id="download-cards-badge" class="badge bg-success ms-1">${count}</span>`;
             } else {
-                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down me-1"></i> Descargar Fichas Página <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>`;
+                btn.innerHTML = `<i class="fa-solid fa-file-pdf me-1"></i> Descargar PDF Página <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>`;
             }
         }
 
@@ -11484,6 +11484,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/match_dossier_download.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
     <script defer src="{{ url_for('static', filename='js/motor_cuantitativo_v4.js') }}?v={{ range(1000, 9999) | random }}"></script>
 </body>

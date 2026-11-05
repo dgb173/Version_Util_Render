@@ -1826,10 +1826,34 @@ def api_export_gemini_dossier_pdf():
                 except Exception:
                     stored = None
             if isinstance(stored, dict) and 'error' not in stored:
+                context = stored.get('pre_match_context') or {}
+                current = context.get('current') or context
+                if not (stored.get('recent_home_matches_all') or current.get('home_matches_all')) or not (stored.get('recent_away_matches_all') or current.get('away_matches_all')):
+                    try:
+                        odds = stored.get('main_match_odds') or {}
+                        fresh_context = analizar_contexto_previo_rapido(
+                            mid,
+                            current_ah=odds.get('ah_linea') or stored.get('handicap'),
+                            current_goal_line=odds.get('goals_linea') or stored.get('goal_line'),
+                            is_neutral_venue=True if stored.get('is_neutral_venue') is True else None,
+                        )
+                        if isinstance(fresh_context, dict) and not fresh_context.get('error'):
+                            stored = dict(stored, pre_match_context=fresh_context)
+                    except Exception:
+                        logging.exception('No se pudo cargar historial reciente para PDF %s', mid)
                 matches.append(stored)
 
         if not matches:
             return jsonify({"success": False, "error": "No se pudieron cargar datos para los partidos seleccionados"}), 400
+
+        without_history = []
+        for match in matches:
+            context = match.get('pre_match_context') or {}
+            current = context.get('current') or context
+            if not (match.get('recent_home_matches_all') or current.get('home_matches_all') or match.get('recent_home_matches') or current.get('home_matches')) or not (match.get('recent_away_matches_all') or current.get('away_matches_all') or match.get('recent_away_matches') or current.get('away_matches')):
+                without_history.append(str(match.get('match_id') or match.get('id') or '?'))
+        if without_history:
+            return jsonify({"success": False, "error": "No hay historial de ambos equipos para: " + ', '.join(without_history[:10])}), 422
 
         pdf_bytes = gemini_pdf_exporter.generate_gemini_pdf_dossier(matches, mode=mode)
         now_str = datetime.datetime.now().strftime('%Y%m%d_%H%M')
