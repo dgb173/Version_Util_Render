@@ -153,7 +153,8 @@ async def _fetch_nowgoal_html(path: str | None = None, filter_state: int | None 
         print(f"Error al obtener la pagina con Playwright ({target_url}): {browser_exc}")
     return None
 
-def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=None, goal_line_filter=None):
+def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=None, goal_line_filter=None,
+                            require_handicap=True, require_goal_line=False):
     soup = BeautifulSoup(html_content, 'html.parser')
     match_rows = soup.find_all('tr', id=lambda x: x and x.startswith('tr1_'))
     upcoming_matches = []
@@ -179,7 +180,9 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
         handicap = odds_data[2] if len(odds_data) > 2 else "N/A"
         goal_line = odds_data[10] if len(odds_data) > 10 else "N/A"
 
-        if handicap == "N/A":
+        if require_handicap and handicap == "N/A":
+            continue
+        if require_goal_line and goal_line == "N/A":
             continue
 
         upcoming_matches.append({
@@ -209,7 +212,7 @@ def parse_main_page_matches(html_content, limit=20, offset=0, handicap_filter=No
 
     upcoming_matches.sort(key=lambda x: x['time_obj'])
     
-    paginated_matches = upcoming_matches[offset:offset+limit]
+    paginated_matches = upcoming_matches[offset:offset + limit if limit is not None else None]
 
     for match in paginated_matches:
         dt_spain = match['time_obj'].replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo('Europe/Madrid'))
@@ -295,7 +298,7 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
 
     finished_matches.sort(key=lambda x: x['time_obj'], reverse=True)
     
-    paginated_matches = finished_matches[offset:offset+limit]
+    paginated_matches = finished_matches[offset:offset + limit if limit is not None else None]
 
     for match in paginated_matches:
         dt_spain = match['time_obj'].replace(tzinfo=datetime.timezone.utc).astimezone(ZoneInfo('Europe/Madrid'))
@@ -305,7 +308,8 @@ def parse_main_page_finished_matches(html_content, limit=20, offset=0, handicap_
 
     return paginated_matches
 
-async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None, goal_line_filter=None):
+async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None, goal_line_filter=None,
+                                      require_handicap=True, require_goal_line=True):
     try:
         matches = await asyncio.to_thread(
             nowgoal_fetcher.fetch_main_page_matches_direct,
@@ -314,6 +318,8 @@ async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None,
             offset=offset,
             handicap_filter=handicap_filter,
             goal_line_filter=goal_line_filter,
+            require_handicap=require_handicap,
+            require_goal_line=require_goal_line,
         )
         if matches:
             return matches
@@ -325,7 +331,10 @@ async def get_main_page_matches_async(limit=200, offset=0, handicap_filter=None,
         html_content = await _fetch_nowgoal_html(filter_state=3, requests_first=False)
         if not html_content:
             return []
-    matches = parse_main_page_matches(html_content, limit, offset, handicap_filter, goal_line_filter)
+    matches = parse_main_page_matches(
+        html_content, limit, offset, handicap_filter, goal_line_filter,
+        require_handicap=require_handicap, require_goal_line=require_goal_line,
+    )
     return matches
 
 async def get_main_page_finished_matches_async(limit=1500, offset=0, handicap_filter=None, goal_line_filter=None):

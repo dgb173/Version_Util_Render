@@ -199,6 +199,9 @@ def _connect():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = None
 
+    if LIBSQL_REMOTE_ONLY and (not LIBSQL_URL or _libsql is None):
+        raise RuntimeError("Turso remoto requerido, pero LIBSQL_URL o el paquete libsql no están disponibles")
+
     if LIBSQL_URL and _libsql is not None:
         try:
             if LIBSQL_REMOTE_ONLY:
@@ -223,6 +226,8 @@ def _connect():
             # Probar lectura para verificar que Turso no esté bloqueado o con cuota agotada
             conn.execute("SELECT 1")
         except Exception as exc:
+            if LIBSQL_REMOTE_ONLY:
+                raise RuntimeError(f"No se pudo conectar con Turso remoto: {exc}") from exc
             LOGGER.warning("Aviso: Conexión con Turso/libSQL no disponible o bloqueada (%s). Fallback automático a SQLite local (%s).", exc, DB_PATH)
             conn = sqlite3.connect(DB_PATH, timeout=30)
     else:

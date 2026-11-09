@@ -375,14 +375,18 @@ def parse_matches_from_bf_content(
         return []
 
     leagues_map: Dict[str, str] = {}
-    league_pattern = re.compile(r"B\[\d+\]=\[(.*?)\];")
+    leagues_id_map: Dict[str, str] = {}
+    league_pattern = re.compile(r"B\[(\d+)\]=\[(.*?)\];")
     for match in league_pattern.finditer(content):
-        row = _sanitize_js_row(match.group(1))
+        b_idx = str(match.group(1))
+        row = _sanitize_js_row(match.group(2))
         if row and len(row) >= 2:
             lid = str(row[0])
-            lname = str(row[1] or "")
-            if lid and lname:
+            lname = str((row[2] if len(row) > 2 and row[2] else row[1]) or "")
+            if lname:
+                leagues_map[b_idx] = lname
                 leagues_map[lid] = lname
+                leagues_id_map[b_idx] = lid
 
     match_pattern = re.compile(r"A\[\d+\]=\[(.*?)\];")
     matches: List[Dict[str, Any]] = []
@@ -399,9 +403,10 @@ def parse_matches_from_bf_content(
             continue
         seen_ids.add(match_id)
 
-        league_id = str(row[1]) if len(row) > 1 and row[1] is not None else ""
-        league_name = leagues_map.get(league_id) or (
-            str(row[2]) if len(row) > 2 and row[2] else "Unknown League"
+        raw_lid = str(row[1]) if len(row) > 1 and row[1] is not None else ""
+        league_id = leagues_id_map.get(raw_lid, raw_lid)
+        league_name = leagues_map.get(raw_lid) or leagues_map.get(league_id) or (
+            str(row[2]) if len(row) > 2 and row[2] and not str(row[2]).strip().isdigit() else "Unknown League"
         )
 
         home_team = str(row[4]) if len(row) > 4 and row[4] is not None else "Local"
@@ -411,6 +416,11 @@ def parse_matches_from_bf_content(
             status_val = int(row[8]) if len(row) > 8 and row[8] is not None else 0
         except (ValueError, TypeError):
             status_val = 0
+
+        # El feed marca cancelados y aplazados con estado negativo aunque su
+        # fecha siga en el futuro. No son partidos programados ni finalizados.
+        if status_val in (-10, -11, -14):
+            continue
 
         home_score = str(row[9]) if len(row) > 9 and row[9] is not None else ""
         away_score = str(row[10]) if len(row) > 10 and row[10] is not None else ""
@@ -551,7 +561,9 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
                                 for (let i = 0; i < B.length; i++) {
                                     const row = B[i];
                                     if (row && row.length >= 2) {
-                                        leagues[String(row[0])] = String(row[1] || '');
+                                        const name = String(row[2] || row[1] || '');
+                                        leagues[String(i)] = name;
+                                        leagues[String(row[0])] = name;
                                     }
                                 }
                             }
@@ -603,6 +615,8 @@ def fetch_matches_with_playwright(status_filter: str = "all") -> List[Dict[str, 
                 status_val = int(row[8]) if len(row) > 8 and row[8] is not None else 0
             except Exception:
                 status_val = 0
+            if status_val in (-10, -11, -14):
+                continue
 
             home_score = str(row[9]) if len(row) > 9 and row[9] is not None else ""
             away_score = str(row[10]) if len(row) > 10 and row[10] is not None else ""

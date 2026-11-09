@@ -180,7 +180,7 @@ async def main():
     try:
         # Obtenemos un universo amplio de partidos próximos (500) y finalizados
         proximos, finalizados = await asyncio.gather(
-            get_main_page_matches_async(limit=None),
+            get_main_page_matches_async(limit=None, require_handicap=False, require_goal_line=False),
             get_main_page_finished_matches_async(limit=1500)
         )
         

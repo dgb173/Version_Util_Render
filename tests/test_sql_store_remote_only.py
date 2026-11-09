@@ -1,4 +1,5 @@
 from modules import sql_store
+import pytest
 
 
 class _FakeConnection:
@@ -44,6 +45,18 @@ def test_remote_only_connects_without_creating_or_syncing_local_replica(monkeypa
 def test_row_value_supports_sqlite_rows_and_remote_tuple_rows():
     assert sql_store._row_value(("bucket.json",), "bucket", 0) == "bucket.json"
     assert sql_store._row_value({"bucket": "mapped.json"}, "bucket", 0) == "mapped.json"
+
+
+def test_remote_only_connection_failure_does_not_write_to_disposable_sqlite(monkeypatch):
+    class BrokenLibsql:
+        def connect(self, *args, **kwargs):
+            raise ConnectionError("remote unavailable")
+
+    monkeypatch.setattr(sql_store, "_libsql", BrokenLibsql())
+    monkeypatch.setattr(sql_store, "LIBSQL_URL", "libsql://explorer.example.turso.io")
+    monkeypatch.setattr(sql_store, "LIBSQL_REMOTE_ONLY", True)
+    with pytest.raises(RuntimeError, match="Turso remoto"):
+        sql_store._connect()
 
 
 def test_batch_upsert_writes_and_reads_explorer_payload(monkeypatch, tmp_path):
