@@ -72,16 +72,32 @@ def sync_rows(rows: list[dict]) -> int:
 
         from modules import data_manager, sql_store
 
-        entries = [
-            (
+        # Turso Free can reject one very large remote transaction. Each result
+        # contains several JSON views, so keep both the row count and source
+        # payload size bounded before opening a transaction.
+        max_rows = 10
+        max_source_bytes = 1_000_000
+        batch = []
+        batch_bytes = 0
+        synced = 0
+        for row in rows:
+            source_bytes = len(json.dumps(row, ensure_ascii=False).encode("utf-8"))
+            if batch and (len(batch) >= max_rows or batch_bytes + source_bytes > max_source_bytes):
+                sql_store.upsert_matches(batch)
+                synced += len(batch)
+                print(f"Sincronizados {synced}/{len(rows)} terminados", flush=True)
+                batch = []
+                batch_bytes = 0
+            batch.append((
                 row,
                 data_manager.get_bucket_name((row.get("main_match_odds") or {}).get("ah_linea")),
                 "historical",
-            )
-            for row in rows
-        ]
-        sql_store.upsert_matches(entries)
-        return len(entries)
+            ))
+            batch_bytes += source_bytes
+        if batch:
+            sql_store.upsert_matches(batch)
+            synced += len(batch)
+        return synced
     except Exception as exc:
         raise RuntimeError(f"No se pudieron sincronizar los terminados con Turso: {exc}") from exc
 
@@ -96,7 +112,19 @@ def main() -> int:
         print("No new finished matches to sync")
         return 0
 
-    synced = sync_rows(rows)
+    try:
+        synced = sync_rows(rows)
+    except Exception as exc:
+        detail = str(exc)
+        for secret_name in ("LIBSQL_URL", "LIBSQL_AUTH_TOKEN"):
+            secret = os.getenv(secret_name, "").strip()
+            if secret:
+                detail = detail.replace(secret, "[redactado]")
+        summary = os.getenv("GITHUB_STEP_SUMMARY")
+        if summary:
+            with open(summary, "a", encoding="utf-8") as handle:
+                handle.write(f"\n### Error al sincronizar terminados con Turso\n\n{detail}\n")
+        raise
     print(f"Synced {synced} finished matches to Turso")
     return 0
 

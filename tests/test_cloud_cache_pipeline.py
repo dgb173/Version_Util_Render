@@ -185,6 +185,19 @@ def test_collect_finished_rows_validates_and_deduplicates(tmp_path):
         turso_sync.collect_rows(results)
 
 
+def test_finished_sync_uses_bounded_remote_transactions(monkeypatch):
+    from modules import sql_store
+    monkeypatch.setenv('LIBSQL_URL', 'libsql://example.turso.io')
+    monkeypatch.setenv('LIBSQL_AUTH_TOKEN', 'test-token')
+    batches = []
+    monkeypatch.setattr(sql_store, 'upsert_matches', lambda entries: batches.append(list(entries)))
+    rows = [row(i, final_score='1:0') for i in range(1, 24)]
+
+    assert turso_sync.sync_rows(rows) == 23
+    assert [len(batch) for batch in batches] == [10, 10, 3]
+    assert all(entry[2] == 'historical' for batch in batches for entry in batch)
+
+
 def test_backfill_streams_only_rows_with_match_ids(tmp_path):
     cache.write_json(tmp_path / 'data_ah_0.json', [
         row(1, handicap=0.25, home_ou_stats={'over_pct': 42.5}),
