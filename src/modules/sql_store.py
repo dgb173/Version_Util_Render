@@ -683,7 +683,7 @@ def backfill_explorer_search_payload() -> int:
 
 def _get_kv(conn: sqlite3.Connection, key: str) -> Optional[str]:
     row = conn.execute("SELECT value FROM kv_store WHERE key = ?", (key,)).fetchone()
-    return row["value"] if row else None
+    return row[0] if row else None
 
 
 def _set_kv(conn: sqlite3.Connection, key: str, value: str) -> None:
