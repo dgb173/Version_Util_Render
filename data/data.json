@@ -1,31 +1,6 @@
 {
   "upcoming_matches": [
     {
-      "id": "3112597",
-      "match_id": "3112597",
-      "home_team": "Tokyo United",
-      "away_team": "Gakunan F Mosuperio",
-      "home_name": "Tokyo United",
-      "away_name": "Gakunan F Mosuperio",
-      "league": "Japan Regional League",
-      "league_name": "Japan Regional League",
-      "league_id": "1517",
-      "time": "05:30",
-      "date": "11/13/2026",
-      "match_date": "11/13/2026",
-      "start_time": "2026-11-13T05:30:00+01:00",
-      "handicap": "0.75",
-      "goal_line": "2.5",
-      "score": null,
-      "final_score": null,
-      "status": 0,
-      "main_match_odds": {
-        "ah_linea": "0.75",
-        "goals_linea": "2.5"
-      },
-      "specialist_picks": []
-    },
-    {
       "id": "3105682",
       "match_id": "3105682",
       "home_team": "FC Ulaanbaatar",
@@ -1264,14 +1239,14 @@
       "date": "11/13/2026",
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T12:30:00+01:00",
-      "handicap": "N/A",
-      "goal_line": "N/A",
+      "handicap": "-0.25",
+      "goal_line": "3",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "N/A",
-        "goals_linea": "N/A"
+        "ah_linea": "-0.25",
+        "goals_linea": "3"
       },
       "specialist_picks": []
     },
@@ -3339,13 +3314,13 @@
       "date": "11/13/2026",
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T15:10:00+01:00",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "2.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.5",
+        "ah_linea": "0.25",
         "goals_linea": "2.25"
       },
       "specialist_picks": []
@@ -4889,13 +4864,13 @@
       "date": "11/13/2026",
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T18:30:00+01:00",
-      "handicap": "-1.5",
+      "handicap": "-1.25",
       "goal_line": "3",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "-1.5",
+        "ah_linea": "-1.25",
         "goals_linea": "3"
       },
       "specialist_picks": []
@@ -4964,13 +4939,13 @@
       "date": "11/13/2026",
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T18:30:00+01:00",
-      "handicap": "0.75",
+      "handicap": "0.5",
       "goal_line": "3.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.75",
+        "ah_linea": "0.5",
         "goals_linea": "3.25"
       },
       "specialist_picks": []
@@ -6314,13 +6289,13 @@
       "date": "11/13/2026",
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T20:30:00+01:00",
-      "handicap": "0.25",
+      "handicap": "0",
       "goal_line": "2.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.25",
+        "ah_linea": "0",
         "goals_linea": "2.25"
       },
       "specialist_picks": []
@@ -6665,13 +6640,13 @@
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T20:45:00+01:00",
       "handicap": "-0.75",
-      "goal_line": "2.25",
+      "goal_line": "2",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
         "ah_linea": "-0.75",
-        "goals_linea": "2.25"
+        "goals_linea": "2"
       },
       "specialist_picks": []
     },
@@ -7440,13 +7415,13 @@
       "match_date": "11/13/2026",
       "start_time": "2026-11-13T21:00:00+01:00",
       "handicap": "1.75",
-      "goal_line": "3",
+      "goal_line": "3.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
         "ah_linea": "1.75",
-        "goals_linea": "3"
+        "goals_linea": "3.25"
       },
       "specialist_picks": []
     },
