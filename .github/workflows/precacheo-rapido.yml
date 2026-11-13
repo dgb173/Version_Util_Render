@@ -35,7 +35,7 @@ env:
 jobs:
   preparar:
     name: Snapshot y reparto de cola
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
@@ -77,7 +77,7 @@ jobs:
   analizar:
     name: Shard ${{ matrix.shard }}/8
     needs: preparar
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -126,7 +126,7 @@ jobs:
   publicar:
     name: Fusionar y publicar una sola vez
     needs: analizar
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

@@ -24,7 +24,8 @@ concurrency:
 jobs:
   actualizar:
     name: Generar, publicar y desplegar
-    runs-on: ubuntu-latest
+    # Playwright 1.55.0 no admite Ubuntu 26.04 (actual ubuntu-latest).
+    runs-on: ubuntu-24.04
     timeout-minutes: 240
     env:
       APP_SQLITE_PATH: ${{ github.workspace }}/data/app_data.db
