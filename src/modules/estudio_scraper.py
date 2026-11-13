@@ -1,6 +1,7 @@
 # src/modules/estudio_scraper.py
 
 import time
+import logging
 import copy
 import os
 import requests
@@ -20,6 +21,7 @@ import pandas as pd
 from pathlib import Path
 from . import sql_store
 from .red_cards import extract_red_card_count_from_cell, normalize_red_card_stats_payload
+LOGGER = logging.getLogger(__name__)
 # Selenium imports removed
 SELENIUM_AVAILABLE = False
 
