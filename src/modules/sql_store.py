@@ -368,7 +368,8 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 
 def _ensure_matches_explorer_column(conn: sqlite3.Connection) -> None:
     cols = conn.execute("PRAGMA table_info(matches)").fetchall()
-    names = {row["name"] for row in cols}
+    # PRAGMA table_info returns tuples with libSQL remote and sqlite3.Row locally.
+    names = {row[1] for row in cols}
     if "explorer_json" not in names:
         conn.execute("ALTER TABLE matches ADD COLUMN explorer_json TEXT")
     if "explorer_search_json" not in names:
