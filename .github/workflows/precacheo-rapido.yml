@@ -60,7 +60,7 @@ jobs:
         run: |
           python scripts/run_scraper.py
           python scripts/export_snapshot_to_json.py
-          args=(--db "$APP_SQLITE_PATH" --cache-key app_main_page_cache_v1 --out temp_matches_job_fast.json --max-jobs 0)
+          args=(--db "$APP_SQLITE_PATH" --cache-key app_main_page_cache_v1 --out temp_matches_job_fast.json)
           if [[ "$FORCE_FULL" == "true" ]]; then args+=(--include-existing); fi
           python scripts/build_job_from_snapshot.py "${args[@]}" || test "$?" -eq 4
           test -f temp_matches_job_fast.json || echo '[]' > temp_matches_job_fast.json
