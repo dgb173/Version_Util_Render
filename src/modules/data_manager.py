@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
-from . import precache_fast_store, sql_store
+from . import explorer_archive, precache_fast_store, sql_store
 from .red_cards import normalize_red_card_stats_payload
 
 LOGGER = logging.getLogger(__name__)
@@ -214,12 +214,12 @@ def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
             offset=safe_offset,
         )
 
-    # Fallback: si no hay filas con estado 'historical', consultar sin restricción de estado
-    if not rows and safe_offset == 0:
-        rows = sql_store.fetch_matches(
-            bucket=cache_bucket if (ah_filter and ah_filter != 'all') else None,
-            limit=scan_limit,
-            prefer_explorer_payload=True,
+    # A Render deployment starts with an ephemeral, partial SQL bootstrap.
+    # Never substitute upcoming precache rows for finalized historical rows.
+    if not rows and not sql_store.fetch_matches(state='historical', limit=1):
+        rows = explorer_archive.load_page(
+            bucket=cache_bucket,
+            limit=cache_limit,
             offset=safe_offset,
         )
 
