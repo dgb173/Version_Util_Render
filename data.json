@@ -14,13 +14,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T06:00:00+01:00",
-      "handicap": "-0.5",
+      "handicap": "-0.75",
       "goal_line": "2.75",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "-0.5",
+        "ah_linea": "-0.75",
         "goals_linea": "2.75"
       },
       "specialist_picks": []
@@ -39,13 +39,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T06:00:00+01:00",
-      "handicap": "0.75",
+      "handicap": "0.5",
       "goal_line": "2.75",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.75",
+        "ah_linea": "0.5",
         "goals_linea": "2.75"
       },
       "specialist_picks": []
@@ -414,14 +414,14 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T07:00:00+01:00",
-      "handicap": "0",
-      "goal_line": "2.75",
+      "handicap": "-0.25",
+      "goal_line": "3",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0",
-        "goals_linea": "2.75"
+        "ah_linea": "-0.25",
+        "goals_linea": "3"
       },
       "specialist_picks": []
     },
@@ -2339,13 +2339,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T11:00:00+01:00",
-      "handicap": "0.75",
+      "handicap": "1",
       "goal_line": "3.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.75",
+        "ah_linea": "1",
         "goals_linea": "3.25"
       },
       "specialist_picks": []
@@ -3265,13 +3265,13 @@
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T12:00:00+01:00",
       "handicap": "1.25",
-      "goal_line": "3",
+      "goal_line": "2.75",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
         "ah_linea": "1.25",
-        "goals_linea": "3"
+        "goals_linea": "2.75"
       },
       "specialist_picks": []
     },
@@ -10314,13 +10314,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T14:30:00+01:00",
-      "handicap": "0.5",
+      "handicap": "0.25",
       "goal_line": "3.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0.5",
+        "ah_linea": "0.25",
         "goals_linea": "3.25"
       },
       "specialist_picks": []
@@ -10589,13 +10589,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T14:30:00+01:00",
-      "handicap": "0",
+      "handicap": "-0.25",
       "goal_line": "3.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "0",
+        "ah_linea": "-0.25",
         "goals_linea": "3.25"
       },
       "specialist_picks": []
@@ -16189,13 +16189,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T20:30:00+01:00",
-      "handicap": "-0.5",
+      "handicap": "-0.25",
       "goal_line": "2.25",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "-0.5",
+        "ah_linea": "-0.25",
         "goals_linea": "2.25"
       },
       "specialist_picks": []
@@ -16264,13 +16264,13 @@
       "date": "11/15/2026",
       "match_date": "11/15/2026",
       "start_time": "2026-11-15T20:45:00+01:00",
-      "handicap": "2.25",
+      "handicap": "2",
       "goal_line": "3.75",
       "score": null,
       "final_score": null,
       "status": 0,
       "main_match_odds": {
-        "ah_linea": "2.25",
+        "ah_linea": "2",
         "goals_linea": "3.75"
       },
       "specialist_picks": []
@@ -17802,6 +17802,56 @@
     }
   ],
   "finished_matches": [
+    {
+      "id": "3092326",
+      "match_id": "3092326",
+      "home_team": "Birkenhead United",
+      "away_team": "Eastern Suburbs AFC",
+      "home_name": "Birkenhead United",
+      "away_name": "Eastern Suburbs AFC",
+      "league": "New Zealand National League",
+      "league_name": "New Zealand National League",
+      "league_id": "341",
+      "time": "04:00",
+      "date": "11/15/2026",
+      "match_date": "11/15/2026",
+      "start_time": "2026-11-15T04:00:00+01:00",
+      "handicap": "0.25",
+      "goal_line": "3",
+      "score": "1-2",
+      "final_score": "1-2",
+      "status": -1,
+      "main_match_odds": {
+        "ah_linea": "0.25",
+        "goals_linea": "3"
+      },
+      "specialist_picks": []
+    },
+    {
+      "id": "3107965",
+      "match_id": "3107965",
+      "home_team": "Eastern Suburbs (W)",
+      "away_team": "Canterbury United (W)",
+      "home_name": "Eastern Suburbs (W)",
+      "away_name": "Canterbury United (W)",
+      "league": "New Zealand Premier League Women",
+      "league_name": "New Zealand Premier League Women",
+      "league_id": "1567",
+      "time": "04:00",
+      "date": "11/15/2026",
+      "match_date": "11/15/2026",
+      "start_time": "2026-11-15T04:00:00+01:00",
+      "handicap": "3.25",
+      "goal_line": "4.75",
+      "score": "8-0",
+      "final_score": "8-0",
+      "status": -1,
+      "main_match_odds": {
+        "ah_linea": "3.25",
+        "goals_linea": "4.75"
+      },
+      "specialist_picks": []
+    },
     {
       "id": "3041099",
       "match_id": "3041099",
