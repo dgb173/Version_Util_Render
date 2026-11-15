@@ -75,24 +75,14 @@ def _looks_like_complete_precache(match):
         history_data_version = int(match.get("history_data_version") or 0)
     except (TypeError, ValueError):
         history_data_version = 0
-    if history_data_version < 2:
+    if history_data_version < 3 or match.get("summary_stats_status") != "complete":
         return False
-
-    heavyweight_fields = (
-        match.get("historical_matches_html"),
-        match.get("market_analysis_html"),
+    required_sections = (
+        "last_home_match", "last_away_match", "h2h_col3", "h2h_stadium",
+        "h2h_general", "comparativas_indirectas", "recent_home_matches",
+        "recent_away_matches",
     )
-    if any(value for value in heavyweight_fields):
-        return True
-
-    dict_sections = (
-        match.get("last_home_match"),
-        match.get("last_away_match"),
-        match.get("h2h_stadium"),
-        match.get("h2h_general"),
-        match.get("comparativas_indirectas"),
-    )
-    return any(isinstance(section, dict) and section for section in dict_sections)
+    return all(section in match for section in required_sections)
 
 
 def _load_existing_precache(conn: sqlite3.Connection, match_ids):
