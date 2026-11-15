@@ -9856,11 +9856,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 : 'CASA VS FUERA · TODAS LAS LIGAS';
             const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
             const filterDisabled = !currentLeague;
-            const hasCurrentLeagueHistory = [
-                current.home_matches, current.away_matches,
-                current.home_matches_all, current.away_matches_all,
-                pc?.recent_home_matches_all, pc?.recent_away_matches_all,
+            const homeHasCurrentLeagueHistory = [
+                current.home_matches, current.home_matches_all, pc?.recent_home_matches_all,
             ].some(rows => sameLeagueMatches(rows).length > 0);
+            const awayHasCurrentLeagueHistory = [
+                current.away_matches, current.away_matches_all, pc?.recent_away_matches_all,
+            ].some(rows => sameLeagueMatches(rows).length > 0);
+            const hasCurrentLeagueHistory = homeHasCurrentLeagueHistory && awayHasCurrentLeagueHistory;
             const leagueFilterChecked = !filterDisabled && hasCurrentLeagueHistory;
             const hasPrevious = !!previous;
 
