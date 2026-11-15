@@ -266,7 +266,7 @@ def _has_final_score(match: Dict[str, Any]) -> bool:
 
 def fetch_upcoming_ids_from_sql(
     buckets: Optional[Sequence[str]] = None,
-    limit: int = 200,
+    limit: Optional[int] = 200,
     now: Optional[dt.datetime] = None,
 ) -> List[str]:
     """Return chronological upcoming IDs directly from SQL, bypassing fast snapshots."""
@@ -289,7 +289,9 @@ def fetch_upcoming_ids_from_sql(
         upcoming.append((scheduled_at, match_id))
 
     upcoming.sort(key=lambda item: (item[0], item[1]))
-    safe_limit = max(1, int(limit or 200))
+    if limit is None:
+        return [match_id for _, match_id in upcoming]
+    safe_limit = max(1, int(limit))
     return [match_id for _, match_id in upcoming[:safe_limit]]
 
 
@@ -398,8 +400,6 @@ def fetch_upcoming_page(
         upcoming.append((scheduled_at, match_id))
 
     upcoming.sort(key=lambda item: (item[0], item[1]))
-    if os.getenv("RENDER"):
-        upcoming = upcoming[:400]
     total = len(upcoming)
     total_pages = max(1, math.ceil(total / per_page))
     page = min(page, total_pages)

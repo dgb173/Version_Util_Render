@@ -27,7 +27,7 @@ def main() -> int:
     parser.add_argument("--base", type=Path, required=True)
     parser.add_argument("--shards-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--limit", type=int, default=400)
+    parser.add_argument("--limit", type=int, default=0, help="0 conserva todos los partidos")
     args = parser.parse_args()
 
     merged: dict[str, dict] = {}
@@ -56,10 +56,11 @@ def main() -> int:
                 new_ids.append(match_id)
     new_id_set = set(new_ids)
     final_order = new_ids + [match_id for match_id in order if match_id not in new_id_set]
-    rows = [merged[match_id] for match_id in final_order[: max(1, int(args.limit))]]
+    selected_ids = final_order[:args.limit] if args.limit > 0 else final_order
+    rows = [merged[match_id] for match_id in selected_ids]
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+    args.output.write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"Fusionados {len(shard_files)} shards: {len(new_ids)} nuevos, {len(rows)} totales")
     return 0
 

@@ -9856,6 +9856,12 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 : 'CASA VS FUERA · TODAS LAS LIGAS';
             const copyText = `CONTEXTO PREVIO (${contextScope})\n\n${currentText}\n\n${previousText}`;
             const filterDisabled = !currentLeague;
+            const hasCurrentLeagueHistory = [
+                current.home_matches, current.away_matches,
+                current.home_matches_all, current.away_matches_all,
+                pc?.recent_home_matches_all, pc?.recent_away_matches_all,
+            ].some(rows => sameLeagueMatches(rows).length > 0);
+            const leagueFilterChecked = !filterDisabled && hasCurrentLeagueHistory;
             const hasPrevious = !!previous;
 
             return `<div class="pre-context-panel" data-current-league="${esc(currentLeague)}" data-neutral="${currentNeutral ? '1' : '0'}">
@@ -9864,7 +9870,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     <div class="pre-context-actions">
                         <button type="button" class="league-table-trigger pre-context-standings-btn" data-home-name="${esc(current.home_name || currentHome)}" data-away-name="${esc(current.away_name || currentAway)}" data-league-name="${esc(current.league_name || pc?.league_name || pc?.league || '')}" data-nowgoal-league-id="${esc(current.league_id || pc?.league_id || currentLeagueId)}" data-match-date="${esc(current.date || pc?.match_date || pc?.date || '')}" data-match-id="${esc(parentMatchId)}" data-handicap="${esc(parentCurrentAh)}" data-goal-line="${esc(pc?.main_match_odds?.goals_linea || pc?.goal_line || pc?.ou_line || '2.5')}" aria-expanded="false"><i class="fa-solid fa-ranking-star"></i><span>Ver tabla</span></button>
                         <label class="pre-context-league-filter" title="${currentNeutral ? 'Liga neutral: se muestran automáticamente los últimos 10 partidos de todas las localías' : 'Mostrar los últimos 5 partidos recientes'}"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)" ${currentNeutral ? 'checked disabled' : ''}> Últimos ${currentNeutral ? 10 : 5}</label>
-                        <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
+                        <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : (hasCurrentLeagueHistory ? `Mostrar solo la liga ID ${esc(currentLeague)}` : 'Sin historial de la liga actual: se muestran los partidos disponibles de otras competiciones')}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : (leagueFilterChecked ? 'checked' : '')}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}${!filterDisabled && !hasCurrentLeagueHistory ? ' · sin historial' : ''}</label>
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap actual"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
                         <button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${esc(summaryBoxesId)}', this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-solid fa-layer-group me-1"></i>Fichas Resumen</button>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}

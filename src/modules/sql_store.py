@@ -1402,7 +1402,7 @@ def fetch_distinct_buckets() -> List[str]:
         return _fetch_distinct_buckets(conn)
 
 
-def _current_upcoming_match_ids(bucket: str, limit: int = 400) -> List[str]:
+def _current_upcoming_match_ids(bucket: str, limit: Optional[int] = None) -> List[str]:
     """Return chronological upcoming/recent rows from SQL, independent of update order."""
     # Import lazily because pending_results_query itself uses sql_store.
     from .pending_results_query import fetch_upcoming_ids_from_sql
@@ -1415,10 +1415,10 @@ def export_bucket_to_json(bucket: str) -> Path:
     path = DATA_DIR / bucket
     
     # Limitar buckets históricos acumulativos a un máximo de 2500 partidos para evitar superar el límite de 100MB de GitHub.
-    # Precacheo se limita a 400 partidos próximos y pendientes a 200 partidos.
+    # Pendientes se limita a 200 partidos. Precacheo incluye todos los próximos.
     limit_val = None
     if bucket == "data_precacheo.json":
-        limit_val = 400
+        pass
     elif bucket == "data_pending_results.json":
         limit_val = 200
     elif bucket.startswith("data_"):
@@ -1429,7 +1429,7 @@ def export_bucket_to_json(bucket: str) -> Path:
     # ones instead. Export the next chronological analyses so Render receives
     # the same current set as local.
     if bucket == "data_precacheo.json":
-        current_ids = _current_upcoming_match_ids(bucket, limit=limit_val or 400)
+        current_ids = _current_upcoming_match_ids(bucket, limit=None)
         rows = fetch_matches_by_ids(current_ids, bucket=bucket, limit=limit_val)
         if not rows:
             try:
@@ -1454,7 +1454,9 @@ def export_bucket_to_json(bucket: str) -> Path:
     )
     try:
         with temporary.open("w", encoding="utf-8") as fh:
-            json.dump(rows, fh, indent=2, ensure_ascii=False)
+            json.dump(rows, fh, ensure_ascii=False,
+                      separators=(",", ":") if bucket == "data_precacheo.json" else None,
+                      indent=None if bucket == "data_precacheo.json" else 2)
             fh.flush()
             os.fsync(fh.fileno())
 
