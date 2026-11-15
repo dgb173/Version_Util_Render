@@ -69,6 +69,7 @@ jobs:
             args+=(--force-full)
           fi
           python scripts/cloud_refresh_precacheo.py "${args[@]}"
+          python scripts/update_explorer_recent.py
 
       - name: Revisar archivos que se publicarán
         run: |
@@ -76,6 +77,7 @@ jobs:
             data.json \
             data/data.json \
             data/data_precacheo.json \
+            data/explorer_recent.json \
             data/data_pending_results.json \
             data/league_extractions.json
           python -m json.tool data.json > /dev/null
@@ -90,6 +92,7 @@ jobs:
           cp data.json "$output_dir/data.json"
           cp data/data.json "$output_dir/data/data.json"
           cp data/data_precacheo.json "$output_dir/data/data_precacheo.json"
+          cp data/explorer_recent.json "$output_dir/data/explorer_recent.json"
           cp data/data_pending_results.json "$output_dir/data/data_pending_results.json"
           cp data/league_extractions.json "$output_dir/data/league_extractions.json"
           stamp="$(TZ=Europe/Madrid date '+%Y-%m-%d %H:%M %Z')"
@@ -104,6 +107,7 @@ jobs:
             cp "$output_dir/data.json" "$publish_dir/data.json"
             cp "$output_dir/data/data.json" "$publish_dir/data/data.json"
             cp "$output_dir/data/data_precacheo.json" "$publish_dir/data/data_precacheo.json"
+            cp "$output_dir/data/explorer_recent.json" "$publish_dir/data/explorer_recent.json"
             cp "$output_dir/data/data_pending_results.json" "$publish_dir/data/data_pending_results.json"
             cp "$output_dir/data/league_extractions.json" "$publish_dir/data/league_extractions.json"
 
@@ -113,6 +117,7 @@ jobs:
               data.json \
               data/data.json \
               data/data_precacheo.json \
+              data/explorer_recent.json \
               data/data_pending_results.json \
               data/league_extractions.json
 

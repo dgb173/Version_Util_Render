@@ -12,6 +12,20 @@ DEFAULT_DB = ROOT / "data" / "app_data.db"
 DEFAULT_OUTPUT = ROOT / "data" / "explorer_recent.json"
 
 
+def compact_for_archive(row: dict) -> dict:
+    compact = dict(row)
+    for key in (
+        "market_analysis_html", "historical_matches_html",
+        "pre_match_context", "recent_home_matches_all",
+        "recent_away_matches_all", "recent_home_matches_same_league_specific",
+        "recent_away_matches_same_league_specific",
+        "recent_home_matches_same_league_general",
+        "recent_away_matches_same_league_general",
+    ):
+        compact.pop(key, None)
+    return compact
+
+
 def export_recent(db_path: Path, output: Path, limit: int = 2000) -> int:
     if not db_path.exists():
         raise FileNotFoundError(db_path)
@@ -37,17 +51,8 @@ def export_recent(db_path: Path, output: Path, limit: int = 2000) -> int:
             score = str(row.get("final_score") or row.get("score") or "")
             if not score or "?" in score:
                 continue
-            # The detailed HTML and broad recent-history arrays are not used by
-            # Explorer search. Keep structured analysis and match statistics.
-            for key in (
-                "market_analysis_html", "historical_matches_html",
-                "pre_match_context", "recent_home_matches_all",
-                "recent_away_matches_all", "recent_home_matches_same_league_specific",
-                "recent_away_matches_same_league_specific",
-                "recent_home_matches_same_league_general",
-                "recent_away_matches_same_league_general",
-            ):
-                row.pop(key, None)
+            # Keep structured analysis and match statistics.
+            row = compact_for_archive(row)
             row["match_id"] = str(match_id)
             row["_explorer_bucket"] = bucket
             rows.append(row)
