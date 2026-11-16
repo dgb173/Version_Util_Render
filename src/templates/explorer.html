@@ -3081,6 +3081,12 @@
             id="pagination-bar" style="display: none !important;">
             <div class="d-flex align-items-center gap-3">
                 <span class="text-muted small" id="pagination-info">Mostrando 0 de 0</span>
+                <label class="small text-muted mb-0" for="explorer-page-size">Por página</label>
+                <select id="explorer-page-size" class="form-select form-select-sm" style="width: 72px" onchange="setExplorerPageSize(this.value)" aria-label="Partidos por página">
+                    <option value="40" selected>40</option>
+                    <option value="100">100</option>
+                    <option value="250">250</option>
+                </select>
                 <button class="btn btn-sm btn-outline-primary" id="btn-copy-all-prompts" onclick="copyAllFilteredPrompts(this)" style="font-size: 0.8rem; padding: 2px 8px;">
                     <i class="fa-solid fa-copy me-1"></i> Copiar Todos los Partidos
                 </button>
@@ -5263,7 +5269,7 @@
         const EXPLORER_SCOPE = {{ explorer_scope|default('')|tojson }};
         // Pagination State
         let currentPage = 1;
-        const itemsPerPage = 250;
+        let itemsPerPage = 40;
         let totalResults = [];
         let explorerSearchComplete = true;
         let filteredResultsGlobal = [];
@@ -6556,6 +6562,14 @@
             const totalPages = Math.ceil(filteredResultsGlobal.length / itemsPerPage);
             if (page < 1 || page > totalPages) return;
             currentPage = page;
+            renderTableWithPagination();
+        }
+
+        function setExplorerPageSize(value) {
+            const selected = Number(value);
+            if (![40, 100, 250].includes(selected)) return;
+            itemsPerPage = selected;
+            currentPage = 1;
             renderTableWithPagination();
         }
 
