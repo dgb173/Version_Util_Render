@@ -30,7 +30,7 @@ def main():
             merge(SimpleNamespace(root=target, kind=args.kind, prepared=ROOT / 'prepared', results=ROOT / 'results'))
             git('config', 'user.name', 'github-actions[bot]', cwd=target)
             if args.kind == 'finished':
-                paths = ['data/cache_control']
+                paths = ['data/cache_control', 'data/explorer_recent.json']
             else:
                 paths = ['data.json', 'data/data.json', 'data/data_precacheo.json',
                     'data/data_pending_results.json', 'data/cache_control', 'data/cache_archive']

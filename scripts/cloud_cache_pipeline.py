@@ -20,8 +20,11 @@ import time
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'src'))
 from modules.match_clock import record_instant, schedule_fields, sync_schedule
+from modules.data_manager import get_bucket_name
+from scripts.export_explorer_recent import compact_for_archive
 UTC = dt.timezone.utc
 SPAIN = ZoneInfo('Europe/Madrid')
 VERSION = 3
@@ -329,6 +332,24 @@ def build_windows(root=ROOT, now=None):
     return {'upcoming': len(next_rows), 'pending': len(pending_rows), 'archived_available': len(future) + len(pending)}
 
 
+def merge_finished_explorer_recent(root, rows):
+    recent_path = Path(root) / 'data/explorer_recent.json'
+    existing = {str(row.get('match_id')): row for row in read_json(recent_path, [])
+                if isinstance(row, dict) and row.get('match_id')}
+    for row in rows:
+        match_id = mid(row)
+        compact = compact_for_archive(row)
+        compact['match_id'] = match_id
+        ah = (row.get('main_match_odds') or {}).get('ah_linea')
+        compact['_explorer_bucket'] = get_bucket_name(ah if ah is not None else row.get('handicap'))
+        existing[match_id] = compact
+    ordered = sorted(existing.values(), key=lambda row: (
+        str(row.get('match_date') or row.get('date') or ''), str(row.get('match_id') or '')),
+        reverse=True)[:2000]
+    write_json(recent_path, ordered)
+    return len(ordered)
+
+
 def merge(args):
     root = Path(args.root)
     prepared = Path(args.prepared)
@@ -355,6 +376,8 @@ def merge(args):
             failures.extend(payload['failures'])
     # Validate every shard before changing any persistent data.
     migrate_archive(root)
+    if args.kind == 'finished' and all_rows:
+        merge_finished_explorer_recent(root, all_rows)
     for row in all_rows:
         # Finished fixtures live in Turso. Keeping a second full copy in Git
         # grew handicap JSON files beyond GitHub's 100 MB hard limit and made
