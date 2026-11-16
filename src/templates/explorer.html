@@ -5265,6 +5265,7 @@
         let currentPage = 1;
         const itemsPerPage = 250;
         let totalResults = [];
+        let explorerSearchComplete = true;
         let filteredResultsGlobal = [];
         // Los controles son un borrador. La tabla solo usa la última selección aplicada.
         let appliedExplorerFilters = null;
@@ -6073,6 +6074,10 @@
                 ind_visitante_ah: getValuesOrNull(msIndVisitanteAh),
                 // New H2H Filters
                 h2h_stadium_mov: document.getElementById('filter-h2h-stadium-mov').value || null,
+                h2h_stadium_start_ah: getValuesOrNull(msH2hStadiumStartAh),
+                h2h_stadium_end_ah: getValuesOrNull(msH2hStadiumEndAh),
+                h2h_general_start_ah: getValuesOrNull(msH2hGeneralStartAh),
+                h2h_general_end_ah: getValuesOrNull(msH2hGeneralEndAh),
                 h2h_stadium_res: document.getElementById('filter-h2h-stadium-res').value || null,
                 h2h_general_mov: document.getElementById('filter-h2h-general-mov').value || null,
                 h2h_general_res: document.getElementById('filter-h2h-general-res').value || null,
@@ -6145,6 +6150,7 @@
                     if (searchSequence !== explorerSearchSequence) return;
                     spinner.classList.add('d-none');
                     totalResults = data.results || [];
+                    explorerSearchComplete = data.complete !== false;
                     appliedExplorerFilters = selectedFilters;
 
                     currentPage = 1;
@@ -6566,7 +6572,7 @@
                 if (paginationBar) paginationBar.style.cssText = 'display: flex !important;';
                 const start = (currentPage - 1) * itemsPerPage + 1;
                 const end = Math.min(currentPage * itemsPerPage, totalCount);
-                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start} -${end} de ${totalCount} `;
+                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start} -${end} de ${totalCount}${explorerSearchComplete ? '' : ' · búsqueda limitada a 750 resultados; añade filtros'}`;
             } else {
                 if (paginationBar) paginationBar.style.cssText = 'display: none !important;';
             }

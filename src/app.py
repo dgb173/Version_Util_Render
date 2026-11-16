@@ -5208,6 +5208,34 @@ def api_uefa_qualifying_status(job_id):
             return jsonify({'error': 'Trabajo no encontrado'}), 404
         return jsonify(json.loads(json.dumps(job, ensure_ascii=False)))
 
+def _explorer_movement_matches(result, filters):
+    def bucket(value):
+        value = float(value)
+        absolute = abs(value)
+        base = int(absolute)
+        decimal = absolute - base
+        number = base + 0.5 if 0.24 <= decimal <= 0.76 else (base if decimal < 0.24 else base + 1)
+        return number if value >= 0 else -number
+
+    for section in ('stadium', 'general'):
+        start = filters.get(f'h2h_{section}_start_ah') or []
+        end = filters.get(f'h2h_{section}_end_ah') or []
+        if not start and not end:
+            continue
+        movement = str((result.get(f'h2h_{section}') or {}).get('movement') or '').replace(',', '.')
+        found = re.search(r'([+-]?\d*\.?\d+)\s*(?:→|->|\ba\b|\bto\b)\s*([+-]?\d*\.?\d+)', movement)
+        if not found:
+            return False
+        for actual, requested in zip(found.groups(), (start, end)):
+            if not requested:
+                continue
+            actual_bucket = bucket(actual)
+            values = requested if isinstance(requested, list) else [requested]
+            if not any((actual_bucket >= 2.5 if bucket(v) >= 2.5 else actual_bucket <= -2.5 if bucket(v) <= -2.5 else actual_bucket == bucket(v)) for v in values):
+                return False
+    return True
+
+
 @app.route('/api/explorer_search', methods=['POST'])
 def api_explorer_search():
     try:
@@ -5261,6 +5289,10 @@ def api_explorer_search():
             # number of matches is found or the historical table is exhausted.
             batch_size = max(25, min(_env_int('EXPLORER_BATCH_SIZE', 150), 300))
             configured_scan_limit = max(0, min(_env_int('EXPLORER_SCAN_LIMIT', 0), 50000))
+            # The full disk-backed archive is already bounded by its own size.
+            # An old Render environment value must not silently truncate it.
+            if (Path(__file__).resolve().parents[1] / 'data' / 'explorer_full.sqlite.gz').exists():
+                configured_scan_limit = 0
             requested_results = int(filters['limit'])
             results = []
             scanned = 0
@@ -5287,8 +5319,10 @@ def api_explorer_search():
 
                 remaining = requested_results - len(results)
                 batch_filters = dict(filters)
-                batch_filters['limit'] = remaining
-                results.extend(explore_matches(history_batch, filters=batch_filters))
+                batch_filters['limit'] = current_batch_size
+                batch_results = explore_matches(history_batch, filters=batch_filters)
+                results.extend(row for row in batch_results if _explorer_movement_matches(row, filters))
+                results = results[:requested_results]
 
                 batch_count = len(history_batch)
                 scanned += batch_count
