@@ -22,10 +22,6 @@ if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 
 from modules.sql_store import _build_explorer_payload  # noqa: E402
-try:
-    from modules.youth_filter import is_youth_league
-except Exception:
-    is_youth_league = None
 
 DATA_DIR = PROJECT_ROOT / "data"
 FAST_DIR = DATA_DIR / ".precacheo_fast"
@@ -98,8 +94,6 @@ def main() -> None:
                     match_id = str(row.get("match_id") or row.get("id") or "").strip()
                     if not match_id:
                         continue
-                    if is_youth_league and is_youth_league(row.get("league_name") or row.get("league") or ""):
-                        continue
                     compact = compact_row(row)
                     compact["match_id"] = match_id
                     compact["id"] = match_id
@@ -133,8 +127,6 @@ def main() -> None:
                         continue
                     match_id = str(row.get("match_id") or row.get("id") or "").strip()
                     if not match_id:
-                        continue
-                    if is_youth_league and is_youth_league(row.get("league_name") or row.get("league") or ""):
                         continue
                     compact = compact_row(row)
                     compact["match_id"] = match_id

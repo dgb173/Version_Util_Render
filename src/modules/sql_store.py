@@ -1442,7 +1442,7 @@ def export_bucket_to_json(bucket: str) -> Path:
     else:
         rows = fetch_matches(bucket=bucket, limit=limit_val)
 
-    if bucket in ("data_precacheo.json", "data_pending_results.json"):
+    if bucket == "data_pending_results.json":
         try:
             from .youth_filter import filter_youth_matches
             rows = filter_youth_matches(rows)

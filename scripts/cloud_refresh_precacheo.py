@@ -261,7 +261,6 @@ def main() -> int:
                     str(workers),
                     "--flush_every",
                     "5",
-                    "--defer-summary-stats",
                 ),
                 allowed_codes=(0, 1),
             )
