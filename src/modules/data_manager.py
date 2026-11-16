@@ -198,7 +198,16 @@ def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
             if cached and (time.time() - cached[0]) <= _explorer_cache_ttl:
                 return cached[1]
 
-    if ah_filter and ah_filter != 'all':
+    # Render's SQL bootstrap is intentionally partial. Even a single historical
+    # row there used to suppress the complete archive for every Explorer page.
+    # Use the complete archive consistently when it is packaged with the app.
+    if explorer_archive.FULL_PATH.exists():
+        rows = explorer_archive.load_page(
+            bucket=cache_bucket,
+            limit=cache_limit,
+            offset=safe_offset,
+        )
+    elif ah_filter and ah_filter != 'all':
         rows = sql_store.fetch_matches(
             bucket=cache_bucket,
             state='historical',
@@ -214,9 +223,8 @@ def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
             offset=safe_offset,
         )
 
-    # A Render deployment starts with an ephemeral, partial SQL bootstrap.
-    # Never substitute upcoming precache rows for finalized historical rows.
-    if not rows and not sql_store.fetch_matches(state='historical', limit=1):
+    # Older/local installs may only have the compact recent archive.
+    if not rows and not explorer_archive.FULL_PATH.exists() and not sql_store.fetch_matches(state='historical', limit=1):
         rows = explorer_archive.load_page(
             bucket=cache_bucket,
             limit=cache_limit,
