@@ -2,6 +2,7 @@
 import gzip
 import json
 import sqlite3
+import subprocess
 import sys
 import zlib
 from pathlib import Path
@@ -44,3 +45,5 @@ with temp.open('rb') as src, gzip.open(DEST, 'wb', compresslevel=1) as dst:
     shutil.copyfileobj(src, dst)
 temp.unlink()
 print(f'Archive: {count} matches, {DEST.stat().st_size} bytes', flush=True)
+if DEST.resolve() == (ROOT / 'data' / 'explorer_full.sqlite.gz').resolve():
+    subprocess.run([sys.executable, str(ROOT / 'scripts' / 'build_explorer_movement_index.py')], check=True)

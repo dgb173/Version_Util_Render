@@ -5298,6 +5298,9 @@ def api_explorer_search():
             scanned = 0
             offset = 0
             search_complete = False
+            movement_filters = {key: value for key, value in filters.items()
+                                if key in ('h2h_stadium_start_ah', 'h2h_stadium_end_ah',
+                                           'h2h_general_start_ah', 'h2h_general_end_ah') and value}
 
             while len(results) < requested_results:
                 if configured_scan_limit and scanned >= configured_scan_limit:
@@ -5312,6 +5315,7 @@ def api_explorer_search():
                     ah_filter,
                     scan_limit=current_batch_size,
                     offset=offset,
+                    movement_filters=movement_filters,
                 )
                 if not history_batch:
                     search_complete = True

@@ -1,4 +1,5 @@
 import ast
+import json
 import re
 from pathlib import Path
 from types import SimpleNamespace
@@ -27,6 +28,7 @@ def test_full_archive_wins_over_partial_sql_bootstrap(tmp_path):
     namespace = {
         'get_bucket_name': lambda ah: 'data_ah_0.5.json',
         '_explorer_cache_ttl': 0,
+        'json': json,
         'explorer_archive': SimpleNamespace(
             FULL_PATH=full_path,
             load_page=lambda **kwargs: calls.append(kwargs) or [{'match_id': 'archived'}],
@@ -36,4 +38,17 @@ def test_full_archive_wins_over_partial_sql_bootstrap(tmp_path):
     exec(compile(ast.Module(body=[function], type_ignores=[]), str(path), 'exec'), namespace)
     rows = namespace['load_explorer_matches']('0.5', scan_limit=150, offset=300)
     assert rows == [{'match_id': 'archived'}]
-    assert calls == [{'bucket': 'data_ah_0.5.json', 'limit': 150, 'offset': 300}]
+    assert calls == [{'bucket': 'data_ah_0.5.json', 'limit': 150, 'offset': 300, 'movement_filters': None}]
+
+
+def test_indexed_archive_returns_full_movement_group():
+    from src.modules import explorer_archive
+
+    if not explorer_archive.FULL_PATH.exists() or not explorer_archive.MOVEMENT_INDEX_PATH.exists():
+        return
+    rows = explorer_archive.load_page(
+        bucket='data_ah_0.5.json', limit=1000,
+        movement_filters={'h2h_stadium_start_ah': ['1.5'], 'h2h_stadium_end_ah': ['0.5']},
+    )
+    assert len(rows) >= 400
+    assert {'3111675', '3112883'} <= {str(row['match_id']) for row in rows}

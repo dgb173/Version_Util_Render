@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import threading
@@ -178,7 +179,7 @@ def load_matches_by_bucket(ah_filter):
     return sql_store.fetch_matches(bucket=bucket)
 
 
-def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
+def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0, movement_filters=None):
     """
     Explorer should run on finalized historical data only.
     Excludes precacheo/pending states to reduce noise and latency.
@@ -190,7 +191,8 @@ def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
 
     cache_limit = int(scan_limit) if isinstance(scan_limit, int) and scan_limit > 0 else None
     safe_offset = max(0, int(offset or 0))
-    cache_key = (cache_bucket, cache_limit, safe_offset)
+    movement_key = json.dumps(movement_filters, sort_keys=True, default=str) if movement_filters else None
+    cache_key = (cache_bucket, cache_limit, safe_offset, movement_key)
 
     if _explorer_cache_ttl > 0:
         with _explorer_cache_lock:
@@ -206,6 +208,7 @@ def load_explorer_matches(ah_filter=None, scan_limit=None, offset=0):
             bucket=cache_bucket,
             limit=cache_limit,
             offset=safe_offset,
+            movement_filters=movement_filters,
         )
     elif ah_filter and ah_filter != 'all':
         rows = sql_store.fetch_matches(
