@@ -15057,9 +15057,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     </div>
                 `;
 
-                const searchPatternsBtn = `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center table-action-btn" onclick="searchPatterns('${matchId}', this)" style="min-height: 32px; padding: 0 6px !important;" title="Buscar Patrones Similares">
+                const searchPatternsBtn = `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center table-action-btn" onclick="searchPatterns('${matchId}', this)" style="width: 32px; height: 32px; min-width: 32px; border-radius: 50%;" title="Buscar Patrones Similares" aria-label="Buscar patrones similares">
                             <i class="fa-solid fa-compass" style="font-size: 13px;"></i>
-                            <span class="ms-1">Patrones</span></button>`;
+                       </button>`;
 
                 const rawGoalLine = (pc && pc.ou_line) || (m && m.ou_line) || (m && m.over_under) || '2.5';
                 const goalLineNum = parseFloat(String(rawGoalLine).replace(/[^0-9.]/g, '')) || 2.5;

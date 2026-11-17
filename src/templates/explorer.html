@@ -7580,7 +7580,7 @@
     <!--Acciones / Stats-->
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <a class="btn btn-sm btn-outline-warning" href="/explorador?auto_search=1&handicap=${encodeURIComponent(toExplorerBucketValue(c.ah_real))}&source_match_id=${encodeURIComponent(item.match_id)}" target="_blank" rel="noopener" title="Buscar patrones similares"><i class="fa-solid fa-compass"></i> Patrones</a>
+                    <a class="btn btn-sm btn-outline-warning" href="/explorador?auto_search=1&handicap=${encodeURIComponent(toExplorerBucketValue(c.ah_real))}&source_match_id=${encodeURIComponent(item.match_id)}" target="_blank" rel="noopener" title="Buscar patrones similares" aria-label="Buscar patrones similares"><i class="fa-solid fa-compass"></i></a>
                     ${globalStatsBtn}
                     <button class="btn btn-sm btn-link text-primary p-0 ms-1" title="Copiar Contexto + Prompt LLM" onclick="copyLLMPrompt('${item.match_id}', this)">
                         <i class="fa-regular fa-copy" style="font-size: 12px;"></i>
