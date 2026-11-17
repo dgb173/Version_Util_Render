@@ -15057,11 +15057,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     </div>
                 `;
 
-                const searchPatternsBtn = isScraped
-                    ? `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center table-action-btn" onclick="searchPatterns('${matchId}', this)" style="width: 32px; height: 32px; min-width: 32px; border-radius: 50%;" title="Buscar Patrones Similares">
+                const searchPatternsBtn = `<button class="btn btn-sm btn-outline-warning p-0 ms-1 d-inline-flex align-items-center justify-content-center table-action-btn" onclick="searchPatterns('${matchId}', this)" style="min-height: 32px; padding: 0 6px !important;" title="Buscar Patrones Similares">
                             <i class="fa-solid fa-compass" style="font-size: 13px;"></i>
-                       </button>`
-                    : '';
+                            <span class="ms-1">Patrones</span></button>`;
 
                 const rawGoalLine = (pc && pc.ou_line) || (m && m.ou_line) || (m && m.over_under) || '2.5';
                 const goalLineNum = parseFloat(String(rawGoalLine).replace(/[^0-9.]/g, '')) || 2.5;
@@ -15976,8 +15974,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
         // Buscar patrones similares en histórico - abre Explorador con filtros predefinidos
         async function searchPatterns(matchId, btnElement) {
-            const pc = precacheoData ? precacheoData[matchId] : null;
-            if (!pc) return;
+            const pc = (precacheoData ? precacheoData[matchId] : null) || {};
 
             let currentAh = NaN;
             const currentAhRaw = (((pc || {}).main_match_odds || {}).ah_linea ?? (pc || {}).handicap ?? null);
