@@ -80,35 +80,70 @@ def _score_parts(value: str) -> Optional[Tuple[int, int]]:
         return None
 
 
+def _parse_ou_num(ou_str: str) -> Optional[float]:
+    raw = str(ou_str or "").strip().replace(",", ".")
+    if not raw or raw in ("-", "N/A", "?"):
+        return None
+    if "/" in raw:
+        parts = [p.strip() for p in raw.split("/") if p.strip()]
+        try:
+            nums = [float(p) for p in parts]
+            return sum(nums) / len(nums) if nums else None
+        except ValueError:
+            return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
 def _calc_ah_evaluation(score_str: str, ah_str: str, is_home: bool) -> Dict[str, Any]:
     score = _score_parts(score_str)
     line = es.parse_ah_to_number_of(str(ah_str or ""))
     if not score or line is None:
         return {"code": "SIN_DATO", "label": "-", "covered": False, "net": None}
 
-    # En NowGoal AH se expresa habitualmente desde la perspectiva del equipo local.
-    # Si el equipo analizado es Home: net = (goles_home - goles_away) + line
-    # Si el equipo analizado es Away: net = (goles_away - goles_home) - line
+    # Convencion NowGoal: ah > 0 significa que el LOCAL cede goles (es favorito).
+    # Por tanto, el equipo analizado cede: line si juega en casa, -line si juega fuera.
     team_goals = score[0] if is_home else score[1]
     rival_goals = score[1] if is_home else score[0]
     goal_diff = team_goals - rival_goals
 
-    # team_line: linea que tiene el equipo
-    team_line = line if is_home else -line
-    net = goal_diff + team_line
+    team_gives_line = line if is_home else -line
+    net = round(goal_diff - team_gives_line, 4)
 
-    if net > 0.25 + 1e-9:
+    # Desdoblar lineas de cuarto (.25 / .75) igual que pattern_search_v2._eval_split_net
+    frac = round((abs(team_gives_line) * 4) % 4)
+    if frac in (1, 3):
+        sub_lines = [team_gives_line - 0.25, team_gives_line + 0.25]
+    else:
+        sub_lines = [team_gives_line]
+
+    outcomes = []
+    for sub in sub_lines:
+        sub_net = goal_diff - sub
+        if sub_net > 1e-9:
+            outcomes.append(1.0)
+        elif sub_net < -1e-9:
+            outcomes.append(-1.0)
+        else:
+            outcomes.append(0.0)
+
+    avg = sum(outcomes) / len(outcomes)
+    if avg >= 0.99:
         code, label = "COVER", "Cubre"
-    elif abs(net - 0.25) <= 1e-9:
+    elif avg >= 0.49:
         code, label = "HALF_WIN", "Medio Cubre"
-    elif abs(net) <= 1e-9:
+    elif abs(avg) < 0.01:
         code, label = "PUSH", "Nulo"
-    elif abs(net + 0.25) <= 1e-9:
+    elif avg <= -0.99:
+        code, label = "NO_COVER", "No Cubre"
+    elif avg <= -0.49:
         code, label = "HALF_LOSS", "Medio Pierde"
     else:
-        code, label = "NO_COVER", "No Cubre"
+        code, label = "SIN_DATO", "-"
 
-    return {"code": code, "label": label, "covered": net > 0, "net": net}
+    return {"code": code, "label": label, "covered": avg > 0, "net": net}
 
 
 def _find_opponent_match_against_rival(
@@ -419,7 +454,7 @@ def get_team_recent_history(
     clean_mid = "".join(filter(str.isdigit, str(match_id or "")))
     clean_parent = "".join(filter(str.isdigit, str(parent_match_id or "")))
     clean_opp = str(opponent_name or "").strip()
-    cache_key = f"v5:{clean_team.lower()}:{clean_mid}:{clean_parent}:{clean_opp.lower()}"
+    cache_key = f"v2|v5:{clean_team.lower()}:{clean_mid}:{clean_parent}:{clean_opp.lower()}"
 
     cache = _read_cache()
     if not force_refresh and not force_live and cache_key in cache:
@@ -586,8 +621,22 @@ def get_team_recent_history(
                 wdl = "D"
                 res_letter = "E"
 
-        # Evaluacion AH
+        # Evaluacion AH y perspectiva del equipo
         ah_eval = _calc_ah_evaluation(m_score, m_ah, is_home)
+        ah_num = es.parse_ah_to_number_of(str(m_ah or ""))
+        team_ah: Optional[float] = None
+        team_role = "N/D"
+        if ah_num is not None:
+            team_ah = round(ah_num if is_home else -ah_num, 4)
+            if team_ah > 0.01:
+                team_role = "FAV"
+            elif team_ah < -0.01:
+                team_role = "DOG"
+            else:
+                team_role = "PK"
+
+        goals_for = (score_parts[0] if is_home else score_parts[1]) if score_parts else None
+        goals_against = (score_parts[1] if is_home else score_parts[0]) if score_parts else None
 
         # Comparativa indirecta si el oponente tambien enfrento a este mismo rival
         comparative_match = None
@@ -604,6 +653,17 @@ def get_team_recent_history(
 
         raw_ou = item.get("ouLine") or item.get("ou_line") or item.get("ou") or item.get("goals_line") or "-"
         m_ou = str(raw_ou).strip() if raw_ou not in (None, "", "N/A") else "-"
+        ou_num = _parse_ou_num(m_ou)
+        ou_res = "SIN_DATO"
+        if score_parts and ou_num is not None:
+            total_goals = score_parts[0] + score_parts[1]
+            diff_ou = total_goals - ou_num
+            if diff_ou > 1e-9:
+                ou_res = "OVER"
+            elif diff_ou < -1e-9:
+                ou_res = "UNDER"
+            else:
+                ou_res = "PUSH"
 
         formatted_matches.append({
             "match_id": m_id,
@@ -615,10 +675,15 @@ def get_team_recent_history(
             "away_team": m_away,
             "rival": rival,
             "score": m_score,
+            "goals_for": goals_for,
+            "goals_against": goals_against,
             "wdl": wdl,
             "res_letter": res_letter,
             "ah": m_ah,
+            "team_ah": team_ah,
+            "team_role": team_role,
             "ou": m_ou,
+            "ou_res": ou_res,
             "ah_eval": ah_eval,
             "comparative_match": comparative_match,
             "has_common_rival": has_common_rival,
@@ -643,8 +708,33 @@ def get_team_recent_history(
         cover_w = sum(1 for m in subset if m["ah_eval"]["code"] in ("COVER", "HALF_WIN"))
         cover_l = sum(1 for m in subset if m["ah_eval"]["code"] in ("NO_COVER", "HALF_LOSS"))
         cover_push = sum(1 for m in subset if m["ah_eval"]["code"] == "PUSH")
+        decided = cover_w + cover_l
         total = len(subset)
-        cover_pct = round((cover_w / total * 100), 1) if total > 0 else 0
+        cover_pct = round((cover_w / decided * 100), 1) if decided > 0 else 0
+
+        overs = sum(1 for m in subset if m.get("ou_res") == "OVER")
+        unders = sum(1 for m in subset if m.get("ou_res") == "UNDER")
+        ou_push = sum(1 for m in subset if m.get("ou_res") == "PUSH")
+        ou_decided = overs + unders
+        over_pct = round((overs / ou_decided * 100), 1) if ou_decided > 0 else 0
+
+        gf_vals = [m["goals_for"] for m in subset if m.get("goals_for") is not None]
+        ga_vals = [m["goals_against"] for m in subset if m.get("goals_against") is not None]
+        goals_for_avg = round(sum(gf_vals) / len(gf_vals), 2) if gf_vals else 0.0
+        goals_against_avg = round(sum(ga_vals) / len(ga_vals), 2) if ga_vals else 0.0
+
+        fav_sub = [m for m in subset if m.get("team_role") == "FAV"]
+        fav_cw = sum(1 for m in fav_sub if m["ah_eval"]["code"] in ("COVER", "HALF_WIN"))
+        fav_cl = sum(1 for m in fav_sub if m["ah_eval"]["code"] in ("NO_COVER", "HALF_LOSS"))
+        fav_dec = fav_cw + fav_cl
+        fav_cover_pct = round((fav_cw / fav_dec * 100), 1) if fav_dec > 0 else 0
+
+        dog_sub = [m for m in subset if m.get("team_role") == "DOG"]
+        dog_cw = sum(1 for m in dog_sub if m["ah_eval"]["code"] in ("COVER", "HALF_WIN"))
+        dog_cl = sum(1 for m in dog_sub if m["ah_eval"]["code"] in ("NO_COVER", "HALF_LOSS"))
+        dog_dec = dog_cw + dog_cl
+        dog_cover_pct = round((dog_cw / dog_dec * 100), 1) if dog_dec > 0 else 0
+
         return {
             "total": total,
             "wins": w,
@@ -654,6 +744,18 @@ def get_team_recent_history(
             "cover_losses": cover_l,
             "cover_push": cover_push,
             "cover_pct": cover_pct,
+            "overs": overs,
+            "unders": unders,
+            "ou_push": ou_push,
+            "over_pct": over_pct,
+            "goals_for_avg": goals_for_avg,
+            "goals_against_avg": goals_against_avg,
+            "fav_n": len(fav_sub),
+            "fav_cover_wins": fav_cw,
+            "fav_cover_pct": fav_cover_pct,
+            "dog_n": len(dog_sub),
+            "dog_cover_wins": dog_cw,
+            "dog_cover_pct": dog_cover_pct,
         }
 
     home_subset = [m for m in formatted_matches if m["venue"] == "home"]

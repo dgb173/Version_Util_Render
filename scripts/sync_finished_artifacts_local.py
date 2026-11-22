@@ -169,7 +169,8 @@ def sync(dry_run: bool = False, days: int = 7) -> int:
         all_rows.extend(rows)
         artifact_runs.append(run_id)
     if not all_rows:
-        raise RuntimeError("Ningún run reciente contiene análisis completos para importar")
+        print("Sin artefactos nuevos importables; los terminados locales se conservan.", flush=True)
+        return 0
     changes = pending_rows(all_rows)
     print(f"Partidos nuevos o corregidos para SQLite local: {len(changes)}", flush=True)
     if dry_run:

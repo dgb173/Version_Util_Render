@@ -40,6 +40,7 @@ def parse_args() -> argparse.Namespace:
 def run_git_pull() -> bool:
     print("=== 1. Descargando datos desde GitHub (git pull) ===")
     try:
+        subprocess.run(["git", "fetch", "origin", "main"], cwd=str(PROJECT_ROOT), check=False)
         res = subprocess.run(
             ["git", "pull", "origin", "main"],
             cwd=str(PROJECT_ROOT),
@@ -52,6 +53,17 @@ def run_git_pull() -> bool:
             return True
         else:
             print(f"Advertencia en git pull: {res.stderr.strip()}")
+            print("  -> Descargando directamente data_precacheo.json y data_pending_results.json desde origin/main...")
+            checkout_res = subprocess.run(
+                ["git", "checkout", "origin/main", "--", "data/data_precacheo.json", "data/data_pending_results.json"],
+                cwd=str(PROJECT_ROOT),
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if checkout_res.returncode == 0:
+                print("  [OK] Archivos de datos actualizados directamente desde origin/main.")
+                return True
             return False
     except Exception as exc:
         print(f"No se pudo ejecutar git pull automaticamente: {exc}")

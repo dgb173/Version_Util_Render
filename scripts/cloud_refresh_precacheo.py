@@ -200,6 +200,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     workers = max(1, min(int(args.workers), 20))
+    os.environ.setdefault("ANALYSIS_MAX_CONCURRENCY", str(workers))
+    os.environ.setdefault("PLAYWRIGHT_MAX_CONCURRENCY", "1")
     job_file = args.job_file.resolve()
     python = sys.executable
 

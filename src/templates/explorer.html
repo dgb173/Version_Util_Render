@@ -647,16 +647,16 @@
         .pre-context-filter-empty { padding: 12px 8px; text-align: center; color: #94a3b8; font-size: .58rem; font-weight: 800; }
         .pre-context-moments { display: flex; flex-direction: column; gap: 14px; }
         .pre-context-moments.hide-previous .pre-context-moment:nth-child(2) { display: none; }
-        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #d7e0e9; border-radius: 7px; background: #fff; }
-        .pre-context-moment-head { padding: 8px 10px; background: #edf4fb; border-bottom: 1px solid #cbd5e1; }
-        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #245a91; text-transform: uppercase; letter-spacing: .03em; }
+        .pre-context-moment { min-width: 0; overflow: hidden; border: 1px solid #dce5ed; border-radius: 10px; background: #fff; box-shadow: 0 2px 10px rgba(30, 58, 95, .06); }
+        .pre-context-moment-head { padding: 10px 12px; background: #f4f8fc; border-bottom: 1px solid #dce5ed; border-left: 3px solid #4776a8; }
+        .pre-context-moment-title { font-size: .85rem; font-weight: 900; color: #24486d; text-transform: uppercase; letter-spacing: .04em; }
         .pre-context-moment-meta { margin-top: 2px; font-size: .75rem; font-weight: 700; color: #64748b; }
         .pre-context-team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .pre-context-team { min-width: 0; }
         .pre-context-team + .pre-context-team { border-left: 1px solid #d7e0e9; }
-        .pre-context-team-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .pre-context-team-title-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
-        .pre-context-team-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 900; }
+        .pre-context-team-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 10px; background: #fcfdff; border-bottom: 1px solid #e3eaf1; }
+        .pre-context-team-title-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+        .pre-context-team-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; font-size: .78rem; font-weight: 900; }
         .pre-context-role { flex: 0 0 auto; padding: 2px 5px; border-radius: 4px; font-size: .65rem; font-weight: 900; }
         .pre-context-role.is-home { color: #137047; background: #e4f5eb; }
         .pre-context-role.is-away { color: #b4232f; background: #fdebec; }
@@ -705,6 +705,8 @@
         .pre-context-pick-checkbox:hover {
             transform: scale(1.18);
         }
+        .pre-context-date-content { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+        .pre-context-date-content .pre-context-pick-cb-wrap { flex: 0 0 auto; margin: 0 2px 0 0; }
         .pre-context-team-actions {
             display: flex;
             align-items: center;
@@ -1005,11 +1007,15 @@
             cursor: wait;
         }
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
-        .pre-context-table th, .pre-context-table td { padding: 4px 5px; border-bottom: 1px solid #edf0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pre-context-table th { background: #fbfcfd; color: #64748b; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 12%; font-size: .67rem; }
+        .pre-context-table th, .pre-context-table td { padding: 5px 5px; border-bottom: 1px solid #e8eef3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table th { background: #f3f7fa; color: #52677e; font-size: .68rem; font-weight: 900; }
+        .pre-context-table .ctx-date { width: 14%; font-size: .67rem; }
         .pre-context-table .ctx-league { width: 6%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
-        .pre-context-table .ctx-rival { width: 28%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table .ctx-rival { width: 26%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table td.ctx-rival { white-space: normal !important; overflow: visible; text-overflow: clip; }
+        .pre-context-rival-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+        .pre-context-table .pre-context-rival-cell .pre-context-rival-name-link { display: block; width: 100%; flex: none; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.25; }
+        .pre-context-rival-actions { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
         .pre-context-rival-name-link {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1029,6 +1035,7 @@
             background: #eff6ff !important;
             text-decoration: underline !important;
         }
+        .pre-context-team-name.pre-context-rival-name-link { white-space: normal; overflow: visible; text-overflow: clip; }
         .team-history-floating-modal {
             pointer-events: none !important;
             background: transparent !important;
@@ -1188,9 +1195,10 @@
         .pre-col3-tag.is-up { background: #0d6efd; }
         .pre-col3-tag.is-down { background: #ffc107; color: #332701; }
         .pre-col3-tag.is-same { background: #6c757d; }
-        .pre-context-result-W { color: #16834b; background: #eef9f2; }
-        .pre-context-result-D { color: #9a6700; background: #fff9e8; }
-        .pre-context-result-L { color: #c92a3a; background: #fff1f2; }
+        .pre-context-result-W { color: #16834b; background: #f2faf5; }
+        .pre-context-result-D { color: #9a6700; background: #fffaf0; }
+        .pre-context-result-L { color: #c92a3a; background: #fff5f5; }
+        .pre-context-table tbody tr.pre-context-row:hover { box-shadow: inset 3px 0 #8baac6; filter: brightness(.985); }
         .pre-context-summary { display: flex; justify-content: center; gap: 10px; padding: 6px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: .75rem; font-weight: 900; }
         .pre-context-summary .is-win { color: #16834b; }
         .pre-context-summary .is-draw { color: #9a6700; }
@@ -3002,10 +3010,56 @@
         }
     
 
+        .pre-context-moment-head { position: relative; padding-right: 175px; }
+        .pre-context-full-open { position: absolute; top: 9px; right: 10px; border: 1px solid #8aa9c2; border-radius: 6px; padding: 5px 9px; background: #fff; color: #214b70; font-size: .68rem; font-weight: 800; cursor: pointer; }
+        .pre-context-full-open:hover { background: #eaf3fb; }
+        .pre-context-full-overlay { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 14px; background: rgba(13, 29, 46, .72); }
+        .pre-context-full-dialog { width: min(1500px, 100%); max-height: calc(100vh - 28px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #bed0df; border-radius: 14px; background: #f2f6fa; box-shadow: 0 28px 75px rgba(6, 24, 44, .36); }
+        .pre-context-full-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid #36536b; background: #17364f; color: #fff; }
+        .pre-context-full-heading { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .pre-context-full-kicker { color: #9fc5de; font-size: .61rem; font-weight: 900; letter-spacing: .1em; }
+        .pre-context-full-heading strong { font-size: 1rem; line-height: 1.25; }
+        .pre-context-full-heading small { color: #d8e7f1; font-size: .7rem; font-weight: 500; }
+        .pre-context-full-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .pre-context-full-range { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid #8fb1cb; border-radius: 8px; background: #234861; }
+        .pre-context-full-range button { min-height: 30px; padding: 5px 11px; border: 0; border-radius: 5px; background: transparent; color: #e1edf5; font-size: .72rem; font-weight: 800; cursor: pointer; }
+        .pre-context-full-range button.is-active { background: #fff; color: #17364f; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+        .pre-context-full-close { min-height: 36px; border: 1px solid #aac5d8; border-radius: 7px; background: #fff; color: #17364f; padding: 6px 11px; font-size: .75rem; font-weight: 800; cursor: pointer; }
+        .pre-context-full-close:hover { background: #eaf3fb; }
+        .pre-context-full-body { overflow: auto; min-height: 0; padding: 14px; }
+        .pre-context-full-body .pre-context-moment { display: flex; flex-direction: column; overflow: visible; border-color: #d4e0ea; box-shadow: 0 3px 16px rgba(16, 42, 65, .08); }
+        .pre-context-full-body .pre-context-moment-head { order: 0; padding-right: 12px; }
+        .pre-context-full-body .pre-context-full-open { display: none; }
+        .pre-context-full-body .pre-context-compare-combined-container { order: 1; }
+        .pre-context-full-body .pre-context-team-grid,
+        .pre-context-full-body .pre-context-content-grid { order: 2; }
+        .pre-context-full-body .pre-context-custom-compare-col { flex: 0 0 100%; max-width: 100%; }
+        .pre-context-full-body .pre-context-custom-compare { height: auto !important; padding: 13px !important; border-color: #d8e4ed !important; background: #f8fbfd !important; }
+        .pre-context-full-body .custom-compare-slot { padding: 13px 15px !important; border-color: #d8e4ed !important; box-shadow: none !important; }
+        .pre-context-full-body .custom-rival-select-a,
+        .pre-context-full-body .custom-rival-select-b { min-height: 40px; font-size: .82rem !important; }
+        .pre-context-full-body .compare-team-label { display: block; margin-bottom: 4px; color: #52677e; font-size: .68rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+        .pre-context-full-body .compare-popup-title { font-size: .9rem !important; }
+        .pre-context-full-body .compare-popup-hint { display: block; margin: 3px 0 0 !important; font-size: .72rem !important; }
+        .pre-context-full-body .pre-context-table th { background: #edf3f8; }
+        .pre-context-full-body .pre-context-table td { padding-top: 6px; padding-bottom: 6px; }
+        .pre-context-full-overlay[data-match-limit="5"] .pre-context-row[data-popup-limit-hidden="1"],
+        .pre-context-full-overlay[data-match-limit="5"] .pre-context-detail-row[data-popup-limit-hidden="1"] { display: none !important; }
+        body.pre-context-compare-popup-open { overflow: hidden; }
+        @media (max-width: 600px) {
+            .pre-context-moment-head { padding-right: 10px; padding-top: 38px; }
+            .pre-context-full-open { left: 8px; right: auto; top: 6px; }
+            .pre-context-full-overlay { padding: 5px; }
+            .pre-context-full-dialog { max-height: calc(100vh - 10px); }
+            .pre-context-full-header { padding: 10px; }
+            .pre-context-full-body { padding: 5px; }
+        }
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pattern_search_v2.css') }}">
+<script src="{{ url_for('static', filename='js/pattern_search_v2.js') }}"></script>
 </head>
 
-<body>
+<body{% if request.args.get('analysis_embed') == '1' and request.args.get('patron_v2') == '1' %} class="analysis-embedded pv2-explorer-active"{% elif request.args.get('analysis_embed') == '1' %} class="analysis-embedded"{% elif request.args.get('patron_v2') == '1' %} class="pv2-explorer-active"{% endif %}>
 
     <!-- Sidebar -->
     <!-- Mobile Header & Overlay -->
@@ -3018,7 +3072,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar {% if request.args.get('patron_v2') == '1' %}collapsed{% endif %}">
         <h4 class="mb-4 text-primary"><i class="fa-solid fa-futbol me-2"></i>Analizador</h4>
         <nav class="nav flex-column">
             <a class="nav-link" href="/estudio"><i class="fa-solid fa-chart-line"></i> Estudio</a>
@@ -3032,7 +3086,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content {% if request.args.get('patron_v2') == '1' %}expanded{% endif %}">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-outline-secondary btn-sm" id="sidebar-toggle" onclick="toggleSidebar()">
@@ -3076,6 +3130,8 @@
         </div>
         {% endif %}
 
+        <div id="pv2-explorer-workspace" class="d-none mb-2"></div>
+
         <!-- Pagination Controls Above Table -->
         <div class="d-flex justify-content-between align-items-center mb-2 px-2 py-2 bg-light rounded"
             id="pagination-bar" style="display: none !important;">
@@ -3099,6 +3155,9 @@
                     <span id="download-cards-badge" class="badge bg-success ms-1 d-none">0</span>
                 </button>
                 <span class="small text-muted" id="download-cards-status"></span>
+                <button class="btn btn-sm btn-primary fw-bold" id="btn-tag-explorer-teams" onclick="window.PatternSearchV2 && window.PatternSearchV2.tagExplorerRows(this)" style="font-size: 0.8rem; padding: 2px 10px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-color: #4338ca;" title="Cargar y filtrar en paralelo las etiquetas de equipo (Local Duro, Mal Visitante, Choque de Duros, etc.) para todos los partidos visibles">
+                    <i class="fa-solid fa-tags me-1"></i> Etiquetado de Equipo
+                </button>
             </div>
             <nav aria-label="Page navigation" id="pagination-nav-top" class="d-none">
                 <ul class="pagination pagination-sm mb-0" id="pagination-lista-top">
@@ -3106,6 +3165,7 @@
                 </ul>
             </nav>
         </div>
+        <div id="explorer-team-tags-bar" class="d-none mb-2"></div>
 
         <div class="table-responsive">
             <table class="table table-bordered table-sm excel-table" id="results-table">
@@ -3135,6 +3195,14 @@
                                 <option value="PUSH">Push</option>
                                 <option value="NO_COVER">No Cubierto</option>
                             </select>
+                            <div class="pv2-only-filter pv2-ou-col-filter">
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-ft-ou-res" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">FT O/U...</option>
+                                    <option value="OVER">Over (Superó)</option>
+                                    <option value="UNDER">Under (No sup.)</option>
+                                    <option value="PUSH">Push</option>
+                                </select>
+                            </div>
                         </th>
                         <th>
                             Prev Home
@@ -3147,6 +3215,23 @@
                                 <option value="PUSH">Push</option>
                                 <option value="NO_COVER">No Cubierto</option>
                             </select>
+                            <div class="pv2-only-filter pv2-ou-col-filter">
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-prev-home-ou-mov" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Mov O/U...</option>
+                                    <option value="MATCH_TARGET">= Actual</option>
+                                    <option value="SUBE">Subió (↑)</option>
+                                    <option value="SUBE_05">Subió ≥+0.5</option>
+                                    <option value="BAJA">Bajó (↓)</option>
+                                    <option value="BAJA_05">Bajó ≤-0.5</option>
+                                    <option value="IGUAL">Igual (=)</option>
+                                </select>
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-prev-home-ou-res" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Res O/U...</option>
+                                    <option value="OVER">Over (Superó)</option>
+                                    <option value="UNDER">Under (No sup.)</option>
+                                    <option value="PUSH">Push</option>
+                                </select>
+                            </div>
                         </th>
                         <th>
                             Prev Away
@@ -3159,6 +3244,23 @@
                                 <option value="PUSH">Push</option>
                                 <option value="NO_COVER">No Cubierto</option>
                             </select>
+                            <div class="pv2-only-filter pv2-ou-col-filter">
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-prev-away-ou-mov" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Mov O/U...</option>
+                                    <option value="MATCH_TARGET">= Actual</option>
+                                    <option value="SUBE">Subió (↑)</option>
+                                    <option value="SUBE_05">Subió ≥+0.5</option>
+                                    <option value="BAJA">Bajó (↓)</option>
+                                    <option value="BAJA_05">Bajó ≤-0.5</option>
+                                    <option value="IGUAL">Igual (=)</option>
+                                </select>
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-prev-away-ou-res" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Res O/U...</option>
+                                    <option value="OVER">Over (Superó)</option>
+                                    <option value="UNDER">Under (No sup.)</option>
+                                    <option value="PUSH">Push</option>
+                                </select>
+                            </div>
                         </th>
                         <th style="width: 100px;">
                             H2H Estadio
@@ -3178,6 +3280,23 @@
                                 <div class="multiselect-container" id="container-filter-h2h-stadium-start-ah"></div>
                                 <div class="multiselect-container" id="container-filter-h2h-stadium-end-ah"></div>
                             </div>
+                            <div class="pv2-only-filter pv2-ou-col-filter">
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-h2h-stadium-ou-mov" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Mov O/U...</option>
+                                    <option value="MATCH_TARGET">= Actual</option>
+                                    <option value="SUBE">Subió (↑)</option>
+                                    <option value="SUBE_05">Subió ≥+0.5</option>
+                                    <option value="BAJA">Bajó (↓)</option>
+                                    <option value="BAJA_05">Bajó ≤-0.5</option>
+                                    <option value="IGUAL">Igual (=)</option>
+                                </select>
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-h2h-stadium-ou-res" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Res O/U...</option>
+                                    <option value="OVER">Over (Superó)</option>
+                                    <option value="UNDER">Under (No sup.)</option>
+                                    <option value="PUSH">Push</option>
+                                </select>
+                            </div>
                         </th>
                         <th style="width: 100px;">
                             H2H General
@@ -3196,6 +3315,23 @@
                             <div class="h2h-ah-filter-pair mt-1">
                                 <div class="multiselect-container" id="container-filter-h2h-general-start-ah"></div>
                                 <div class="multiselect-container" id="container-filter-h2h-general-end-ah"></div>
+                            </div>
+                            <div class="pv2-only-filter pv2-ou-col-filter">
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-h2h-general-ou-mov" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Mov O/U...</option>
+                                    <option value="MATCH_TARGET">= Actual</option>
+                                    <option value="SUBE">Subió (↑)</option>
+                                    <option value="SUBE_05">Subió ≥+0.5</option>
+                                    <option value="BAJA">Bajó (↓)</option>
+                                    <option value="BAJA_05">Bajó ≤-0.5</option>
+                                    <option value="IGUAL">Igual (=)</option>
+                                </select>
+                                <select class="header-filter pv2-ou-filter-select" id="filter-pv2-h2h-general-ou-res" onchange="window.PatternSearchV2 && window.PatternSearchV2.onOuFilterChange()">
+                                    <option value="">Res O/U...</option>
+                                    <option value="OVER">Over (Superó)</option>
+                                    <option value="UNDER">Under (No sup.)</option>
+                                    <option value="PUSH">Push</option>
+                                </select>
                             </div>
                         </th>
                         <th style="width: 120px;">
@@ -3695,7 +3831,7 @@
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
-        function buildModernStatsCardHtml({ statsList, homeTeam = '', awayTeam = '', date = '', score = '', ah = '', ou = '', leagueId = '', showHideBtn = false, hideBtnOnClick = '' }) {
+        function buildModernStatsCardHtml({ statsList, homeTeam = '', awayTeam = '', date = '', score = '', ah = '', ou = '', leagueId = '', showHideBtn = false, hideBtnOnClick = '', homeRed = null, awayRed = null }) {
             const esc = (val) => String(val ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
             const parseVal = (v) => {
@@ -3709,6 +3845,7 @@
             let dangerousAttacks = null;
             let totalAttacks = null;
             let corners = null;
+            let redCards = null;
 
             if (Array.isArray(statsList) && statsList.length) {
                 statsList.forEach(s => {
@@ -3727,11 +3864,25 @@
                         totalAttacks = [h, a];
                     } else if ((name.includes('corner') || name.includes('córner') || name.includes('esquina')) && corners === null) {
                         corners = [h, a];
+                    } else if ((s.is_red_card || name.includes('roja') || name.includes('red card') || name === 'rcard') && redCards === null) {
+                        redCards = [h, a];
                     }
                 });
             }
 
-            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks || corners);
+            if (redCards === null && (homeRed !== null && homeRed !== undefined || awayRed !== null && awayRed !== undefined)) {
+                const hr = parseVal(homeRed);
+                const ar = parseVal(awayRed);
+                if (hr > 0 || ar > 0 || String(homeRed).trim() === '0' || String(awayRed).trim() === '0') {
+                    redCards = [hr, ar];
+                }
+            }
+            if (redCards === null && (shotsTotal || shotsTarget || dangerousAttacks || totalAttacks)) {
+                redCards = [0, 0];
+            }
+
+            const anyRed = redCards && (redCards[0] > 0 || redCards[1] > 0);
+            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks || corners || anyRed);
 
             const stH = shotsTotal ? shotsTotal[0] : 0;
             const stA = shotsTotal ? shotsTotal[1] : 0;
@@ -3761,6 +3912,26 @@
                 `;
             };
 
+            const renderRedRow = (hVal, aVal) => {
+                const hHas = hVal > 0;
+                const aHas = aVal > 0;
+                const anyR = hHas || aHas;
+                const hBg = hHas ? '#fee2e2' : '#f8fafc';
+                const hColor = hHas ? '#b91c1c' : '#64748b';
+                const hBorder = hHas ? 'border:1px solid #f87171;' : 'border:1px solid #e2e8f0;';
+                const aBg = aHas ? '#fee2e2' : '#f8fafc';
+                const aColor = aHas ? '#b91c1c' : '#64748b';
+                const aBorder = aHas ? 'border:1px solid #f87171;' : 'border:1px solid #e2e8f0;';
+
+                return `
+                    <div class="modern-stat-row" data-stat-name="Tarjetas rojas" data-home-val="${hVal}" data-away-val="${aVal}" style="display:flex; align-items:center; justify-content:space-between; gap:4px; line-height:1.2; margin-top:2px; padding-top:2px; border-top:1px dashed ${anyR ? '#fca5a5' : '#f1f5f9'};" title="Tarjetas Rojas (Expulsiones)">
+                        <span style="min-width:24px; text-align:center; background:${hBg}; color:${hColor}; ${hBorder} font-weight:800; padding:1.5px 4px; border-radius:3px; font-size:0.72rem;">${hVal}</span>
+                        <span style="font-size:0.78rem; text-align:center; flex:1; cursor:help; line-height:1;" title="${anyR ? 'Tarjetas Rojas registradas' : 'Sin tarjetas rojas'}">🟥</span>
+                        <span style="min-width:24px; text-align:center; background:${aBg}; color:${aColor}; ${aBorder} font-weight:800; padding:1.5px 4px; border-radius:3px; font-size:0.72rem;">${aVal}</span>
+                    </div>
+                `;
+            };
+
             let statsBodyHtml = '';
             if (hasStats) {
                 statsBodyHtml = `
@@ -3770,6 +3941,7 @@
                         ${renderRow('📊', 'Ataques totales', taH, taA)}
                         ${renderRow('⚡', 'Ataques peligrosos', daH, daA)}
                         ${corners ? renderRow('🚩', 'Saques de esquina', corners[0], corners[1]) : ''}
+                        ${redCards ? renderRedRow(redCards[0], redCards[1]) : ''}
                     </div>
                 `;
             } else {
@@ -3787,15 +3959,19 @@
             const cleanOu = String(ou || '').replace(/^(?:O\/U|OU|Goles|Goals)\s*/i, '').trim();
             const formattedOu = (cleanOu && cleanOu !== '-' && cleanOu !== 'N/A') ? cleanOu : '-';
             const cleanLeague = String(leagueId || '').replace(/^L\.?/i, '').trim();
+            const homeRedBadge = (redCards && redCards[0] > 0) ? `<span style="background:#dc2626; color:#ffffff; font-size:0.50rem; padding:0 3px; border-radius:2px; font-weight:800; margin-left:3px; vertical-align:middle;" title="${redCards[0]} tarjeta(s) roja(s)">🟥${redCards[0] > 1 ? redCards[0] : ''}</span>` : '';
+            const awayRedBadge = (redCards && redCards[1] > 0) ? `<span style="background:#dc2626; color:#ffffff; font-size:0.50rem; padding:0 3px; border-radius:2px; font-weight:800; margin-left:3px; vertical-align:middle;" title="${redCards[1]} tarjeta(s) roja(s)">🟥${redCards[1] > 1 ? redCards[1] : ''}</span>` : '';
+            const topBarRedBadge = anyRed ? `<span style="background:#ef4444; color:#ffffff; font-size:.52rem; font-weight:800; padding:1px 5px; border-radius:3px; letter-spacing:0.2px;">🟥 ROJA (${redCards[0]}-${redCards[1]})</span>` : '';
 
             return `
-                <div class="stat-card modern-match-stats-card" data-home="${esc(homeTeam)}" data-away="${esc(awayTeam)}" data-date="${esc(date)}" data-score="${esc(cleanScore)}" data-ah="${esc(formattedAh)}" data-ou="${esc(formattedOu)}" data-league="${esc(cleanLeague)}" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:340px; margin:0 auto; box-sizing:border-box;">
+                <div class="stat-card modern-match-stats-card" data-home="${esc(homeTeam)}" data-away="${esc(awayTeam)}" data-date="${esc(date)}" data-score="${esc(cleanScore)}" data-ah="${esc(formattedAh)}" data-ou="${esc(formattedOu)}" data-league="${esc(cleanLeague)}" style="background:#ffffff; border:1px solid ${anyRed ? '#f87171' : '#e2e8f0'}; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); width:100%; max-width:340px; margin:0 auto; box-sizing:border-box;">
                     <!-- Top Bar -->
                     <div style="background:#f8fafc; border-bottom:1px solid #edf2f7; padding:3px 8px; display:flex; justify-content:space-between; align-items:center; gap:6px;">
                         <span style="display:inline-flex; align-items:center; gap:3px; font-weight:700; font-size:.55rem; color:#15803d; background:#f0fdf4; padding:1px 5px; border-radius:4px; border:1px solid #bbf7d0; letter-spacing:0.2px;">
                             <i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> ESTADÍSTICAS DEL PARTIDO
                         </span>
                         <div style="display:flex; align-items:center; gap:5px;">
+                            ${topBarRedBadge}
                             ${cleanLeague && cleanLeague !== '-' ? `<span style="background:#0284c7; color:#ffffff; font-size:.52rem; font-weight:700; padding:1px 5px; border-radius:3px; letter-spacing:0.2px;">LIGA ${esc(cleanLeague)}</span>` : ''}
                             ${date ? `<span style="font-size:.55rem; color:#64748b; font-weight:600; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">📅 ${esc(date)}</span>` : ''}
                             ${showHideBtn ? `<button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-muted th-hide-btn" style="font-size:.56rem; font-weight:600; margin-left:3px; cursor:pointer;" onclick="${hideBtnOnClick}">✕ ocultar</button>` : ''}
@@ -3807,7 +3983,7 @@
                         <div style="display:flex; align-items:center; gap:5px; flex:1 1 0; min-width:0;" title="${esc(homeTeam)}">
                             <div style="width:3px; height:16px; background:#2563eb; border-radius:2px; flex-shrink:0;"></div>
                             <span style="font-weight:700; font-size:0.66rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                                ${esc(homeTeam || 'Local')}
+                                ${esc(homeTeam || 'Local')}${homeRedBadge}
                             </span>
                         </div>
                         <!-- Apartado Central: Marcador + Columna AH + NUEVA COLUMNA DE GOLES -->
@@ -3827,7 +4003,7 @@
                         </div>
                         <div style="display:flex; align-items:center; justify-content:flex-end; gap:5px; flex:1 1 0; min-width:0;" title="${esc(awayTeam)}">
                             <span style="font-weight:700; font-size:0.66rem; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right;">
-                                ${esc(awayTeam || 'Visitante')}
+                                ${esc(awayTeam || 'Visitante')}${awayRedBadge}
                             </span>
                             <div style="width:3px; height:16px; background:#ef4444; border-radius:2px; flex-shrink:0;"></div>
                         </div>
@@ -3853,7 +4029,7 @@
             `;
         }
 
-        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '', ou = '') {
+        function buildCellMiniStatsHtml(statsList, homeTeam = '', awayTeam = '', score = '', ah = '', ou = '', homeRed = null, awayRed = null) {
             const parseVal = (v) => {
                 if (v === undefined || v === null || v === '') return 0;
                 const m = String(v).match(/(\d+)/);
@@ -3864,6 +4040,7 @@
             let shotsTarget = null;
             let dangerousAttacks = null;
             let totalAttacks = null;
+            let redCards = null;
 
             if (Array.isArray(statsList) && statsList.length) {
                 statsList.forEach(s => {
@@ -3880,13 +4057,28 @@
                         dangerousAttacks = [h, a];
                     } else if ((name.includes('ataque') || name.includes('attack')) && !name.includes('peligros') && !name.includes('dangerous') && totalAttacks === null) {
                         totalAttacks = [h, a];
+                    } else if ((s.is_red_card || name.includes('roja') || name.includes('red card') || name === 'rcard') && redCards === null) {
+                        redCards = [h, a];
                     }
                 });
             }
 
-            const goalBadgeHtml = formatSubtleGoalBadge(ou);
+            if (redCards === null && (homeRed !== null && homeRed !== undefined || awayRed !== null && awayRed !== undefined)) {
+                const hr = parseVal(homeRed);
+                const ar = parseVal(awayRed);
+                if (hr > 0 || ar > 0 || String(homeRed).trim() === '0' || String(awayRed).trim() === '0') {
+                    redCards = [hr, ar];
+                }
+            }
+            if (redCards === null && (shotsTotal || shotsTarget || dangerousAttacks || totalAttacks)) {
+                redCards = [0, 0];
+            }
 
-            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks);
+            const goalBadgeHtml = formatSubtleGoalBadge(ou);
+            const anyRed = redCards && (redCards[0] > 0 || redCards[1] > 0);
+            const redBadgeHtml = anyRed ? `<span style="background:#dc2626; color:#ffffff; font-size:0.48rem; font-weight:900; padding:1px 4px; border-radius:3px; letter-spacing:0.3px; line-height:1;" title="Tarjeta roja registrada">🟥 ROJA</span>` : '';
+
+            const hasStats = Boolean(shotsTotal || shotsTarget || dangerousAttacks || totalAttacks || anyRed);
             if (!hasStats) {
                 return `
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:5px; padding:3px; margin-top:3px; text-align:center; font-size:0.52rem; color:#94a3b8;">
@@ -3894,6 +4086,7 @@
                             <div style="display:flex; align-items:center; gap:5px;">
                                 <span style="font-weight:700; color:#64748b; font-size:0.58rem;">STATS</span>
                                 ${goalBadgeHtml}
+                                ${redBadgeHtml}
                             </div>
                             <button type="button" class="btn btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.54rem; text-decoration:none; font-weight:700;">✕</button>
                         </div>
@@ -3933,12 +4126,33 @@
                 `;
             };
 
+            const renderRedCardRow = (hVal, aVal) => {
+                const hHas = hVal > 0;
+                const aHas = aVal > 0;
+                const anyR = hHas || aHas;
+                const hBg = hHas ? '#fee2e2' : '#f8fafc';
+                const hColor = hHas ? '#b91c1c' : '#64748b';
+                const hBorder = hHas ? 'border:1px solid #f87171;' : 'border:1px solid #e2e8f0;';
+                const aBg = aHas ? '#fee2e2' : '#f8fafc';
+                const aColor = aHas ? '#b91c1c' : '#64748b';
+                const aBorder = aHas ? 'border:1px solid #f87171;' : 'border:1px solid #e2e8f0;';
+
+                return `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:3px; line-height:1.2; margin-top:2px; padding-top:2px; border-top:1px dashed ${anyR ? '#fca5a5' : '#f1f5f9'};" title="Tarjetas Rojas (Expulsiones)">
+                        <span style="min-width:22px; text-align:center; background:${hBg}; color:${hColor}; ${hBorder} font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${hVal}</span>
+                        <span style="font-size:0.75rem; text-align:center; flex:1; cursor:help; line-height:1;" title="${anyR ? 'Tarjetas Rojas registradas' : 'Sin tarjetas rojas'}">🟥</span>
+                        <span style="min-width:22px; text-align:center; background:${aBg}; color:${aColor}; ${aBorder} font-weight:800; padding:1px 3px; border-radius:3px; font-size:0.72rem;">${aVal}</span>
+                    </div>
+                `;
+            };
+
             return `
-                <div style="background:#ffffff; border:1px solid #10b981; border-radius:6px; padding:3px 5px; margin-top:3px; box-shadow:0 1px 4px rgba(0,0,0,0.06); width:100%; box-sizing:border-box;">
+                <div style="background:#ffffff; border:1px solid ${anyRed ? '#ef4444' : '#10b981'}; border-radius:6px; padding:3px 5px; margin-top:3px; box-shadow:0 1px 4px rgba(0,0,0,0.06); width:100%; box-sizing:border-box;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:2px; margin-bottom:3px;">
                         <div style="display:flex; align-items:center; gap:5px;">
                             <span style="font-size:0.62rem; font-weight:800; color:#15803d; letter-spacing:0.3px;"><i class="fa-solid fa-chart-simple" style="color:#10b981;"></i> STATS</span>
                             ${goalBadgeHtml}
+                            ${redBadgeHtml}
                         </div>
                         <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="this.closest('.cell-inline-stats-slot').style.display='none'" style="font-size:0.65rem; text-decoration:none; font-weight:700; line-height:1; cursor:pointer;" title="Ocultar">✕</button>
                     </div>
@@ -3946,6 +4160,7 @@
                     ${renderRow('🎯', 'Tiros a puerta', spH, spA)}
                     ${renderRow('📊', 'Ataques totales', taH, taA)}
                     ${renderRow('⚡', 'Ataques peligrosos', daH, daA)}
+                    ${redCards ? renderRedCardRow(redCards[0], redCards[1]) : ''}
                 </div>
             `;
         }
@@ -3978,6 +4193,8 @@
             const ah = btn.dataset.ah || '';
             const date = btn.dataset.date || '';
             const ou = btn.dataset.ou || '';
+            const homeRed = btn.dataset.homeRed || null;
+            const awayRed = btn.dataset.awayRed || null;
 
             const cacheKey = matchId ? `id_${matchId}` : `${homeTeam}_${awayTeam}_${date}`;
 
@@ -3985,7 +4202,9 @@
                 const cached = window._quickMatchStatsCache[cacheKey];
                 const cachedStats = Array.isArray(cached) ? cached : (cached ? cached.stats : []);
                 const cachedOu = (!Array.isArray(cached) && cached && cached.ou) ? cached.ou : ou;
-                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah, cachedOu);
+                const cachedHomeRed = (!Array.isArray(cached) && cached && cached.home_red !== undefined && cached.home_red !== null) ? cached.home_red : homeRed;
+                const cachedAwayRed = (!Array.isArray(cached) && cached && cached.away_red !== undefined && cached.away_red !== null) ? cached.away_red : awayRed;
+                slot.innerHTML = buildCellMiniStatsHtml(cachedStats, homeTeam, awayTeam, score, ah, cachedOu, cachedHomeRed, cachedAwayRed);
                 slot.dataset.loaded = '1';
                 return;
             }
@@ -4008,7 +4227,9 @@
                         row_date: date,
                         row_score: score,
                         row_ah: ah,
-                        row_ou: ou
+                        row_ou: ou,
+                        row_home_red: homeRed,
+                        row_away_red: awayRed
                     })
                 });
                 const data = await response.json();
@@ -4017,9 +4238,12 @@
                 }
                 const stats = data.stats || [];
                 const finalOu = (data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : ou;
+                const finalHomeRed = (data.home_red !== undefined && data.home_red !== null) ? data.home_red : homeRed;
+                const finalAwayRed = (data.away_red !== undefined && data.away_red !== null) ? data.away_red : awayRed;
+
                 if (stats.length > 0) {
                     window._quickMatchStatsCache = window._quickMatchStatsCache || {};
-                    const cacheObj = { stats: stats, ou: finalOu };
+                    const cacheObj = { stats: stats, ou: finalOu, home_red: finalHomeRed, away_red: finalAwayRed };
                     window._quickMatchStatsCache[cacheKey] = cacheObj;
                     if (data.match_id && !matchId) {
                         btn.dataset.matchId = data.match_id;
@@ -4030,6 +4254,18 @@
                     slot.dataset.loaded = '0';
                 }
                 btn.dataset.ou = finalOu;
+                if (finalHomeRed !== null && finalHomeRed !== undefined) btn.dataset.homeRed = finalHomeRed;
+                if (finalAwayRed !== null && finalAwayRed !== undefined) btn.dataset.awayRed = finalAwayRed;
+
+                const anyRedRcv = (finalHomeRed > 0 || finalAwayRed > 0);
+                if (anyRedRcv && !btn.querySelector('.cell-red-dot')) {
+                    const dot = document.createElement('span');
+                    dot.className = 'cell-red-dot';
+                    dot.style.cssText = 'display:inline-block; width:6px; height:8px; background:#dc2626; border-radius:1px; margin-left:1px; vertical-align:middle;';
+                    dot.title = `Hubo tarjeta roja (${finalHomeRed || 0}-${finalAwayRed || 0})`;
+                    btn.appendChild(dot);
+                }
+
                 const btnRow = btn.closest('.cell-stats-btn-row');
                 if (btnRow && !btnRow.querySelector('.subtle-goal-line-badge') && finalOu && btn.dataset.hideCellBadge !== '1') {
                     const badgeElem = document.createElement('div');
@@ -4037,7 +4273,7 @@
                     if (badgeElem.firstElementChild) btnRow.appendChild(badgeElem.firstElementChild);
                 }
 
-                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah, finalOu);
+                slot.innerHTML = buildCellMiniStatsHtml(stats, homeTeam, awayTeam, score, ah, finalOu, finalHomeRed, finalAwayRed);
             } catch (err) {
                 slot.innerHTML = `
                     <div style="font-size:0.52rem; color:#94a3b8; text-align:center; padding:3px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:4px; margin-top:3px;">
@@ -4048,13 +4284,16 @@
             }
         }
 
-        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main') {
+        function formatTeamHistoryStatsCard(statsList, homeTeam, awayTeam, date, score, ah, leagueId, idx, panelPrefix = 'main', ou = '', homeRed = null, awayRed = null) {
             const activeData = (panelPrefix === 'opp' && window._currentOpponentHistoryData) ? window._currentOpponentHistoryData : window._currentTeamHistoryData;
             const m = (activeData?.matches && typeof idx === 'number') ? activeData.matches[idx] : null;
             const effectiveDate = date || (m && m.date) || '';
             const effectiveScore = score || (m && m.score) || '';
             const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((m && m.ah) || '-');
             const effectiveLeague = leagueId || (m && m.league_id) || '';
+            const effectiveOu = (ou && ou !== '-' && ou !== 'N/A') ? ou : ((m && (m.ou || m.ou_line || m.ouLine || m.goals_line || m.over_under)) || '');
+            const effectiveHomeRed = (homeRed !== null && homeRed !== undefined) ? homeRed : ((m && m.home_red) || null);
+            const effectiveAwayRed = (awayRed !== null && awayRed !== undefined) ? awayRed : ((m && m.away_red) || null);
 
             return buildModernStatsCardHtml({
                 statsList,
@@ -4063,9 +4302,12 @@
                 date: effectiveDate,
                 score: effectiveScore,
                 ah: effectiveAh,
+                ou: effectiveOu,
                 leagueId: effectiveLeague,
                 showHideBtn: true,
-                hideBtnOnClick: 'toggleTeamHistoryRowStats(this, event)'
+                hideBtnOnClick: 'toggleTeamHistoryRowStats(this, event)',
+                homeRed: effectiveHomeRed,
+                awayRed: effectiveAwayRed
             });
         }
 
@@ -4184,6 +4426,7 @@
                 const effectiveAh = (ah !== undefined && ah !== null && ah !== '') ? ah : ((matchObj && matchObj.ah) || '');
                 const effectiveLeague = leagueId || (matchObj && matchObj.league_id) || '';
                 const effectiveMatchId = String(matchId || (matchObj && matchObj.match_id) || '').replace(/\D/g, '');
+                const effectiveOu = (btn && btn.dataset && btn.dataset.ou) || (matchObj && (matchObj.ou || matchObj.ou_line || matchObj.ouLine || matchObj.goals_line || matchObj.over_under)) || '';
 
                 const response = await fetch('/api/match_stats', {
                     method: 'POST',
@@ -4195,6 +4438,7 @@
                         row_date: effectiveDate,
                         row_score: effectiveScore,
                         row_ah: effectiveAh,
+                        row_ou: effectiveOu,
                         parent_match_id: window._currentTeamHistoryParentMatchId || '',
                     })
                 });
@@ -4203,8 +4447,11 @@
                     throw new Error(data.error || 'No se pudieron descargar las estadísticas');
                 }
                 const stats = data.stats || [];
+                const finalOu = (data && data.ou_line && data.ou_line !== '-' && data.ou_line !== 'N/A') ? data.ou_line : effectiveOu;
+                const finalHomeRed = (data && data.home_red !== undefined && data.home_red !== null) ? data.home_red : ((matchObj && matchObj.home_red) || null);
+                const finalAwayRed = (data && data.away_red !== undefined && data.away_red !== null) ? data.away_red : ((matchObj && matchObj.away_red) || null);
                 cell.dataset.loaded = '1';
-                cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix);
+                cell.innerHTML = formatTeamHistoryStatsCard(stats, effectiveHome, effectiveAway, effectiveDate, effectiveScore, effectiveAh, effectiveLeague, idx, panelPrefix, finalOu, finalHomeRed, finalAwayRed);
             } catch (err) {
                 cell.dataset.loaded = '0';
                 cell.innerHTML = `
@@ -4218,6 +4465,7 @@
 
         function closeCustomCompare(btnEl, pMid, event) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+            dismissPreContextComparePopup();
             const parentId = pMid || window._activeInlineParentMatchId || window._currentTeamHistoryParentMatchId;
             if (!parentId) return;
             const customCol = document.getElementById('custom-compare-col-' + parentId);
@@ -5271,7 +5519,6 @@
         let currentPage = 1;
         let itemsPerPage = 40;
         let totalResults = [];
-        let explorerSearchComplete = true;
         let filteredResultsGlobal = [];
         // Los controles son un borrador. La tabla solo usa la última selección aplicada.
         let appliedExplorerFilters = null;
@@ -5952,11 +6199,49 @@
             })();
             hasPreset = applySelectRawValue('filter-prev-away-res', prevAwayResNorm, ['COVER', 'PUSH', 'NO_COVER', 'HOME_WIN', 'DRAW', 'AWAY_WIN']) || hasPreset;
 
+            // Reuse the source match's indirect-comparison conditions in embedded searches.
+            for (const [side, multi] of [['local', msIndLocalAh], ['visitante', msIndVisitanteAh]]) {
+                hasPreset = applyMultiSelectValue(multi, params.get(`ind_${side}_ah`)) || hasPreset;
+                hasPreset = applySelectRawValue(`filter-ind-${side}-res`, params.get(`ind_${side}_res`), ['COVER', 'PUSH', 'NO_COVER']) || hasPreset;
+                hasPreset = applySelectRawValue(`filter-ind-${side}-loc`, params.get(`ind_${side}_loc`), ['H', 'A']) || hasPreset;
+            }
+
             const ouLimitRaw = params.get('ou_limit');
             hasPreset = applyOuMultiSelectValue(msOu, ouLimitRaw) || hasPreset;
 
             // Inicializar autocompletado de ligas
             initLeagueAutocomplete();
+
+            if (params.get('patron_v2') === '1' && params.get('source_match_id') && window.PatternSearchV2) {
+                if (window.innerWidth > 768) {
+                    document.querySelector('.sidebar')?.classList.add('collapsed');
+                    document.querySelector('.main-content')?.classList.add('expanded');
+                }
+                window.PatternSearchV2.initExplorerPatternV2Page(params.get('source_match_id'), {
+                    setResults: (cards) => {
+                        totalResults = Array.isArray(cards) ? cards : [];
+                        appliedExplorerFilters = captureExplorerFilters();
+                        currentPage = 1;
+                        renderTableWithPagination();
+                        reinitBootstrapCollapses();
+                    },
+                    applyFilters: () => {
+                        if (!appliedExplorerFilters) appliedExplorerFilters = captureExplorerFilters();
+                        currentPage = 1;
+                        renderTableWithPagination();
+                    },
+                    showLoading: (on) => {
+                        const sp = document.getElementById('loading-overlay');
+                        if (sp) sp.classList.toggle('d-none', !on);
+                    },
+                    clearToNormalSearch: () => {
+                        window.PatternSearchV2.deactivateExplorerV2();
+                        triggerSearch();
+                    }
+                });
+                return;
+            }
+
             // Cargar partidos siempre al entrar al Explorador o cuando llegamos con preset
             triggerSearch();
         }
@@ -6044,6 +6329,12 @@
 
 
         function triggerSearch() {
+            if (window.PatternSearchV2 && window.PatternSearchV2.isExplorerV2Active()) {
+                appliedExplorerFilters = captureExplorerFilters();
+                currentPage = 1;
+                renderTableWithPagination();
+                return;
+            }
             const selectedFilters = captureExplorerFilters();
             const searchSequence = ++explorerSearchSequence;
             const getValuesOrNull = (ms) => {
@@ -6156,7 +6447,6 @@
                     if (searchSequence !== explorerSearchSequence) return;
                     spinner.classList.add('d-none');
                     totalResults = data.results || [];
-                    explorerSearchComplete = data.complete !== false;
                     appliedExplorerFilters = selectedFilters;
 
                     currentPage = 1;
@@ -6178,6 +6468,10 @@
             // Aplicar filtro client-side "Solo con historial"
             const onlyWithHistory = appliedFilterValue('filter-only-with-history');
             let filteredResults = totalResults;
+
+            if (window.PatternSearchV2 && window.PatternSearchV2.isExplorerV2Active()) {
+                filteredResults = filteredResults.filter(item => window.PatternSearchV2.matchesActiveExplorerFilter(item));
+            }
 
             // Filtro client-side de Liga (Autocompletado / Texto)
             const leagueFilterQuery = appliedFilterValue('filter-league-autocomplete').trim().toLowerCase();
@@ -6549,6 +6843,10 @@
 
             renderPaginationControls(filteredResults.length);
 
+            if (window.PatternSearchV2 && window.PatternSearchV2.isExplorerV2Active()) {
+                window.PatternSearchV2.syncExplorerV2Stats(filteredResults);
+            }
+
             // Reinitialize Bootstrap collapses after rendering
             reinitBootstrapCollapses();
         }
@@ -6586,7 +6884,7 @@
                 if (paginationBar) paginationBar.style.cssText = 'display: flex !important;';
                 const start = (currentPage - 1) * itemsPerPage + 1;
                 const end = Math.min(currentPage * itemsPerPage, totalCount);
-                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start} -${end} de ${totalCount}${explorerSearchComplete ? '' : ' · búsqueda limitada a 750 resultados; añade filtros'}`;
+                if (paginationInfo) paginationInfo.textContent = `Mostrando ${start} -${end} de ${totalCount} `;
             } else {
                 if (paginationBar) paginationBar.style.cssText = 'display: none !important;';
             }
@@ -6624,7 +6922,23 @@
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
 
-            if (!results || results.length === 0) {
+            let rowsToRender = Array.isArray(results) ? [...results] : [];
+            const hasTargetRefInPv2 = (
+                typeof currentPage !== 'undefined' && currentPage === 1 &&
+                window.PatternSearchV2 &&
+                window.PatternSearchV2.isExplorerV2Active() &&
+                typeof window.PatternSearchV2.getTargetExplorerCard === 'function'
+            );
+            let prependedTargetRef = false;
+            if (hasTargetRefInPv2) {
+                const refCard = window.PatternSearchV2.getTargetExplorerCard();
+                if (refCard && refCard.candidate) {
+                    rowsToRender.unshift({ ...refCard, _isTargetRef: true });
+                    prependedTargetRef = true;
+                }
+            }
+
+            if (rowsToRender.length === 0) {
                 tbody.innerHTML = `<tr>
                 <td colspan="14" class="text-center py-4">No se encontraron resultados</td>
     </tr> `;
@@ -6637,11 +6951,24 @@
             function isValidValue(val) { return val !== undefined && val !== null && val !== "undefined" && val !== ""; }
             const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-            const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '', ou = '', showCellBadge = false }) => {
+            const formatTeamWithRed = (teamName, redVal, isHome = true) => {
+                const escName = escAttr(teamName);
+                const r = (redVal !== null && redVal !== undefined && redVal !== '' && redVal !== 'null' && redVal !== '0') ? parseInt(redVal, 10) : 0;
+                if (r > 0) {
+                    return `<span class="${isHome ? 'text-home' : 'text-away'}">${escName}</span><span style="background:#dc2626; color:#ffffff; font-size:0.48rem; padding:0 3px; border-radius:2px; font-weight:800; display:inline-block; line-height:1.1; margin-left:2px; vertical-align:middle;" title="${r} tarjeta(s) roja(s)">🟥${r > 1 ? r : ''}</span>`;
+                }
+                return `<span class="${isHome ? 'text-home' : 'text-away'}">${escName}</span>`;
+            };
+
+            const makeCellStatsBtnHtml = ({ matchId = '', parentMatchId = '', home = '', away = '', score = '', ah = '', date = '', league = '', ou = '', showCellBadge = false, homeRed = null, awayRed = null }) => {
                 if (!score || score === '-' || score === '?:?' || score === '?-?' || score === '??') return '';
                 const safeOu = String(ou || '').trim();
                 const cleanOu = (safeOu && safeOu !== '-' && safeOu !== 'N/A' && safeOu !== 'null' && safeOu !== 'undefined') ? safeOu : '';
                 const cellBadgeHtml = (showCellBadge && cleanOu) ? formatSubtleGoalBadge(cleanOu) : '';
+                const hR = (homeRed !== null && homeRed !== undefined && homeRed !== '' && homeRed !== 'null' && homeRed !== '0') ? parseInt(homeRed, 10) : 0;
+                const aR = (awayRed !== null && awayRed !== undefined && awayRed !== '' && awayRed !== 'null' && awayRed !== '0') ? parseInt(awayRed, 10) : 0;
+                const hasRed = (hR > 0 || aR > 0);
+                const redDotHtml = hasRed ? `<span class="cell-red-dot" style="display:inline-block; width:6px; height:8px; background:#dc2626; border-radius:1px; margin-left:1px; vertical-align:middle;" title="Hubo tarjeta roja en este partido (${hR}-${aR})"></span>` : '';
                 return `
                     <div class="mt-1 d-flex flex-column align-items-center cell-stats-btn-wrap" style="width:100%;">
                         <div class="d-flex align-items-center justify-content-center gap-1 cell-stats-btn-row">
@@ -6653,13 +6980,15 @@
                                 data-score="${escAttr(score)}"
                                 data-ah="${escAttr(ah)}"
                                 data-ou="${escAttr(cleanOu)}"
+                                data-home-red="${escAttr(hR || '')}"
+                                data-away-red="${escAttr(aR || '')}"
                                 data-hide-cell-badge="${showCellBadge ? '0' : '1'}"
                                 data-date="${escAttr(date)}"
                                 data-league="${escAttr(league)}"
                                 onclick="toggleCellInlineStats(this, event)"
                                 style="font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border: 1px solid #10b981; border-radius: 4px; background: #ecfdf5; color: #047857; display: inline-flex; align-items: center; gap: 3px; cursor: pointer; line-height: 1.2;"
-                                title="Ver estadísticas en esta celda${cleanOu ? ` · Línea de goles: ${cleanOu}` : ''}">
-                                <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats
+                                title="Ver estadísticas en esta celda${cleanOu ? ` · Línea de goles: ${cleanOu}` : ''}${hasRed ? ` · Roja: ${hR}-${aR}` : ''}">
+                                <i class="fa-solid fa-chart-simple" style="color: #10b981; font-size: 0.56rem;"></i> Stats${redDotHtml}
                             </button>
                             ${cellBadgeHtml}
                         </div>
@@ -6668,9 +6997,10 @@
                 `;
             };
 
-            results.forEach(item => {
+            rowsToRender.forEach(item => {
                 try {
                     if (!item || !item.candidate) return;
+                    const isTargetRef = Boolean(item._isTargetRef);
                     const c = item.candidate;
 
                     // League & Rank Data
@@ -6721,6 +7051,9 @@
                 }
 
                 const tr = document.createElement('tr');
+                if (isTargetRef) {
+                    tr.className = 'pv2-target-ref-row';
+                }
 
                 // Prev Home Cell Logic
                 let prevHomeHtml = '';
@@ -6765,7 +7098,9 @@
                             ah: formatAh(item.prev_home.ah) || '',
                             date: item.prev_home.date || '',
                             league: item.prev_home.league_id || '',
-                            ou: item.prev_home.ou || item.prev_home.ou_line || item.prev_home.over_under_line_raw || ''
+                            ou: item.prev_home.ou || item.prev_home.ou_line || item.prev_home.over_under_line_raw || '',
+                            homeRed: item.prev_home.home_red,
+                            awayRed: item.prev_home.away_red
                         });
 
                         prevHomeHtml = `
@@ -6776,8 +7111,9 @@
                                  <span class="${wdlClass} fw-bold">${item.prev_home.score || '-'}</span>
                              </div>
                              ${item.prev_home.movement ? `<div class="text-muted" style="font-size:0.55rem;">Mov fav: ${item.prev_home.movement} · ${previousCover || 'N/D'}</div>` : ''}
+                             ${!isTargetRef ? `<div data-pv2-ou-prev-slot="${item.match_id}:prev_home">${window.PatternSearchV2 && window.PatternSearchV2.renderExplorerPrevOuHtml ? window.PatternSearchV2.renderExplorerPrevOuHtml(item, 'prev_home') : ''}</div>` : (window.PatternSearchV2 && window.PatternSearchV2.renderExplorerPrevOuHtml ? window.PatternSearchV2.renderExplorerPrevOuHtml(item, 'prev_home') : '')}
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
-                                <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
+                                ${formatTeamWithRed(rHome, item.prev_home.home_red, true)} <span class="text-muted" style="font-size:0.6rem">vs</span> ${formatTeamWithRed(rAway, item.prev_home.away_red, false)}
                             </div>
                             ${phStatsBtn}
                         </div>`;
@@ -6825,7 +7161,9 @@
                             ah: formatAh(item.prev_away.ah) || '',
                             date: item.prev_away.date || '',
                             league: item.prev_away.league_id || '',
-                            ou: item.prev_away.ou || item.prev_away.ou_line || item.prev_away.over_under_line_raw || ''
+                            ou: item.prev_away.ou || item.prev_away.ou_line || item.prev_away.over_under_line_raw || '',
+                            homeRed: item.prev_away.home_red,
+                            awayRed: item.prev_away.away_red
                         });
 
                         prevAwayHtml = `
@@ -6836,8 +7174,9 @@
                                  <span class="${wdlClass} fw-bold">${item.prev_away.score || '-'}</span>
                              </div>
                              ${item.prev_away.movement ? `<div class="text-muted" style="font-size:0.55rem;">Mov fav: ${item.prev_away.movement} · ${previousCover || 'N/D'}</div>` : ''}
+                             ${!isTargetRef ? `<div data-pv2-ou-prev-slot="${item.match_id}:prev_away">${window.PatternSearchV2 && window.PatternSearchV2.renderExplorerPrevOuHtml ? window.PatternSearchV2.renderExplorerPrevOuHtml(item, 'prev_away') : ''}</div>` : (window.PatternSearchV2 && window.PatternSearchV2.renderExplorerPrevOuHtml ? window.PatternSearchV2.renderExplorerPrevOuHtml(item, 'prev_away') : '')}
                             <div class="small" style="font-size: 0.65rem; line-height: 1.1;">
-                                <span class="text-home">${rHome}</span> <span class="text-muted" style="font-size:0.6rem">vs</span> <span class="text-away">${rAway}</span>
+                                ${formatTeamWithRed(rHome, item.prev_away.home_red, true)} <span class="text-muted" style="font-size:0.6rem">vs</span> ${formatTeamWithRed(rAway, item.prev_away.away_red, false)}
                             </div>
                             ${paStatsBtn}
                         </div>`;
@@ -6880,13 +7219,16 @@
                         ah: st.movement || '',
                         date: st.date || '',
                         league: league || '',
-                        ou: st.ou || st.ou_line || st.over_under_line_raw || ''
+                        ou: st.ou || st.ou_line || st.over_under_line_raw || '',
+                        homeRed: st.home_red,
+                        awayRed: st.away_red
                     }) : '';
                     h2hStadiumHtml = `
                         <div class="d-flex flex-column">
                             ${st.date ? `<div class="text-muted" style="font-size: 0.55rem;">${st.date}</div>` : ''}
                             <div class="fw-bold small ${movColor}">${st.movement || (hasValidResult ? 'Histórico' : '-')}</div>
                             ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${st.score}</div>` : ''}
+                            ${!isTargetRef ? `<div data-pv2-ou-h2h-slot="${item.match_id}:h2h_stadium">${window.PatternSearchV2 && window.PatternSearchV2.renderExplorerOuBadgeHtml ? window.PatternSearchV2.renderExplorerOuBadgeHtml(item, 'h2h_stadium') : ''}</div>` : (window.PatternSearchV2 && window.PatternSearchV2.renderExplorerOuBadgeHtml ? window.PatternSearchV2.renderExplorerOuBadgeHtml(item, 'h2h_stadium') : '')}
                             ${h2hStStatsBtn}
                         </div>
                     `;
@@ -6921,13 +7263,16 @@
                         ah: gen.movement || '',
                         date: gen.date || '',
                         league: league || '',
-                        ou: gen.ou || gen.ou_line || gen.over_under_line_raw || ''
+                        ou: gen.ou || gen.ou_line || gen.over_under_line_raw || '',
+                        homeRed: gen.home_red,
+                        awayRed: gen.away_red
                     }) : '';
                     h2hGeneralHtml = `
                         <div class="d-flex flex-column">
                             ${gen.date ? `<div class="text-muted" style="font-size: 0.55rem;">${gen.date}</div>` : ''}
                             <div class="fw-bold small ${movColor}">${gen.movement || (hasValidResult ? 'Histórico' : '-')}</div>
                             ${hasValidResult ? `<div class="small ${movColor}" style="font-size: 0.7rem;">${gen.score}</div>` : ''}
+                            ${!isTargetRef ? `<div data-pv2-ou-h2h-slot="${item.match_id}:h2h_general">${window.PatternSearchV2 && window.PatternSearchV2.renderExplorerOuBadgeHtml ? window.PatternSearchV2.renderExplorerOuBadgeHtml(item, 'h2h_general') : ''}</div>` : (window.PatternSearchV2 && window.PatternSearchV2.renderExplorerOuBadgeHtml ? window.PatternSearchV2.renderExplorerOuBadgeHtml(item, 'h2h_general') : '')}
                             ${h2hGenStatsBtn}
                         </div>
                     `;
@@ -7458,15 +7803,24 @@
                 let globalStatsId = '';
                 let globalStatsHtmlContent = '';
 
-                globalStatsId = `global-stats-${item.match_id || c.match_id}`;
+                const matchIdForBtn = item.match_id || c.match_id || '';
+                const isPv2Scraped = Boolean(
+                    !isTargetRef &&
+                    window.PatternSearchV2 &&
+                    window.PatternSearchV2.isExplorerV2Active() &&
+                    window.PatternSearchV2.isExplorerFichaScraped &&
+                    window.PatternSearchV2.isExplorerFichaScraped(item)
+                );
+                globalStatsId = `global-stats-${matchIdForBtn}`;
                 globalStatsBtn = `
-            <button class="btn btn-outline-success btn-sm p-0 d-flex align-items-center justify-content-center"
+            <button class="btn btn-outline-success btn-sm p-0 d-flex align-items-center justify-content-center ${isPv2Scraped ? 'pv2-ficha-scraped-btn' : ''}"
         type="button"
+        data-pv2-ficha-btn="${matchIdForBtn}"
         data-bs-toggle="collapse"
         data-bs-target="#${globalStatsId}"
         onclick="hydrateProgressionStats('${globalStatsId}')"
         style="width: 22px; height: 22px; border-radius: 50%;"
-        title="Ver Estadísticas">
+        title="${isPv2Scraped ? 'Ficha ya scrapeada y lista (abrir al instante)' : 'Ver Estadísticas'}">
             <i class="fa-solid fa-table-cells" style="font-size: 11px;"></i>
                     </button>
             `;
@@ -7496,7 +7850,9 @@
                 tr.dataset.ind_local_res = indLocalResAttr;
                 tr.dataset.ind_visitante_ah = indVisitanteAhAttr;
                 tr.dataset.ind_visitante_res = indVisitanteResAttr;
-                tr.dataset.match_id = item.match_id;
+                if (!isTargetRef) {
+                    tr.dataset.match_id = item.match_id;
+                }
                 tr.dataset.handicap = c.ah_real || '';
                 tr.dataset.ou = c.ou_line || '';
                 tr.dataset.ft_res = ftRes;
@@ -7530,9 +7886,29 @@
                     `;
                 }
 
+                const pv2Ref = window.PatternSearchV2;
+                const ahHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'ah') : '';
+                const ouHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'ou') : '';
+                const ouHitDotHtml = isTargetRef
+                    ? ''
+                    : (ouHitCls === 'pv2-col-exact'
+                        ? `<span data-pv2-ou-dot="${item.match_id}" class="pv2-ou-hit-dot pv2-ou-hit-dot--exact">O/U ✓</span>`
+                        : (ouHitCls === 'pv2-col-partial'
+                            ? `<span data-pv2-ou-dot="${item.match_id}" class="pv2-ou-hit-dot pv2-ou-hit-dot--partial">O/U ~</span>`
+                            : `<span data-pv2-ou-dot="${item.match_id}" class="d-none"></span>`));
+                const phHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'prev_home') : '';
+                const paHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'prev_away') : '';
+                const h2hStadHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'h2h_stadium') : '';
+                const h2hGenHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'h2h_general') : '';
+                const h2hCol3HitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'h2h_col3') : '';
+                const indLocHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'ind_local') : '';
+                const indVisHitCls = pv2Ref && pv2Ref.getExplorerCellHitClass ? pv2Ref.getExplorerCellHitClass(item, 'ind_visitante') : '';
+
                 tr.innerHTML = `
             <td class="text-center" style="vertical-align: middle;">
-                <input type="checkbox" class="match-card-checkbox" data-match-id="${item.match_id}" onchange="updateExplorerDownloadCardsBadge()">
+                ${isTargetRef
+                    ? '<span class="badge bg-primary" style="font-size:0.6rem;">REF</span>'
+                    : `<input type="checkbox" class="match-card-checkbox" data-match-id="${item.match_id}" onchange="updateExplorerDownloadCardsBadge()">`}
             </td>
             <td class="text-center text-muted small">
                 <a href="/estudio/${item.match_id}" target="_blank" class="text-decoration-none text-muted"
@@ -7540,47 +7916,54 @@
                     ${c.date}
                 </a>
         ${league ? `<div class="mt-1 small text-muted text-truncate" style="font-size: 0.65rem; max-width: 90px;" title="${league}">${league}</div>` : ''}
+        ${isTargetRef ? (pv2Ref ? pv2Ref.renderExplorerRowSimHtml(item) : '') : `<div data-pv2-sim-slot="${item.match_id}">${pv2Ref ? pv2Ref.renderExplorerRowSimHtml(item) : ''}</div>`}
     </td>
     <td class="col-team text-primary small" style="font-size: 0.8rem;">
         <div>${c.home}</div>
         ${homeRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${homeRank}</div>` : ''}
         ${homeStatsHtml}
+        ${isTargetRef ? '' : `<div data-pv2-tag-slot="${item.match_id}:home">${pv2Ref ? pv2Ref.renderExplorerRowTeamTagsHtml(item, 'home') : ''}</div>`}
     </td>
     <td class="col-team text-danger small" style="font-size: 0.8rem;">
         <div>${c.away}</div>
         ${awayRank ? `<div class="fw-bold text-dark mt-1" style="font-size: 0.9rem;">${awayRank}</div>` : ''}
         ${awayStatsHtml}
+        ${isTargetRef ? '' : `<div data-pv2-tag-slot="${item.match_id}:away">${pv2Ref ? pv2Ref.renderExplorerRowTeamTagsHtml(item, 'away') : ''}</div>`}
     </td>
-    <td class="col-ah">
+    <td class="col-ah ${ahHitCls}" ${!isTargetRef ? 'data-pv2-col="ah"' : ''}>
         ${formatAh(c.ah_real)}
         ${c.ou_line ? `<div style="font-size: 0.6rem; color: #888; margin-top: -2px;">${c.ou_line}</div>` : ''}
+        ${ouHitDotHtml}
+        ${isTargetRef ? '' : `<div data-pv2-tag-slot="${item.match_id}:matchup">${pv2Ref ? pv2Ref.renderExplorerRowTeamTagsHtml(item, 'matchup') : ''}</div>`}
     </td>
     <td class="col-res bg-light ${ftColor} fw-bold">${ftCellContent}</td>
     
     <!-- Prev Home -->
-    <td class="col-prev ${!prevHomeHasData ? 'cell-no-data' : ''}">${prevHomeHtml}</td>
+    <td class="col-prev ${!prevHomeHasData ? 'cell-no-data' : ''} ${phHitCls}" ${!isTargetRef ? 'data-pv2-col="prev_home"' : ''}>${prevHomeHtml}</td>
 
     <!--Prev Away-->
-    <td class="col-prev ${!prevAwayHasData ? 'cell-no-data' : ''}">${prevAwayHtml}</td>
+    <td class="col-prev ${!prevAwayHasData ? 'cell-no-data' : ''} ${paHitCls}" ${!isTargetRef ? 'data-pv2-col="prev_away"' : ''}>${prevAwayHtml}</td>
     
     <!--H2H Estadio-->
-    <td class="col-prev text-center">${h2hStadiumHtml}</td>
+    <td class="col-prev text-center ${h2hStadHitCls}" ${!isTargetRef ? 'data-pv2-col="h2h_stadium"' : ''}>${h2hStadiumHtml}</td>
     <!--H2H General-->
-    <td class="col-prev text-center">${h2hGeneralHtml}</td>
+    <td class="col-prev text-center ${h2hGenHitCls}" ${!isTargetRef ? 'data-pv2-col="h2h_general"' : ''}>${h2hGeneralHtml}</td>
 
     <!--H2H Col3(Always Pink)-->
-    <td class="col-prev col-h2h-col3 text-center">${h2hHtml}</td>
+    <td class="col-prev col-h2h-col3 text-center ${h2hCol3HitCls}" ${!isTargetRef ? 'data-pv2-col="h2h_col3"' : ''}>${h2hHtml}</td>
     
     <!--Ind.Local -->
-    <td class="col-prev ${!indLocalHasData ? 'cell-no-data' : ''}">${indLocalHtml}</td>
+    <td class="col-prev ${!indLocalHasData ? 'cell-no-data' : ''} ${indLocHitCls}" ${!isTargetRef ? 'data-pv2-col="ind_local"' : ''}>${indLocalHtml}</td>
     
     <!--Ind.Visitante -->
-    <td class="col-prev ${!indVisitanteHasData ? 'cell-no-data' : ''}">${indVisitanteHtml}</td>
+    <td class="col-prev ${!indVisitanteHasData ? 'cell-no-data' : ''} ${indVisHitCls}" ${!isTargetRef ? 'data-pv2-col="ind_visitante"' : ''}>${indVisitanteHtml}</td>
     
     <!--Acciones / Stats-->
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
-                    <a class="btn btn-sm btn-outline-warning" href="/explorador?auto_search=1&handicap=${encodeURIComponent(toExplorerBucketValue(c.ah_real))}&source_match_id=${encodeURIComponent(item.match_id)}" target="_blank" rel="noopener" title="Buscar patrones similares" aria-label="Buscar patrones similares"><i class="fa-solid fa-compass"></i></a>
+                    ${isTargetRef ? '' : `<a class="btn btn-sm btn-outline-warning" href="/explorador?auto_search=1&handicap=${encodeURIComponent(toExplorerBucketValue(c.ah_real))}&source_match_id=${encodeURIComponent(item.match_id)}" target="_blank" rel="noopener" title="Buscar patrones similares" aria-label="Buscar patrones similares"><i class="fa-solid fa-compass"></i></a>
+                    <button type="button" class="btn btn-sm p-0 d-inline-flex align-items-center justify-content-center pv2-trigger-btn pv2-trigger-btn--sm" onclick="window.PatternSearchV2 && window.PatternSearchV2.openInNewTab('${item.match_id}', this)" title="Abrir Búsqueda Patrón 2.0 en nueva pestaña (Formato Explorador)" aria-label="Búsqueda Patrón 2.0"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="pv2-trigger-badge">2.0</span></button>`}
+                    <button type="button" class="btn btn-sm btn-outline-indigo p-0 d-inline-flex align-items-center justify-content-center pv2-hide-in-v2" style="width:24px;height:24px;border-radius:50%;border:1px solid #818cf8;color:#4338ca;background:#eef2ff;font-size:10px;" onclick="window.PatternSearchV2 && window.PatternSearchV2.tagSingleExplorerRow('${item.match_id}', this)" title="Etiquetar Local y Visitante de este partido"><i class="fa-solid fa-tags"></i></button>
                     ${globalStatsBtn}
                     <button class="btn btn-sm btn-link text-primary p-0 ms-1" title="Copiar Contexto + Prompt LLM" onclick="copyLLMPrompt('${item.match_id}', this)">
                         <i class="fa-regular fa-copy" style="font-size: 12px;"></i>
@@ -7592,9 +7975,9 @@
                         <i class="fa-solid fa-diagram-project" style="font-size: 12px;"></i>
                     </button>
                     <a href="/estudio/${item.match_id}" class="btn btn-sm btn-link text-secondary p-0" title="Ver Estudio Completo" target="_blank"><i class="fa-solid fa-external-link-alt" style="font-size: 10px;"></i></a>
-                    <button class="btn btn-sm btn-link text-danger p-0 ms-1" title="Eliminar Partido" onclick="confirmDeleteMatch('${item.match_id}', '${c.ah_real}', this)">
+                    ${isTargetRef ? '' : `<button class="btn btn-sm btn-link text-danger p-0 ms-1" title="Eliminar Partido" onclick="confirmDeleteMatch('${item.match_id}', '${c.ah_real}', this)">
                         <i class="fa-solid fa-xmark" style="font-size: 14px;"></i>
-                    </button>
+                    </button>`}
                 </div>
             </td>
         `;
@@ -7620,6 +8003,11 @@
                     console.error('Error procesando fila en renderTable:', rowErr, item);
                 }
             });
+            if (prependedTargetRef && rowsToRender.length === 1) {
+                const emptyTr = document.createElement('tr');
+                emptyTr.innerHTML = `<td colspan="14" class="text-center py-3 text-muted">No hay fichas candidatas con el filtro actual</td>`;
+                tbody.appendChild(emptyTr);
+            }
         }
 
 
@@ -8400,18 +8788,15 @@
 
                         // 1. Fila de Escritorio (PC - 100% Idéntica)
                         tableRows.push(`<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
-                            <td class="ctx-date" title="${esc(rowDate)}">${venueBadge}${esc(shortRowDate)}</td>
+                            <td class="ctx-date" title="${esc(rowDate)}"><span class="pre-context-date-content"><label class="pre-context-pick-cb-wrap" title="Seleccionar '${esc(rival)}' en el comparador de abajo"><input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')"></label>${venueBadge}<span>${esc(shortRowDate)}</span></span></td>
                             <td class="ctx-league">${esc(leagueId)}</td>
                             <td class="ctx-rival" title="${esc(rival)}">
-                                <div style="display:flex; align-items:center; justify-content:space-between; gap:3px;">
+                                <div class="pre-context-rival-cell">
                                     <span class="pre-context-rival-name-link" onclick="openTeamHistoryPopup('${esc(rival)}', '${esc(rowMatchId)}', '${esc(parentMatchId)}', '${esc(leagueId)}', event, '', '${esc(comparisonTeam)}', '${rivalVenue}', '${comparisonVenue}')" title="Ver historial de ${esc(rival)} (Casa, Fuera, AH)">${esc(rival || '-')}</span>
-                                    <div style="display:flex; align-items:center; gap:2px; flex-shrink:0;">
+                                    <div class="pre-context-rival-actions">
                                         <button type="button" class="pre-context-vs-btn" onclick="quickCompareVsOpponent(this, event, '${esc(role)}', '${esc(rival)}')" title="Comparar '${esc(rival)}' vs ${esc(opponentTeam)} (${esc(opponentRoleLabel)}) en la tabla de abajo">
                                             <i class="fa-solid fa-code-compare"></i>${esc(vsBtnLabel)}
                                         </button>
-                                        <label class="pre-context-pick-cb-wrap" title="Seleccionar '${esc(rival)}' en el comparador de abajo">
-                                            <input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')">
-                                        </label>
                                         <button type="button" class="pre-context-mini-stats-btn" onclick="toggleRowStatsFromMini(this, event)" title="Ver estadísticas de este partido debajo" style="padding:1px 5px; font-size:.58rem; font-weight:700; line-height:1.2; border:1px solid #10b981; border-radius:3px; background:#ecfdf5; color:#047857; cursor:pointer;"><i class="fa-solid fa-chart-simple"></i></button>
                                         <button type="button" class="pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas (Stats + Col3 + Mov) debajo"><i class="fa-solid fa-bolt"></i></button>
                                     </div>
@@ -8623,6 +9008,7 @@
                         </div>
                         <div style="display:flex; gap:4px; align-items:center; margin-bottom:5px;">
                             <div style="flex:1 1 48%;">
+                                <span class="compare-team-label">Equipo 1</span>
                                 <select class="form-select form-select-sm custom-rival-select-a" onchange="handleSlotSelectChange(this, ${slotIdx})" style="font-size:.64rem; font-weight:800; border-color:#c4b5fd; background:#f5f3ff; padding:2px 4px;">
                                     <option value="">Selecciona equipo 1...</option>
                                     <optgroup label="⭐ Equipos Actuales">
@@ -8639,6 +9025,7 @@
                             </div>
                             <span style="font-size:.65rem; font-weight:900; color:#94a3b8;">vs</span>
                             <div style="flex:1 1 48%;">
+                                <span class="compare-team-label">Equipo 2</span>
                                 <select class="form-select form-select-sm custom-rival-select-b" onchange="handleSlotSelectChange(this, ${slotIdx})" style="font-size:.64rem; font-weight:800; border-color:#fde68a; background:#fffbeb; padding:2px 4px;">
                                     <option value="">Selecciona equipo 2...</option>
                                     <optgroup label="⭐ Equipos Actuales">
@@ -8662,11 +9049,11 @@
                     <div class="pre-context-custom-compare" data-active-pointer="0" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(momentHome)}" data-parent-away="${esc(momentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-league-id="${esc(currentLeagueId)}" style="margin:0; height:100%; padding:8px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; display:flex; flex-direction:column;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; flex-wrap:wrap; gap:4px;">
                             <div>
-                                <span style="font-size:.74rem; font-weight:900; color:#1e293b;">
-                                    <i class="fa-solid fa-table-columns me-1 text-primary"></i>Tabla de Comparativa a la Carta (Col3 Custom)
+                                <span class="compare-popup-title" style="font-size:.74rem; font-weight:900; color:#1e293b;">
+                                    <i class="fa-solid fa-table-columns me-1 text-primary"></i>Comparar equipos · Col3
                                 </span>
-                                <span style="font-size:.62rem; font-weight:700; color:#64748b; margin-left:6px;">
-                                    Pulsa 🔘 en las tablas para llenar los equipos o selecciónalos manualmente
+                                <span class="compare-popup-hint" style="font-size:.62rem; font-weight:700; color:#64748b; margin-left:6px;">
+                                    Cambia los dos equipos en los selectores de abajo
                                 </span>
                             </div>
                             <div class="d-flex align-items-center gap-1">
@@ -8723,7 +9110,8 @@
                 `;
 
                 return `<section class="pre-context-moment">
-                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div></div>
+                    <div class="pre-context-moment-head"><div class="pre-context-moment-title">${title}</div><div class="pre-context-moment-meta" data-all-text="${esc(metaText)}" data-same-league-text="${esc(filteredMetaText)}">${esc(metaText)}</div>${parentMatchId ? `<div class="pv2-ficha-actions"><button type="button" class="pv2-ficha-btn pv2-hide-in-v2" onclick="window.PatternSearchV2 && window.PatternSearchV2.toggleFichaTags('${esc(parentMatchId)}', this, event)" title="Analizar etiquetas de Local, Visitante y Rivales Comunes"><i class="fa-solid fa-tags"></i>Etiquetas</button><button type="button" class="pv2-ficha-btn pv2-ficha-btn--v2" onclick="window.PatternSearchV2 && window.PatternSearchV2.openInNewTab('${esc(parentMatchId)}', this)" title="Abrir Búsqueda Patrón 2.0 en nueva pestaña (Formato Explorador)"><i class="fa-solid fa-wand-magic-sparkles"></i>Patrón 2.0</button></div>` : ''}<button type="button" class="pre-context-full-open" onclick="${parentMatchId ? `window.open('/ficha-completa/' + encodeURIComponent('${esc(parentMatchId)}'), '_blank')` : `openPreContextFullPopup(this.closest('.pre-context-moment'))`}" title="${parentMatchId ? 'Abrir Ficha Completa interactiva en una nueva pestaña' : 'Abrir tablas, fichas y comparador en una ventana amplia'}"><i class="fa-solid fa-up-right-from-square me-1"></i>Ficha completa</button></div>
+                    <div class="pv2-ficha-tags-slot" style="display:none;"></div>
                     ${mobileTabsHtml}
                     <div class="pre-context-team-grid">
                         ${renderTeam(momentHome, 'home', moment.home_matches, (moment.home_matches_all && moment.home_matches_all.length) ? moment.home_matches_all : ((pc?.recent_home_matches_all && pc.recent_home_matches_all.length) ? pc.recent_home_matches_all : ((pc?.recent_home_matches_same_league_general && pc.recent_home_matches_same_league_general.length) ? pc.recent_home_matches_same_league_general : moment.home_matches)), homeAllVenues, allVenues)}
@@ -8799,7 +9187,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <label class="pre-context-league-filter" title="Mostrar los últimos 5 partidos recientes"><input type="checkbox" class="pre-filter-recent5" onchange="applyPreMatchContextFilters(this)"> Últimos 5</label>
                         <label class="pre-context-league-filter" title="${filterDisabled ? 'No se pudo identificar la liga actual' : `Mostrar solo la liga ID ${esc(currentLeague)}`}"><input type="checkbox" class="pre-filter-league" onchange="applyPreMatchContextFilters(this)" ${filterDisabled ? 'disabled' : 'checked'}> Liga actual${currentLeague ? ` (${esc(currentLeague)})` : ''}</label>
                         <label class="pre-context-league-filter" title="Filtrar solo partidos con el mismo hándicap actual"><input type="checkbox" class="pre-filter-same-ha" onchange="applyPreMatchContextFilters(this)"> ${formatSameHaLabel(parentCurrentAh)}</label>
-                        <button type="button" class="pre-context-toggle-summary-btn" onclick="toggleSummaryBoxes('${esc(summaryBoxesId)}', this)"><i class="fa-solid fa-layer-group me-1"></i>Fichas Resumen</button>
+                        <button type="button" class="pre-context-toggle-summary-btn" data-ficha-analysis="1" data-ficha-id="${esc(parentMatchId)}" data-home="${esc(current.home_name || currentHome)}" data-away="${esc(current.away_name || currentAway)}" data-date="${esc(current.date)}" data-ah="${esc(parentCurrentAh !== '' ? parentCurrentAh : (rawCurrent?.ah_line ?? ''))}" data-ou="${esc(pc?.goal_line ?? pc?.main_match_odds?.goals_linea ?? rawCurrent?.goal_line ?? '')}" title="Analizar las filas y filtros de esta ficha: AH, O/U, rivales, Col3 y movimientos">◎ Analizar ficha</button>
                         ${hasPrevious ? `<label class="pre-context-league-filter" title="Mostrar u ocultar el contexto del último enfrentamiento entre ellos"><input type="checkbox" onchange="togglePreMatchPreviousH2H(this)"> Ver último enfrentamiento</label>` : ''}
                         <button type="button" class="pre-context-copy" data-context="${encodeURIComponent(copyText)}" onclick="copyPreMatchContext(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')"><i class="fa-regular fa-copy me-1"></i>Copiar contexto + prompt</button>
                         <button type="button" class="pre-context-odds-btn" onclick="toggleMainMatchOddsMovement(this, '${String(pc?.match_id || pc?.id || '').replace(/'/g, "\\'")}')" title="Ver movimiento de cuotas Bet365 del partido actual (Initial vs Live: AH, O/U, 1X2)" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center;"><i class="fa-solid fa-chart-line me-1" style="color:#15803d;"></i>📈 Cuotas Bet365</button>
@@ -9134,6 +9522,106 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             });
         }
 
+        function refreshPreContextPopupLimit() {
+            const state = window._preContextFullPopup;
+            if (!state) return;
+            const rowLimit = state.limit === 'all' ? Infinity : Number(state.limit);
+            state.moment.querySelectorAll('.pre-context-team').forEach(team => {
+                const applyRows = rows => {
+                    let shown = 0;
+                    rows.forEach(row => {
+                        const eligible = !row.hidden && row.style.display !== 'none';
+                        const rival = (row.querySelector('.ctx-rival')?.getAttribute('title') || row.textContent).toLocaleLowerCase();
+                        const matches = (!state.query || rival.includes(state.query)) && (!state.result || row.dataset.contextResult === state.result);
+                        const beyondLimit = !matches || (eligible && ++shown > rowLimit);
+                        if (beyondLimit) row.dataset.popupLimitHidden = '1';
+                        else delete row.dataset.popupLimitHidden;
+                        const detail = row.nextElementSibling;
+                        if (detail?.classList.contains('pre-context-detail-row')) {
+                            if (beyondLimit) detail.dataset.popupLimitHidden = '1';
+                            else delete detail.dataset.popupLimitHidden;
+                        }
+                    });
+                };
+                applyRows(Array.from(team.querySelectorAll('tbody tr.pre-context-row')));
+                applyRows(Array.from(team.querySelectorAll('.pre-context-mobile-list .pre-context-row')));
+            });
+            refreshAnalysisSummary(state);
+        }
+
+        function setPreContextPopupLimit(limit) {
+            const state = window._preContextFullPopup;
+            if (!state) return;
+            state.limit = limit === 'all' ? 'all' : ([5,10,20].includes(Number(limit)) ? Number(limit) : 5);
+            state.overlay.dataset.matchLimit = String(state.limit);
+            state.overlay.querySelectorAll('[data-popup-limit]').forEach(button => {
+                const active = button.dataset.popupLimit === String(state.limit);
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', String(active));
+            });
+            refreshPreContextPopupLimit();
+        }
+
+        function dismissPreContextComparePopup() {
+            const state = window._preContextFullPopup;
+            if (!state) return;
+            const { overlay, moment, placeholder, opener } = state;
+            const customCol = moment.querySelector('.pre-context-custom-compare-col');
+            if (customCol) customCol.style.display = 'none';
+            moment.querySelectorAll("[data-popup-limit-hidden]").forEach(row => delete row.dataset.popupLimitHidden);
+            if (placeholder.parentNode) placeholder.replaceWith(moment);
+            overlay.remove();
+            document.body.classList.remove('pre-context-compare-popup-open');
+            window._preContextFullPopup = null;
+            const parentId = moment.querySelector('.pre-context-custom-compare')?.dataset.parentMatchId;
+            if (parentId) updateCompareCombinedLayout(parentId);
+            if (opener?.isConnected) opener.focus({ preventScroll: true });
+        }
+
+        function openPreContextFullPopup(moment) {
+            if (!moment) return;
+            if (window._preContextFullPopup?.moment === moment) return;
+            dismissPreContextComparePopup();
+            const opener = document.activeElement;
+            const placeholder = document.createComment('Ficha completa en popup');
+            moment.parentNode.insertBefore(placeholder, moment);
+            const overlay = document.createElement('div');
+            overlay.className = 'pre-context-full-overlay';
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-label', 'Ficha completa y comparador de equipos');
+            overlay.innerHTML = buildAnalysisWorkspace();
+            overlay.querySelector('.pre-context-full-body').appendChild(moment);
+            document.body.appendChild(overlay);
+            window._preContextFullPopup = { overlay, moment, placeholder, opener };
+            document.body.classList.add('pre-context-compare-popup-open');
+            const customCol = moment.querySelector('.pre-context-custom-compare-col');
+            if (customCol) customCol.style.display = 'block';
+            const parentId = moment.querySelector('.pre-context-custom-compare')?.dataset.parentMatchId;
+            if (parentId) updateCompareCombinedLayout(parentId);
+            overlay.querySelector('.pre-context-full-close').addEventListener('click', dismissPreContextComparePopup);
+            overlay.querySelectorAll('[data-popup-limit]').forEach(button => {
+                button.addEventListener('click', () => setPreContextPopupLimit(button.dataset.popupLimit));
+            });
+            overlay.addEventListener('change', () => setTimeout(refreshPreContextPopupLimit, 0));
+            overlay.addEventListener('click', () => setTimeout(refreshPreContextPopupLimit, 0));
+            initializeAnalysisWorkspace(window._preContextFullPopup);
+            setPreContextPopupLimit(5);
+            overlay.addEventListener('click', event => { if (event.target === overlay) dismissPreContextComparePopup(); });
+            overlay.querySelector('.pre-context-full-close').focus({ preventScroll: true });
+        }
+
+        function openPreContextComparePopup(compSection) {
+            if (!compSection) return;
+            openPreContextFullPopup(compSection.closest('.pre-context-moment'));
+            window._preContextFullPopup?.overlay.querySelector('[data-aw-view=compare]')?.click();
+            compSection.querySelector('.custom-rival-select-a')?.focus({ preventScroll: true });
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && window._preContextFullPopup && !document.querySelector('.modal.show')) dismissPreContextComparePopup();
+        });
+
         function toggleRivalPickCheckbox(checkbox, event, role, rivalName) {
             if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
             if (!checkbox || !rivalName) return;
@@ -9157,6 +9645,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const selectA = currentSlotEl.querySelector('.custom-rival-select-a');
             const selectB = currentSlotEl.querySelector('.custom-rival-select-b');
             if (!selectA || !selectB) return;
+            openPreContextComparePopup(compSection);
 
             if (checkbox.checked) {
                 let pointer = parseInt(compSection.dataset.activePointer || '0', 10);
@@ -9217,7 +9706,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             }
 
             syncRivalPickCheckboxes(panel, selectA.value, selectB.value);
-            compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (!compSection.closest('.pre-context-full-overlay')) {
+                compSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
         function quickSelectCustomRival(btn, event, role, rivalName) {
@@ -9632,7 +10123,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 ah: meta.ah || '',
                 ou: meta.ou || '',
                 leagueId: meta.leagueId || '',
-                showHideBtn: false
+                showHideBtn: false,
+                homeRed: meta.home_red || meta.rowHomeRed,
+                awayRed: meta.away_red || meta.rowAwayRed
             });
         }
 
@@ -9704,7 +10197,9 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     ah: rowAh,
                     ou: rowOu || data.ou_line || '',
                     leagueId: leagueId,
-                    showHideBtn: false
+                    showHideBtn: false,
+                    homeRed: data.home_red || button.dataset.rowHomeRed,
+                    awayRed: data.away_red || button.dataset.rowAwayRed
                 });
             } catch (error) {
                 ctx.statsSlot.innerHTML = `<div style="font-size:.65rem; color:#dc2626; text-align:center; padding:4px;">Error: ${error.message}</div>`;
@@ -10563,6 +11058,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
         const clientStatsCache = new Map();
         const clientContextCache = new Map();
+        window.clientContextCache = clientContextCache;
 
         async function fetchContextPreviewOnDemand(containerId, matchId, btn = null) {
             if (!containerId || !matchId) return;
@@ -10615,6 +11111,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     const panel = slot.querySelector('.pre-context-panel');
                     if (panel) applyPreMatchContextFilters(panel);
                     slot.dataset.contextLoaded = '1';
+                    if (window.PatternSearchV2 && window.PatternSearchV2.isExplorerV2Active()) {
+                        const escMid = (window.CSS && typeof window.CSS.escape === 'function') ? window.CSS.escape(String(matchId)) : String(matchId);
+                        const fBtn = document.querySelector(`#table-body tr[data-match_id="${escMid}"] [data-pv2-ficha-btn]`);
+                        if (fBtn) {
+                            fBtn.classList.add('pv2-ficha-scraped-btn');
+                            fBtn.title = 'Ficha ya scrapeada y lista (abrir al instante)';
+                        }
+                    }
                 } else {
                     throw new Error('No se pudo obtener el contexto previo');
                 }
@@ -11506,8 +12010,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/match_dossier_download.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/universal_analysis.css') }}">
+    <script src="{{ url_for('static', filename='js/universal_analysis.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ficha_analysis.js') }}?v=2"></script>
     <script defer src="{{ url_for('static', filename='js/league_table_modal.js') }}?v={{ range(1000, 9999) | random }}"></script>
     <script defer src="{{ url_for('static', filename='js/motor_cuantitativo_v4.js') }}?v={{ range(1000, 9999) | random }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis-workspace.css') }}">
+<script src="{{ url_for('static', filename='js/analysis-workspace.js') }}"></script>
 </body>
 
 </html>

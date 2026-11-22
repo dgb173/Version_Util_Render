@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Completa · Estudio Comparativo {{ match_id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ficha_completa.css') }}?v={{ range(1000, 9999) | random }}">
+</head>
+<body class="fc-body">
+
+    <header class="fc-topbar">
+        <div class="fc-topbar-left">
+            <span class="fc-brand-pill"><i class="fa-solid fa-microscope me-1"></i>FICHA COMPLETA</span>
+            <div class="fc-title-block">
+                <div id="fc-title-teams" class="fc-title-teams">Cargando partido {{ match_id }}...</div>
+                <div id="fc-title-meta" class="fc-title-meta">ID {{ match_id }} · Preparando tablas, rivales y comparador</div>
+            </div>
+        </div>
+        <div class="fc-topbar-actions">
+            <a id="fc-btn-patron2" href="/explorador?patron_v2=1&source_match_id={{ match_id }}" target="_blank" class="fc-top-btn is-purple" title="Abrir búsqueda Patrón 2.0 para este partido en nueva pestaña">
+                <i class="fa-solid fa-wand-magic-sparkles"></i><span>Patrón 2.0</span>
+            </a>
+            <a id="fc-btn-estudio" href="/estudio/{{ match_id }}" target="_blank" class="fc-top-btn is-indigo" title="Abrir análisis Estudio completo en nueva pestaña">
+                <i class="fa-solid fa-flask"></i><span>Estudio</span>
+            </a>
+            <button type="button" id="fc-btn-refresh" class="fc-top-btn is-blue" title="Actualizar contexto previo en vivo desde NowGoal (sin modificar históricos)">
+                <i class="fa-solid fa-rotate"></i><span>Actualizar</span>
+            </button>
+            <a href="/precacheo" class="fc-top-btn is-slate" title="Ir a Pre-Cacheo">
+                <i class="fa-regular fa-clock"></i><span>Pre-Cacheo</span>
+            </a>
+            <a href="/explorador" class="fc-top-btn is-slate" title="Ir al Explorador Libre">
+                <i class="fa-regular fa-compass"></i><span>Explorador</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="fc-main">
+        <!-- Fila 0 estilo Patrón 2.0 / Explorador -->
+        <section id="fc-row0-wrap" class="fc-row0-wrap">
+            <div class="fc-row0-bar">
+                <div class="fc-row0-bar-left">
+                    <span class="fc-row0-badge">FILA 0 · PATRÓN 2.0</span>
+                    <span class="fc-row0-hint">Haz clic en cualquier equipo para compararlo al instante · Usa <b>Stats</b> o <b>Mov</b> para abrir el Inspector Dual</span>
+                </div>
+                <button type="button" id="fc-row0-toggle" class="fc-mini-toggle-btn">
+                    <i class="fa-solid fa-chevron-up me-1"></i><span>Plegar Fila 0</span>
+                </button>
+            </div>
+            <div id="fc-row0-container" class="fc-row0-scroll">
+                <div class="fc-loading-inline"><i class="fa-solid fa-spinner fa-spin me-2"></i>Construyendo Fila 0 Patrón 2.0...</div>
+            </div>
+        </section>
+
+        <!-- Pestañas principales de estudio -->
+        <nav id="fc-tabs-nav" class="fc-tabs-nav" aria-label="Navegación de Ficha Completa">
+            <button type="button" class="fc-tab-btn is-active" data-tab="tables">
+                <i class="fa-solid fa-table-columns"></i>
+                <span>Tablas Cara a Cara</span>
+            </button>
+            <button type="button" class="fc-tab-btn" data-tab="teams">
+                <i class="fa-solid fa-code-compare"></i>
+                <span>Comparar Equipos A vs B</span>
+            </button>
+            <button type="button" class="fc-tab-btn" data-tab="common">
+                <i class="fa-solid fa-handshake-simple"></i>
+                <span>Rivales Comunes</span>
+                <span id="fc-tab-common-count" class="fc-tab-count">0</span>
+            </button>
+            <button type="button" class="fc-tab-btn" data-tab="h2h">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>H2H · Años Ant.</span>
+                <span id="fc-tab-h2h-count" class="fc-tab-count">0</span>
+            </button>
+            <button type="button" class="fc-tab-btn" data-tab="lines">
+                <i class="fa-solid fa-scale-balanced"></i>
+                <span>Líneas Similares AH / O-U</span>
+            </button>
+            <button type="button" class="fc-tab-btn" data-tab="standings">
+                <i class="fa-solid fa-ranking-star"></i>
+                <span>Clasificación</span>
+            </button>
+        </nav>
+
+        <!-- Contenido dinámico de la pestaña activa -->
+        <section id="fc-tab-content" class="fc-tab-content">
+            <div class="fc-loading-card">
+                <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+                <span>Cargando datos completos del partido...</span>
+            </div>
+        </section>
+
+        <!-- Inspector Dual A vs B -->
+        <section id="fc-inspector-dock" class="fc-inspector-dock is-empty" aria-label="Inspector Dual A vs B">
+            <div class="fc-inspector-head">
+                <div class="fc-inspector-head-left">
+                    <span class="fc-inspector-title"><i class="fa-solid fa-sliders me-1"></i>Inspector Dual (Slot A vs Slot B)</span>
+                    <span id="fc-inspector-subtitle" class="fc-inspector-subtitle">Haz clic en cualquier botón Stats, Col3 o Mov para comparar dos fichas lado a lado</span>
+                </div>
+                <div class="fc-inspector-head-actions">
+                    <button type="button" id="fc-inspector-target-auto" class="fc-mini-toggle-btn is-active" data-slot-target="auto" title="Alternar automáticamente entre Slot A (Local) y Slot B (Visitante)">
+                        Destino: Auto
+                    </button>
+                    <button type="button" id="fc-inspector-target-a" class="fc-mini-toggle-btn" data-slot-target="A" title="Forzar carga en Slot A">
+                        Fijar A
+                    </button>
+                    <button type="button" id="fc-inspector-target-b" class="fc-mini-toggle-btn" data-slot-target="B" title="Forzar carga en Slot B">
+                        Fijar B
+                    </button>
+                    <button type="button" id="fc-inspector-col3-ab" class="fc-mini-action-btn" title="Buscar H2H Col3 directo entre los equipos cargados en Slot A y Slot B">
+                        <i class="fa-solid fa-layer-group me-1"></i>H2H Col3 A vs B
+                    </button>
+                    <button type="button" id="fc-inspector-clear-all" class="fc-mini-toggle-btn" title="Vaciar ambos slots del Inspector Dual">
+                        <i class="fa-solid fa-broom me-1"></i>Limpiar
+                    </button>
+                    <button type="button" id="fc-inspector-collapse" class="fc-mini-toggle-btn">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="fc-inspector-body" class="fc-inspector-body">
+                <div class="fc-inspector-slot-card">
+                    <div class="fc-slot-header is-a">
+                        <span><strong class="me-1">SLOT A</strong><span id="fc-slot-a-label" class="fc-slot-sub">Vacío</span></span>
+                        <button type="button" id="fc-slot-a-clear" class="fc-slot-close-btn" title="Limpiar Slot A">&times;</button>
+                    </div>
+                    <div id="fc-slot-a-content" class="fc-slot-content">
+                        <div class="fc-slot-empty">Selecciona Stats, Col3 o Mov de cualquier partido para verlo aquí.</div>
+                    </div>
+                </div>
+                <div class="fc-inspector-slot-card">
+                    <div class="fc-slot-header is-b">
+                        <span><strong class="me-1">SLOT B</strong><span id="fc-slot-b-label" class="fc-slot-sub">Vacío</span></span>
+                        <button type="button" id="fc-slot-b-clear" class="fc-slot-close-btn" title="Limpiar Slot B">&times;</button>
+                    </div>
+                    <div id="fc-slot-b-content" class="fc-slot-content">
+                        <div class="fc-slot-empty">Carga una segunda ficha para comparar estadísticas lado a lado.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.FICHA_COMPLETA_MATCH_ID = {{ match_id | tojson }};
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/ficha_completa.js') }}?v={{ range(1000, 9999) | random }}"></script>
+</body>
+</html>

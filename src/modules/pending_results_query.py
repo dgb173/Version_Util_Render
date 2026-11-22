@@ -366,6 +366,52 @@ def fetch_pending_page(
     }
 
 
+def _fetch_snapshot_candidates(
+    handicap_buckets: Optional[Sequence[str]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Return dictionary of match_id -> snapshot match dict from kv_store or data.json."""
+    candidates = []
+    try:
+        state = sql_store.get_json_state("app_main_page_cache_v1")
+        if isinstance(state, dict):
+            candidates = state.get("upcoming_matches") or []
+    except Exception:
+        candidates = []
+
+    if not candidates:
+        for candidate_path in (
+            sql_store.DATA_DIR / "data.json",
+            sql_store.DATA_DIR.parent / "data.json",
+        ):
+            if candidate_path.is_file():
+                try:
+                    with candidate_path.open("r", encoding="utf-8") as fh:
+                        raw = json.load(fh)
+                    if isinstance(raw, dict):
+                        candidates = raw.get("upcoming_matches") or []
+                        if candidates:
+                            break
+                except Exception:
+                    pass
+
+    output: Dict[str, Dict[str, Any]] = {}
+    for match in candidates:
+        if not isinstance(match, dict):
+            continue
+        raw_id = match.get("id") or match.get("match_id")
+        if not raw_id:
+            continue
+        mid = str(raw_id).strip()
+        ah = match.get("handicap")
+        if ah in (None, "", "-", "N/A"):
+            odds = match.get("main_match_odds") or {}
+            ah = odds.get("ah_linea") if isinstance(odds, dict) else None
+        if not precache_fast_store._matches_handicap(ah, handicap_buckets):
+            continue
+        output[mid] = match
+    return output
+
+
 def fetch_upcoming_page(
     page: int = 1,
     per_page: int = 100,
@@ -399,6 +445,20 @@ def fetch_upcoming_page(
         headers_by_id[match_id] = row
         upcoming.append((scheduled_at, match_id))
 
+    # Complemento/Fallback con el snapshot de partidos de hoy (data.json / kv_store):
+    # Si los partidos precacheados en SQL ya empezaron o el bot de la nube todavía
+    # no procesó la siguiente tanda, asegurar que los partidos del día se sigan mostrando.
+    snapshot_by_id = _fetch_snapshot_candidates(handicap_buckets)
+    for match_id, match in snapshot_by_id.items():
+        if match_id in seen_ids or _has_final_score(match):
+            continue
+        scheduled_at = _scheduled_at_utc(match)
+        if not scheduled_at or scheduled_at <= now_utc:
+            continue
+        seen_ids.add(match_id)
+        headers_by_id[match_id] = match
+        upcoming.append((scheduled_at, match_id))
+
     upcoming.sort(key=lambda item: (item[0], item[1]))
     total = len(upcoming)
     total_pages = max(1, math.ceil(total / per_page))
@@ -408,14 +468,17 @@ def fetch_upcoming_page(
     payloads = _fetch_payloads_by_ids(page_ids)
     matches = []
     for match_id in page_ids:
-        payload = payloads.get(match_id)
+        payload = payloads.get(match_id) or snapshot_by_id.get(match_id)
         if not isinstance(payload, dict):
             continue
         normalized = dict(payload)
         normalized.pop("market_analysis_html", None)
         normalized.pop("historical_matches_html", None)
         header = headers_by_id.get(match_id, {})
-        for field in ("start_time", "match_date", "time", "score", "handicap"):
+        for field in (
+            "start_time", "match_date", "time", "score", "handicap",
+            "home_team", "away_team", "league", "home_name", "away_name", "league_name",
+        ):
             if normalized.get(field) in (None, "") and header.get(field) not in (None, ""):
                 normalized[field] = header[field]
         normalized["id"] = match_id

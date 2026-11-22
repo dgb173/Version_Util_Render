@@ -74,11 +74,26 @@ def get_requests_session() -> requests.Session:
         return _shared_session
 
 
+_NEUTRAL_TAG_RE = re.compile(r"<font[^>]*>\s*\(N\)\s*</font>", re.IGNORECASE)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _clean_team_name(raw_value: Any, fallback: str) -> str:
+    """Elimina marcadores HTML como <font color=#880000>(N)</font> de nombres de equipo."""
+    if raw_value is None:
+        return fallback
+    text = _NEUTRAL_TAG_RE.sub("", str(raw_value))
+    text = _HTML_TAG_RE.sub("", text)
+    text = " ".join(text.split()).strip()
+    return text or fallback
+
+
 def _sanitize_js_row(raw_row: str) -> Optional[List[Any]]:
     """Sanitiza una fila JS de NowGoal (A[x]=[...] o B[x]=[...]) a una lista Python."""
     if not raw_row:
         return None
-    clean = raw_row.replace("'", '"')
+    placeholder = "\x00SQ\x00"
+    clean = raw_row.replace("\\'", placeholder).replace("'", '"').replace(placeholder, "'")
     while ",," in clean:
         clean = clean.replace(",,", ",null,")
     clean = clean.strip()
@@ -231,9 +246,8 @@ def fetch_bf_data_raw(return_odds: bool = False) -> Any:
             if combined:
                 odds: Dict[str, Dict[str, str]] = {}
                 xml_headers = {"Accept": "*/*", "Referer": f"{effective_host}/"}
-                # Cobertura de All: SBOBet, Crown y Bet365. Una casa puede no
-                # cotizar una liga que sí aparece en otra.
-                for cid in ("31", "3", "8"):
+                # Cobertura de All: casas secundarias primero, luego SBOBet, Crown y Bet365 para que prevalezcan.
+                for cid in ("24", "14", "42", "31", "3", "8"):
                     try:
                         odds_resp = session.get(
                             f"{effective_host}/gf/data/odds/en/goal{cid}.xml",
@@ -336,7 +350,7 @@ def fetch_finished_data_raw() -> Tuple[Optional[str], Dict[str, Dict[str, str]]]
 
             if combined_texts:
                 odds: Dict[str, Dict[str, str]] = {}
-                for cid in ("31", "3", "8"):
+                for cid in ("24", "14", "42", "31", "3", "8"):
                     try:
                         odds_resp = session.get(
                             f"{effective_host}/gf/data/finish/goal{cid}.xml",
@@ -409,8 +423,8 @@ def parse_matches_from_bf_content(
             str(row[2]) if len(row) > 2 and row[2] and not str(row[2]).strip().isdigit() else "Unknown League"
         )
 
-        home_team = str(row[4]) if len(row) > 4 and row[4] is not None else "Local"
-        away_team = str(row[5]) if len(row) > 5 and row[5] is not None else "Visitante"
+        home_team = _clean_team_name(row[4] if len(row) > 4 else None, "Local")
+        away_team = _clean_team_name(row[5] if len(row) > 5 else None, "Visitante")
 
         try:
             status_val = int(row[8]) if len(row) > 8 and row[8] is not None else 0

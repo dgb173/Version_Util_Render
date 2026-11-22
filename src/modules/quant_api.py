@@ -37,6 +37,57 @@ def create_blueprint(loader: Callable[[str], Optional[Dict[str, Any]]]) -> Bluep
         payload = original_loader(mid)
         return enrich_prior_stats(payload, original_loader) if isinstance(payload, dict) else payload
 
+    @bp.get("/api/quant/universal/<match_id>")
+    def universal_analysis(match_id):
+        from .universal_analysis import analyze
+        try:
+            payload = loader(str(match_id))
+            if not isinstance(payload, dict) or not payload:
+                return jsonify(success=False, error="Partido sin datos guardados. Analízalo primero."), 404
+            return jsonify(success=True, analysis=analyze(payload))
+        except Exception:
+            from flask import current_app
+            current_app.logger.exception('Error en análisis universal %s', match_id)
+            return jsonify(success=False, error="No se pudo analizar este registro. Revisa sus datos guardados."), 500
+
+    @bp.post('/api/quant/ficha-analysis')
+    def analyze_ficha():
+        from .ficha_analysis import ficha_analysis
+        packet=request.get_json(silent=True)
+        if not isinstance(packet,dict) or not isinstance(packet.get('ficha_rows'),dict):
+            return jsonify(success=False,error='La ficha no contiene filas para analizar.'),400
+        if any(not isinstance(packet['ficha_rows'].get(k,[]),list) or len(packet['ficha_rows'].get(k,[]))>150 for k in ('home','away')):
+            return jsonify(success=False,error='La ficha admite hasta 150 antecedentes por equipo.'),400
+        try:
+            return jsonify(success=True,analysis=ficha_analysis(packet))
+        except Exception:
+            from flask import current_app
+            current_app.logger.exception('Error analizando la ficha')
+            return jsonify(success=False,error='No se pudo analizar la ficha. Revisa fechas, equipos y líneas.'),500
+
+    @bp.post("/api/quant/universal-bulk")
+    def universal_bulk():
+        from .universal_analysis import analyze
+        from .quant_features import enrich_prior_stats
+        body = request.get_json(silent=True) or {}
+        ids = body.get('match_ids') if isinstance(body, dict) else None
+        if not isinstance(ids, list) or not 1 <= len(ids) <= 60:
+            return jsonify(success=False, error="Se requieren entre 1 y 60 partidos."), 400
+        results = {}
+        loaded = {}
+        def cached_load(mid):
+            if mid not in loaded:
+                loaded[mid] = original_loader(mid)
+            return loaded[mid]
+        for mid in dict.fromkeys(map(str, ids)):
+            payload = cached_load(mid)
+            if isinstance(payload, dict) and payload:
+                a = analyze(enrich_prior_stats(payload, cached_load))
+                results[mid] = {k: a[k] for k in ('category', 'ou_category', 'fingerprint', 'line', 'ou')}
+            else:
+                results[mid] = {'error': 'Sin datos guardados'}
+        return jsonify(success=True, results=results)
+
     @bp.get("/api/quant/status")
     def status():
         return jsonify({

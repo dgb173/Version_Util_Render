@@ -1425,7 +1425,7 @@ def export_bucket_to_json(bucket: str) -> Path:
         limit_val = 2500
         
     # Pre-Cacheo is a deploy snapshot, not a historical bucket. Exporting the
-    # 400 most recently updated SQL rows can omit future matches and keep stale
+    # most recently updated SQL rows can omit future matches and keep stale
     # ones instead. Export the next chronological analyses so Render receives
     # the same current set as local.
     if bucket == "data_precacheo.json":

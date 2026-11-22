@@ -37,6 +37,8 @@ jobs:
       PRECACHEO_DAYS_THRESHOLD: "3"
       PRECACHEO_HISTORY_UPGRADE_DAYS: "2"
       PRECACHEO_RENDER_URL: "https://nowgoal-app-v8fw.onrender.com"
+      ANALYSIS_MAX_CONCURRENCY: "8"
+      PLAYWRIGHT_MAX_CONCURRENCY: "1"
       PYTHONUNBUFFERED: "1"
       TZ: Europe/Madrid
 

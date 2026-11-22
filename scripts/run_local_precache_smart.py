@@ -33,10 +33,19 @@ from modules import data_manager, pending_results_query, sql_store  # noqa: E402
 TEMP_JOB_FILE = PROJECT_ROOT / "temp_matches_job_local.json"
 
 
-def _run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def _run(cmd: list[str], check: bool = True, env: dict | None = None) -> subprocess.CompletedProcess:
     printable = " ".join(str(part) for part in cmd)
     print(f"\n$ {printable}", flush=True)
-    return subprocess.run(cmd, cwd=str(PROJECT_ROOT), check=check)
+    return subprocess.run(cmd, cwd=str(PROJECT_ROOT), check=check, env=env)
+
+
+def _is_complete_precache_row(row: dict) -> bool:
+    return (
+        isinstance(row, dict)
+        and not row.get("precache_placeholder")
+        and row.get("summary_stats_status") == "complete"
+        and bool(row.get("last_home_match"))
+    )
 
 
 def sync_cloud_data_to_local() -> int:
@@ -76,14 +85,30 @@ def sync_cloud_data_to_local() -> int:
             conn = sql_store._connect()
             try:
                 for row in valid_rows:
+                    mid = str(row.get("match_id") or row.get("id") or "").strip()
+                    if not mid:
+                        continue
+                    old = conn.execute(
+                        "SELECT state, payload_json FROM matches WHERE match_id = ?",
+                        (mid,),
+                    ).fetchone()
+                    if old:
+                        if old["state"] == "historical":
+                            continue
+                        try:
+                            prev = json.loads(old["payload_json"])
+                            if _is_complete_precache_row(prev) and not _is_complete_precache_row(row):
+                                continue
+                        except Exception:
+                            pass
                     sql_store._upsert_match(
                         conn,
                         row,
                         bucket="data_precacheo.json",
                         state="precacheo",
                     )
+                    synced_count += 1
                 conn.commit()
-                synced_count = len(valid_rows)
                 print(f"  [OK] Precacheo Cloud sincronizado: {synced_count} partidos integrados en SQLite.")
             finally:
                 conn.close()
@@ -106,15 +131,33 @@ def sync_cloud_data_to_local() -> int:
             ]
             conn = sql_store._connect()
             try:
+                pending_synced = 0
                 for row in valid_pending:
+                    mid = str(row.get("match_id") or row.get("id") or "").strip()
+                    if not mid:
+                        continue
+                    old = conn.execute(
+                        "SELECT state, payload_json FROM matches WHERE match_id = ?",
+                        (mid,),
+                    ).fetchone()
+                    if old:
+                        if old["state"] == "historical":
+                            continue
+                        try:
+                            prev = json.loads(old["payload_json"])
+                            if _is_complete_precache_row(prev) and not _is_complete_precache_row(row):
+                                continue
+                        except Exception:
+                            pass
                     sql_store._upsert_match(
                         conn,
                         row,
                         bucket="data_pending_results.json",
                         state="pending_results",
                     )
+                    pending_synced += 1
                 conn.commit()
-                print(f"  [OK] Pendientes Cloud sincronizados: {len(valid_pending)} partidos.")
+                print(f"  [OK] Pendientes Cloud sincronizados: {pending_synced} partidos.")
             finally:
                 conn.close()
     except Exception as exc:
@@ -129,6 +172,7 @@ def update_day_snapshot() -> None:
     print(" [PASO 2/5] Actualizando snapshot de partidos de hoy")
     print("=" * 60)
     _run([sys.executable, str(PROJECT_ROOT / "scripts" / "run_scraper.py")])
+    _run([sys.executable, str(PROJECT_ROOT / "scripts" / "export_snapshot_to_json.py")])
 
 
 def detect_missing_jobs(job_file: Path, force_full: bool = False) -> list[dict]:
@@ -153,6 +197,10 @@ def detect_missing_jobs(job_file: Path, force_full: bool = False) -> list[dict]:
 
     job_file.unlink(missing_ok=True)
     result = _run(build_cmd, check=False)
+
+    if result.returncode == 4:
+        job_file.unlink(missing_ok=True)
+        return []
 
     if result.returncode != 0:
         raise RuntimeError(
@@ -283,24 +331,30 @@ def main() -> int:
     print(f" -> Iniciando análisis local con {args.workers} workers...")
 
     # 4. Procesar faltantes en local
+    effective_workers = max(1, min(int(args.workers or 8), 12))
     print("\n" + "=" * 60)
-    print(f" [PASO 4/5] Analizando {total_missing} partidos faltantes en local")
+    print(f" [PASO 4/5] Analizando {total_missing} partidos faltantes en local (workers={effective_workers})")
     print("=" * 60)
+    runner_env = os.environ.copy()
+    runner_env["ANALYSIS_MAX_CONCURRENCY"] = str(effective_workers)
+    runner_env["PLAYWRIGHT_MAX_CONCURRENCY"] = "1"
     runner_cmd = [
         sys.executable,
         str(PROJECT_ROOT / "background_runner.py"),
         "--job_file",
         str(TEMP_JOB_FILE),
         "--concurrency",
-        str(args.workers),
+        str(effective_workers),
         "--flush_every",
         "5",
     ]
-    runner_result = _run(runner_cmd, check=False)
-    if runner_result.returncode != 0:
+    runner_result = _run(runner_cmd, check=False, env=runner_env)
+    if runner_result.returncode > 1:
         print(f"\n[ERROR] El análisis local terminó con código {runner_result.returncode}.")
         print("No se exportará ni publicará un snapshot incompleto.")
         return runner_result.returncode or 1
+    if runner_result.returncode == 1:
+        print("\n[AVISO] Algunos partidos fallaron durante el análisis, pero se conservan y exportarán los completados.")
 
     # 5. Generar contexto previo
     print("\n" + "=" * 60)

@@ -1842,6 +1842,7 @@ def analizar_contexto_previo_rapido(
             "context_data_version": 2,
             "current": current,
             "previous": previous,
+            "h2h_data": h2h_data,
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "generated_at_epoch": int(time.time()),
             "cache_ttl_hours": 8,
@@ -1984,8 +1985,8 @@ def fetch_odds_from_bf_data(match_id):
 
 def fetch_odds_from_ajax(match_id):
     """
-    Fallback para obtener cuotas desde la API AJAX (especialmente para partidos finalizados).
-    Intenta obtener datos de Bet365 (ID 8 o 281) o Sbobet (ID 31).
+    Fallback para obtener cuotas iniciales desde la API AJAX.
+    Prioriza Bet365 (8/281) y Sbobet (31), y cae a casas secundarias cuando las primeras no cotizan.
     """
     url = f"{BASE_URL_OF}/Ajax/SoccerAjax/?type=1&id={match_id}"
     try:
@@ -1993,71 +1994,97 @@ def fetch_odds_from_ajax(match_id):
         response = session.get(url, timeout=(5.0, 18.0), verify=False)
         if response.status_code != 200:
             return None
-            
+
         data_json = response.json()
         if data_json.get("ErrCode") != 0 or not data_json.get("Data"):
             return None
-            
+
         raw_data = data_json["Data"]
-        # Formato: ID*Odds1;Odds2;...^ID*Odds1;...
         companies = raw_data.split('^')
-        
-        target_odds = None
-        
-        # Prioridad de IDs: 8 (Bet365), 281 (Bet365), 31 (Sbobet), o el que tenga "*" si no hay ID
-        priority_ids = ["8", "281", "31", ""] 
-        
-        for pid in priority_ids:
-            for company_data in companies:
-                if "*" not in company_data: continue
-                
-                comp_id, odds_str = company_data.split('*', 1)
-                # Limpiar ID (puede ser "1;" o "8;36" -> tomamos el primero)
-                comp_id_clean = comp_id.split(';')[0]
-                
-                # print(f"Checking company ID: '{comp_id}' (Clean: '{comp_id_clean}') against priority '{pid}'")
-                
-                # Si pid es "", buscamos el que no tenga ID (ej: "*...") -> comp_id será ""
-                if comp_id_clean == pid:
-                    # Parsear odds
-                    parts = odds_str.split(';')
-                    # Buscamos la parte que tenga suficientes datos (al menos 14 campos para AH y OU)
-                    # Estructura típica: 1x2(3), AH_Init(3), ?, AH_Live(3), ?, OU_Init(3), ...
-                    # Indices aproximados:
-                    # 3: AH Home, 4: AH Line, 5: AH Away
-                    # 11: OU Over, 12: OU Line, 13: OU Under
-                    
-                    for part in parts:
-                        vals = part.split(',')
-                        if len(vals) >= 14:
-                            # Verificar que tenga datos válidos (no vacíos)
-                            # Formato NowGoal (SoccerAjax):
-                            # parts[0] representa la fase Inicial (earlyOdds / First).
-                            # vals[0..2]: 1X2 (Home, Draw, Away)
-                            # vals[3..5]: Linea secundaria / europea (se fija en 3 en handicaps elevados)
-                            # vals[7..9]: Handicap Asiatico inicial real (7: Home, 8: AH Line, 9: Away)
-                            # vals[11..13]: Over/Under inicial real (11: Over, 12: OU Line, 13: Under)
-                            # vals[8] es el AH inicial real. No hacer fallback a vals[4] porque es la linea secundaria/europea (que NowGoal fija en 3).
-                            ah_val = vals[8] if len(vals) > 8 else ''
-                            ah_h = vals[7] if len(vals) > 7 else 'N/A'
-                            ah_a = vals[9] if len(vals) > 9 else 'N/A'
-                            
-                            if ah_val and vals[12]:
-                                target_odds = {
-                                    "ah_linea_raw": ah_val,
-                                    "goals_linea_raw": vals[12],
-                                    "ah_home_cuota": ah_h,
-                                    "ah_away_cuota": ah_a,
-                                    "goals_over_cuota": vals[11],
-                                    "goals_under_cuota": vals[13],
-                                    "bookmaker_id": comp_id_clean,
-                                    "price_format": "hongkong",
-                                }
-                                break
-                    if target_odds: break
-            if target_odds: break
-            
-        return target_odds
+
+        # Prioridad de IDs: Bet365 (8, 281), Sbobet (31), Crown (3), 18Bet (42), resto secundarias y sin ID.
+        priority_ids = ["8", "281", "31", "3", "42", "12", "14", "24", "35", "50", ""]
+        invalid_tokens = {"", "-", "N/A", "?", "null", "None"}
+
+        # Recolectar entradas válidas por orden de aparición dentro de cada casa.
+        entries_by_company = {}
+        seen_order = []
+        for company_data in companies:
+            if "*" not in company_data:
+                continue
+            comp_id, odds_str = company_data.split('*', 1)
+            comp_id_clean = comp_id.split(';')[0].strip()
+            parts = odds_str.split(';')
+            for part in parts:
+                vals = part.split(',')
+                if len(vals) < 14:
+                    continue
+                # vals[8] es el AH inicial real; vals[12] es el O/U inicial real.
+                # No hacer fallback a vals[4] porque es la línea secundaria/europea (fijada en 3 en handicaps altos).
+                ah_val = vals[8].strip()
+                ou_val = vals[12].strip()
+                ah_valid = ah_val not in invalid_tokens
+                ou_valid = ou_val not in invalid_tokens
+                if not ah_valid and not ou_valid:
+                    continue
+                entry = {
+                    "comp_id": comp_id_clean,
+                    "ah_valid": ah_valid,
+                    "ou_valid": ou_valid,
+                    "ah_linea_raw": ah_val if ah_valid else "N/A",
+                    "goals_linea_raw": ou_val if ou_valid else "N/A",
+                    "ah_home_cuota": (vals[7].strip() or "N/A") if ah_valid else "N/A",
+                    "ah_away_cuota": (vals[9].strip() or "N/A") if ah_valid else "N/A",
+                    "goals_over_cuota": (vals[11].strip() or "N/A") if ou_valid else "N/A",
+                    "goals_under_cuota": (vals[13].strip() or "N/A") if ou_valid else "N/A",
+                }
+                if comp_id_clean not in entries_by_company:
+                    entries_by_company[comp_id_clean] = []
+                    seen_order.append(comp_id_clean)
+                entries_by_company[comp_id_clean].append(entry)
+
+        if not entries_by_company:
+            return None
+
+        ordered_companies = [cid for cid in priority_ids if cid in entries_by_company]
+        ordered_companies.extend(cid for cid in seen_order if cid not in priority_ids)
+
+        ordered_entries = [
+            entry
+            for cid in ordered_companies
+            for entry in entries_by_company[cid]
+        ]
+
+        # 1. Preferir la primera casa prioritaria que tenga AH y O/U iniciales válidos.
+        for entry in ordered_entries:
+            if entry["ah_valid"] and entry["ou_valid"]:
+                return {
+                    "ah_linea_raw": entry["ah_linea_raw"],
+                    "goals_linea_raw": entry["goals_linea_raw"],
+                    "ah_home_cuota": entry["ah_home_cuota"],
+                    "ah_away_cuota": entry["ah_away_cuota"],
+                    "goals_over_cuota": entry["goals_over_cuota"],
+                    "goals_under_cuota": entry["goals_under_cuota"],
+                    "bookmaker_id": entry["comp_id"],
+                    "price_format": "hongkong",
+                }
+
+        # 2. Si ninguna casa trae ambos a la vez, aceptar AH válido y completar O/U desde otra casa si existe.
+        ah_entry = next((entry for entry in ordered_entries if entry["ah_valid"]), None)
+        if not ah_entry:
+            return None
+
+        ou_entry = next((entry for entry in ordered_entries if entry["ou_valid"]), None)
+        return {
+            "ah_linea_raw": ah_entry["ah_linea_raw"],
+            "goals_linea_raw": ou_entry["goals_linea_raw"] if ou_entry else "N/A",
+            "ah_home_cuota": ah_entry["ah_home_cuota"],
+            "ah_away_cuota": ah_entry["ah_away_cuota"],
+            "goals_over_cuota": ou_entry["goals_over_cuota"] if ou_entry else "N/A",
+            "goals_under_cuota": ou_entry["goals_under_cuota"] if ou_entry else "N/A",
+            "bookmaker_id": ah_entry["comp_id"],
+            "price_format": "hongkong",
+        }
 
     except Exception as e:
         print(f"Error fetching AJAX odds: {e}")
@@ -2067,14 +2094,14 @@ def fetch_odds_from_ajax(match_id):
 def fetch_odds_with_playwright(match_id: str):
     """
     Fallback usando Playwright para cargar cuotas que requieren JavaScript.
-    Obtiene las cuotas iniciales de Bet365 desde el liveCompareDiv.
+    Obtiene las cuotas iniciales desde el liveCompareDiv priorizando Bet365/Sbobet/Crown/18Bet.
     """
     if not PLAYWRIGHT_AVAILABLE:
         return None
-    
+
     odds_info = None
     url = f"{BASE_URL_OF}/match/h2h-{match_id}"
-    
+
     try:
         # Chromium is the heaviest component in the service.  Queue fallbacks
         # instead of allowing concurrent browser processes to exhaust 512 MB.
@@ -2096,21 +2123,42 @@ def fetch_odds_with_playwright(match_id: str):
                     # Eliminar señales de webdriver
                     page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-                    page.goto(url, wait_until="networkidle", timeout=30000)
-                    page.wait_for_timeout(5000)  # Esperar carga de JS dinámico
+                    page.goto(url, wait_until="domcontentloaded", timeout=15000)
+                    try:
+                        page.wait_for_selector("tr[name='earlyOdds']", timeout=4000)
+                    except Exception:
+                        pass
 
-                    # Buscar fila Bet365 Initial
-                    bet365_row = page.query_selector("tr#tr_o_1_8[name='earlyOdds']")
-                    if not bet365_row:
-                        bet365_row = page.query_selector("tr#tr_o_1_31[name='earlyOdds']")  # Sbobet fallback
+                    selected_row = None
+                    for selector in (
+                        "tr#tr_o_1_8[name='earlyOdds']",
+                        "tr#tr_o_1_31[name='earlyOdds']",
+                        "tr#tr_o_1_3[name='earlyOdds']",
+                        "tr#tr_o_1_42[name='earlyOdds']",
+                    ):
+                        candidate = page.query_selector(selector)
+                        if candidate:
+                            tds = candidate.query_selector_all("td")
+                            if len(tds) >= 11:
+                                ah_cand = (tds[3].get_attribute("data-o") or tds[3].inner_text() or "").strip()
+                                if ah_cand not in ("", "-", "N/A", "?"):
+                                    selected_row = tds
+                                    break
 
-                    if bet365_row:
-                        tds = bet365_row.query_selector_all("td")
-                        if len(tds) >= 11:
-                            odds_info = {
-                                "ah_linea_raw": tds[3].get_attribute("data-o") or tds[3].inner_text(),
-                                "goals_linea_raw": tds[9].get_attribute("data-o") or tds[9].inner_text(),
-                            }
+                    if not selected_row:
+                        for candidate in page.query_selector_all("tr[name='earlyOdds']"):
+                            tds = candidate.query_selector_all("td")
+                            if len(tds) >= 11:
+                                ah_cand = (tds[3].get_attribute("data-o") or tds[3].inner_text() or "").strip()
+                                if ah_cand not in ("", "-", "N/A", "?"):
+                                    selected_row = tds
+                                    break
+
+                    if selected_row:
+                        odds_info = {
+                            "ah_linea_raw": selected_row[3].get_attribute("data-o") or selected_row[3].inner_text(),
+                            "goals_linea_raw": selected_row[9].get_attribute("data-o") or selected_row[9].inner_text(),
+                        }
                 finally:
                     if page is not None:
                         try:
@@ -2126,7 +2174,7 @@ def fetch_odds_with_playwright(match_id: str):
 
     except Exception as e:
         print(f"Playwright fetch_odds error: {e}")
-    
+
     return odds_info
 
 
@@ -2392,8 +2440,8 @@ def _normalize_team_name(name):
 
 def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=None):
     results = {
-        'ah1': '-', 'res1': '?:?', 'res1_raw': '?-?', 'match1_id': None, 'date1': 'N/A',
-        'ah6': '-', 'res6': '?:?', 'res6_raw': '?-?', 'match6_id': None, 'date6': 'N/A',
+        'ah1': '-', 'res1': '?:?', 'res1_raw': '?-?', 'match1_id': None, 'date1': 'N/A', 'ou1': '-',
+        'ah6': '-', 'res6': '?:?', 'res6_raw': '?-?', 'match6_id': None, 'date6': 'N/A', 'ou6': '-',
         'h2h_gen_home': "Local (H2H Gen)", 'h2h_gen_away': "Visitante (H2H Gen)"
     }
     if not soup or not home_name or not away_name: return results
@@ -2440,6 +2488,7 @@ def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=Non
     results.update({
         'ah6': most_recent.get('ahLine', '-'), 'res6': most_recent.get('score', '?:?'), 'res6_raw': most_recent.get('score_raw', '?-?'),
         'match6_id': most_recent.get('matchIndex'), 'date6': most_recent.get('date', 'N/A'),
+        'ou6': most_recent.get('ouLine', '-'),
         'h2h_gen_home': most_recent.get('home'), 'h2h_gen_away': most_recent.get('away'),
         'home_red_gen': most_recent.get('home_red'), 'away_red_gen': most_recent.get('away_red')
     })
@@ -2450,6 +2499,7 @@ def extract_h2h_data_of(soup, home_name, away_name, league_id=None, odds_map=Non
             results.update({
                 'ah1': d.get('ahLine', '-'), 'res1': d.get('score', '?:?'), 'res1_raw': d.get('score_raw', '?-?'),
                 'match1_id': d.get('matchIndex'), 'date1': d.get('date', 'N/A'),
+                'ou1': d.get('ouLine', '-'),
                 'home_red_stadium': d.get('home_red'), 'away_red_stadium': d.get('away_red')
             })
             break
@@ -2493,9 +2543,15 @@ def extract_comparative_match_of(soup, table_id, main_team, opponent, league_id,
 def _load_main_match_soup(main_match_id: str):
     main_page_url = f"{BASE_URL_OF}/match/h2h-{main_match_id}"
     session = get_requests_session_of()
-    response = session.get(main_page_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
-    response.raise_for_status()
-    return BeautifulSoup(response.text, "lxml")
+    for attempt in range(2):
+        try:
+            response = session.get(main_page_url, timeout=REQUEST_TIMEOUT_SECONDS, verify=False)
+            response.raise_for_status()
+            return BeautifulSoup(response.text, "lxml")
+        except requests.exceptions.Timeout:
+            if attempt:
+                raise
+            time.sleep(0.4)
 
 from pathlib import Path
 

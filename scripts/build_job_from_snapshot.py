@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -8,6 +9,9 @@ from modules.match_clock import schedule_fields, sync_stored_schedule
 
 
 PRECACHE_BUCKET = "data_precacheo.json"
+_NEUTRAL_TAG_RE = re.compile(r"<font[^>]*>\s*\(N\)\s*</font>", re.IGNORECASE)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_PUNCT_SEP_RE = re.compile(r"[\"'＇`/]+")
 
 
 def _normalize_text(value):
@@ -19,6 +23,12 @@ def _normalize_text(value):
 
 def _normalize_name(value):
     text = _normalize_text(value)
+    if not text:
+        return None
+    text = _NEUTRAL_TAG_RE.sub(" ", text)
+    text = _HTML_TAG_RE.sub(" ", text)
+    text = _PUNCT_SEP_RE.sub(" ", text)
+    text = re.sub(r"\s+", " ", text).strip()
     return text.casefold() if text else None
 
 
@@ -32,6 +42,17 @@ def _normalize_line(value):
         return text
     normalized = f"{parsed:.2f}".rstrip("0").rstrip(".")
     return normalized or "0"
+
+
+def _is_numeric_line(value) -> bool:
+    normalized = _normalize_line(value)
+    if normalized is None:
+        return False
+    try:
+        float(normalized)
+        return True
+    except Exception:
+        return False
 
 
 def _match_snapshot_handicap(match):
@@ -77,6 +98,7 @@ def _looks_like_complete_precache(match):
         history_data_version = 0
     if history_data_version < 3 or match.get("summary_stats_status") != "complete":
         return False
+    # Una sección vacía puede ser legítima; su ausencia indica un scrape parcial.
     required_sections = (
         "last_home_match", "last_away_match", "h2h_col3", "h2h_stadium",
         "h2h_general", "comparativas_indirectas", "recent_home_matches",
@@ -138,12 +160,12 @@ def _can_reuse_precache(snapshot_match, cached_match):
 
     snapshot_ah = _match_snapshot_handicap(snapshot_match)
     cached_ah = _cached_handicap(cached_match)
-    if snapshot_ah and cached_ah and snapshot_ah != cached_ah:
+    if _is_numeric_line(snapshot_ah) and not _is_numeric_line(cached_ah):
         return False
 
     snapshot_ou = _match_snapshot_goal_line(snapshot_match)
     cached_ou = _cached_goal_line(cached_match)
-    if snapshot_ou and cached_ou and snapshot_ou != cached_ou:
+    if _is_numeric_line(snapshot_ou) and not _is_numeric_line(cached_ou):
         return False
 
     return True
@@ -227,6 +249,7 @@ def build_jobs(
                 {
                     "id": mid,
                     "ah": str(match.get("handicap", "N/A")),
+                    "ou": str(match.get("goal_line", "N/A")),
                     "season": "json_snapshot",
                     "league_id": "json_snapshot",
                     **schedule_fields(match),

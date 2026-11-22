@@ -99,7 +99,6 @@ def main() -> int:
             str(args.workers),
             "--flush_every",
             "5",
-            "--defer-summary-stats",
         ]
         _run(runner_cmd, check=False)
     else:

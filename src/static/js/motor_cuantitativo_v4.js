@@ -1895,9 +1895,37 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
         window.preloadOuRecentStats(pc, cleanId, container);
     };
 
+    // One competition scope for rendering, comparisons and asynchronous hydration.
+    window.getOuSameLeagueHistory = function(pc) {
+        const current = pc?.pre_match_context?.current || pc?.current || pc || {};
+        const leagueKey = value => {
+            const text = String(value ?? '').trim();
+            return /^\d+$/.test(text) ? String(Number(text)) : text.toLowerCase();
+        };
+        const leagueId = leagueKey(current.league_id || pc?.league_id || pc?.nowgoal_league_id
+            || (typeof resolveLeagueId === 'function' ? resolveLeagueId(pc) : ''));
+        const sameLeague = row => {
+            if (!row || !leagueId || row.is_different_league === true || row.is_different_league === '1') return false;
+            const id = row.league_id_hist ?? row.league_id ?? row.leagueId ?? row.leagueID ?? row.league?.id;
+            return id !== undefined && id !== null && leagueKey(id) === leagueId;
+        };
+        const select = role => {
+            const name = current[role + '_name'] || pc?.[role + '_name'] || pc?.[role + '_team'] || pc?.[role] || '';
+            const owns = row => [row.home || row.home_team, row.away || row.away_team]
+                .some(team => name && String(team || '').trim().toLowerCase() === String(name).trim().toLowerCase());
+            const sources = [current[role + '_matches'], pc?.['recent_' + role + '_matches_same_league_specific'],
+                pc?.['recent_' + role + '_matches'], pc?.['recent_' + role + '_matches_same_league_general'],
+                pc?.['recent_' + role + '_matches_all'], current[role + '_matches_all']];
+            const matches = sources.filter(Array.isArray).map(rows => rows.filter(row => sameLeague(row) && owns(row)))
+                .find(rows => rows.length) || [];
+            const fallback = pc?.['last_' + role + '_match'];
+            return matches.length ? matches : sameLeague(fallback) && owns(fallback) ? [fallback] : [];
+        };
+        return {leagueId, homeMatches:select('home'), awayMatches:select('away')};
+    };
+
     window.preloadOuRecentStats = async function(pc, cleanId, container) {
-        const homeMatches = (pc?.pre_match_context?.current?.home_matches) || pc?.recent_home_matches_all || pc?.recent_home_matches || [];
-        const awayMatches = (pc?.pre_match_context?.current?.away_matches) || pc?.recent_away_matches_all || pc?.recent_away_matches || [];
+        const {homeMatches, awayMatches, leagueId} = window.getOuSameLeagueHistory(pc);
         const targets = [...homeMatches.slice(0, 5), ...awayMatches.slice(0, 5)];
         
         let needRefresh = false;
@@ -1919,6 +1947,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                     body: JSON.stringify({
                         match_id: mId,
                         parent_match_id: cleanId,
+                        league_id: leagueId,
                         row_home: h,
                         row_away: a,
                         row_date: d,
@@ -2010,8 +2039,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
         };
 
         // --- 1. ÚLTIMOS 5 PARTIDOS DE LOCAL Y VISITANTE ---
-        const rawHomeMatches = (pc?.pre_match_context?.current?.home_matches) || pc?.recent_home_matches_all || pc?.recent_home_matches || [];
-        const rawAwayMatches = (pc?.pre_match_context?.current?.away_matches) || pc?.recent_away_matches_all || pc?.recent_away_matches || [];
+        const {homeMatches:rawHomeMatches, awayMatches:rawAwayMatches, leagueId:scopeLeagueId} = window.getOuSameLeagueHistory(pc);
         const home5 = rawHomeMatches.slice(0, 5);
         const away5 = rawAwayMatches.slice(0, 5);
 
@@ -2091,28 +2119,30 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
 
         // --- 2. REPETICIÓN O MOVIMIENTO DE LÍNEA: ESTADIO vs FUERA vs HOY ---
         // Último de Local en Casa (en este estadio)
-        const lastHomeAtStadium = rawHomeMatches.find(m => checkSameTeam(m.home || m.home_team, home)) || pc?.last_home_match;
+        const lastHomeAtStadium = rawHomeMatches.find(m => checkSameTeam(m.home || m.home_team, home));
         const lastHomeStadiumScore = lastHomeAtStadium?.score || lastHomeAtStadium?.result || '-';
         const lastHomeStadiumRival = checkSameTeam(lastHomeAtStadium?.home || lastHomeAtStadium?.home_team, home) ? (lastHomeAtStadium?.away || lastHomeAtStadium?.away_team) : (lastHomeAtStadium?.home || lastHomeAtStadium?.home_team);
         const lastHomeStadiumStats = getMatchStats(lastHomeAtStadium);
-        const lastHomeStadiumOu = lastHomeStadiumStats?.ouLine || lastHomeAtStadium?.ouLine || lastHomeAtStadium?.ou || lastHomeAtStadium?.ou_line || lastHomeAtStadium?.goal_line || '2.5';
+        const lastHomeStadiumOu = lastHomeStadiumStats?.ouLine || lastHomeAtStadium?.ouLine || lastHomeAtStadium?.ou || lastHomeAtStadium?.ou_line || lastHomeAtStadium?.goal_line || '-';
         const lastHomeStadiumAh = lastHomeAtStadium?.ahLine || lastHomeAtStadium?.ah || lastHomeAtStadium?.handicap_line_raw || '-';
 
         // Último de Visitante Fuera
-        const lastAwayAtVenue = rawAwayMatches.find(m => checkSameTeam(m.away || m.away_team, away)) || pc?.last_away_match;
+        const lastAwayAtVenue = rawAwayMatches.find(m => checkSameTeam(m.away || m.away_team, away));
         const lastAwayVenueScore = lastAwayAtVenue?.score || lastAwayAtVenue?.result || '-';
         const lastAwayVenueRival = checkSameTeam(lastAwayAtVenue?.away || lastAwayAtVenue?.away_team, away) ? (lastAwayAtVenue?.home || lastAwayAtVenue?.home_team) : (lastAwayAtVenue?.away || lastAwayAtVenue?.away_team);
         const lastAwayVenueStats = getMatchStats(lastAwayAtVenue);
-        const lastAwayVenueOu = lastAwayVenueStats?.ouLine || lastAwayAtVenue?.ouLine || lastAwayAtVenue?.ou || lastAwayAtVenue?.ou_line || lastAwayAtVenue?.goal_line || '2.5';
+        const lastAwayVenueOu = lastAwayVenueStats?.ouLine || lastAwayAtVenue?.ouLine || lastAwayAtVenue?.ou || lastAwayAtVenue?.ou_line || lastAwayAtVenue?.goal_line || '-';
         const lastAwayVenueAh = lastAwayAtVenue?.ahLine || lastAwayAtVenue?.ah || lastAwayAtVenue?.handicap_line_raw || '-';
 
-        const lineValStadium = parseLine(lastHomeStadiumOu) ?? 2.5;
-        const lineValVenue = parseLine(lastAwayVenueOu) ?? 2.5;
+        const lineValStadium = parseLine(lastHomeStadiumOu);
+        const lineValVenue = parseLine(lastAwayVenueOu);
         const diffVsStadium = currentGoalLine - lineValStadium;
         const diffVsVenue = currentGoalLine - lineValVenue;
 
         let lineMovementBadge = '';
-        if (Math.abs(diffVsStadium) < 0.01 && Math.abs(diffVsVenue) < 0.01) {
+        if (lineValStadium === null || lineValVenue === null) {
+            lineMovementBadge = '<span style="color:#64748b; font-size:.65rem;">Sin líneas de la misma liga para comparar</span>';
+        } else if (Math.abs(diffVsStadium) < 0.01 && Math.abs(diffVsVenue) < 0.01) {
             lineMovementBadge = `<span style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:2px 7px; border-radius:4px; font-weight:800; font-size:.65rem;">= LÍNEA SE REPITE (${currentGoalLine})</span>`;
         } else if (diffVsStadium > 0 || diffVsVenue > 0) {
             lineMovementBadge = `<span style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:2px 7px; border-radius:4px; font-weight:800; font-size:.65rem;">↑ LÍNEA SUBE (+${Math.max(diffVsStadium, diffVsVenue).toFixed(2)})</span>`;
@@ -2189,7 +2219,11 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
         const hasRecentExplosion = (homeGoalsSum >= 14 || awayGoalsSum >= 14 || homeOverCount >= 3);
         const combinedOverTrend = combinedRecentAvg !== null && parseFloat(combinedRecentAvg) >= currentGoalLine;
 
-        if (hasRecentExplosion || combinedOverTrend) {
+        if (!home5.length || !away5.length) {
+            finalVerdictTitle = 'DATOS INSUFICIENTES DE LA MISMA LIGA';
+            finalVerdictBg = '#f8fafc'; finalVerdictBorder = '#cbd5e1'; finalVerdictColor = '#475569';
+            finalVerdictExplanation = 'No hay antecedentes suficientes de la liga actual para ambos equipos. No se utilizan encuentros de otras competiciones ni de liga desconocida.';
+        } else if (hasRecentExplosion || combinedOverTrend) {
             finalVerdictTitle = '🟢 ALTO POTENCIAL OVER (VOLUMEN OCULTO)';
             finalVerdictBg = '#f0fdf4';
             finalVerdictBorder = '#86efac';
@@ -2200,7 +2234,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
             finalVerdictBg = '#fef2f2';
             finalVerdictBorder = '#fca5a5';
             finalVerdictColor = '#b91c1c';
-            finalVerdictExplanation = `Ambos equipos registran mayoría de partidos Under en los últimos 5 (Local: ${homeUnderCount}/5, Visitante: ${awayUnderCount}/5). Promedio combinado de ${combinedRecentAvg || '-'} G/p inferior a la línea (${currentGoalLine}).`;
+            finalVerdictExplanation = `Ambos equipos registran mayoría de partidos Under en la misma liga (Local: ${homeUnderCount}/${home5.length}, Visitante: ${awayUnderCount}/${away5.length}). Promedio combinado de ${combinedRecentAvg || '-'} G/p inferior a la línea (${currentGoalLine}).`;
         } else {
             finalVerdictTitle = '⚖️ LÍNEA EQUILIBRADA';
             finalVerdictBg = '#fffbeb';
@@ -2215,7 +2249,7 @@ Redacta el análisis táctico y matemático de este partido obedeciendo al 100% 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1.5px solid #e0f2fe; padding-bottom:8px; flex-wrap:wrap; gap:8px;">
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <span style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; font-size:.66rem; font-weight:900; padding:3px 9px; border-radius:4px; letter-spacing:0.3px;">
-                            <i class="fa-solid fa-draw-polygon me-1"></i>TRIANGULACIÓN OVER / UNDER AVANZADA
+                            <i class="fa-solid fa-draw-polygon me-1"></i>TRIANGULACIÓN O/U · MISMA LIGA ${esc(scopeLeagueId || 'SIN IDENTIFICAR')}
                         </span>
                         <span style="font-size:.80rem; font-weight:900; color:#0f172a;">
                             ${esc(home)} <span style="font-weight:400; color:#64748b;">vs</span> ${esc(away)}

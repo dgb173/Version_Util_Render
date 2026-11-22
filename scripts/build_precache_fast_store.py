@@ -49,6 +49,7 @@ EXTRA_KEYS = (
     "pre_match_context",
     "market_analysis_data",
     "recent_home_matches",
+    "recent_home_matches_all",
     "recent_away_matches",
     "recent_away_matches_all",
 )
@@ -70,12 +71,23 @@ def compact_row(row: dict) -> dict:
     return compact
 
 
+def _maybe_build_pv2_archive_index() -> None:
+    try:
+        from modules.pattern_search_v2 import build_archive_signature_index
+        idx = build_archive_signature_index()
+        if idx:
+            print(f"Built Patrón 2.0 archive index: {idx}")
+    except Exception as exc:
+        print(f"Warning: pv2 archive index skipped: {exc}")
+
+
 def main() -> None:
     existing_sources = [source for source in SOURCE_FILES if source.exists()]
     if INDEX_FILE.exists() and existing_sources:
         newest_source = max(source.stat().st_mtime_ns for source in existing_sources)
         if INDEX_FILE.stat().st_mtime_ns >= newest_source:
             print("Pre-Cacheo fast store is already current")
+            _maybe_build_pv2_archive_index()
             return
 
     FAST_DIR.mkdir(parents=True, exist_ok=True)
@@ -152,6 +164,7 @@ def main() -> None:
     with INDEX_FILE.open("w", encoding="utf-8") as output:
         json.dump(list(headers_by_id.values()), output, ensure_ascii=False, separators=(",", ":"))
     print(f"Built fast Pre-Cacheo store: {len(headers_by_id)} matches ({written} rows read)")
+    _maybe_build_pv2_archive_index()
 
 
 if __name__ == "__main__":

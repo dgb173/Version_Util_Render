@@ -58,6 +58,8 @@ from modules.bookie_decoder import analyze_match_bookie_logic
 from modules.scah_analyzer import analizar_partido_scah
 from modules.handicap_similar_analyzer import analizar_partido_handicap_similar
 from modules import team_recent_history
+from modules import pattern_search_v2
+from modules import ficha_completa
 from modules import winner_tracker, lexington_pattern, favorite_process_pattern, local_rerate_pattern, col3_indirect_pattern, quarter_away_pattern, last_general_context, rival_handicap_samples, housemind_ou, league_handicap_scraper, league_extraction_registry, uefa_qualifying, sofascore_context, league_market_tracker, league_evolution_learning
 from flask import jsonify # Asegúrate de que jsonify está importado
 
@@ -287,6 +289,14 @@ _PRECACHEO_ONLY_ALLOWED_PREFIXES = (
     '/api/quant/',
     '/precacheo',
     '/api/precacheo',
+    '/ficha-completa',
+    '/api/ficha_completa',
+    '/api/pattern_search_v2',
+    '/api/team_profile_tags',
+    '/api/match_stats',
+    '/api/team_recent_history',
+    '/api/custom_rival_compare',
+    '/api/sofascore/league-table',
     '/static/',
     '/api/export_prompt',
     '/api/decode_match',
@@ -317,7 +327,7 @@ def _enforce_precacheo_only_mode():
         # Al abrir su dominio sin ruta devolvemos al usuario a Pre-Cacheo.
         if path == '/':
             return redirect(f"{_main_app_url()}/precacheo")
-        if path.startswith(('/explorador', '/static/', '/api/')):
+        if path.startswith(('/explorador', '/ficha-completa', '/static/', '/api/')):
             return None
         return redirect(url_for('explorador'))
 
@@ -473,6 +483,8 @@ async def _refresh_main_page_snapshot_if_empty():
 
 def _maybe_cleanup_precacheo_stale(force=False):
     """Limpia precacheo viejo para evitar crecimiento descontrolado del cache."""
+    if not os.getenv('RENDER'):
+        return 0
     global _last_precacheo_cleanup_ts
 
     now_ts = time.time()
@@ -4026,16 +4038,22 @@ def api_precacheo_trigger_bots():
         [('cachear-terminados-10x.yml', 'workers_per_bot'),
          ('cachear-terminados-5x.yml', 'workers_per_bot'),
          ('cachear-terminados.yml', 'workers')]
-        if kind == 'finished' else [('actualizar-lista-proximos.yml', 'workers')]
+        if kind == 'finished' else [('precacheo-rapido.yml', 'workers_per_shard'),
+                                   ('actualizar-precacheo.yml', None)]
     )
     incompatible_inputs = False
     for workflow, worker_field in candidates:
         if incompatible_inputs and worker_field == 'workers_per_bot':
             continue
-        inputs = {'handicap': str(payload.get('handicap') or 'all'),
-                  'ou': str(payload.get('ou') or 'all'), worker_field: str(workers)}
-        if workflow == 'cachear-terminados.yml':
-            inputs['flush_every'] = '100'
+        if workflow == 'precacheo-rapido.yml':
+            inputs = {'force_full': 'false', 'workers_per_shard': str(workers)}
+        elif workflow == 'actualizar-precacheo.yml':
+            inputs = {'force_full': 'false'}
+        else:
+            inputs = {'handicap': str(payload.get('handicap') or 'all'),
+                      'ou': str(payload.get('ou') or 'all'), worker_field: str(workers)}
+            if workflow == 'cachear-terminados.yml':
+                inputs['flush_every'] = '100'
         url = f'https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches'
         try:
             response = requests.post(url, headers=headers,
@@ -5208,32 +5226,41 @@ def api_uefa_qualifying_status(job_id):
             return jsonify({'error': 'Trabajo no encontrado'}), 404
         return jsonify(json.loads(json.dumps(job, ensure_ascii=False)))
 
-def _explorer_movement_matches(result, filters):
-    def bucket(value):
-        value = float(value)
-        absolute = abs(value)
-        base = int(absolute)
-        decimal = absolute - base
-        number = base + 0.5 if 0.24 <= decimal <= 0.76 else (base if decimal < 0.24 else base + 1)
-        return number if value >= 0 else -number
+_LOCAL_EXPLORER_INDEX_MANAGER = None
+def _start_local_cloud_sync():
+    if os.getenv('RENDER') or not _env_flag('LOCAL_CLOUD_SYNC_ENABLED', default=True):
+        return
+    def loop():
+        import subprocess
+        import sys
+        import time
+        root = Path(__file__).resolve().parents[1]
+        while True:
+            try:
+                with (root / 'data' / 'cloud_local_sync.log').open('ab') as log:
+                    subprocess.run([sys.executable, str(root / 'scripts/refresh_cloud_local.py')],
+                                   cwd=root, stdout=log, stderr=subprocess.STDOUT, timeout=2100,
+                                   creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+                data_manager._clear_explorer_cache()
+            except Exception:
+                logging.exception('Local cloud synchronization failed')
+            time.sleep(900)
+    threading.Thread(target=loop, daemon=True, name='local-cloud-sync').start()
 
-    for section in ('stadium', 'general'):
-        start = filters.get(f'h2h_{section}_start_ah') or []
-        end = filters.get(f'h2h_{section}_end_ah') or []
-        if not start and not end:
-            continue
-        movement = str((result.get(f'h2h_{section}') or {}).get('movement') or '').replace(',', '.')
-        found = re.search(r'([+-]?\d*\.?\d+)\s*(?:→|->|\ba\b|\bto\b)\s*([+-]?\d*\.?\d+)', movement)
-        if not found:
-            return False
-        for actual, requested in zip(found.groups(), (start, end)):
-            if not requested:
-                continue
-            actual_bucket = bucket(actual)
-            values = requested if isinstance(requested, list) else [requested]
-            if not any((actual_bucket >= 2.5 if bucket(v) >= 2.5 else actual_bucket <= -2.5 if bucket(v) <= -2.5 else actual_bucket == bucket(v)) for v in values):
-                return False
-    return True
+_start_local_cloud_sync()
+if not os.getenv('RENDER') and _env_flag('EXPLORER_FAST_INDEX_ENABLED', default=True):
+    try:
+        from prototype_pattern_index.incremental import IncrementalCards
+        from types import SimpleNamespace
+        _cards = IncrementalCards()
+        _LOCAL_EXPLORER_INDEX_MANAGER = SimpleNamespace(get_current=lambda: _cards)
+    except Exception as exc:
+        logging.warning('Índice local del Explorador no disponible: %s', exc)
+
+
+def _explorer_movement_matches(result, filters):
+    from modules.explorer_movement import matches
+    return matches(result, filters)
 
 
 @app.route('/api/explorer_search', methods=['POST'])
@@ -5289,20 +5316,32 @@ def api_explorer_search():
             # number of matches is found or the historical table is exhausted.
             batch_size = max(25, min(_env_int('EXPLORER_BATCH_SIZE', 150), 300))
             configured_scan_limit = max(0, min(_env_int('EXPLORER_SCAN_LIMIT', 0), 50000))
-            # The full disk-backed archive is already bounded by its own size.
-            # An old Render environment value must not silently truncate it.
             if (Path(__file__).resolve().parents[1] / 'data' / 'explorer_full.sqlite.gz').exists():
                 configured_scan_limit = 0
             requested_results = int(filters['limit'])
-            results = []
-            scanned = 0
+            fast_index = None
+            if batch_size == 150 and configured_scan_limit == 0 and _LOCAL_EXPLORER_INDEX_MANAGER is not None:
+                fast_index = _LOCAL_EXPLORER_INDEX_MANAGER.get_current()
+            if fast_index is not None:
+                try:
+                    results = fast_index.search(filters)
+                except Exception as exc:
+                    logging.warning('Fallo del índice local del Explorador; se usa SQL: %s', exc)
+                    fast_index = None
+            if fast_index is not None:
+                scanned = int(fast_index.version['source_count'])
+            else:
+                results = []
+                scanned = 0
             offset = 0
-            search_complete = False
-            movement_filters = {key: value for key, value in filters.items()
-                                if key in ('h2h_stadium_start_ah', 'h2h_stadium_end_ah',
-                                           'h2h_general_start_ah', 'h2h_general_end_ah') and value}
+            search_complete = fast_index is not None and len(results) < requested_results
 
-            while len(results) < requested_results:
+            movement_filters = {
+                key: value for key, value in filters.items()
+                if key in ('h2h_stadium_start_ah', 'h2h_stadium_end_ah',
+                           'h2h_general_start_ah', 'h2h_general_end_ah') and value
+            }
+            while fast_index is None and len(results) < requested_results:
                 if configured_scan_limit and scanned >= configured_scan_limit:
                     break
                 current_batch_size = batch_size
@@ -5324,8 +5363,8 @@ def api_explorer_search():
                 remaining = requested_results - len(results)
                 batch_filters = dict(filters)
                 batch_filters['limit'] = current_batch_size
-                batch_results = explore_matches(history_batch, filters=batch_filters)
-                results.extend(row for row in batch_results if _explorer_movement_matches(row, filters))
+                results.extend(row for row in explore_matches(history_batch, filters=batch_filters)
+                               if _explorer_movement_matches(row, filters))
                 results = results[:requested_results]
 
                 batch_count = len(history_batch)
@@ -5368,6 +5407,187 @@ def api_explorer_search():
         print(f"Error en explorer search: {e}")
         return jsonify({'error': str(e)}), 500
 
+
+def _resolve_full_match_payload_v2(match_id, inline_data=None):
+    """Combina datos de precacheo/SQLite con los campos vivos recibidos del cliente."""
+    mid = str(match_id or '').strip()
+    inline = inline_data if isinstance(inline_data, dict) else {}
+    has_recent = bool(
+        inline.get('recent_home_matches_all')
+        or (inline.get('pre_match_context') or {}).get('current', {}).get('home_matches_all')
+    )
+    if inline and has_recent:
+        return inline
+    db_match = None
+    if mid:
+        db_match = (
+            data_manager.get_precacheo_match(mid)
+            or sql_store.get_match(mid)
+            or pattern_search_v2.get_archive_match_by_id(mid)
+        )
+    if isinstance(db_match, dict):
+        merged = dict(db_match)
+        for k, v in inline.items():
+            if v not in (None, '', [], {}):
+                merged[k] = v
+        return merged
+    return inline or None
+
+
+@app.route('/api/pattern_search_v2', methods=['POST'])
+def api_pattern_search_v2():
+    """Búsqueda Patrón 2.0: similitud estructural de mercado + perfil/etiquetas de equipos."""
+    try:
+        data = request.get_json(silent=True) or {}
+        match_id = str(data.get('match_id') or '').strip()
+        inline_data = data.get('match_data')
+        try:
+            top_n = max(10, min(int(data.get('top_n', 80)), 150))
+        except (TypeError, ValueError):
+            top_n = 80
+
+        target_match = _resolve_full_match_payload_v2(match_id, inline_data)
+        if not target_match:
+            return jsonify({'status': 'error', 'error': 'Partido no encontrado para Patrón 2.0'}), 404
+
+        if match_id and not target_match.get('match_id'):
+            target_match['match_id'] = match_id
+
+        result = pattern_search_v2.search_pattern_v2(target_match, top_n=top_n)
+        status_code = 200 if result.get('status') == 'success' else 400
+        payload_bytes = json.dumps(result, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        if len(payload_bytes) > 32768 and 'gzip' in request.headers.get('Accept-Encoding', '').lower():
+            resp = app.response_class(gzip.compress(payload_bytes, compresslevel=1), status=status_code, mimetype='application/json')
+            resp.headers['Content-Encoding'] = 'gzip'
+            resp.headers['Vary'] = 'Accept-Encoding'
+            return resp
+        return app.response_class(payload_bytes, status=status_code, mimetype='application/json')
+    except Exception as exc:
+        logging.exception('Error en /api/pattern_search_v2')
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
+@app.route('/api/team_profile_tags', methods=['POST'])
+def api_team_profile_tags():
+    """Calcula etiquetas de equipo (Local/Visitante/Cruce) para 1 ficha o lote del Explorador."""
+    try:
+        data = request.get_json(silent=True) or {}
+        single_id = str(data.get('match_id') or '').strip()
+        match_data = data.get('match_data')
+        raw_ids = data.get('match_ids')
+
+        ids = []
+        inline_payloads = {}
+        if isinstance(raw_ids, list) and raw_ids:
+            ids = [str(m).strip() for m in raw_ids if str(m).strip()][:120]
+        elif single_id:
+            ids = [single_id]
+            resolved = _resolve_full_match_payload_v2(single_id, match_data)
+            if resolved:
+                inline_payloads[single_id] = resolved
+        elif isinstance(match_data, dict):
+            fallback_id = str(match_data.get('match_id') or match_data.get('id') or 'inline').strip()
+            ids = [fallback_id]
+            inline_payloads[fallback_id] = match_data
+
+        if not ids:
+            return jsonify({'status': 'error', 'error': 'Falta match_id o match_ids'}), 400
+
+        res = pattern_search_v2.tag_matches_batch(match_ids=ids, inline_payloads=inline_payloads)
+        return jsonify(res), 200
+    except Exception as exc:
+        logging.exception('Error en /api/team_profile_tags')
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+@app.route('/api/pattern_search_v2/deep_compare', methods=['POST'])
+def api_pattern_search_v2_deep_compare():
+    """Descarga/hidrata fichas completas en paralelo y recalcula similitud profunda sobre candidatos."""
+    try:
+        body = request.get_json(silent=True) or {}
+        source_match_id = str(body.get('source_match_id') or '').strip()
+        inline_match = body.get('match_data') if isinstance(body.get('match_data'), dict) else None
+        raw_ids = body.get('candidate_ids') or []
+        force_refresh = bool(body.get('force_refresh', False))
+        sqlite_only = bool(body.get('sqlite_only', False))
+
+        if not source_match_id and not inline_match:
+            return jsonify({'status': 'error', 'error': 'Falta source_match_id'}), 400
+
+        max_cands = 40 if sqlite_only else 20
+        candidate_ids = []
+        seen_ids = set()
+        if isinstance(raw_ids, list):
+            for cid in raw_ids:
+                scid = str(cid or '').strip()
+                if scid and scid not in seen_ids:
+                    seen_ids.add(scid)
+                    candidate_ids.append(scid)
+                if len(candidate_ids) >= max_cands:
+                    break
+
+        if not candidate_ids:
+            return jsonify({'status': 'error', 'error': 'Falta candidate_ids'}), 400
+
+        target_match = _resolve_full_match_payload_v2(source_match_id, inline_data=inline_match)
+        if not target_match:
+            return jsonify({'status': 'error', 'error': f'Partido origen {source_match_id} no encontrado'}), 404
+
+        res = pattern_search_v2.deep_download_and_rescore(
+            target_match,
+            candidate_ids,
+            force_refresh=force_refresh,
+            sqlite_only=sqlite_only,
+        )
+        return jsonify(res), 200
+    except Exception as exc:
+        logging.exception('Error en /api/pattern_search_v2/deep_compare')
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
+@app.route('/ficha-completa/<match_id>')
+def ficha_completa_page(match_id):
+    clean_id = re.sub(r'\D', '', str(match_id or '')) or str(match_id or '').strip()
+    return render_template('ficha_completa.html', match_id=clean_id)
+
+
+@app.route('/api/ficha_completa/<match_id>', methods=['GET'])
+def api_ficha_completa(match_id):
+    """Devuelve en un único JSON Fila 0 + tablas normalizadas + rivales comunes + líneas similares."""
+    try:
+        clean_id = re.sub(r'\D', '', str(match_id or '')) or str(match_id or '').strip()
+        if not clean_id:
+            return jsonify({'status': 'error', 'error': 'match_id inválido'}), 400
+
+        force_refresh = request.args.get('refresh', '').strip().lower() in ('1', 'true', 'yes', 'si')
+        target_match = _resolve_full_match_payload_v2(clean_id)
+        if not target_match:
+            if clean_id.isdigit():
+                target_match = {'match_id': clean_id}
+                force_refresh = True
+            else:
+                return jsonify({'status': 'error', 'error': f'Partido {clean_id} no encontrado'}), 404
+
+        payload = ficha_completa.build_ficha_completa_payload(
+            target_match,
+            clean_id,
+            force_refresh=force_refresh,
+        )
+        cur_tables = payload.get('tables') or {}
+        if target_match.keys() == {'match_id'} and not (cur_tables.get('home_all') or cur_tables.get('away_all')):
+            return jsonify({'status': 'error', 'error': f'Partido {clean_id} no encontrado ni disponible en vivo'}), 404
+
+        payload_bytes = json.dumps(payload, ensure_ascii=False, separators=(',', ':'), default=str).encode('utf-8')
+        if len(payload_bytes) > 32768 and 'gzip' in request.headers.get('Accept-Encoding', '').lower():
+            resp = app.response_class(gzip.compress(payload_bytes, compresslevel=1), status=200, mimetype='application/json')
+            resp.headers['Content-Encoding'] = 'gzip'
+            resp.headers['Vary'] = 'Accept-Encoding'
+            return resp
+        return app.response_class(payload_bytes, status=200, mimetype='application/json')
+    except Exception as exc:
+        logging.exception('Error en /api/ficha_completa/%s', match_id)
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/delete_match', methods=['POST'])
 def api_delete_match():
     try:
@@ -5406,7 +5626,7 @@ def _get_precacheo_view_config():
     if actions_mode not in {'full', 'minimal', 'ai_stats_only'}:
         actions_mode = 'full' if enable_heavy_actions else 'minimal'
 
-    auto_scrape_on_gap = _env_flag('PRECACHEO_AUTO_SCRAPE_ON_GAP', default=lite_mode)
+    auto_scrape_on_gap = _env_flag('PRECACHEO_AUTO_SCRAPE_ON_GAP', default=True)
     default_auto_scrape_batch = 12 if lite_mode else 24
     auto_scrape_batch_max = _env_int('PRECACHEO_AUTO_SCRAPE_BATCH_MAX', default_auto_scrape_batch)
     auto_scrape_batch_max = max(1, min(auto_scrape_batch_max, 60))
@@ -5722,11 +5942,18 @@ def api_precacheo_list():
         if use_compact:
             matches = [_compact_precacheo_match_for_list(m) for m in matches if isinstance(m, dict)]
 
-        return jsonify({
+        payload = {
             'matches': matches,
             'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'offline': False,
-        })
+        }
+        if 'gzip' in request.headers.get('Accept-Encoding', '').lower():
+            body = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+            response = app.response_class(gzip.compress(body, compresslevel=1), mimetype='application/json')
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Vary'] = 'Accept-Encoding'
+            return response
+        return jsonify(payload)
     except Exception as e:
         print(f"Error loading precacheo: {e}")
         return jsonify({'error': str(e)}), 500
@@ -5889,7 +6116,19 @@ def api_precacheo_scrape():
         match_data = analizar_partido_completo(str(match_id), force_refresh=True)
         
         if not match_data or match_data.get('error'):
-            return jsonify({'error': match_data.get('error', 'No se pudo scrapear')}), 500
+            return jsonify({'error': (match_data or {}).get('error', 'No se pudo scrapear')}), 500
+
+        required_sections = (
+            'last_home_match', 'last_away_match', 'h2h_col3', 'h2h_stadium',
+            'h2h_general', 'comparativas_indirectas', 'recent_home_matches',
+            'recent_away_matches',
+        )
+        missing = [key for key in required_sections if key not in match_data]
+        if match_data.get('summary_stats_status') != 'complete' or missing:
+            return jsonify({
+                'error': 'El análisis sigue incompleto; se reintentará en el próximo ciclo.',
+                'missing_sections': missing,
+            }), 502
         
         match_data['match_id'] = str(match_id)
         match_data['precacheo_date'] = datetime.datetime.now().isoformat()
@@ -5926,9 +6165,15 @@ def api_precacheo_context_fast():
 
         force_refresh = bool(payload.get('force_refresh') or payload.get('refresh'))
         existing = data_manager.get_precacheo_match(match_id) or sql_store.get_match(match_id) or {}
-        is_cached = bool(not force_refresh and existing.get('pre_match_context'))
+        cached_context = existing.get('pre_match_context') or {}
+        cached_current = cached_context.get('current') or {}
+        home_fallback = existing.get('recent_home_matches_all') or existing.get('recent_home_matches') or []
+        away_fallback = existing.get('recent_away_matches_all') or existing.get('recent_away_matches') or []
+        cached_home = cached_current.get('home_matches_all') or cached_current.get('home_matches') or home_fallback
+        cached_away = cached_current.get('away_matches_all') or cached_current.get('away_matches') or away_fallback
+        is_cached = bool(not force_refresh and cached_context and cached_home and cached_away)
         if is_cached:
-            context = existing.get('pre_match_context')
+            context = dict(cached_context)
         else:
             main_odds = existing.get('main_match_odds') or {}
             context = analizar_contexto_previo_rapido(
@@ -5940,7 +6185,16 @@ def api_precacheo_context_fast():
         if not context or context.get('error'):
             return jsonify({'error': (context or {}).get('error', 'No se pudo generar el contexto')}), 500
 
-        current = context.get('current') or {}
+        context = dict(context)
+        current = dict(context.get('current') or {})
+        for side, fallback in (('home', home_fallback), ('away', away_fallback)):
+            if not current.get(f'{side}_matches_all') and fallback:
+                current[f'{side}_matches_all'] = fallback
+            if not current.get(f'{side}_matches') and fallback:
+                current[f'{side}_matches'] = fallback
+        context['current'] = current
+        if not (current.get('home_matches_all') or current.get('home_matches')) and not (current.get('away_matches_all') or current.get('away_matches')):
+            return jsonify({'error': 'El proveedor no devolvió historial para ninguno de los dos equipos; el contexto vacío no se ha guardado.'}), 422
         merged = dict(existing)
         merged.update({
             'match_id': match_id,
@@ -6200,11 +6454,16 @@ def api_precacheo_h2h_mov_historico():
         market_data = {}
         h2h_stadium_raw = {}
         h2h_general_raw = {}
+        pre_h2h_raw = {}
+        row_ou = str(payload.get('row_ou') or '').strip()
 
         if stored and not force_refresh:
             market_data = stored.get('market_analysis_data') or {}
             h2h_stadium_raw = stored.get('h2h_stadium') or stored.get('h2h_data') or {}
             h2h_general_raw = stored.get('h2h_general') or stored.get('h2h_data') or {}
+            pre_h2h_raw = ((stored.get('pre_match_context') or {}).get('h2h_data') or {}) if isinstance(stored.get('pre_match_context'), dict) else {}
+            if not row_ou:
+                row_ou = str((stored.get('main_match_odds') or {}).get('goals_ou') or '').strip()
 
         if not h2h_stadium_raw and not h2h_general_raw:
             analysis = estudio_scraper.analizar_partido_completo(match_id, force_refresh=force_refresh)
@@ -6212,6 +6471,10 @@ def api_precacheo_h2h_mov_historico():
                 market_data = analysis.get('market_analysis_data') or {}
                 h2h_stadium_raw = analysis.get('h2h_stadium') or analysis.get('h2h_data') or {}
                 h2h_general_raw = analysis.get('h2h_general') or analysis.get('h2h_data') or {}
+                if not row_ou:
+                    row_ou = str((analysis.get('main_match_odds') or {}).get('goals_ou') or '').strip()
+
+        from modules import pattern_search_v2 as ps2
 
         def _get_field(d, *keys):
             for k in keys:
@@ -6219,14 +6482,21 @@ def api_precacheo_h2h_mov_historico():
                     return d.get(k)
             return None
 
-        def _calc_mov(c_ah, p_ah):
-            try:
-                c = float(c_ah)
-                p = float(p_ah)
-                diff = abs(c) - abs(p)
-                return 'IGUAL' if abs(diff) < 0.01 else ('SUBE' if diff > 0 else 'BAJA')
-            except Exception:
-                return ''
+        def _calc_mov_info(c_raw, p_raw, signed=False):
+            c_num = ps2._parse_ah(c_raw) if signed else ps2._parse_ou(c_raw)
+            p_num = ps2._parse_ah(p_raw) if signed else ps2._parse_ou(p_raw)
+            if c_num is None or p_num is None:
+                return '', None, ''
+            delta = round(c_num - p_num, 2)
+            diff_mag = delta if signed else round(c_num - p_num, 2)
+            if abs(delta) < 0.01:
+                direction = 'IGUAL'
+            elif diff_mag > 0:
+                direction = 'SUBE'
+            else:
+                direction = 'BAJA'
+            mov_text = f"{ps2._format_ah(p_num)} \u2192 {ps2._format_ah(c_num)}"
+            return direction, delta, mov_text
 
         stadium_info = None
         general_info = None
@@ -6234,9 +6504,11 @@ def api_precacheo_h2h_mov_historico():
         st_id = _get_field(h2h_stadium_raw, 'match1_id', 'matchIndex', 'match_id')
         st_date = _get_field(h2h_stadium_raw, 'date1', 'date') or (market_data.get('stadium') or {}).get('date')
         st_ah = _get_field(h2h_stadium_raw, 'ah1', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or '-'
-        st_ou = _get_field(h2h_stadium_raw, 'ou1', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('stadium') or {}).get('ou')
+        st_ou = _get_field(h2h_stadium_raw, 'ou1', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('stadium') or {}).get('ou') or '-'
         st_score = (_get_field(h2h_stadium_raw, 'res1_raw', 'res1', 'score_raw', 'score') or (market_data.get('stadium') or {}).get('result') or '-').replace('-', ':')
-        st_mov = (market_data.get('stadium') or {}).get('movement') or _calc_mov(row_ah, st_ah)
+        st_dir, st_delta_ah, st_mov_fallback = _calc_mov_info(row_ah, st_ah, signed=True)
+        st_ou_dir, st_delta_ou, st_ou_mov = _calc_mov_info(row_ou, st_ou, signed=False)
+        st_mov = (market_data.get('stadium') or {}).get('movement') or st_mov_fallback or st_dir
         st_cover = (market_data.get('stadium') or {}).get('is_covered')
 
         if st_id or (st_date and st_date != 'Fecha N/D') or (st_score and st_score != '-'):
@@ -6247,6 +6519,11 @@ def api_precacheo_h2h_mov_historico():
                 'ah': st_ah,
                 'ou': st_ou,
                 'movement': st_mov,
+                'movement_dir': st_dir,
+                'delta_ah': st_delta_ah,
+                'ou_movement': st_ou_mov,
+                'ou_dir': st_ou_dir,
+                'delta_ou': st_delta_ou,
                 'cover': st_cover,
                 'home_team': _get_field(h2h_stadium_raw, 'h2h_stad_home', 'home_team', 'home') or row_home,
                 'away_team': _get_field(h2h_stadium_raw, 'h2h_stad_away', 'away_team', 'away') or row_away,
@@ -6255,12 +6532,22 @@ def api_precacheo_h2h_mov_historico():
         gen_id = _get_field(h2h_general_raw, 'match6_id', 'matchIndex', 'match_id')
         gen_date = _get_field(h2h_general_raw, 'date6', 'date') or (market_data.get('general') or {}).get('date')
         gen_ah = _get_field(h2h_general_raw, 'ah6', 'ahLine', 'ahLine_raw', 'ah_line', 'ah', 'handicap') or st_ah
-        gen_ou = _get_field(h2h_general_raw, 'ou6', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('general') or {}).get('ou')
+        gen_ou = _get_field(h2h_general_raw, 'ou6', 'ouLine', 'ouLine_raw', 'ou_line', 'ou') or (market_data.get('general') or {}).get('ou') or '-'
         gen_score = (_get_field(h2h_general_raw, 'res6_raw', 'res6', 'score_raw', 'score') or (market_data.get('general') or {}).get('result') or '-').replace('-', ':')
-        gen_mov = (market_data.get('general') or {}).get('movement') or _calc_mov(row_ah, gen_ah)
-        gen_cover = (market_data.get('general') or {}).get('is_covered')
         gen_home = _get_field(h2h_general_raw, 'h2h_gen_home', 'home', 'home_team') or row_home
         gen_away = _get_field(h2h_general_raw, 'h2h_gen_away', 'away', 'away_team') or row_away
+
+        # Ajustar gen_ah a perspectiva de row_home cuando el estadio estuvo invertido
+        gen_same_stadium = True
+        if row_home and gen_home and row_away and gen_away:
+            if ps2._same_team(gen_home, row_away) and ps2._same_team(gen_away, row_home):
+                gen_same_stadium = False
+        gen_ah_num = ps2._parse_ah(gen_ah)
+        gen_persp_ah = (ps2._format_ah(-gen_ah_num) if (gen_ah_num is not None and not gen_same_stadium) else gen_ah)
+        gen_dir, gen_delta_ah, gen_mov_fallback = _calc_mov_info(row_ah, gen_persp_ah, signed=True)
+        gen_ou_dir, gen_delta_ou, gen_ou_mov = _calc_mov_info(row_ou, gen_ou, signed=False)
+        gen_mov = (market_data.get('general') or {}).get('movement') or gen_mov_fallback or gen_dir
+        gen_cover = (market_data.get('general') or {}).get('is_covered')
 
         is_same_match = (st_id and gen_id and st_id == gen_id) or (st_date and gen_date and st_date == gen_date and st_score == gen_score)
         if (gen_id or (gen_date and gen_date != 'Fecha N/D') or (gen_score and gen_score != '-')) and (not is_same_match or not stadium_info):
@@ -6271,21 +6558,107 @@ def api_precacheo_h2h_mov_historico():
                 'ah': gen_ah,
                 'ou': gen_ou,
                 'movement': gen_mov,
+                'movement_dir': gen_dir,
+                'delta_ah': gen_delta_ah,
+                'ou_movement': gen_ou_mov,
+                'ou_dir': gen_ou_dir,
+                'delta_ou': gen_delta_ou,
                 'cover': gen_cover,
+                'same_stadium': gen_same_stadium,
                 'home_team': gen_home,
                 'away_team': gen_away,
             }
 
-        has_any = bool(stadium_info or general_info)
+        # Construir lista historica cronologica (hasta 8 cruces previos) para comparar anos anteriores
+        history_items = []
+        seen_hist_keys = set()
+        row_ah_num = ps2._parse_ah(row_ah)
+        row_ou_num = ps2._parse_ou(row_ou)
+
+        def _date_sort_val(raw_d):
+            txt = str(raw_d or '').strip()
+            parts = txt.replace('/', '-').split('-')
+            if len(parts) == 3:
+                if len(parts[0]) == 4:
+                    return f"{parts[0]}-{parts[1].zfill(2)}-{parts[2].zfill(2)}"
+                if len(parts[2]) == 4:
+                    return f"{parts[2]}-{parts[1].zfill(2)}-{parts[0].zfill(2)}"
+            return txt
+
+        def _extract_year_txt(raw_d):
+            d_sorted = _date_sort_val(raw_d)
+            return d_sorted[:4] if len(d_sorted) >= 4 and d_sorted[:4].isdigit() else ''
+
+        raw_h2h_pools = []
+        for blk, hint_stad in ((h2h_stadium_raw, True), (pre_h2h_raw, None), (h2h_general_raw, None)):
+            if isinstance(blk, dict) and isinstance(blk.get('all_matches'), list):
+                for m in blk.get('all_matches'):
+                    if isinstance(m, dict):
+                        raw_h2h_pools.append((m, hint_stad))
+
+        for m, hint_stad in raw_h2h_pools:
+            m_id = ''.join(ch for ch in str(m.get('matchIndex') or m.get('match_id') or m.get('id') or '') if ch.isdigit())
+            if m_id and m_id == match_id:
+                continue
+            m_date = str(m.get('date') or m.get('date_raw') or m.get('match_time') or '').strip()
+            m_home = str(m.get('home') or m.get('home_team') or '').strip()
+            m_away = str(m.get('away') or m.get('away_team') or '').strip()
+            m_score = str(m.get('score') or m.get('score_raw') or m.get('res') or '-').strip().replace('-', ':')
+            m_ah = str(_get_field(m, 'ah', 'ahLine', 'ah_line', 'ahLine_raw', 'handicap') or '-').strip()
+            m_ou = str(_get_field(m, 'ou', 'ouLine', 'ou_line', 'ouLine_raw', 'goals_line') or '-').strip()
+            if not m_date and m_score in ('', '-'):
+                continue
+
+            same_stad = bool(hint_stad)
+            if m_home and m_away and row_home and row_away:
+                if ps2._same_team(m_home, row_home) and ps2._same_team(m_away, row_away):
+                    same_stad = True
+                elif ps2._same_team(m_home, row_away) and ps2._same_team(m_away, row_home):
+                    same_stad = False
+
+            dedup_key = m_id or f"{_date_sort_val(m_date)}|{same_stad}|{m_score}"
+            if dedup_key in seen_hist_keys:
+                continue
+            seen_hist_keys.add(dedup_key)
+
+            m_ah_num = ps2._parse_ah(m_ah)
+            m_persp_ah = (m_ah_num if same_stad else -m_ah_num) if m_ah_num is not None else None
+            m_ou_num = ps2._parse_ou(m_ou)
+            delta_ah = round(row_ah_num - m_persp_ah, 2) if (row_ah_num is not None and m_persp_ah is not None) else None
+            delta_ou = round(row_ou_num - m_ou_num, 2) if (row_ou_num is not None and m_ou_num is not None) else None
+
+            history_items.append({
+                'match_id': m_id,
+                'date': m_date,
+                'year': _extract_year_txt(m_date),
+                'home_team': m_home or (row_home if same_stad else row_away),
+                'away_team': m_away or (row_away if same_stad else row_home),
+                'score': m_score,
+                'ah': m_ah,
+                'ou': m_ou,
+                'same_stadium': same_stad,
+                'delta_ah': delta_ah,
+                'delta_ou': delta_ou,
+                '_sort': _date_sort_val(m_date),
+            })
+
+        history_items.sort(key=lambda x: x.get('_sort') or '', reverse=True)
+        history_items = history_items[:8]
+        for h_item in history_items:
+            h_item.pop('_sort', None)
+
+        has_any = bool(stadium_info or general_info or history_items)
         return jsonify({
             'status': 'success' if has_any else 'not_found',
             'match_id': match_id,
             'row_home': row_home,
             'row_away': row_away,
             'row_ah': row_ah,
+            'row_ou': row_ou,
             'row_score': row_score,
             'stadium': stadium_info,
             'general': general_info,
+            'history': history_items,
         })
     except Exception as exc:
         logging.exception("Error en /api/precacheo_h2h_mov_historico")
@@ -6304,9 +6677,10 @@ def api_match_stats(match_id=None):
         parent_match_id = "".join(filter(str.isdigit, str(payload.get('parent_match_id') or '')))
 
         existing_cached_stats = None
+        matched_row = None
 
-        # Si no viene clean_id directamente, resolverlo usando parent_match_id y metadatos de la fila
-        if not clean_id and parent_match_id:
+        # Resolver o complementar metadatos usando parent_match_id y metadatos de la fila
+        if parent_match_id:
             parent = data_manager.get_precacheo_match(parent_match_id) or sql_store.get_match(parent_match_id)
             parent = parent or {}
             pre_context = parent.get('pre_match_context') or {}
@@ -6332,7 +6706,9 @@ def api_match_stats(match_id=None):
                     'score': stadium_struct.get('result') or h2h_stadium.get('res1_raw') or h2h_stadium.get('res1') or h2h_data.get('res1_raw'),
                     'home': stadium_struct.get('home') or parent.get('home') or parent.get('home_team'),
                     'away': stadium_struct.get('away') or parent.get('away') or parent.get('away_team'),
-                    'stats_rows': h2h_stadium.get('stats_rows')
+                    'stats_rows': h2h_stadium.get('stats_rows'),
+                    'home_red': h2h_stadium.get('home_red'),
+                    'away_red': h2h_stadium.get('away_red'),
                 })
 
             # 2. H2H General
@@ -6344,7 +6720,9 @@ def api_match_stats(match_id=None):
                     'score': general_struct.get('result') or h2h_general.get('res6_raw') or h2h_general.get('res6') or h2h_data.get('res6_raw'),
                     'home': general_struct.get('home') or h2h_data.get('h2h_gen_home') or parent.get('home'),
                     'away': general_struct.get('away') or h2h_data.get('h2h_gen_away') or parent.get('away'),
-                    'stats_rows': h2h_general.get('stats_rows')
+                    'stats_rows': h2h_general.get('stats_rows'),
+                    'home_red': h2h_general.get('home_red'),
+                    'away_red': h2h_general.get('away_red'),
                 })
 
             # 3. Last Home Match & Last Away Match
@@ -6378,56 +6756,73 @@ def api_match_stats(match_id=None):
                 parent.get('venue_home_matches'),
                 parent.get('venue_away_matches'),
             )
-            target_date = str(payload.get('row_date') or '').strip()
-            target_home = str(payload.get('row_home') or '').strip().casefold()
-            target_away = str(payload.get('row_away') or '').strip().casefold()
-            target_score = str(payload.get('row_score') or '').replace('-', ':').strip()
 
-            for group in candidate_groups:
-                for row in group or []:
-                    if not isinstance(row, dict):
-                        continue
-                    row_date = str(row.get('date') or row.get('match_date') or row.get('date_txt') or '').strip()
-                    row_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
-                    row_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
-                    row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
-
-                    if target_date and row_date and target_date != row_date:
-                        continue
-                    if target_score and row_score and target_score != row_score:
-                        continue
-                    if target_home and row_home and (target_home not in row_home and row_home not in target_home):
-                        continue
-                    if target_away and row_away and (target_away not in row_away and row_away not in target_away):
-                        continue
-
-                    found_id = "".join(filter(str.isdigit, str(
-                        row.get('matchIndex') or row.get('match_id') or row.get('id') or ''
-                    )))
-                    if found_id:
-                        clean_id = found_id
-                        if row.get('stats_rows'):
-                            existing_cached_stats = row.get('stats_rows')
+            if clean_id:
+                for group in candidate_groups:
+                    for row in group or []:
+                        if not isinstance(row, dict):
+                            continue
+                        r_id = "".join(filter(str.isdigit, str(row.get('matchIndex') or row.get('match_id') or row.get('id') or '')))
+                        if r_id == clean_id:
+                            matched_row = row
+                            if not existing_cached_stats and row.get('stats_rows'):
+                                existing_cached_stats = row.get('stats_rows')
+                            break
+                    if matched_row:
                         break
-                if clean_id:
-                    break
+            else:
+                target_date = str(payload.get('row_date') or '').strip()
+                target_home = str(payload.get('row_home') or '').strip().casefold()
+                target_away = str(payload.get('row_away') or '').strip().casefold()
+                target_score = str(payload.get('row_score') or '').replace('-', ':').strip()
 
-            # Fallback secundario: si no coincidieron todos los campos (por diferencias de nombre de equipo), probar solo fecha y marcador con precedentes
-            if not clean_id and (target_date or target_score):
-                for row in special_candidates + all_h2h:
-                    if not isinstance(row, dict):
-                        continue
-                    row_date = str(row.get('date') or row.get('match_date') or '').strip()
-                    row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
-                    date_matches = bool(target_date and row_date and target_date == row_date)
-                    score_matches = bool(target_score and row_score and target_score == row_score)
-                    if (target_date and target_score and date_matches and score_matches) or (target_date and not target_score and date_matches) or (target_score and not target_date and score_matches):
-                        found_id = "".join(filter(str.isdigit, str(row.get('matchIndex') or row.get('match_id') or row.get('id') or '')))
+                for group in candidate_groups:
+                    for row in group or []:
+                        if not isinstance(row, dict):
+                            continue
+                        row_date = str(row.get('date') or row.get('match_date') or row.get('date_txt') or '').strip()
+                        row_home = str(row.get('home') or row.get('home_team') or '').strip().casefold()
+                        row_away = str(row.get('away') or row.get('away_team') or '').strip().casefold()
+                        row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
+
+                        if target_date and row_date and target_date != row_date:
+                            continue
+                        if target_score and row_score and target_score != row_score:
+                            continue
+                        if target_home and row_home and (target_home not in row_home and row_home not in target_home):
+                            continue
+                        if target_away and row_away and (target_away not in row_away and row_away not in target_away):
+                            continue
+
+                        found_id = "".join(filter(str.isdigit, str(
+                            row.get('matchIndex') or row.get('match_id') or row.get('id') or ''
+                        )))
                         if found_id:
                             clean_id = found_id
+                            matched_row = row
                             if row.get('stats_rows'):
                                 existing_cached_stats = row.get('stats_rows')
                             break
+                    if clean_id:
+                        break
+
+                # Fallback secundario: si no coincidieron todos los campos (por diferencias de nombre de equipo), probar solo fecha y marcador con precedentes
+                if not clean_id and (target_date or target_score):
+                    for row in special_candidates + all_h2h:
+                        if not isinstance(row, dict):
+                            continue
+                        row_date = str(row.get('date') or row.get('match_date') or '').strip()
+                        row_score = str(row.get('score') or row.get('score_raw') or row.get('result') or '').replace('-', ':').strip()
+                        date_matches = bool(target_date and row_date and target_date == row_date)
+                        score_matches = bool(target_score and row_score and target_score == row_score)
+                        if (target_date and target_score and date_matches and score_matches) or (target_date and not target_score and date_matches) or (target_score and not target_date and score_matches):
+                            found_id = "".join(filter(str.isdigit, str(row.get('matchIndex') or row.get('match_id') or row.get('id') or '')))
+                            if found_id:
+                                clean_id = found_id
+                                matched_row = row
+                                if row.get('stats_rows'):
+                                    existing_cached_stats = row.get('stats_rows')
+                                break
 
         if not clean_id:
             return jsonify({'status': 'error', 'error': 'No se pudo identificar el ID del partido'}), 400
@@ -6476,10 +6871,24 @@ def api_match_stats(match_id=None):
             except Exception as err:
                 logging.warning("Error consultando cuotas en api_match_stats (%s): %s", clean_id, err)
 
+        matched_home_red = (matched_row.get('home_red') if matched_row else None) or payload.get('row_home_red') or payload.get('home_red')
+        matched_away_red = (matched_row.get('away_red') if matched_row else None) or payload.get('row_away_red') or payload.get('away_red')
+        if not matched_home_red and not matched_away_red and existing_match:
+            matched_home_red = existing_match.get('home_red')
+            matched_away_red = existing_match.get('away_red')
+
+        from modules.red_cards import append_red_card_stats, normalize_red_card_value
+        home_red_val = normalize_red_card_value(matched_home_red)
+        away_red_val = normalize_red_card_value(matched_away_red)
+        if stats and (home_red_val or away_red_val):
+            stats = append_red_card_stats(stats, home_red_val, away_red_val)
+
         return jsonify({
             'status': 'success',
             'match_id': clean_id,
             'stats': stats or [],
+            'home_red': home_red_val,
+            'away_red': away_red_val,
             'ou_line': ou_line or '-',
             'ah_line': ah_line or '-'
         })

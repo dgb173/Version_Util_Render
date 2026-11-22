@@ -15,9 +15,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from modules import data_manager, sql_store  # noqa: E402
-from modules.nowgoal_fetcher import parse_handicap_numeric  # noqa: E402
-from modules.estudio_scraper import analizar_partido_completo  # noqa: E402
+from modules.nowgoal_fetcher import parse_goal_line_numeric, parse_handicap_numeric  # noqa: E402
 from modules.match_clock import schedule_fields, sync_schedule  # noqa: E402
+
+
+def _get_analizar_partido_completo():
+    from modules.estudio_scraper import analizar_partido_completo
+    return analizar_partido_completo
 
 
 def _load_jobs(job_file: Path):
@@ -64,48 +68,89 @@ def _has_valid_handicap(match: dict) -> bool:
     return parse_handicap_numeric(raw) is not None
 
 
+def _has_valid_goal_line(match: dict) -> bool:
+    if not isinstance(match, dict):
+        return False
+    raw = match.get("goal_line")
+    if raw in (None, "", "-", "N/A", "null", "None", "?", "--", "undefined"):
+        odds = match.get("main_match_odds") or {}
+        raw = odds.get("goals_linea")
+    if raw in (None, "", "-", "N/A", "null", "None", "?", "--", "undefined"):
+        return False
+    return parse_goal_line_numeric(raw) is not None
+
+
+def _find_snapshot_match(match_id: str) -> dict | None:
+    try:
+        snapshot = sql_store.get_json_state("app_main_page_cache_v1", default={}) or {}
+        for snap_m in snapshot.get("upcoming_matches", []):
+            if str(snap_m.get("id") or snap_m.get("match_id")) == str(match_id):
+                return snap_m
+    except Exception:
+        pass
+    return None
+
+
 def _process_match(match_id: str, job_meta: dict = None, defer_summary_stats: bool = False):
     try:
-        match_data = analizar_partido_completo(
+        analizar_fn = _get_analizar_partido_completo()
+        match_data = analizar_fn(
             match_id,
             include_summary_stats=not defer_summary_stats,
         )
         if not match_data or match_data.get("error"):
             return False, match_id, "scrape_error", None
 
-        if match_data.get("handicap") in (None, "", "N/A", "-", "null", "None"):
+        # El scrape puede devolver identidad y cuotas aunque haya quedado a medias.
+        # No persistirlo como trabajo terminado: la siguiente ejecución debe reintentarlo.
+        required_sections = (
+            "last_home_match", "last_away_match", "h2h_col3", "h2h_stadium",
+            "h2h_general", "comparativas_indirectas", "recent_home_matches",
+            "recent_away_matches",
+        )
+        missing = [key for key in required_sections if key not in match_data]
+        if missing:
+            return False, match_id, f"missing_sections:{','.join(missing)}", None
+        if not defer_summary_stats and match_data.get("summary_stats_status") != "complete":
+            return False, match_id, "summary_stats_incomplete", None
+
+        invalid_tokens = (None, "", "N/A", "-", "null", "None", "?", "--", "undefined")
+        if match_data.get("handicap") in invalid_tokens:
             match_data["handicap"] = (match_data.get("main_match_odds") or {}).get("ah_linea")
-        if match_data.get("goal_line") in (None, "", "N/A", "-", "null", "None"):
+        if match_data.get("goal_line") in invalid_tokens:
             match_data["goal_line"] = (match_data.get("main_match_odds") or {}).get("goals_linea")
 
-        # Si no tiene hándicap en la página H2H, recuperarlo del job o snapshot
-        if not _has_valid_handicap(match_data):
+        # Fallback independiente para AH y O/U desde job_meta o snapshot cuando el H2H no trae alguna línea.
+        need_ah = not _has_valid_handicap(match_data)
+        need_ou = not _has_valid_goal_line(match_data)
+        if need_ah or need_ou:
             if job_meta and isinstance(job_meta, dict):
-                job_ah = job_meta.get("ah") or job_meta.get("handicap")
-                if job_ah and str(job_ah).strip() not in ("N/A", "-", "None", "null", "", "?"):
-                    match_data["handicap"] = str(job_ah).strip()
-                    match_data.setdefault("main_match_odds", {})["ah_linea"] = str(job_ah).strip()
-                job_ou = job_meta.get("ou") or job_meta.get("goal_line")
-                if job_ou and str(job_ou).strip() not in ("N/A", "-", "None", "null", "", "?"):
-                    match_data["goal_line"] = str(job_ou).strip()
-                    match_data.setdefault("main_match_odds", {})["goals_linea"] = str(job_ou).strip()
+                if need_ah:
+                    job_ah = job_meta.get("ah") or job_meta.get("handicap")
+                    if job_ah not in invalid_tokens and parse_handicap_numeric(job_ah) is not None:
+                        match_data["handicap"] = str(job_ah).strip()
+                        match_data.setdefault("main_match_odds", {})["ah_linea"] = str(job_ah).strip()
+                        need_ah = False
+                if need_ou:
+                    job_ou = job_meta.get("ou") or job_meta.get("goal_line")
+                    if job_ou not in invalid_tokens and parse_goal_line_numeric(job_ou) is not None:
+                        match_data["goal_line"] = str(job_ou).strip()
+                        match_data.setdefault("main_match_odds", {})["goals_linea"] = str(job_ou).strip()
+                        need_ou = False
 
-            if not _has_valid_handicap(match_data):
-                try:
-                    snapshot = sql_store.get_json_state('app_main_page_cache_v1', default={}) or {}
-                    for snap_m in snapshot.get('upcoming_matches', []):
-                        if str(snap_m.get('id') or snap_m.get('match_id')) == str(match_id):
-                            ah_snap = snap_m.get('handicap') or (snap_m.get('main_match_odds') or {}).get('ah_linea')
-                            gl_snap = snap_m.get('goal_line') or (snap_m.get('main_match_odds') or {}).get('goals_linea')
-                            if parse_handicap_numeric(ah_snap) is not None:
-                                match_data['handicap'] = str(ah_snap)
-                                match_data.setdefault('main_match_odds', {})['ah_linea'] = str(ah_snap)
-                            if gl_snap and gl_snap not in ('-', 'N/A', '?'):
-                                match_data['goal_line'] = str(gl_snap)
-                                match_data.setdefault('main_match_odds', {})['goals_linea'] = str(gl_snap)
-                            break
-                except Exception:
-                    pass
+            if need_ah or need_ou:
+                snap_m = _find_snapshot_match(match_id)
+                if snap_m:
+                    if need_ah:
+                        ah_snap = snap_m.get("handicap") or (snap_m.get("main_match_odds") or {}).get("ah_linea")
+                        if parse_handicap_numeric(ah_snap) is not None:
+                            match_data["handicap"] = str(ah_snap).strip()
+                            match_data.setdefault("main_match_odds", {})["ah_linea"] = str(ah_snap).strip()
+                    if need_ou:
+                        gl_snap = snap_m.get("goal_line") or (snap_m.get("main_match_odds") or {}).get("goals_linea")
+                        if parse_goal_line_numeric(gl_snap) is not None:
+                            match_data["goal_line"] = str(gl_snap).strip()
+                            match_data.setdefault("main_match_odds", {})["goals_linea"] = str(gl_snap).strip()
 
         # No guardar partidos sin linea de handicap asiatico
         if not _has_valid_handicap(match_data):
@@ -115,14 +160,9 @@ def _process_match(match_id: str, job_meta: dict = None, defer_summary_stats: bo
         if schedule_fields(job_meta or {}):
             match_data = sync_schedule(match_data, job_meta)
         else:
-            try:
-                snapshot = sql_store.get_json_state("app_main_page_cache_v1", default={}) or {}
-                for snap_m in snapshot.get("upcoming_matches", []):
-                    if str(snap_m.get("id") or snap_m.get("match_id")) == str(match_id):
-                        match_data = sync_schedule(match_data, snap_m)
-                        break
-            except Exception:
-                pass
+            snap_m = _find_snapshot_match(match_id)
+            if snap_m:
+                match_data = sync_schedule(match_data, snap_m)
         match_data["precacheo_date"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         data_manager.save_precacheo_match(match_data)
         return True, match_id, "saved", match_data
@@ -207,6 +247,10 @@ def main():
 
     workers = max(1, int(args.concurrency or 1))
     flush_every = max(1, int(args.flush_every or 1))
+    if not os.getenv("RENDER") and not os.getenv("ANALYSIS_MAX_CONCURRENCY"):
+        os.environ["ANALYSIS_MAX_CONCURRENCY"] = str(workers)
+    # Pre-importar tras configurar ANALYSIS_MAX_CONCURRENCY para evitar condición de carrera en hilos.
+    _get_analizar_partido_completo()
 
     print(
         f"Iniciando analisis previo desde {job_file} "
@@ -215,6 +259,7 @@ def main():
 
     completed = 0
     ok = 0
+    skipped = 0
     failed = 0
     saved_matches = []
 
@@ -231,16 +276,17 @@ def main():
                 ok += 1
                 if match_payload:
                     saved_matches.append(match_payload)
+            elif info == "skipped_no_handicap":
+                skipped += 1
             else:
                 failed += 1
+                print(f"  Error match {mid}: {info}")
 
             if completed % flush_every == 0 or completed == total:
                 print(
                     f"Progreso: {completed}/{total} "
-                    f"(ok={ok}, fail={failed})"
+                    f"(ok={ok}, skip={skipped}, fail={failed})"
                 )
-                if not success:
-                    print(f"  Error match {mid}: {info}")
 
     if args.output_json:
         out_path = Path(args.output_json)
@@ -250,7 +296,7 @@ def main():
         print(f"Salida exportada a {out_path} ({len(saved_matches)} partidos)")
 
     _cleanup_precacheo_stale()
-    print(f"Finalizado. ok={ok}, fail={failed}, total={total}")
+    print(f"Finalizado. ok={ok}, skip={skipped}, fail={failed}, total={total}")
     return 0 if failed == 0 else 1
 
 
