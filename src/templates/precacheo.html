@@ -20180,6 +20180,44 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
+        function toggleTeamHistoryRecent10Total(cb) {
+            const checked = !!(cb && cb.checked);
+            if (checked) {
+                window._currentTeamHistoryVenueFilter = 'all';
+                window._teamHistoryLimit = 10;
+            } else {
+                const defV = window._currentTeamHistoryDefaultVenue || 'all';
+                if (defV === 'home' || defV === 'away') {
+                    window._currentTeamHistoryVenueFilter = defV;
+                    window._teamHistoryLimit = 10;
+                } else {
+                    window._currentTeamHistoryVenueFilter = 'all';
+                    window._teamHistoryLimit = 0;
+                }
+            }
+            renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
+        }
+
+        function toggleOpponentRecent10Total(cb) {
+            const checked = !!(cb && cb.checked);
+            if (checked) {
+                window._currentOpponentVenueFilter = 'all';
+                window._opponentHistoryLimit = 10;
+            } else {
+                const defV = window._currentOpponentDefaultVenue || 'all';
+                if (defV === 'home' || defV === 'away') {
+                    window._currentOpponentVenueFilter = defV;
+                    window._opponentHistoryLimit = 10;
+                } else {
+                    window._currentOpponentVenueFilter = 'all';
+                    window._opponentHistoryLimit = 0;
+                }
+            }
+            renderTeamHistoryModalContent();
+            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
+        }
+
         function toggleTeamHistoryCommonFilter() {
             window._currentTeamHistoryCommonFilter = !window._currentTeamHistoryCommonFilter;
             renderTeamHistoryModalContent();
@@ -20909,16 +20947,18 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const resolvedTeamVenue = isNeutralLeague ? 'all' : (initialTeamVenue || 'all');
             const resolvedOppVenue = isNeutralLeague ? 'all' : (initialOppVenue || 'all');
 
+            const hasCurrentLeague = Boolean(window._currentTeamHistoryLeagueId);
+
             window._currentTeamHistoryDefaultVenue = resolvedTeamVenue;
             window._currentOpponentDefaultVenue = resolvedOppVenue;
             window._currentTeamHistoryVenueFilter = resolvedTeamVenue;
             window._currentTeamHistoryCommonFilter = false;
-            window._currentTeamHistoryLeagueFilter = false;
+            window._currentTeamHistoryLeagueFilter = hasCurrentLeague;
             window._currentTeamHistorySearchQuery = '';
             window._teamHistoryLimit = 10;
 
             window._currentOpponentVenueFilter = resolvedOppVenue;
-            window._currentOpponentLeagueFilter = false;
+            window._currentOpponentLeagueFilter = hasCurrentLeague;
             window._currentOpponentSearchQuery = '';
             window._opponentHistoryLimit = 10;
 
@@ -21667,8 +21707,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             const winPct = totalVis > 0 ? Math.round((wins / totalVis) * 100) : 0;
             const coverPct = totalVis > 0 ? Math.round((coverWins / totalVis) * 100) : 0;
 
-            const homeCount = allMatches.filter(m => m.venue === 'home').length;
-            const awayCount = allMatches.filter(m => m.venue === 'away').length;
+            const defaultVenue = isOpponent
+                ? (window._currentOpponentDefaultVenue || (isParentHome ? 'home' : (isParentAway ? 'away' : 'all')))
+                : (window._currentTeamHistoryDefaultVenue || (isParentHome ? 'home' : (isParentAway ? 'away' : 'all')));
+            const leagueScopedMatches = (isLeagueFilter && targetLid)
+                ? allMatches.filter(m => String(m.league_id || '').trim() === targetLid)
+                : allMatches;
+            const homeCount = leagueScopedMatches.filter(m => m.venue === 'home').length;
+            const awayCount = leagueScopedMatches.filter(m => m.venue === 'away').length;
 
             const fmtCompactDate = (dateStr) => {
                 const s = String(dateStr || '').trim();
@@ -21682,13 +21728,13 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 : (isParentAway ? 'is-away-team' : 'is-neutral-team');
 
             let roleClass = 'pre-context-role is-all';
-            let roleText = `TODOS${currentLimit === 10 ? ' (ÚLT. 10)' : ` (${totalVis})`}`;
+            let roleText = currentLimit === 10 ? 'ÚLT. 10 TOTALES' : `TODOS (${totalVis})`;
             if (venueFilter === 'home' && !isCommonFilter) {
                 roleClass = 'pre-context-role is-home';
                 roleText = `LOCAL${currentLimit === 10 ? ' (ÚLT. 10)' : ''}`;
             } else if (venueFilter === 'away' && !isCommonFilter) {
                 roleClass = 'pre-context-role is-away';
-                roleText = `FUERA${currentLimit === 10 ? ' (ÚLT. 10)' : ''}`;
+                roleText = `VISITANTE${currentLimit === 10 ? ' (ÚLT. 10)' : ''}`;
             }
 
             const actualTag = (isParentHome || isParentAway)
@@ -21768,8 +21814,30 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
             const venueChangeHandler = isOpponent ? 'setOpponentVenueFilter' : 'setTeamHistoryVenueFilter';
             const limitChangeHandler = isOpponent ? 'setOpponentLimit' : 'setTeamHistoryLimit';
+            const recent10TotalHandler = isOpponent ? 'toggleOpponentRecent10Total' : 'toggleTeamHistoryRecent10Total';
             const searchHandler = isOpponent ? 'handleOpponentSearch' : 'handleTeamHistorySearch';
             const leagueFilterHandler = isOpponent ? 'toggleOpponentLeagueFilter' : 'toggleTeamHistoryLeagueFilter';
+
+            const isRecent10TotalChecked = (defaultVenue === 'home' || defaultVenue === 'away')
+                ? (venueFilter === 'all' && !isCommonFilter)
+                : (currentLimit === 10);
+
+            let venueCheckboxHtml = '';
+            if (defaultVenue === 'away') {
+                venueCheckboxHtml = `
+                    <label class="pre-context-league-filter" title="Filtrar solo partidos como Visitante (desmarcar activa Últimos 10 totales)">
+                        <input type="checkbox" ${venueFilter === 'away' && !isCommonFilter ? 'checked' : ''} onchange="${venueChangeHandler}(this.checked ? 'away' : 'all')">
+                        Visitante (${awayCount})
+                    </label>
+                `;
+            } else if (defaultVenue === 'home') {
+                venueCheckboxHtml = `
+                    <label class="pre-context-league-filter" title="Filtrar solo partidos como Local (desmarcar activa Últimos 10 totales)">
+                        <input type="checkbox" ${venueFilter === 'home' && !isCommonFilter ? 'checked' : ''} onchange="${venueChangeHandler}(this.checked ? 'home' : 'all')">
+                        Local (${homeCount})
+                    </label>
+                `;
+            }
 
             return `
                 <div class="th-panel-card ${cardTeamClass}">
@@ -21784,21 +21852,10 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
 
                     <div class="th-panel-filters">
                         <div class="th-panel-checks">
-                            <label class="pre-context-league-filter" title="Mostrar todos los partidos (Local + Fuera)">
-                                <input type="checkbox" ${venueFilter === 'all' && !isCommonFilter ? 'checked' : ''} onchange="${venueChangeHandler}('all')">
-                                Todos (${allMatches.length})
-                            </label>
-                            <label class="pre-context-league-filter" title="Filtrar solo partidos como Local (desmarcar vuelve a Todos)">
-                                <input type="checkbox" ${venueFilter === 'home' && !isCommonFilter ? 'checked' : ''} onchange="${venueChangeHandler}(this.checked ? 'home' : 'all')">
-                                Local (${homeCount})
-                            </label>
-                            <label class="pre-context-league-filter" title="Filtrar solo partidos como Visitante (desmarcar vuelve a Todos)">
-                                <input type="checkbox" ${venueFilter === 'away' && !isCommonFilter ? 'checked' : ''} onchange="${venueChangeHandler}(this.checked ? 'away' : 'all')">
-                                Fuera (${awayCount})
-                            </label>
-                            <label class="pre-context-league-filter" title="Limitar a los últimos 10 partidos; desmarcar para ver todos (${filtered.length})">
-                                <input type="checkbox" ${currentLimit === 10 ? 'checked' : ''} onchange="${limitChangeHandler}(this.checked ? 10 : 0)">
-                                Últimos 10
+                            ${venueCheckboxHtml}
+                            <label class="pre-context-league-filter" title="Ver los últimos 10 partidos totales (Local + Visitante)">
+                                <input type="checkbox" ${isRecent10TotalChecked ? 'checked' : ''} onchange="${recent10TotalHandler}(this)">
+                                Últimos 10 totales
                             </label>
                             ${targetLid ? `
                                 <label class="pre-context-league-filter" title="Filtrar solo partidos de la liga actual (${targetLid})">
