@@ -4335,31 +4335,53 @@
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
-        function setTeamHistoryVenueFilter(venue) {
-            window._currentTeamHistoryVenueFilter = venue;
+        function applyGlobalTeamHistoryVenueMode(mode) {
+            const defTeam = window._currentTeamHistoryDefaultVenue || 'all';
+            const defOpp = window._currentOpponentDefaultVenue || 'all';
+            if (mode === 'all') {
+                window._currentTeamHistoryVenueFilter = 'all';
+                window._currentOpponentVenueFilter = 'all';
+                window._teamHistoryLimit = 10;
+                window._opponentHistoryLimit = 10;
+            } else {
+                window._currentTeamHistoryVenueFilter = (defTeam === 'home' || defTeam === 'away') ? defTeam : mode;
+                window._currentOpponentVenueFilter = (defOpp === 'home' || defOpp === 'away') ? defOpp : mode;
+                window._teamHistoryLimit = 10;
+                window._opponentHistoryLimit = 10;
+            }
             renderTeamHistoryModalContent();
             if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
         }
 
+        function setTeamHistoryVenueFilter(venue) {
+            applyGlobalTeamHistoryVenueMode(venue);
+        }
+
         function setOpponentVenueFilter(venue) {
-            window._currentOpponentVenueFilter = venue;
-            renderTeamHistoryModalContent();
-            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
+            applyGlobalTeamHistoryVenueMode(venue);
         }
 
         function toggleTeamHistoryRecent10Total(cb) {
             const checked = !!(cb && cb.checked);
+            const defTeam = window._currentTeamHistoryDefaultVenue || 'all';
+            const defOpp = window._currentOpponentDefaultVenue || 'all';
             if (checked) {
                 window._currentTeamHistoryVenueFilter = 'all';
+                window._currentOpponentVenueFilter = 'all';
                 window._teamHistoryLimit = 10;
+                window._opponentHistoryLimit = 10;
             } else {
-                const defV = window._currentTeamHistoryDefaultVenue || 'all';
-                if (defV === 'home' || defV === 'away') {
-                    window._currentTeamHistoryVenueFilter = defV;
+                const hasVenueDefault = (defTeam === 'home' || defTeam === 'away') || (defOpp === 'home' || defOpp === 'away');
+                if (hasVenueDefault) {
+                    window._currentTeamHistoryVenueFilter = defTeam;
+                    window._currentOpponentVenueFilter = defOpp;
                     window._teamHistoryLimit = 10;
+                    window._opponentHistoryLimit = 10;
                 } else {
                     window._currentTeamHistoryVenueFilter = 'all';
+                    window._currentOpponentVenueFilter = 'all';
                     window._teamHistoryLimit = 0;
+                    window._opponentHistoryLimit = 0;
                 }
             }
             renderTeamHistoryModalContent();
@@ -4367,22 +4389,7 @@
         }
 
         function toggleOpponentRecent10Total(cb) {
-            const checked = !!(cb && cb.checked);
-            if (checked) {
-                window._currentOpponentVenueFilter = 'all';
-                window._opponentHistoryLimit = 10;
-            } else {
-                const defV = window._currentOpponentDefaultVenue || 'all';
-                if (defV === 'home' || defV === 'away') {
-                    window._currentOpponentVenueFilter = defV;
-                    window._opponentHistoryLimit = 10;
-                } else {
-                    window._currentOpponentVenueFilter = 'all';
-                    window._opponentHistoryLimit = 0;
-                }
-            }
-            renderTeamHistoryModalContent();
-            if (window._activeInlineParentMatchId) renderTeamHistoryInlineContent(window._activeInlineParentMatchId);
+            toggleTeamHistoryRecent10Total(cb);
         }
 
         function toggleTeamHistoryCommonFilter() {
