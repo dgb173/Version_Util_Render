@@ -6031,8 +6031,12 @@
                     return `<span class="text-muted" style="font-size:.70rem;">Sin datos</span>`;
                 }
 
+                const subjGD = getTeamGoalDiff(mSubj);
+                const refGD = getTeamGoalDiff(mRef);
                 let perf = 'IGUALA';
                 let verdictClass = 'is-eq';
+                let gdSuffix = '';
+
                 if (subjRank > refRank) {
                     perf = 'MEJORA';
                     verdictClass = 'is-up';
@@ -6041,21 +6045,26 @@
                     perf = 'EMPEORA';
                     verdictClass = 'is-down';
                     empeoraCount += 1;
+                } else if (subjGD !== null && refGD !== null && subjGD !== refGD) {
+                    const gdDiff = subjGD - refGD;
+                    if (gdDiff > 0) {
+                        perf = 'MEJORA';
+                        verdictClass = 'is-up';
+                        gdSuffix = ` (+${gdDiff}g)`;
+                        mejoraCount += 1;
+                    } else {
+                        perf = 'EMPEORA';
+                        verdictClass = 'is-down';
+                        gdSuffix = ` (${gdDiff}g)`;
+                        empeoraCount += 1;
+                    }
                 } else {
                     igualaCount += 1;
                 }
 
-                const subjGD = getTeamGoalDiff(mSubj);
-                const refGD = getTeamGoalDiff(mRef);
-                let gdSuffix = '';
-                if (perf === 'IGUALA' && subjGD !== null && refGD !== null && subjGD !== refGD) {
-                    const gdDiff = subjGD - refGD;
-                    gdSuffix = gdDiff > 0 ? ` (+${gdDiff}g)` : ` (${gdDiff}g)`;
-                }
-
                 const verdictLabel = perf === 'MEJORA'
-                    ? '▲ Mejora'
-                    : (perf === 'EMPEORA' ? '▼ Empeora' : `● Iguala${gdSuffix}`);
+                    ? `▲ Mejora${gdSuffix}`
+                    : (perf === 'EMPEORA' ? `▼ Empeora${gdSuffix}` : '● Iguala');
 
                 const exigSubj = getTeamExigencia(mSubj);
                 const exigRef = getTeamExigencia(mRef);
