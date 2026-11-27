@@ -5904,6 +5904,8 @@
                     .map(g => {
                         g.leftMatches.sort((a, b) => getDateSortMs(b.date) - getDateSortMs(a.date));
                         g.rightMatches.sort((a, b) => getDateSortMs(b.date) - getDateSortMs(a.date));
+                        g.leftMatches = g.leftMatches.slice(0, 1);
+                        g.rightMatches = g.rightMatches.slice(0, 1);
                         g.latestMs = Math.max(
                             ...g.leftMatches.map(m => getDateSortMs(m.date)),
                             ...g.rightMatches.map(m => getDateSortMs(m.date))
