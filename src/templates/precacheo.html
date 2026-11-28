@@ -1333,13 +1333,14 @@
             font-weight: 900;
             border-bottom: 1px solid #dce5ed;
         }
-        .th-panel-table .th-col-date { width: 18%; white-space: nowrap; font-size: .66rem; font-weight: 700; }
-        .th-panel-table .th-col-league { width: 8%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
-        .th-panel-table .th-col-rival { width: 31%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .th-panel-table .th-col-score { width: 10%; text-align: center; font-weight: 900; font-size: .74rem; font-variant-numeric: tabular-nums; }
+        .th-panel-table .th-col-date { width: 17%; white-space: nowrap; font-size: .66rem; font-weight: 700; }
+        .th-panel-table .th-col-league { width: 7%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
+        .th-panel-table .th-col-rival { width: 26%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .th-panel-table .th-col-ou { width: 9%; text-align: center; font-weight: 800; font-size: .66rem; font-variant-numeric: tabular-nums; }
+        .th-panel-table .th-col-score { width: 9%; text-align: center; font-weight: 900; font-size: .74rem; font-variant-numeric: tabular-nums; }
         .th-panel-table .th-col-ah { width: 9%; text-align: center; font-weight: 800; font-size: .70rem; font-variant-numeric: tabular-nums; }
         .th-panel-table .th-col-eval { width: 13%; text-align: center; }
-        .th-panel-table .th-col-stats { width: 11%; text-align: center; }
+        .th-panel-table .th-col-stats { width: 10%; text-align: center; }
         .th-panel-table tbody tr.pre-context-result-W > td { background-color: #f2faf5; color: #16834b; }
         .th-panel-table tbody tr.pre-context-result-D > td { background-color: #fffaf0; color: #9a6700; }
         .th-panel-table tbody tr.pre-context-result-L > td { background-color: #fff5f5; color: #c92a3a; }
@@ -1360,6 +1361,24 @@
         .th-ah-pill.is-cover { background: #ecfdf5; color: #15803d; border: 1px solid #bbf7d0; }
         .th-ah-pill.is-nocover { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .th-ah-pill.is-push { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .th-ou-pill {
+            display: inline-block;
+            min-width: 28px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: .62rem;
+            font-weight: 800;
+            line-height: 1.25;
+            white-space: nowrap;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-variant-numeric: tabular-nums;
+        }
+        .th-ou-pill.is-over { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .th-ou-pill.is-under { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .th-ou-pill.is-push { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .th-ou-pill.is-loading { background: transparent; color: #94a3b8; border-color: transparent; font-weight: 700; letter-spacing: .5px; }
         .team-history-dialog .modal-content {
             box-shadow: 0 10px 30px rgba(15, 23, 42, 0.22), 0 2px 8px rgba(15, 23, 42, 0.1) !important;
             border: 1px solid #cbd5e1 !important;
@@ -20910,6 +20929,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 bodyEl.innerHTML = renderTeamHistorySinglePanel(data, false);
             }
+            hydrateVisibleTeamHistoryOu(bodyEl);
         }
 
         async function openTeamHistoryPopup(teamName, matchId, parentMatchId, leagueId, event, teamId, opponentName, defaultVenue, opponentDefaultVenue) {
@@ -21714,6 +21734,151 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             `;
         }
 
+        const _teamHistoryOuCache = window._teamHistoryOuCache || (window._teamHistoryOuCache = {});
+        const _teamHistoryOuUnavailable = window._teamHistoryOuUnavailable || (window._teamHistoryOuUnavailable = {});
+        const _teamHistoryOuInFlight = window._teamHistoryOuInFlight || (window._teamHistoryOuInFlight = new Set());
+
+        function parseTeamHistoryOuNum(ouStr) {
+            const raw = String(ouStr || '').trim().replace(',', '.');
+            if (!raw || raw === '-' || raw === '?' || raw.toUpperCase() === 'N/A') return null;
+            if (raw.includes('/')) {
+                const parts = raw.split('/').map(p => parseFloat(p.trim())).filter(n => !Number.isNaN(n));
+                if (!parts.length) return null;
+                return parts.reduce((acc, v) => acc + v, 0) / parts.length;
+            }
+            const num = parseFloat(raw);
+            return Number.isNaN(num) ? null : num;
+        }
+
+        function renderTeamHistoryOuCellHtml(ouVal, scoreVal, isLoading = false) {
+            if (isLoading) {
+                return `<span class="th-ou-pill is-loading" title="Cargando línea O/U...">···</span>`;
+            }
+            const ouNum = parseTeamHistoryOuNum(ouVal);
+            if (ouNum === null) {
+                return `<span class="text-muted" style="font-size:.62rem;" title="Línea O/U no disponible">-</span>`;
+            }
+            const displayOu = String(ouVal).trim().replace(',', '.');
+            const scoreMatch = String(scoreVal || '').trim().match(/^(\d+)\s*[-:]\s*(\d+)$/);
+            let cls = '';
+            let tip = `Línea O/U ${displayOu}`;
+            if (scoreMatch) {
+                const totalGoals = parseInt(scoreMatch[1], 10) + parseInt(scoreMatch[2], 10);
+                const diff = totalGoals - ouNum;
+                if (diff > 1e-9) {
+                    cls = 'is-over';
+                    tip = `Over ${displayOu} (Total: ${totalGoals} goles)`;
+                } else if (diff < -1e-9) {
+                    cls = 'is-under';
+                    tip = `Under ${displayOu} (Total: ${totalGoals} goles)`;
+                } else {
+                    cls = 'is-push';
+                    tip = `Push ${displayOu} (Total: ${totalGoals} goles)`;
+                }
+            }
+            return `<span class="th-ou-pill ${cls}" title="${escapeTeamHistoryHtml(tip)}">${escapeTeamHistoryHtml(displayOu)}</span>`;
+        }
+
+        async function hydrateVisibleTeamHistoryOu(rootEl, attempt = 0) {
+            if (!rootEl) return;
+            const cells = Array.from(rootEl.querySelectorAll('td.th-col-ou[data-ou-loaded="0"][data-ou-mid]'));
+            if (!cells.length) return;
+
+            const missingMids = [];
+            const seen = new Set();
+            cells.forEach(cell => {
+                const mid = String(cell.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
+                const scoreVal = cell.getAttribute('data-ou-score') || '';
+                if (!mid) {
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
+                    return;
+                }
+                if (_teamHistoryOuCache[mid]) {
+                    const ouVal = _teamHistoryOuCache[mid];
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = renderTeamHistoryOuCellHtml(ouVal, scoreVal, false);
+                    const btn = cell.closest('tr')?.querySelector('.th-stats-btn');
+                    if (btn) btn.setAttribute('data-ou', ouVal);
+                    return;
+                }
+                if (_teamHistoryOuUnavailable[mid]) {
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
+                    return;
+                }
+                if (!_teamHistoryOuInFlight.has(mid) && !seen.has(mid)) {
+                    seen.add(mid);
+                    missingMids.push(mid);
+                }
+            });
+
+            if (!missingMids.length) return;
+            missingMids.forEach(mid => _teamHistoryOuInFlight.add(mid));
+
+            let hasMore = false;
+            try {
+                const resp = await fetch('/api/team_recent_history/ou_batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ match_ids: missingMids })
+                });
+                const res = await resp.json();
+                if (resp.ok && res && res.status === 'success') {
+                    const ouMap = res.ou_lines || {};
+                    Object.entries(ouMap).forEach(([k, v]) => {
+                        const cleanK = String(k || '').replace(/\D/g, '');
+                        if (cleanK && parseTeamHistoryOuNum(v) !== null) {
+                            _teamHistoryOuCache[cleanK] = String(v).trim().replace(',', '.');
+                        }
+                    });
+                    const unavailList = Array.isArray(res.unavailable) ? res.unavailable : [];
+                    unavailList.forEach(k => {
+                        const cleanK = String(k || '').replace(/\D/g, '');
+                        if (cleanK && !_teamHistoryOuCache[cleanK]) {
+                            _teamHistoryOuUnavailable[cleanK] = true;
+                        }
+                    });
+                    hasMore = Number(res.remaining || 0) > 0 && attempt < 1;
+                    if (!hasMore) {
+                        missingMids.forEach(mid => {
+                            if (!_teamHistoryOuCache[mid]) _teamHistoryOuUnavailable[mid] = true;
+                        });
+                    }
+                } else {
+                    missingMids.forEach(mid => {
+                        if (!_teamHistoryOuCache[mid]) _teamHistoryOuUnavailable[mid] = true;
+                    });
+                }
+            } catch (err) {
+                missingMids.forEach(mid => {
+                    if (!_teamHistoryOuCache[mid]) _teamHistoryOuUnavailable[mid] = true;
+                });
+            } finally {
+                missingMids.forEach(mid => _teamHistoryOuInFlight.delete(mid));
+            }
+
+            document.querySelectorAll('td.th-col-ou[data-ou-loaded="0"][data-ou-mid]').forEach(cell => {
+                const mid = String(cell.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
+                if (!mid) return;
+                const scoreVal = cell.getAttribute('data-ou-score') || '';
+                if (_teamHistoryOuCache[mid]) {
+                    const ouVal = _teamHistoryOuCache[mid];
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = renderTeamHistoryOuCellHtml(ouVal, scoreVal, false);
+                    const btn = cell.closest('tr')?.querySelector('.th-stats-btn');
+                    if (btn) btn.setAttribute('data-ou', ouVal);
+                } else if (_teamHistoryOuUnavailable[mid]) {
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
+                }
+            });
+
+            if (hasMore) {
+                hydrateVisibleTeamHistoryOu(rootEl, attempt + 1);
+            }
+        }
+
         function renderTeamHistorySinglePanel(data, isOpponent = false, panelSide = '') {
             if (!data) return '';
             if (data.error) {
@@ -21804,7 +21969,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
             if (totalVis === 0) {
                 tableRowsHtml = `
                     <tr>
-                        <td colspan="7" class="text-center py-3 text-muted small" style="font-size:.66rem;">
+                        <td colspan="8" class="text-center py-3 text-muted small" style="font-size:.66rem;">
                             <i class="fa-solid fa-filter me-1"></i>Sin partidos para este filtro
                         </td>
                     </tr>
@@ -21835,6 +22000,17 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         ahPillClass = 'is-nocover';
                     }
 
+                    const cleanMid = String(m.match_id || '').replace(/\D/g, '');
+                    const rawOu = String(m.ou || m.ou_line || m.ouLine || m.goals_line || m.over_under || '').trim();
+                    const hasRawOu = parseTeamHistoryOuNum(rawOu) !== null;
+                    if (hasRawOu && cleanMid && !_teamHistoryOuCache[cleanMid]) {
+                        _teamHistoryOuCache[cleanMid] = rawOu.replace(',', '.');
+                    }
+                    const effOu = hasRawOu ? rawOu : (cleanMid && _teamHistoryOuCache[cleanMid] ? _teamHistoryOuCache[cleanMid] : '');
+                    const isOuUnavail = !effOu && Boolean(cleanMid && _teamHistoryOuUnavailable[cleanMid]);
+                    const isOuLoading = !effOu && !isOuUnavail && Boolean(cleanMid);
+                    const ouLoadedAttr = (effOu || isOuUnavail || !cleanMid) ? '1' : '0';
+
                     const statsBtn = m.match_id
                         ? `<button type="button" class="pre-context-stats-btn th-stats-btn" id="th-stats-btn-${prefix}-${idx}"
                             data-idx="${idx}"
@@ -21844,7 +22020,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             data-date="${escapeTeamHistoryHtml(m.date || '')}"
                             data-score="${escapeTeamHistoryHtml(m.score || '')}"
                             data-ah="${escapeTeamHistoryHtml(m.ah || '')}"
-                            data-ou="${escapeTeamHistoryHtml(m.ou || m.ou_line || m.ouLine || m.goals_line || m.over_under || '')}"
+                            data-ou="${escapeTeamHistoryHtml(effOu || rawOu)}"
                             data-league-id="${escapeTeamHistoryHtml(m.league_id || '')}"
                             data-panel-prefix="${prefix}"
                             style="padding:1px 5px; font-size:.58rem; font-weight:800; line-height:1.2; height:20px;"
@@ -21857,13 +22033,14 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                             <td class="th-col-date" title="${escapeTeamHistoryHtml(m.date || '-')}">${venueBadge}${escapeTeamHistoryHtml(fmtCompactDate(m.date))}</td>
                             <td class="th-col-league">${escapeTeamHistoryHtml(m.league_id || '-')}</td>
                             <td class="th-col-rival" title="${escapeTeamHistoryHtml(m.rival || '-')}"><div class="text-truncate">${escapeTeamHistoryHtml(m.rival || '-')}</div></td>
+                            <td class="th-col-ou" data-ou-mid="${escapeTeamHistoryHtml(cleanMid)}" data-ou-score="${escapeTeamHistoryHtml(m.score || '')}" data-ou-loaded="${ouLoadedAttr}">${renderTeamHistoryOuCellHtml(effOu, m.score || '', isOuLoading)}</td>
                             <td class="th-col-score" style="color:${scoreColor};">${escapeTeamHistoryHtml(m.score || '-')}</td>
                             <td class="th-col-ah" style="color:${scoreColor};">${escapeTeamHistoryHtml(m.ah || '-')}</td>
                             <td class="th-col-eval"><span class="th-ah-pill ${ahPillClass}">${escapeTeamHistoryHtml(ahLabel)}</span></td>
                             <td class="th-col-stats">${statsBtn}</td>
                         </tr>
                         <tr id="th-stats-row-${prefix}-${idx}" class="th-stats-subrow" style="display:none; background:#f8fafc;">
-                            <td colspan="7" class="p-1 border-bottom" id="th-stats-cell-${prefix}-${idx}" style="box-sizing:border-box; overflow:hidden;">
+                            <td colspan="8" class="p-1 border-bottom" id="th-stats-cell-${prefix}-${idx}" style="box-sizing:border-box; overflow:hidden;">
                                 <div class="text-center py-2 text-muted small" style="font-size:.58rem;"><i class="fa-solid fa-spinner fa-spin me-1 text-primary"></i>Cargando ataques peligrosos y estadísticas...</div>
                             </td>
                         </tr>
@@ -21945,6 +22122,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                                     <th class="th-col-date">Fecha</th>
                                     <th class="th-col-league">Liga</th>
                                     <th class="th-col-rival">Rival</th>
+                                    <th class="th-col-ou" title="Línea inicial de goles (Over/Under)">O/U</th>
                                     <th class="th-col-score">Res</th>
                                     <th class="th-col-ah">AH</th>
                                     <th class="th-col-eval">Lectura</th>
@@ -22094,6 +22272,7 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                 }
                 modalBody.innerHTML = renderTeamHistorySinglePanel(data, false);
             }
+            hydrateVisibleTeamHistoryOu(modalBody);
 
             if (window._activeInlineParentMatchId) {
                 renderTeamHistoryInlineContent(window._activeInlineParentMatchId);

@@ -6948,6 +6948,21 @@ def api_team_recent_history():
         return jsonify({'status': 'error', 'error': str(exc)}), 500
 
 
+@app.route('/api/team_recent_history/ou_batch', methods=['POST'])
+def api_team_recent_history_ou_batch():
+    """Resuelve en lote las lineas O/U faltantes de partidos del Historial Rival."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        raw_ids = payload.get('match_ids') or []
+        if not isinstance(raw_ids, list):
+            raw_ids = []
+        res = team_recent_history.resolve_ou_lines_batch(raw_ids)
+        return jsonify(res), 200
+    except Exception as exc:
+        logging.exception('Error en /api/team_recent_history/ou_batch')
+        return jsonify({'status': 'error', 'error': str(exc)}), 500
+
+
 @app.route('/api/custom_rival_compare', methods=['POST'])
 def api_custom_rival_compare():
     """Compara dos rivales arbitrarios seleccionados por el usuario para obtener su H2H Col3 y Stats."""

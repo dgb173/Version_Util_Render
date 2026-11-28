@@ -16,6 +16,7 @@ import threading
 import time
 import urllib.request
 import ssl
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -32,6 +33,13 @@ CACHE_PATH = DATA_DIR / "team_recent_history_cache.json"
 _CACHE_LOCK = threading.Lock()
 _CACHE: Dict[str, Any] = {}
 _CACHE_LOADED = False
+
+_OU_KV_KEY = "ou_lines_by_match_id_v1"
+_OU_CACHE_LOCK = threading.Lock()
+_OU_CACHE: Dict[str, str] = {}
+_OU_CACHE_LOADED = False
+_OU_MISS_TS: Dict[str, float] = {}
+_OU_MISS_TTL_SECONDS = 600
 
 
 def _read_cache() -> Dict[str, Any]:
@@ -95,6 +103,257 @@ def _parse_ou_num(ou_str: str) -> Optional[float]:
         return float(raw)
     except ValueError:
         return None
+
+
+def _normalize_ou_display(raw_ou: Any) -> Optional[str]:
+    """Valida y normaliza una linea O/U para visualizacion rapida."""
+    text = str(raw_ou or "").strip().replace(",", ".")
+    if not text or text in ("-", "?", "N/A", "null", "None"):
+        return None
+    if _parse_ou_num(text) is None:
+        return None
+    return text
+
+
+def _eval_ou_result(score_str: str, ou_str: str) -> str:
+    """Evalua OVER/UNDER/PUSH para un marcador y una linea O/U."""
+    score_parts = _score_parts(score_str)
+    ou_num = _parse_ou_num(ou_str)
+    if not score_parts or ou_num is None:
+        return "SIN_DATO"
+    total_goals = score_parts[0] + score_parts[1]
+    diff = total_goals - ou_num
+    if diff > 1e-9:
+        return "OVER"
+    if diff < -1e-9:
+        return "UNDER"
+    return "PUSH"
+
+
+def _load_ou_cache() -> Dict[str, str]:
+    """Carga en memoria el indice persistente match_id -> linea O/U desde SQLite kv_store."""
+    global _OU_CACHE_LOADED, _OU_CACHE
+    with _OU_CACHE_LOCK:
+        if not _OU_CACHE_LOADED:
+            try:
+                stored = sql_store.get_json_state(_OU_KV_KEY, default={})
+                if isinstance(stored, dict):
+                    _OU_CACHE = {
+                        str(k).strip(): vn
+                        for k, v in stored.items()
+                        for vn in [_normalize_ou_display(v)]
+                        if str(k).strip().isdigit() and vn is not None
+                    }
+            except Exception as exc:
+                LOGGER.warning("No se pudo cargar cache O/U desde kv_store: %s", exc)
+            _OU_CACHE_LOADED = True
+        return dict(_OU_CACHE)
+
+
+def _save_ou_cache(new_entries: Dict[str, str]) -> None:
+    """Persiste nuevas lineas O/U resueltas en SQLite kv_store."""
+    if not new_entries:
+        return
+    with _OU_CACHE_LOCK:
+        if not _OU_CACHE_LOADED:
+            try:
+                stored = sql_store.get_json_state(_OU_KV_KEY, default={})
+                if isinstance(stored, dict):
+                    for k, v in stored.items():
+                        ks = str(k).strip()
+                        vn = _normalize_ou_display(v)
+                        if ks.isdigit() and vn is not None and ks not in _OU_CACHE:
+                            _OU_CACHE[ks] = vn
+            except Exception:
+                pass
+            _OU_CACHE_LOADED = True
+        changed = False
+        for k, v in new_entries.items():
+            ks = "".join(ch for ch in str(k or "") if ch.isdigit())
+            vn = _normalize_ou_display(v)
+            if ks and vn is not None and _OU_CACHE.get(ks) != vn:
+                _OU_CACHE[ks] = vn
+                _OU_MISS_TS.pop(ks, None)
+                changed = True
+        if changed:
+            try:
+                sql_store.set_json_state(_OU_KV_KEY, _OU_CACHE)
+            except Exception as exc:
+                LOGGER.warning("No se pudo guardar cache O/U en kv_store: %s", exc)
+
+
+def _extract_ou_from_match_payload(payload: Any) -> Optional[str]:
+    """Extrae la linea O/U desde un payload de partido almacenado en SQLite."""
+    if not isinstance(payload, dict):
+        return None
+    odds = payload.get("main_match_odds")
+    if isinstance(odds, dict):
+        for key in ("goals_linea", "goals_linea_raw", "ou", "ou_line", "ouLine"):
+            norm = _normalize_ou_display(odds.get(key))
+            if norm is not None:
+                return norm
+    for key in ("goals_linea", "goals_linea_raw", "ou", "ou_line", "ouLine"):
+        norm = _normalize_ou_display(payload.get(key))
+        if norm is not None:
+            return norm
+    return None
+
+
+def _lookup_ou_lines_fast(match_ids: List[str]) -> Dict[str, str]:
+    """Resuelve lineas O/U en local sin red: Capa 1 kv_store + Capa 2 tabla SQLite matches."""
+    clean_ids: List[str] = []
+    seen = set()
+    for mid in match_ids or []:
+        cid = "".join(ch for ch in str(mid or "") if ch.isdigit())
+        if cid and cid not in seen:
+            seen.add(cid)
+            clean_ids.append(cid)
+    if not clean_ids:
+        return {}
+
+    ou_cache = _load_ou_cache()
+    result: Dict[str, str] = {}
+    missing_ids: List[str] = []
+    for cid in clean_ids:
+        cached_val = _normalize_ou_display(ou_cache.get(cid))
+        if cached_val is not None:
+            result[cid] = cached_val
+        else:
+            missing_ids.append(cid)
+
+    if missing_ids:
+        newly_found: Dict[str, str] = {}
+        try:
+            rows = sql_store.fetch_matches_by_ids(missing_ids)
+        except Exception as exc:
+            LOGGER.warning("Error consultando SQLite para O/U rapido: %s", exc)
+            rows = []
+        for row in rows or []:
+            if not isinstance(row, dict):
+                continue
+            rmid = "".join(
+                ch for ch in str(row.get("match_id") or row.get("id") or "") if ch.isdigit()
+            )
+            if not rmid:
+                continue
+            ou_val = _extract_ou_from_match_payload(row)
+            if ou_val is not None:
+                result[rmid] = ou_val
+                newly_found[rmid] = ou_val
+        if newly_found:
+            _save_ou_cache(newly_found)
+
+    return result
+
+
+def _enrich_matches_ou(matches: List[Dict[str, Any]]) -> None:
+    """Completa instantaneamente el campo `ou` y `ou_res` usando caches locales (sin red)."""
+    if not matches:
+        return
+    missing_ids: List[str] = []
+    for m in matches:
+        if not isinstance(m, dict):
+            continue
+        existing = _normalize_ou_display(m.get("ou"))
+        if existing is not None:
+            m["ou"] = existing
+            if not m.get("ou_res") or m.get("ou_res") == "SIN_DATO":
+                m["ou_res"] = _eval_ou_result(str(m.get("score") or ""), existing)
+            continue
+        mid = "".join(ch for ch in str(m.get("match_id") or "") if ch.isdigit())
+        if mid:
+            missing_ids.append(mid)
+
+    if not missing_ids:
+        return
+
+    found_map = _lookup_ou_lines_fast(missing_ids)
+    if not found_map:
+        return
+
+    for m in matches:
+        if not isinstance(m, dict):
+            continue
+        mid = "".join(ch for ch in str(m.get("match_id") or "") if ch.isdigit())
+        if mid and mid in found_map and _normalize_ou_display(m.get("ou")) is None:
+            ou_val = found_map[mid]
+            m["ou"] = ou_val
+            m["ou_res"] = _eval_ou_result(str(m.get("score") or ""), ou_val)
+
+
+def resolve_ou_lines_batch(match_ids: List[str], max_live: int = 24) -> Dict[str, Any]:
+    """Resuelve en lote las lineas O/U para partidos faltantes usando Capa 1/2 local y Ajax en paralelo."""
+    clean_ids: List[str] = []
+    seen = set()
+    for mid in match_ids or []:
+        cid = "".join(ch for ch in str(mid or "") if ch.isdigit())
+        if cid and cid not in seen:
+            seen.add(cid)
+            clean_ids.append(cid)
+
+    if not clean_ids:
+        return {"status": "success", "ou_lines": {}, "unavailable": [], "remaining": 0}
+
+    resolved = _lookup_ou_lines_fast(clean_ids)
+    now = time.time()
+
+    with _OU_CACHE_LOCK:
+        # Limpiar misses expirados ocasionalmente
+        expired = [k for k, ts in _OU_MISS_TS.items() if (now - ts) >= _OU_MISS_TTL_SECONDS]
+        for k in expired:
+            _OU_MISS_TS.pop(k, None)
+        recent_misses = {
+            cid for cid in clean_ids if cid not in resolved and cid in _OU_MISS_TS
+        }
+
+    pending_for_live = [
+        cid for cid in clean_ids if cid not in resolved and cid not in recent_misses
+    ]
+    cap = max(0, min(int(max_live or 24), 40))
+    to_fetch = pending_for_live[:cap]
+    remaining = max(0, len(pending_for_live) - len(to_fetch))
+
+    live_found: Dict[str, str] = {}
+    live_misses: List[str] = []
+    if to_fetch:
+        def _fetch_one(mid: str) -> Tuple[str, Optional[str]]:
+            try:
+                odds = es.fetch_odds_from_ajax(mid)
+                if isinstance(odds, dict):
+                    val = _normalize_ou_display(
+                        odds.get("goals_linea_raw") or odds.get("goals_linea")
+                    )
+                    return mid, val
+            except Exception as exc:
+                LOGGER.debug("Error obteniendo O/U Ajax para %s: %s", mid, exc)
+            return mid, None
+
+        workers = min(6, len(to_fetch))
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(_fetch_one, mid) for mid in to_fetch]
+            for fut in as_completed(futures):
+                mid, val = fut.result()
+                if val is not None:
+                    live_found[mid] = val
+                else:
+                    live_misses.append(mid)
+
+        if live_found:
+            resolved.update(live_found)
+            _save_ou_cache(live_found)
+        if live_misses:
+            stamp = time.time()
+            with _OU_CACHE_LOCK:
+                for mid in live_misses:
+                    _OU_MISS_TS[mid] = stamp
+
+    unavailable = sorted(set(recent_misses) | set(live_misses))
+    return {
+        "status": "success",
+        "ou_lines": resolved,
+        "unavailable": unavailable,
+        "remaining": remaining,
+    }
 
 
 def _calc_ah_evaluation(score_str: str, ah_str: str, is_home: bool) -> Dict[str, Any]:
@@ -461,6 +720,7 @@ def get_team_recent_history(
         cached_entry = cache[cache_key]
         cached_matches = cached_entry.get("data", {}).get("matches", []) if cached_entry else []
         if cached_entry and len(cached_matches) > 1 and (time.time() - cached_entry.get("timestamp", 0)) < 86400:
+            _enrich_matches_ou(cached_matches)
             return {"status": "success", "cached": True, **cached_entry.get("data", {})}
 
     raw_matches: List[Dict[str, Any]] = []
@@ -699,6 +959,7 @@ def get_team_recent_history(
         return d
 
     formatted_matches.sort(key=_date_sort_key, reverse=True)
+    _enrich_matches_ou(formatted_matches)
 
     # Calcular estadisticas resumen
     def calc_stats(subset: List[Dict]):
