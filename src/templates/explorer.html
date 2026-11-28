@@ -1020,9 +1020,9 @@
         .pre-context-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .72rem; }
         .pre-context-table th, .pre-context-table td { padding: 5px 5px; border-bottom: 1px solid #e8eef3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table th { background: #f3f7fa; color: #52677e; font-size: .68rem; font-weight: 900; }
-        .pre-context-table .ctx-date { width: 14%; font-size: .67rem; }
-        .pre-context-table .ctx-league { width: 6%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
-        .pre-context-table .ctx-rival { width: 26%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pre-context-table .ctx-date { width: 13%; font-size: .67rem; }
+        .pre-context-table .ctx-league { width: 5%; text-align: center; font-size: .62rem; font-weight: 700; color: #94a3b8; }
+        .pre-context-table .ctx-rival { width: 21%; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pre-context-table td.ctx-rival { white-space: normal !important; overflow: visible; text-overflow: clip; }
         .pre-context-rival-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
         .pre-context-table .pre-context-rival-cell .pre-context-rival-name-link { display: block; width: 100%; flex: none; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.25; }
@@ -1706,6 +1706,7 @@
         .team-history-drag-header:active {
             cursor: grabbing;
         }
+        .pre-context-table .ctx-ou { width: 7%; text-align: center; font-weight: 800; font-size: .66rem; font-variant-numeric: tabular-nums; }
         .pre-context-table .ctx-score { width: 7%; text-align: center; font-weight: 900; font-size: .75rem; }
         .pre-context-table .ctx-ah { width: 7%; text-align: right; font-weight: 800; }
         .pre-context-table .ctx-stats { width: 13%; text-align: center; overflow: visible; }
@@ -6419,42 +6420,39 @@
             }
             return `<span class="th-ou-pill ${cls}" title="${escapeTeamHistoryHtml(tip)}">${escapeTeamHistoryHtml(displayOu)}</span>`;
         }
+        window.parseTeamHistoryOuNum = parseTeamHistoryOuNum;
+        window.renderTeamHistoryOuCellHtml = renderTeamHistoryOuCellHtml;
 
-        async function hydrateVisibleTeamHistoryOu(rootEl, attempt = 0) {
-            if (!rootEl) return;
-            const cells = Array.from(rootEl.querySelectorAll('td.th-col-ou[data-ou-loaded="0"][data-ou-mid]'));
-            if (!cells.length) return;
-
-            const missingMids = [];
-            const seen = new Set();
-            cells.forEach(cell => {
-                const mid = String(cell.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
-                const scoreVal = cell.getAttribute('data-ou-score') || '';
+        function syncAllOuDomCells() {
+            const selector = 'td.th-col-ou[data-ou-loaded="0"][data-ou-mid], td.ctx-ou[data-ou-loaded="0"][data-ou-mid], span.mm-ou-slot[data-ou-loaded="0"][data-ou-mid]';
+            document.querySelectorAll(selector).forEach(el => {
+                const mid = String(el.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
+                const scoreVal = el.getAttribute('data-ou-score') || '';
+                const isMobileSlot = el.classList.contains('mm-ou-slot');
                 if (!mid) {
-                    cell.setAttribute('data-ou-loaded', '1');
-                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
+                    el.setAttribute('data-ou-loaded', '1');
+                    el.innerHTML = isMobileSlot ? '' : renderTeamHistoryOuCellHtml('', scoreVal, false);
                     return;
                 }
                 if (_teamHistoryOuCache[mid]) {
                     const ouVal = _teamHistoryOuCache[mid];
-                    cell.setAttribute('data-ou-loaded', '1');
-                    cell.innerHTML = renderTeamHistoryOuCellHtml(ouVal, scoreVal, false);
-                    const btn = cell.closest('tr')?.querySelector('.th-stats-btn');
-                    if (btn) btn.setAttribute('data-ou', ouVal);
-                    return;
-                }
-                if (_teamHistoryOuUnavailable[mid]) {
-                    cell.setAttribute('data-ou-loaded', '1');
-                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
-                    return;
-                }
-                if (!_teamHistoryOuInFlight.has(mid) && !seen.has(mid)) {
-                    seen.add(mid);
-                    missingMids.push(mid);
+                    el.setAttribute('data-ou-loaded', '1');
+                    el.innerHTML = renderTeamHistoryOuCellHtml(ouVal, scoreVal, false);
+                    const rowContainer = el.closest('.pre-context-row') || el.closest('tr');
+                    if (rowContainer) {
+                        rowContainer.querySelectorAll('.th-stats-btn').forEach(btn => btn.setAttribute('data-ou', ouVal));
+                        rowContainer.querySelectorAll('.pre-context-stats-btn, .pre-context-col3-btn, .pre-context-mov-btn').forEach(btn => btn.setAttribute('data-row-ou', ouVal));
+                    }
+                } else if (_teamHistoryOuUnavailable[mid]) {
+                    el.setAttribute('data-ou-loaded', '1');
+                    el.innerHTML = isMobileSlot ? '' : renderTeamHistoryOuCellHtml('', scoreVal, false);
                 }
             });
+        }
+        window.syncAllOuDomCells = syncAllOuDomCells;
 
-            if (!missingMids.length) return;
+        async function fetchTeamHistoryOuBatch(missingMids, attempt = 0) {
+            if (!Array.isArray(missingMids) || !missingMids.length) return false;
             missingMids.forEach(mid => _teamHistoryOuInFlight.add(mid));
 
             let hasMore = false;
@@ -6499,26 +6497,67 @@
                 missingMids.forEach(mid => _teamHistoryOuInFlight.delete(mid));
             }
 
-            document.querySelectorAll('td.th-col-ou[data-ou-loaded="0"][data-ou-mid]').forEach(cell => {
+            syncAllOuDomCells();
+            return hasMore;
+        }
+
+        async function hydrateVisibleTeamHistoryOu(rootEl, attempt = 0) {
+            if (!rootEl) return;
+            syncAllOuDomCells();
+            const cells = Array.from(rootEl.querySelectorAll('td.th-col-ou[data-ou-loaded="0"][data-ou-mid]'));
+            if (!cells.length) return;
+
+            const missingMids = [];
+            const seen = new Set();
+            cells.forEach(cell => {
                 const mid = String(cell.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
-                if (!mid) return;
-                const scoreVal = cell.getAttribute('data-ou-score') || '';
-                if (_teamHistoryOuCache[mid]) {
-                    const ouVal = _teamHistoryOuCache[mid];
-                    cell.setAttribute('data-ou-loaded', '1');
-                    cell.innerHTML = renderTeamHistoryOuCellHtml(ouVal, scoreVal, false);
-                    const btn = cell.closest('tr')?.querySelector('.th-stats-btn');
-                    if (btn) btn.setAttribute('data-ou', ouVal);
-                } else if (_teamHistoryOuUnavailable[mid]) {
-                    cell.setAttribute('data-ou-loaded', '1');
-                    cell.innerHTML = renderTeamHistoryOuCellHtml('', scoreVal, false);
+                if (mid && !_teamHistoryOuCache[mid] && !_teamHistoryOuUnavailable[mid] && !_teamHistoryOuInFlight.has(mid) && !seen.has(mid)) {
+                    seen.add(mid);
+                    missingMids.push(mid);
                 }
             });
 
+            if (!missingMids.length) return;
+            const hasMore = await fetchTeamHistoryOuBatch(missingMids, attempt);
             if (hasMore) {
                 hydrateVisibleTeamHistoryOu(rootEl, attempt + 1);
             }
         }
+
+        async function hydrateVisiblePreContextOu(panel, attempt = 0) {
+            if (!panel || !panel.isConnected) return;
+            syncAllOuDomCells();
+
+            const candidates = Array.from(panel.querySelectorAll('td.ctx-ou[data-ou-loaded="0"][data-ou-mid], span.mm-ou-slot[data-ou-loaded="0"][data-ou-mid]'));
+            if (!candidates.length) return;
+
+            const missingMids = [];
+            const seen = new Set();
+            candidates.forEach(cell => {
+                if (cell.closest('.pre-context-moments.hide-previous .pre-context-moment:nth-child(2)')) return;
+                const row = cell.closest('.pre-context-row');
+                if (!row || row.hidden || row.style.display === 'none') return;
+                const mid = String(cell.getAttribute('data-ou-mid') || '').replace(/\D/g, '');
+                if (!mid) {
+                    cell.setAttribute('data-ou-loaded', '1');
+                    cell.innerHTML = cell.classList.contains('mm-ou-slot')
+                        ? ''
+                        : renderTeamHistoryOuCellHtml('', cell.getAttribute('data-ou-score') || '', false);
+                    return;
+                }
+                if (!_teamHistoryOuCache[mid] && !_teamHistoryOuUnavailable[mid] && !_teamHistoryOuInFlight.has(mid) && !seen.has(mid)) {
+                    seen.add(mid);
+                    missingMids.push(mid);
+                }
+            });
+
+            if (!missingMids.length) return;
+            const hasMore = await fetchTeamHistoryOuBatch(missingMids, attempt);
+            if (hasMore && panel.isConnected) {
+                hydrateVisiblePreContextOu(panel, attempt + 1);
+            }
+        }
+        window.hydrateVisiblePreContextOu = hydrateVisiblePreContextOu;
 
         function renderTeamHistorySinglePanel(data, isOpponent = false, panelSide = '') {
             if (!data) return '';
@@ -10725,6 +10764,9 @@
                     summary.innerHTML = `<div class="pre-summary-group"><span class="is-win" data-summary-result="W">V ${counts.W}</span><span class="is-draw" data-summary-result="D">E ${counts.D}</span><span class="is-loss" data-summary-result="L">D ${counts.L}</span></div><div class="pre-summary-group"><span class="is-ah-cover" data-summary-ah-cover="1" title="Partidos visibles donde el equipo supera el hándicap asiático">${ahCoverLabel}</span><span class="is-same-ha" data-summary-same-ha="1" title="Partidos visibles con el mismo hándicap actual y cuántas veces lo superó">${sameHaLabel}</span></div>`;
                 }
             });
+            if (typeof hydrateVisiblePreContextOu === 'function') {
+                hydrateVisiblePreContextOu(panel);
+            }
         }
         
 
@@ -10735,6 +10777,9 @@
             if (!momentsContainer) return;
             if (checkbox.checked) {
                 momentsContainer.classList.remove('hide-previous');
+                if (typeof hydrateVisiblePreContextOu === 'function') {
+                    hydrateVisiblePreContextOu(panel);
+                }
             } else {
                 momentsContainer.classList.add('hide-previous');
             }
@@ -10950,6 +10995,23 @@
                         const comparisonTeam = opponentTeam;
                         const comparisonVenue = neutralLeague ? 'all' : (role === 'home' ? 'away' : 'home');
 
+                        const cleanRowMid = String(rowMatchId || '').replace(/\D/g, '');
+                        const parsedInitialOu = (typeof parseTeamHistoryOuNum === 'function') ? parseTeamHistoryOuNum(rowOu) : null;
+                        if (parsedInitialOu !== null && cleanRowMid && window._teamHistoryOuCache && !window._teamHistoryOuCache[cleanRowMid]) {
+                            window._teamHistoryOuCache[cleanRowMid] = String(rowOu).trim().replace(',', '.');
+                        }
+                        const effRowOu = parsedInitialOu !== null
+                            ? String(rowOu).trim().replace(',', '.')
+                            : ((cleanRowMid && window._teamHistoryOuCache?.[cleanRowMid]) ? window._teamHistoryOuCache[cleanRowMid] : '');
+                        const isRowOuUnavail = !effRowOu && Boolean(cleanRowMid && window._teamHistoryOuUnavailable?.[cleanRowMid]);
+                        const isRowOuLoading = !effRowOu && !isRowOuUnavail && Boolean(cleanRowMid);
+                        const rowOuLoadedAttr = (effRowOu || isRowOuUnavail || !cleanRowMid) ? '1' : '0';
+                        const renderOuFn = (typeof renderTeamHistoryOuCellHtml === 'function')
+                            ? renderTeamHistoryOuCellHtml
+                            : ((ou, sc, loading) => loading ? '<span class="th-ou-pill is-loading">···</span>' : (ou ? `<span class="th-ou-pill">${esc(ou)}</span>` : '<span class="text-muted" style="font-size:.62rem;">-</span>'));
+                        const rowOuCellHtml = renderOuFn(effRowOu, rowScore, isRowOuLoading);
+                        const mobileOuCellHtml = effRowOu ? renderOuFn(effRowOu, rowScore, false) : (isRowOuLoading ? renderOuFn('', rowScore, true) : '');
+
                         // 1. Fila de Escritorio (PC - 100% Idéntica)
                         tableRows.push(`<tr class="pre-context-row pre-context-result-${result}" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-ah-cover="${isAhCoverRow ? '1' : '0'}" data-ah-valid="${hasValidAh ? '1' : '0'}" data-obsolete="${isObsoleteRow ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" ${isRowHidden ? 'style="display:none;" hidden' : ''}>
                             <td class="ctx-date" title="${esc(rowDate)}"><span class="pre-context-date-content"><label class="pre-context-pick-cb-wrap" title="Seleccionar '${esc(rival)}' en el comparador de abajo"><input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')"></label>${venueBadge}<span>${esc(shortRowDate)}</span></span></td>
@@ -10966,14 +11028,15 @@
                                     </div>
                                 </div>
                             </td>
+                            <td class="ctx-ou" data-ou-mid="${esc(cleanRowMid)}" data-ou-score="${esc(rowScore)}" data-ou-loaded="${rowOuLoadedAttr}">${rowOuCellHtml}</td>
                             <td class="ctx-score">${esc(rowScore)}</td>
                             <td class="ctx-ah"${isAhCoverRow ? ' title="Supera el hándicap asiático"' : ''}>${esc(rowAh)}</td>
-                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
-                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
-                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
+                            <td class="ctx-stats"><button type="button" class="pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido (Ataques peligrosos, Tiros, Córners)"><i class="fa-solid fa-chart-simple me-1"></i>Stats</button></td>
+                            <td class="ctx-col3"><button type="button" class="pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3 debajo"><i class="fa-regular fa-eye me-1"></i>Col3</button></td>
+                            <td class="ctx-mov"><button type="button" class="pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo debajo"><i class="fa-solid fa-chart-line me-1"></i>Mov.</button></td>
                         </tr>
                         <tr class="pre-context-detail-row" data-venue-mode="${mode}" data-context-league="${esc(leagueId)}" data-context-result="${result}" data-context-ah="${esc(rowAh)}" data-same-ha="${isSameHa ? '1' : '0'}" data-ah-cover="${isAhCoverRow ? '1' : '0'}" data-ah-valid="${hasValidAh ? '1' : '0'}" data-obsolete="${isObsoleteRow ? '1' : '0'}" data-no-fav-lose="${isNoFavLoseRow ? '1' : '0'}" data-fav-cover="${isFavCoverRow ? '1' : '0'}" data-same-league="${sameLeague ? '1' : '0'}" style="display:none;" hidden>
-                            <td colspan="8" class="pre-context-detail-cell">
+                            <td colspan="9" class="pre-context-detail-cell">
                                 <div class="pre-context-detail-container">
                                     <div class="pre-context-detail-slot match-stats-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
                                     <div class="pre-context-detail-slot col3-slot" style="display:none;" onclick="closeDetailSlot(this, event)" title="Clic para cerrar / ocultar esta ficha"></div>
@@ -10997,7 +11060,7 @@
                                 </div>
                                 <div class="mm-meta-right">
                                     <span class="mm-ah-badge">AH ${esc(rowAh)}</span>
-                                    ${rowOu && rowOu !== '-' ? `<span class="mm-ou-badge" style="font-size:.62rem; font-weight:800; color:#166534; background:#f0fdf4; border:1px solid #bbf7d0; padding:1px 5px; border-radius:3px; margin-right:3px;">O/U ${esc(rowOu)}</span>` : ''}
+                                    <span class="mm-ou-slot" data-ou-mid="${esc(cleanRowMid)}" data-ou-score="${esc(rowScore)}" data-ou-loaded="${rowOuLoadedAttr}" style="margin-right:3px;">${mobileOuCellHtml}</span>
                                     <span class="mm-res-badge is-${result.toLowerCase()}" title="${result === 'W' ? 'Ganado' : (result === 'L' ? 'Perdido' : 'Empate')}">${resLetter}</span>
                                 </div>
                             </div>
@@ -11019,13 +11082,13 @@
                                     <input type="checkbox" class="pre-context-pick-checkbox" data-rival-name="${esc(rival)}" onchange="toggleRivalPickCheckbox(this, event, '${esc(role)}', '${esc(rival)}')">
                                     <span>Comp</span>
                                 </label>
-                                <button type="button" class="mm-btn mm-btn-stats pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido">
+                                <button type="button" class="mm-btn mm-btn-stats pre-context-stats-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-date="${esc(rowDate)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" data-league-id="${esc(leagueId)}" onclick="loadPreContextRowMatchStats(this, event)" title="Ver estadísticas de este partido">
                                     <i class="fa-solid fa-chart-simple me-1"></i>Stats
                                 </button>
-                                <button type="button" class="mm-btn mm-btn-col3 pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3">
+                                <button type="button" class="mm-btn mm-btn-col3 pre-context-col3-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-parent-home="${esc(current.home_name || pc?.home_name || currentHome)}" data-parent-away="${esc(current.away_name || pc?.away_name || currentAway)}" data-current-ah="${esc(parentCurrentAh)}" data-row-role="${esc(role)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-home-id="${esc(rowHomeId)}" data-row-away-id="${esc(rowAwayId)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" onclick="loadPreContextRowCol3(this, event)" title="Ver ficha H2H Col3">
                                     <i class="fa-regular fa-eye me-1"></i>Col3
                                 </button>
-                                <button type="button" class="mm-btn mm-btn-mov pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo">
+                                <button type="button" class="mm-btn mm-btn-mov pre-context-mov-btn" data-match-id="${esc(rowMatchId)}" data-parent-match-id="${esc(parentMatchId)}" data-current-ah="${esc(parentCurrentAh)}" data-row-date="${esc(rowDate)}" data-row-home="${esc(rowHome)}" data-row-away="${esc(rowAway)}" data-row-score="${esc(rowScore)}" data-row-ah="${esc(rowAh)}" data-row-ou="${esc(effRowOu || rowOu)}" onclick="loadPreContextRowMovHistorico(this, event)" title="Ver H2H histórico directo">
                                     <i class="fa-solid fa-chart-line me-1"></i>Mov.
                                 </button>
                                 <button type="button" class="mm-btn mm-btn-both pre-context-both-btn" onclick="togglePreContextRowBoth(this, event)" title="Desbloquear todas las fichas debajo">
@@ -11077,7 +11140,7 @@
                     <!-- Vista Escritorio (PC): Tabla completa intacta -->
                     <div class="pre-context-table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%;">
                         <table class="pre-context-table">
-                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
+                            <thead><tr><th class="ctx-date">Fecha</th><th class="ctx-league">Liga</th><th class="ctx-rival">Rival</th><th class="ctx-ou" title="Línea inicial de goles (Over/Under)">O/U</th><th class="ctx-score">Res</th><th class="ctx-ah">AH</th><th class="ctx-stats">Stats</th><th class="ctx-col3">H2H Col3</th><th class="ctx-mov">Mov. Histórico</th></tr></thead>
                             <tbody>${totalTableRows}</tbody>
                         </table>
                     </div>
