@@ -961,7 +961,7 @@
         }
         .cr-table {
             width: 100%;
-            min-width: 740px;
+            min-width: 860px;
             table-layout: fixed;
             border-collapse: collapse;
             margin: 0;
@@ -1082,11 +1082,44 @@
             min-width: 14px;
             font-variant-numeric: tabular-nums;
         }
-        .cr-team-grid {
+        .cr-match-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+        .cr-match-scoreboard {
             display: grid;
-            grid-template-columns: 54px 48px 1fr;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            min-width: 0;
+        }
+        .cr-match-team {
+            font-size: .72rem;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .cr-match-team.is-home-side {
+            text-align: right;
+        }
+        .cr-match-team.is-away-side {
+            text-align: left;
+        }
+        .cr-match-team.is-focus {
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .cr-match-sub {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            min-width: 0;
         }
         .cr-meta {
             display: inline-flex;
@@ -21529,18 +21562,26 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                     ? `<span class="cr-ah-chip ${chipClass}" title="${escapeTeamHistoryHtml(ahLabel)}"><span class="cr-ah-prefix">AH</span>${escapeTeamHistoryHtml(rawAh)}${icon ? ` <span>${icon}</span>` : ''}</span>`
                     : `<span class="text-muted" style="font-size:.72rem;">—</span>`;
 
-                const fullCellTitle = `${m.date || '-'} · ${m.home_team || ''} ${m.score || '-'} ${m.away_team || ''} · AH ${m.ah || '-'}${ahLabel && ahLabel !== '-' ? ' · ' + ahLabel : ''}`;
+                const homeTeamDisp = String(m.home_team || (isHome ? '' : (m.rival || '')) || '-').trim();
+                const awayTeamDisp = String(m.away_team || (!isHome ? '' : (m.rival || '')) || '-').trim();
+                const fullCellTitle = `${m.date || '-'} · ${homeTeamDisp} ${m.score || '-'} ${awayTeamDisp} · AH ${m.ah || '-'}${ahLabel && ahLabel !== '-' ? ' · ' + ahLabel : ''}`;
 
                 return `
                     <td class="cr-td-team" title="${escapeTeamHistoryHtml(fullCellTitle)}">
-                        <div class="cr-team-grid">
-                            <div class="cr-meta">
-                                <span class="cr-venue ${venueClass}" title="${venueTitle}">${venueChar}</span>
-                                <span class="cr-date">${escapeTeamHistoryHtml(fmtShortDate(m.date))}</span>
+                        <div class="cr-match-cell">
+                            <div class="cr-match-scoreboard">
+                                <span class="cr-match-team is-home-side ${isHome ? 'is-focus' : ''}" title="${escapeTeamHistoryHtml(homeTeamDisp)}">${escapeTeamHistoryHtml(homeTeamDisp)}</span>
+                                <span class="cr-score-pill ${wdlClass}">${escapeTeamHistoryHtml(m.score || '-')}</span>
+                                <span class="cr-match-team is-away-side ${!isHome ? 'is-focus' : ''}" title="${escapeTeamHistoryHtml(awayTeamDisp)}">${escapeTeamHistoryHtml(awayTeamDisp)}</span>
                             </div>
-                            <span class="cr-score-pill ${wdlClass}">${escapeTeamHistoryHtml(m.score || '-')}</span>
-                            <div class="cr-ah-wrap">
-                                ${ahChipHtml}
+                            <div class="cr-match-sub">
+                                <div class="cr-meta">
+                                    <span class="cr-venue ${venueClass}" title="${venueTitle}">${venueChar}</span>
+                                    <span class="cr-date">${escapeTeamHistoryHtml(fmtShortDate(m.date))}</span>
+                                </div>
+                                <div class="cr-ah-wrap">
+                                    ${ahChipHtml}
+                                </div>
                             </div>
                         </div>
                     </td>
@@ -21647,21 +21688,21 @@ Resumen: V ${wins} | E ${draws} | D ${losses}`;
                         <table class="cr-table">
                             <thead>
                                 <tr>
-                                    <th style="width:22%;">Rival común</th>
-                                    <th class="cr-th-left" style="width:26%;">
+                                    <th style="width:16%;">Rival común</th>
+                                    <th class="cr-th-left" style="width:31%;">
                                         <div class="cr-th-team-inner">
                                             <span class="cr-th-team-name" title="${escapeTeamHistoryHtml(leftName)}">${escapeTeamHistoryHtml(leftName)}${leftRolePill}</span>
                                             <span class="cr-cover-chip" title="Partidos en los que cubre hándicap">Cubre ${leftCover}/${leftTotal}</span>
                                         </div>
                                     </th>
-                                    <th class="cr-th-right" style="width:26%;">
+                                    <th class="cr-th-right" style="width:31%;">
                                         <div class="cr-th-team-inner">
                                             <span class="cr-th-team-name" title="${escapeTeamHistoryHtml(rightName)}">${escapeTeamHistoryHtml(rightName)}${rightRolePill}</span>
                                             <span class="cr-cover-chip" title="Partidos en los que cubre hándicap">Cubre ${rightCover}/${rightTotal}</span>
                                         </div>
                                     </th>
-                                    <th class="cr-th-col3" style="width:19%;">Col3 · ${escapeTeamHistoryHtml(subjectName)}</th>
-                                    <th class="cr-th-stats" style="width:7%;">Stats</th>
+                                    <th class="cr-th-col3" style="width:16%;">Col3 · ${escapeTeamHistoryHtml(subjectName)}</th>
+                                    <th class="cr-th-stats" style="width:6%;">Stats</th>
                                 </tr>
                             </thead>
                             <tbody>
